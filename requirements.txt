@@ -1,0 +1,9 @@
+yfinance
+fredapi
+hmmlearn
+scikit-learn
+pandas
+numpy
+matplotlib
+joblib
+arch
