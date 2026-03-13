@@ -1,78 +1,88 @@
 """
-Collects VIX (Yahoo), HY Spread + T10Y2Y (FRED), GARCH vol (SPY via arch),
-aligns to trading days, saves raw and scaled versions.
+Data collection: OHLCV from yfinance, macro series from FRED.
+Aligns everything to SPY's trading-day index and saves raw data.
 """
 
 import pandas as pd
 import numpy as np
 import yfinance as yf
 from fredapi import Fred
-from arch import arch_model
-from sklearn.preprocessing import StandardScaler
-import joblib
 import os
 
 from config import (
-    START_DATE, FRED_API_KEY, FEATURES,
-    LOG_FEATURES, YIELD_SPREAD_SHIFT, DATA_DIR, MODEL_DIR
+    START_DATE, END_DATE, FRED_API_KEY,
+    TICKERS, VIX_TICKER, FRED_SERIES, DATA_DIR,
 )
 
 
 def collect():
     os.makedirs(DATA_DIR, exist_ok=True)
-    os.makedirs(MODEL_DIR, exist_ok=True)
+
+    # --- Download OHLCV per ticker ---
+    print("Downloading OHLCV data...")
+    ohlcv = {}
+    for ticker in TICKERS:
+        df = yf.download(
+            ticker, start=START_DATE, end=END_DATE,
+            auto_adjust=True, progress=False,
+        )
+        # Ensure columns are plain strings (not MultiIndex)
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.droplevel(1)
+        ohlcv[ticker] = df
+        print(f"  {ticker}: {len(df)} rows")
 
     # --- VIX ---
-    vix = yf.download('^VIX', start=START_DATE, progress=False)['Close'].squeeze()
-    vix.name = 'vix'
+    print("Downloading VIX...")
+    vix_df = yf.download(VIX_TICKER, start=START_DATE, end=END_DATE, progress=False)
+    if isinstance(vix_df.columns, pd.MultiIndex):
+        vix_df.columns = vix_df.columns.droplevel(1)
+    vix_close = vix_df['Close'].squeeze()
 
-    # --- SPY (for GARCH vol) ---
-    spy = yf.download('SPY', start=START_DATE, progress=False)['Close'].squeeze()
-    spy_ret = np.log(spy).diff().dropna() * 100   # pct log-returns
-    am = arch_model(spy_ret, p=1, q=1, mean='Zero', vol='GARCH', dist='t')
-    res = am.fit(disp='off')
-    garch_vol = res.conditional_volatility
-    garch_vol.name = 'garch_vol'
-
-    # --- FRED -
+    # --- FRED ---
+    print("Downloading FRED data...")
     fred = Fred(api_key=FRED_API_KEY)
-    hy_spread    = fred.get_series('BAMLH0A0HYM2', observation_start=START_DATE)
-    yield_spread = fred.get_series('T10Y2Y',       observation_start=START_DATE)
-    hy_spread.name    = 'hy_spread'
-    yield_spread.name = 'yield_spread'
+    fred_data = {}
+    for series_id, col_name in FRED_SERIES.items():
+        fred_data[col_name] = fred.get_series(series_id, observation_start=START_DATE)
 
-    # --- Align to VIX trading-day index ---
-    market = pd.DataFrame({'vix': vix})
-    market['hy_spread']    = hy_spread.reindex(market.index,    method='ffill')
-    market['garch_vol']    = garch_vol.reindex(market.index,    method='ffill')
-    market['yield_spread'] = yield_spread.reindex(market.index, method='ffill')
-    market = market[FEATURES].dropna()
+    # --- Build aligned DataFrame on SPY trading days ---
+    ref_index = ohlcv['SPY'].index
+    if not isinstance(ref_index, pd.DatetimeIndex):
+        ref_index = pd.to_datetime(ref_index)
 
-    # --- Log-transform features ---
-    log_features = pd.DataFrame(index=market.index)
-    for feat in LOG_FEATURES:
-        log_features[f'log_{feat}'] = np.log(market[feat])
-    log_features['log_yield_spread'] = np.log(market['yield_spread'] + YIELD_SPREAD_SHIFT)
+    market = pd.DataFrame(index=ref_index)
 
-    # --- Scale ---
-    scaler = StandardScaler()
-    X = pd.DataFrame(
-        scaler.fit_transform(log_features),
-        columns=log_features.columns,
-        index=log_features.index
-    )
+    for ticker in TICKERS:
+        df = ohlcv[ticker]
+        for field in ['Close', 'High', 'Low', 'Open']:
+            series = df[field].squeeze()
+            market[f'{ticker}_{field.lower()}'] = series.reindex(ref_index, method='ffill')
+        if ticker == 'SPY':
+            vol_series = df['Volume'].squeeze()
+            market['SPY_volume'] = vol_series.reindex(ref_index, method='ffill')
 
-    market.to_csv(f'{DATA_DIR}/market_data.csv')
-    X.to_csv(f'{DATA_DIR}/features_scaled.csv')
-    joblib.dump(scaler, f'{MODEL_DIR}/scaler.pkl')
+    # VIX close
+    market['VIX'] = vix_close.reindex(ref_index, method='ffill')
 
-    print(f"Collected {len(market)} days | {market.index[0].date()} to {market.index[-1].date()}")
-    print(f"VIX: {market['vix'].min():.1f} - {market['vix'].max():.1f}")
-    print(f"HY Spread: {market['hy_spread'].min():.2f} - {market['hy_spread'].max():.2f}")
-    print(f"GARCH vol: {market['garch_vol'].min():.2f} - {market['garch_vol'].max():.2f}")
-    print(f"Yield spread (T10Y2Y): {market['yield_spread'].min():.2f} - {market['yield_spread'].max():.2f}")
+    # FRED (forward-fill to trading days)
+    for col_name, series in fred_data.items():
+        market[col_name] = series.reindex(ref_index, method='ffill')
 
-    return market, X
+    market = market.dropna()
+
+    # --- Save ---
+    market.to_csv(os.path.join(DATA_DIR, 'market_data.csv'))
+
+    print(f"\nCollected {len(market)} trading days  "
+          f"{market.index[0].date()} -> {market.index[-1].date()}")
+    print(f"  Tickers : {TICKERS}")
+    print(f"  VIX     : {market['VIX'].min():.1f} - {market['VIX'].max():.1f}")
+    for col in FRED_SERIES.values():
+        if col in market.columns:
+            print(f"  {col:10s}: {market[col].min():.2f} - {market[col].max():.2f}")
+
+    return market
 
 
 if __name__ == '__main__':
