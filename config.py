@@ -30,6 +30,7 @@ LONG_WINDOW  = 63       # ~1 quarter
 PCA_MAX_COMPONENTS = 5
 PCA_VAR_THRESHOLD  = 0.85   # cumulative variance for auto-selection
 PCA_ROLLING_WINDOW = 63     # rolling window for PCA (~3 months)
+VIX_BYPASS         = True   # append scaled VIX directly to PCs (bypasses PCA dilution)
 
 # --- HMM ---
 N_STATES_RANGE = [2, 3, 4]       # BIC search grid

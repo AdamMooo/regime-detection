@@ -34,7 +34,7 @@ from statsmodels.tsa.statespace.mlemodel import MLEModel
 from config import (
     RANDOM_SEED, N_STATES, N_STATES_RANGE, COV_TYPE, T_DF,
     N_SEEDS, HMM_ITER, PCA_MAX_COMPONENTS, PCA_VAR_THRESHOLD,
-    PCA_ROLLING_WINDOW,
+    PCA_ROLLING_WINDOW, VIX_BYPASS,
     GARCH_P, GARCH_Q, GARCH_DIST, MIN_REGIME_OBS, REGIME_HOLD_DAYS,
     WALK_FORWARD_TRAIN_YEARS, WALK_FORWARD_STEP_DAYS, VAR_ALPHA,
     REGIME_NAMES, DATA_DIR, MODEL_DIR, FIGURE_DIR, TICKERS,
@@ -550,6 +550,14 @@ def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE):
         pc_train = pca_wf.transform(X_train)
         pc_test  = pca_wf.transform(X_test)
 
+        # VIX bypass: append scaled VIX directly to PCs
+        if VIX_BYPASS:
+            vix_train = market['VIX'].reindex(train_feats.index).values
+            vix_test  = market['VIX'].reindex(test_feats.index).values
+            v_mean, v_std = vix_train.mean(), vix_train.std()
+            pc_train = np.hstack([pc_train, ((vix_train - v_mean) / v_std).reshape(-1, 1)])
+            pc_test  = np.hstack([pc_test,  ((vix_test  - v_mean) / v_std).reshape(-1, 1)])
+
         # HMM (fit on train PCs, pick best seed)
         best_m, best_ll = None, -np.inf
         for seed in range(5):
@@ -937,6 +945,14 @@ def train():
     market_v       = market.loc[valid_dates]
     spy_ret_5d_v   = spy_ret_5d.loc[valid_dates]
     spy_daily_ret_v = spy_daily_ret.loc[valid_dates]
+
+    # ── VIX bypass: append scaled VIX directly to PCs ─────────────
+    if VIX_BYPASS:
+        vix_valid = market_v['VIX'].values
+        vix_mean, vix_std = vix_valid.mean(), vix_valid.std()
+        vix_scaled = ((vix_valid - vix_mean) / vix_std).reshape(-1, 1)
+        pcs = np.hstack([pcs, vix_scaled])
+        print(f"  VIX bypass: appended scaled VIX as dim {pcs.shape[1]}")
 
     # ── 2. BIC state selection ─────────────────────────────────────
     best_k, bic_model, bic_df = select_states_bic(pcs)
