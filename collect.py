@@ -11,7 +11,8 @@ import os
 
 from config import (
     START_DATE, END_DATE, FRED_API_KEY,
-    TICKERS, VIX_TICKER, FRED_SERIES, DATA_DIR,
+    TICKERS, VIX_TICKER, VIX3M_TICKER, VVIX_TICKER,
+    FRED_SERIES, DATA_DIR,
 )
 
 
@@ -26,18 +27,30 @@ def collect():
             ticker, start=START_DATE, end=END_DATE,
             auto_adjust=True, progress=False,
         )
+        assert df is not None, f"yf.download returned None for {ticker}"
         # Ensure columns are plain strings (not MultiIndex)
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.droplevel(1)
         ohlcv[ticker] = df
         print(f"  {ticker}: {len(df)} rows")
 
-    # --- VIX ---
-    print("Downloading VIX...")
-    vix_df = yf.download(VIX_TICKER, start=START_DATE, end=END_DATE, progress=False)
-    if isinstance(vix_df.columns, pd.MultiIndex):
-        vix_df.columns = vix_df.columns.droplevel(1)
-    vix_close = vix_df['Close'].squeeze()
+    # --- VIX / VIX3M / VVIX ---
+    print("Downloading VIX family...")
+    vol_tickers = {
+        'VIX':   VIX_TICKER,
+        'VIX3M': VIX3M_TICKER,
+        'VVIX':  VVIX_TICKER,
+    }
+    vol_series: dict[str, pd.Series] = {}
+    for label, sym in vol_tickers.items():
+        raw = yf.download(sym, start=START_DATE, end=END_DATE, progress=False)
+        if raw is None or raw.empty:
+            print(f"  {label} ({sym}): not available, skipping")
+            continue
+        if isinstance(raw.columns, pd.MultiIndex):
+            raw.columns = raw.columns.droplevel(1)
+        vol_series[label] = pd.Series(raw['Close'].squeeze())
+        print(f"  {label}: {len(raw)} rows")
 
     # --- FRED ---
     print("Downloading FRED data...")
@@ -59,11 +72,12 @@ def collect():
             series = df[field].squeeze()
             market[f'{ticker}_{field.lower()}'] = series.reindex(ref_index, method='ffill')
         if ticker == 'SPY':
-            vol_series = df['Volume'].squeeze()
-            market['SPY_volume'] = vol_series.reindex(ref_index, method='ffill')
+            spy_vol = pd.Series(df['Volume'].squeeze())
+            market['SPY_volume'] = spy_vol.reindex(ref_index, method='ffill')
 
-    # VIX close
-    market['VIX'] = vix_close.reindex(ref_index, method='ffill')
+    # VIX family (VIX, VIX3M, VVIX)
+    for label, s in vol_series.items():
+        market[label] = pd.Series(s).reindex(ref_index, method='ffill')
 
     # FRED (forward-fill to trading days)
     for col_name, series in fred_data.items():
