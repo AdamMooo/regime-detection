@@ -1,12 +1,12 @@
 """
 Feature engineering for PCA -> HMM -> SV pipeline.
 
-Curated feature set (v2): 14 features spanning distinct regime dimensions.
+Curated feature set (v3): 13 features spanning distinct regime dimensions.
 No redundant vol copies, no noisy micro-signals. Each feature represents
 one independent axis of the market's risk regime.
 
 Feature groups:
-  - Volatility state    (SPY_rv20, VIX, VRP)
+  - Volatility state    (VIX, VRP)
   - Vol dynamics        (rv_ratio_10_63, vix_ts_slope)
   - Cross-asset risk    (SPY_TLT_corr63, credit_stress, hy_spread)
   - Macro               (yield_slope)
@@ -57,7 +57,6 @@ def _garman_klass_vol(
 # The 14 features we actually want, in order.
 CURATED_FEATURES = [
     # Volatility state
-    'SPY_rv20',          # realized vol (20d, industry standard window)
     'VIX',               # implied vol (market forward expectation)
     'VRP',               # vol risk premium (implied - realized gap)
     # Vol dynamics
@@ -107,15 +106,15 @@ def build_features(market: pd.DataFrame) -> pd.DataFrame:
     # ── Volatility state ───────────────────────────────────────────
     if spy_ret is not None:
         rv10 = _realized_vol(spy_ret, SHORT_WINDOW)
-        f['SPY_rv20'] = _realized_vol(spy_ret, MED_WINDOW)
+        rv20 = _realized_vol(spy_ret, MED_WINDOW)
         rv63 = _realized_vol(spy_ret, LONG_WINDOW)
 
     if 'VIX' in market.columns:
         f['VIX'] = market['VIX']
 
     # VRP: VIX - realized vol (20d) in vol points
-    if 'VIX' in market.columns and 'SPY_rv20' in f.columns:
-        f['VRP'] = market['VIX'] - f['SPY_rv20'] * 100
+    if 'VIX' in market.columns and spy_ret is not None:
+        f['VRP'] = market['VIX'] - rv20 * 100
 
     # ── Vol dynamics ───────────────────────────────────────────────
     if spy_ret is not None:
@@ -198,7 +197,7 @@ def build_features(market: pd.DataFrame) -> pd.DataFrame:
 # the right tail so PCA doesn't over-weight crisis outliers and the
 # symmetric Student-t emissions fit each regime more cleanly.
 _LOG_TRANSFORM_COLS = {
-    'SPY_rv20', 'VIX', 'rv_ratio_10_63',
+    'VIX', 'rv_ratio_10_63',
     'hy_spread', 'eigen_conc',
 }
 
