@@ -1593,12 +1593,14 @@ def _build_current_state(probs, labels, name_map, dates, market,
     else:
         vix_interp = 'N/A'
 
-    # Top exit destinations
+    # Top exit destinations — conditional on leaving (normalize off-diagonal)
     exit_info = []
     if trans is not None:
+        off_diag_sum = 1.0 - trans[cur_idx, cur_idx]
         for j in range(K):
             if j != cur_idx:
-                exit_info.append((trans[cur_idx, j], regime_names[j]))
+                cond_prob = trans[cur_idx, j] / off_diag_sum if off_diag_sum > 1e-9 else 0.0
+                exit_info.append((cond_prob, regime_names[j]))
         exit_info.sort(reverse=True)
 
     # SV vol info
