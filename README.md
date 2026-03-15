@@ -2,7 +2,7 @@
 
 **Bayesian HDP-HMM Market Regime Detection with Stochastic Volatility**
 
-A quantitative research pipeline that automatically discovers market regimes using a Hierarchical Dirichlet Process Hidden Markov Model (HDP-HMM) with sticky transitions and Student-t emissions. The system extracts 39 engineered features from multi-asset market data, applies rolling PCA for dimensionality reduction, fits a Bayesian nonparametric regime model via variational inference, and estimates regime-dependent stochastic volatility dynamics.
+A quantitative research pipeline that automatically discovers market regimes using a Hierarchical Dirichlet Process Hidden Markov Model (HDP-HMM) with sticky transitions and Student-t emissions. The system extracts 13 curated features from multi-asset market data, applies rolling PCA for dimensionality reduction, fits a Bayesian nonparametric regime model via variational inference, and estimates regime-dependent stochastic volatility dynamics.
 
 ---
 
@@ -11,8 +11,8 @@ A quantitative research pipeline that automatically discovers market regimes usi
 ```
 collect.py          features.py           train.py              train.py
 ┌──────────┐       ┌──────────────┐      ┌───────────────┐     ┌──────────────┐
-│  Yahoo   │──────>│ 39 Features  │─────>│  Rolling PCA  │────>│  HDP-HMM     │
-│  Finance │       │  Engineering │      │  (Procrustes  │     │  (NumPyro    │
+│  Yahoo   │──────>│ 13 Curated   │─────>│  Rolling PCA  │────>│  HDP-HMM     │
+│  Finance │       │  Features    │      │  (Procrustes  │     │  (NumPyro    │
 │  + FRED  │       │  + Scaling   │      │   aligned)    │     │   SVI/NUTS)  │
 └──────────┘       └──────────────┘      └───────────────┘     └──────┬───────┘
                                                                       │
@@ -35,38 +35,41 @@ collect.py          features.py           train.py              train.py
 - **Bayesian nonparametric regime discovery** — HDP-HMM with stick-breaking prior automatically determines the number of market regimes (no manual K selection)
 - **Sticky transitions** — Dirichlet-weighted self-transition bias prevents spurious regime switching
 - **Student-t emissions** — Heavy-tailed observation model captures market fat tails
-- **39 engineered features** spanning volatility surfaces, yield curve dynamics, cross-asset correlations, liquidity stress, and stochastic volatility inputs
+- **13 curated features** spanning volatility state, vol dynamics, cross-asset risk, macro, return dynamics, market structure, and leverage/fragility — hand-picked to minimize multicollinearity (max |r| < 0.85, VIF-validated)
 - **Rolling PCA with Procrustes alignment** — Dimensionality reduction that maintains temporal consistency across windows
-- **VIX bypass** — Scaled VIX appended directly to PCs to prevent information loss in PCA compression
 - **Regime-dependent stochastic volatility** — Linearized SV (Harvey 1994) and GARCH(1,1) per regime
 - **Walk-forward validation** — Out-of-sample regime prediction with configurable rolling/expanding windows
 - **95% VaR backtesting** — Per-regime Value-at-Risk with exceedance ratio evaluation
-- **Interactive Plotly dashboard** — Single self-contained HTML file with 5 tabbed panels
+- **Interactive Plotly dashboard** — Single self-contained HTML file with 7 tabbed panels
+- **CLI regime awareness** — Terminal command showing current regime, distribution profile, and model validation
 
 
-## Feature Engineering (39 indicators)
+## Feature Engineering (13 curated indicators)
 
-| Category | Features |
-|----------|----------|
-| **Daily Returns** | SPY, QQQ, IWM, EEM, TLT, HYG, GLD log returns |
-| **Realized Volatility** | 10d, 20d, 63d rolling std; Parkinson; Garman-Klass; RV ratio |
-| **Implied Volatility** | VIX, VVIX, VVIX/VIX ratio, VIX term structure slope, VRP |
-| **Yield Curve / Macro** | 10Y-2Y slope, slope change, HY spread, TED spread |
-| **Cross-Asset** | Credit stress, SPY-TLT correlation, IWM/SPY relative, gold flow, EM-DM spread, dispersion, eigenvalue concentration |
-| **Return Dynamics** | Rolling skewness, first-order autocorrelation |
-| **Liquidity** | Relative volume, volume-adjusted returns |
-| **SV-Specific** | Lagged RV (5d, 10d), vol-of-vol, leverage effect proxy |
+| Category | Features | Description |
+|----------|----------|-------------|
+| **Volatility State** | VIX, VRP | Implied vol, vol risk premium (VIX − RV20) |
+| **Vol Dynamics** | rv_ratio_10_63, vix_ts_slope | Short/long RV ratio, VIX term structure |
+| **Cross-Asset Risk** | SPY_TLT_corr63, credit_stress, hy_spread | Stock-bond correlation, HY flow, credit spread |
+| **Macro** | yield_slope | 10Y−2Y yield curve slope |
+| **Return Dynamics** | SPY_ret, SPY_skew20 | Daily log return, rolling skewness |
+| **Market Structure** | eigen_conc, SPY_dd63 | Eigenvalue concentration, 63d drawdown |
+| **Leverage / Fragility** | lev_effect20 | Return-volatility correlation |
+
+Features are log-transformed where right-skewed (VIX, rv_ratio, hy_spread, eigen_conc), then z-score standardized.
 
 
 ## Dashboard
 
-The pipeline outputs a single `figures/dashboard.html` with 5 interactive tabs:
+The pipeline outputs a single `figures/dashboard.html` with 7 interactive tabs:
 
 1. **Timeline** — SPY price with regime shading (in-sample + out-of-sample), VIX overlay, market-mode ratio
 2. **SV Volatility** — Latent stochastic volatility vs VIX; per-regime SV parameter comparison (φ, σ_η)
-3. **KDE Surfaces** — PCA eigenvector loadings heatmap, per-regime density contour panels, combined 3D surface
+3. **KDE Surfaces** — PCA eigenvector loadings, per-regime density contour panels, combined 3D surface
 4. **Transitions** — Sankey flow diagram, transition probability matrix heatmap, regime statistics table
-5. **Current State** — Live market context panel, probabilistic regime outlook, duration analysis, transition risk assessment
+5. **Current State** — Live market context panel, probabilistic regime outlook, duration analysis, conditional transition risk
+6. **Regime Awareness** — Distribution profile (VaR, CVaR, skew, kurtosis), vol context, model validation checks (Kruskal-Wallis, vol ordering, VaR backtest)
+7. **Feature Health** — Correlation heatmap, VIF / skew / kurtosis PASS/FAIL table, PCA loadings, summary scorecard
 
 
 ## Quickstart
@@ -104,8 +107,10 @@ python run.py
 # Individual steps
 python run.py collect     # download market data
 python run.py features    # build + scale features
-python run.py analyze     # feature diagnostics
+python run.py analyze     # feature diagnostics (figures/feature_analysis.html)
 python run.py train       # PCA → HDP-HMM → SV → dashboard
+python run.py dashboard   # rebuild dashboard from saved model (no retraining)
+python run.py regime      # current regime awareness (CLI)
 ```
 
 The interactive dashboard will be saved to `figures/dashboard.html`.
@@ -121,7 +126,6 @@ All parameters are centralized in `config.py`:
 | `TICKERS` | SPY, QQQ, IWM, EEM, TLT, HYG, GLD | Equity/bond/commodity universe |
 | `PCA_ROLLING_WINDOW` | 63 | Rolling PCA window (~1 quarter) |
 | `PCA_VAR_THRESHOLD` | 0.85 | Cumulative variance for component selection |
-| `VIX_BYPASS` | True | Append VIX directly to PCs |
 | `USE_HDP` | True | Bayesian HDP-HMM vs classic fixed-K HMM |
 | `HDP_TRUNCATION` | 10 | Max states for stick-breaking |
 | `HDP_KAPPA` | 10.0 | Sticky self-transition weight |
@@ -135,9 +139,10 @@ All parameters are centralized in `config.py`:
 ```
 ├── config.py        # All hyperparameters & paths
 ├── collect.py       # Data download (yfinance + FRED)
-├── features.py      # 39-feature engineering + scaling
+├── features.py      # 13-feature engineering + scaling
 ├── hdp_hmm.py       # Bayesian HDP-HMM (NumPyro/JAX)
 ├── train.py         # PCA, HMM fitting, SV, GARCH, dashboard
+├── signals.py       # Regime awareness & validation metrics
 ├── analyze.py       # Feature diagnostics
 ├── run.py           # CLI entry point
 ├── requirements.txt # Pinned dependencies
