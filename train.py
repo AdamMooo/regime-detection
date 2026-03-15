@@ -993,7 +993,7 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
                                 market, sv_results, model, garch_results,
                                 mode_ratio, oos_labels=None, oos_name_map=None,
                                 oos_market=None, pca_model=None, bic_df=None,
-                                feature_names=None):
+                                feature_names=None, features_df=None):
     """
     Single interactive HTML dashboard:
       1. Timeline  (IS SPY+VIX + OOS SPY+VIX + Market Mode — one scroll)
@@ -1143,6 +1143,11 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
     fig_signals = _build_signals_tab(results_df, model, name_map,
                                      colors, ordered, regime_names)
 
+    # ── Tab 7: Feature Health ──────────────────────────────────────
+    fig_health = None
+    if features_df is not None:
+        fig_health = _build_feature_health_tab(features_df, pcs, pca_model)
+
     tabs = [
         ('Timeline', fig_tl),
         ('SV Volatility', fig_sv),
@@ -1151,6 +1156,8 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
         ('Current State', fig_current),
         ('Regime Awareness', fig_signals),
     ]
+    if fig_health is not None:
+        tabs.append(('Feature Health', fig_health))
 
     _write_dashboard_html(tabs)
 
@@ -2125,6 +2132,205 @@ def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
     return fig
 
 
+    fig.update_layout(
+        template='plotly_dark',
+        paper_bgcolor='#0d1117', plot_bgcolor='#161b22',
+        height=1400, margin=dict(l=30, r=30, t=50, b=30),
+        showlegend=False,
+    )
+    return fig
+
+
+# ===================================================================
+# Tab 7: Feature Health
+# ===================================================================
+
+def _build_feature_health_tab(features_df, pcs, pca_model):
+    """
+    Feature Health diagnostics: correlation matrix, VIF, skew/kurtosis,
+    PCA loadings. Validates that the feature set is clean.
+    """
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    cols = list(features_df.columns)
+    n_feat = len(cols)
+
+    # ── Correlation matrix ─────────────────────────────────────────
+    corr = features_df.corr()
+    max_offdiag = 0.0
+    for i in range(n_feat):
+        for j in range(i + 1, n_feat):
+            max_offdiag = max(max_offdiag, abs(corr.iloc[i, j]))
+
+    fig = make_subplots(
+        rows=3, cols=2,
+        specs=[
+            [{'type': 'heatmap', 'colspan': 2}, None],
+            [{'type': 'table'}, {'type': 'table'}],
+            [{'type': 'table', 'colspan': 2}, None],
+        ],
+        row_heights=[0.50, 0.25, 0.25],
+        vertical_spacing=0.06,
+        subplot_titles=[
+            f'Feature Correlation Matrix (max |r| = {max_offdiag:.2f})',
+            'Feature Quality (Skew / Kurtosis / VIF)',
+            'PCA Loadings (top 3 components)',
+            'Feature Health Summary',
+        ],
+    )
+
+    # Heatmap
+    fig.add_trace(go.Heatmap(
+        z=corr.values, x=cols, y=cols,
+        colorscale='RdBu_r', zmid=0, zmin=-1, zmax=1,
+        text=np.round(corr.values, 2),
+        texttemplate='%{text}',
+        textfont=dict(size=8),
+        hovertemplate='%{x} vs %{y}: %{z:.3f}<extra></extra>',
+        showscale=True,
+    ), row=1, col=1)
+
+    # ── VIF + Skew/Kurtosis table ──────────────────────────────────
+    from sklearn.linear_model import LinearRegression
+
+    skews = features_df.skew()
+    kurts = features_df.kurtosis()
+
+    # VIF: for each feature, R² from regressing it on all others
+    X = features_df.values
+    vifs = []
+    for i in range(n_feat):
+        others = np.delete(X, i, axis=1)
+        y = X[:, i]
+        mask = ~(np.isnan(others).any(axis=1) | np.isnan(y))
+        if mask.sum() < 10:
+            vifs.append(float('inf'))
+            continue
+        reg = LinearRegression().fit(others[mask], y[mask])
+        r2 = reg.score(others[mask], y[mask])
+        vifs.append(1 / (1 - r2) if r2 < 1 else float('inf'))
+
+    # Status columns
+    skew_status = ['PASS' if abs(s) < 2.0 else 'WARN' if abs(s) < 3.0 else 'FAIL' for s in skews]
+    kurt_status = ['PASS' if abs(k) < 7.0 else 'WARN' if abs(k) < 10.0 else 'FAIL' for k in kurts]
+    vif_status = ['PASS' if v < 5.0 else 'WARN' if v < 10.0 else 'FAIL' for v in vifs]
+
+    # Color cells
+    def _status_color(statuses):
+        return ['#1a4d1a' if s == 'PASS' else '#4d3d1a' if s == 'WARN' else '#4d1a1a' for s in statuses]
+
+    fig.add_trace(go.Table(
+        header=dict(
+            values=['Feature', 'Skew', '', 'Kurtosis', '', 'VIF', ''],
+            fill_color='#21262d', font=dict(color='#c9d1d9', size=10),
+            align='left',
+        ),
+        cells=dict(
+            values=[
+                cols,
+                [f'{s:.2f}' for s in skews], skew_status,
+                [f'{k:.1f}' for k in kurts], kurt_status,
+                [f'{v:.1f}' for v in vifs], vif_status,
+            ],
+            fill_color=[
+                ['#0d1117'] * n_feat,
+                ['#0d1117'] * n_feat, _status_color(skew_status),
+                ['#0d1117'] * n_feat, _status_color(kurt_status),
+                ['#0d1117'] * n_feat, _status_color(vif_status),
+            ],
+            font=dict(color='#c9d1d9', size=9),
+            align='left',
+        ),
+    ), row=2, col=1)
+
+    # ── PCA loadings table ─────────────────────────────────────────
+    if pca_model is not None and hasattr(pca_model, 'components_'):
+        n_show = min(3, pca_model.components_.shape[0])
+        var_ratios = pca_model.explained_variance_ratio_[:n_show]
+        # Loadings: components_ has shape (n_components, n_features)
+        # We need to map to our feature names
+        n_pca_feats = pca_model.components_.shape[1]
+        if n_pca_feats == n_feat:
+            loadings = pca_model.components_[:n_show]
+            header_vals = ['Feature'] + [
+                f'PC{i+1} ({var_ratios[i]:.1%})' for i in range(n_show)
+            ]
+            cell_vals = [cols] + [
+                [f'{loadings[i, j]:.3f}' for j in range(n_feat)]
+                for i in range(n_show)
+            ]
+        else:
+            header_vals = ['Info']
+            cell_vals = [[f'PCA has {n_pca_feats} inputs vs {n_feat} features — mismatch']]
+    else:
+        header_vals = ['Info']
+        cell_vals = [['PCA model not available']]
+
+    fig.add_trace(go.Table(
+        header=dict(
+            values=header_vals,
+            fill_color='#21262d', font=dict(color='#c9d1d9', size=10),
+            align='left',
+        ),
+        cells=dict(
+            values=cell_vals,
+            fill_color='#0d1117', font=dict(color='#c9d1d9', size=9),
+            align='left',
+        ),
+    ), row=2, col=2)
+
+    # ── Summary table ──────────────────────────────────────────────
+    n_corr_high = sum(
+        1 for i in range(n_feat) for j in range(i+1, n_feat)
+        if abs(corr.iloc[i, j]) > 0.85
+    )
+    n_vif_high = sum(1 for v in vifs if v >= 5.0)
+    n_skew_bad = sum(1 for s in skews if abs(s) >= 2.0)
+    n_kurt_bad = sum(1 for k in kurts if abs(k) >= 7.0)
+
+    checks = [
+        ('Feature count', str(n_feat), 'PASS' if 10 <= n_feat <= 20 else 'WARN'),
+        ('Observations', str(len(features_df)), 'PASS' if len(features_df) > 2000 else 'WARN'),
+        ('Correlated pairs (|r| > 0.85)', str(n_corr_high), 'PASS' if n_corr_high == 0 else 'FAIL'),
+        ('Max |correlation|', f'{max_offdiag:.2f}', 'PASS' if max_offdiag < 0.85 else 'FAIL'),
+        ('High VIF features (≥ 5)', str(n_vif_high), 'PASS' if n_vif_high == 0 else 'WARN'),
+        ('High skew features (|s| ≥ 2)', str(n_skew_bad), 'PASS' if n_skew_bad == 0 else 'WARN'),
+        ('High kurtosis features (|k| ≥ 7)', str(n_kurt_bad), 'PASS' if n_kurt_bad == 0 else 'WARN'),
+    ]
+
+    fig.add_trace(go.Table(
+        header=dict(
+            values=['Check', 'Value', 'Status'],
+            fill_color='#21262d', font=dict(color='#c9d1d9', size=11),
+            align='left',
+        ),
+        cells=dict(
+            values=[
+                [c[0] for c in checks],
+                [c[1] for c in checks],
+                [c[2] for c in checks],
+            ],
+            fill_color=[
+                ['#0d1117'] * len(checks),
+                ['#0d1117'] * len(checks),
+                _status_color([c[2] for c in checks]),
+            ],
+            font=dict(color='#c9d1d9', size=10),
+            align='left',
+        ),
+    ), row=3, col=1)
+
+    fig.update_layout(
+        template='plotly_dark',
+        paper_bgcolor='#0d1117', plot_bgcolor='#161b22',
+        height=max(900, 20 * n_feat + 700),
+        margin=dict(l=30, r=30, t=50, b=30),
+        showlegend=False,
+    )
+    return fig
+
+
 def _write_dashboard_html(tabs):
     """Write all figures into a single tabbed HTML dashboard."""
     import plotly.io as pio
@@ -2447,6 +2653,7 @@ def train():
         oos_market=oos_mkt,
         pca_model=last_pca, bic_df=bic_df,
         feature_names=list(feat_scaled.columns),
+        features_df=feat_scaled,
     )
 
     # ── Summary ───────────────────────────────────────────────────
@@ -2520,7 +2727,7 @@ def rebuild_dashboard():
     # ── Re-run rolling PCA (needed for KDE surface tab) ───────────
     X_scaled = feat_scaled.loc[valid_dates].values if valid_dates[0] in feat_scaled.index else feat_scaled.values
     market_aligned = market.loc[feat_scaled.index]
-    pcs, mr, valid_mask, n_pca, _ = fit_rolling_pca(feat_scaled.values)
+    pcs, mr, valid_mask, n_pca, last_pca = fit_rolling_pca(feat_scaled.values)
 
     # Trim to valid dates (same alignment as train)
     pca_valid_dates = feat_scaled.index[valid_mask]
@@ -2571,5 +2778,6 @@ def rebuild_dashboard():
         oos_labels=None, oos_name_map=None, oos_market=None,
         pca_model=last_pca, bic_df=bic_df,
         feature_names=list(feat_scaled.columns),
+        features_df=feat_scaled,
     )
     print("Dashboard rebuilt → figures/dashboard.html")
