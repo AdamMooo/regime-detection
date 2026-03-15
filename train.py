@@ -45,6 +45,7 @@ from config import (
     REGIME_NAMES, DATA_DIR, MODEL_DIR, FIGURE_DIR, TICKERS,
 )
 from features import build_features, standardize
+from signals import compute_signals
 
 # Suppress noisy warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -1133,12 +1134,22 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
                                        market, colors, ordered, regime_names,
                                        model=model, sv_results=sv_results)
 
+    # ── Tab 6: Regime Awareness ──────────────────────────────────
+    results_df = market.copy()
+    results_df['regime'] = labels
+    results_df['regime_name'] = [name_map[l] for l in labels]
+    for r_key in ordered:
+        results_df[f'prob_{name_map[r_key]}'] = probs[:, r_key]
+    fig_signals = _build_signals_tab(results_df, model, name_map,
+                                     colors, ordered, regime_names)
+
     tabs = [
         ('Timeline', fig_tl),
         ('SV Volatility', fig_sv),
         ('KDE Surfaces', fig_kde),
         ('Transitions', fig_trans),
         ('Current State', fig_current),
+        ('Regime Awareness', fig_signals),
     ]
 
     _write_dashboard_html(tabs)
@@ -1866,6 +1877,254 @@ def _build_sv_volatility(dates, sv_results, labels, name_map,
     return fig
 
 
+def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
+    """Regime Awareness tab: distributions, validation, vol context."""
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    sigs = compute_signals(results, model, name_map)
+    aw = sigs['awareness']
+    dists = sigs['distributions']
+    trans = sigs['transitions']
+    vol_ctx = sigs['vol_context']
+    val = sigs['validation']
+    current = aw['current_regime']
+    date_str = sigs['date']
+
+    fig = make_subplots(
+        rows=4, cols=2,
+        specs=[
+            [{'type': 'table', 'colspan': 2}, None],
+            [{'type': 'table'}, {'type': 'table'}],
+            [{'type': 'table', 'colspan': 2}, None],
+            [{'type': 'table', 'colspan': 2}, None],
+        ],
+        row_heights=[0.18, 0.32, 0.25, 0.25],
+        vertical_spacing=0.04,
+        subplot_titles=[
+            f'Regime Awareness — {current} ({date_str})',
+            'Distribution Profile per Regime (SPY daily)',
+            'Vol Context',
+            'Transition Probabilities',
+            'Model Validation — Is This Real?',
+        ],
+    )
+
+    # ── Row 1: Regime awareness summary ───────────────────────────
+    conf_pct = f"{aw['confidence']:.0%}"
+    summary_labels = [
+        'Current Regime', 'Confidence', 'Days in Regime',
+        'Median Duration (this regime)', 'VIX', 'VRP',
+    ]
+    summary_values = [
+        current,
+        conf_pct,
+        str(aw['days_in_regime']),
+        f"{aw['median_duration']:.0f} days",
+        f"{vol_ctx['vix']:.1f}" if vol_ctx['vix'] else 'N/A',
+        f"{vol_ctx['vrp']:+.1f}" if vol_ctx['vrp'] else 'N/A',
+    ]
+
+    # Color-code confidence
+    conf = aw['confidence']
+    conf_color = '#7ee787' if conf > 0.7 else '#f0883e' if conf > 0.4 else '#f85149'
+
+    val_colors = ['#0d1117'] * len(summary_labels)
+    val_colors[1] = conf_color  # confidence cell
+
+    fig.add_trace(go.Table(
+        header=dict(
+            values=['Metric', 'Value'],
+            fill_color='#21262d', font=dict(color='#c9d1d9', size=12),
+            align='left',
+        ),
+        cells=dict(
+            values=[summary_labels, summary_values],
+            fill_color=[['#0d1117'] * len(summary_labels), val_colors],
+            font=dict(color='#c9d1d9', size=11),
+            align='left', height=25,
+        ),
+    ), row=1, col=1)
+
+    # ── Row 2 Left: Distribution table ────────────────────────────
+    regimes_list = list(dists.index)
+    dist_regime = regimes_list
+    dist_vol = [f"{dists.loc[r, 'ann_vol']*100:.1f}%"
+                if not np.isnan(dists.loc[r, 'ann_vol']) else '—' for r in regimes_list]
+    dist_skew = [f"{dists.loc[r, 'skew']:.2f}"
+                 if not np.isnan(dists.loc[r, 'skew']) else '—' for r in regimes_list]
+    dist_kurt = [f"{dists.loc[r, 'kurtosis']:.1f}"
+                 if not np.isnan(dists.loc[r, 'kurtosis']) else '—' for r in regimes_list]
+    dist_var5 = [f"{dists.loc[r, 'var_5']*100:.2f}%"
+                 if not np.isnan(dists.loc[r, 'var_5']) else '—' for r in regimes_list]
+    dist_cvar5 = [f"{dists.loc[r, 'cvar_5']*100:.2f}%"
+                  if not np.isnan(dists.loc[r, 'cvar_5']) else '—' for r in regimes_list]
+    dist_dd = [f"{dists.loc[r, 'max_dd']*100:.1f}%"
+               if not np.isnan(dists.loc[r, 'max_dd']) else '—' for r in regimes_list]
+    dist_days = [f"{int(dists.loc[r, 'n_days'])}" for r in regimes_list]
+    dist_normal = []
+    for r in regimes_list:
+        val_n = dists.loc[r, 'is_normal']
+        if val_n is True:
+            dist_normal.append('Yes')
+        elif val_n is False:
+            dist_normal.append('No')
+        else:
+            dist_normal.append('—')
+
+    # Highlight current regime row
+    n_cols = 9
+    cell_colors_dist = []
+    for _ in range(n_cols):
+        col_c = []
+        for r in regimes_list:
+            col_c.append('#1f3a5f' if r == current else '#0d1117')
+        cell_colors_dist.append(col_c)
+
+    fig.add_trace(go.Table(
+        header=dict(
+            values=['Regime', 'Ann Vol', 'Skew', 'Kurtosis',
+                    'VaR 5%', 'CVaR 5%', 'Max DD', 'Days', 'Normal?'],
+            fill_color='#21262d', font=dict(color='#c9d1d9', size=10),
+            align='left',
+        ),
+        cells=dict(
+            values=[dist_regime, dist_vol, dist_skew, dist_kurt,
+                    dist_var5, dist_cvar5, dist_dd, dist_days, dist_normal],
+            fill_color=cell_colors_dist,
+            font=dict(color='#c9d1d9', size=10),
+            align='left',
+        ),
+    ), row=2, col=1)
+
+    # ── Row 2 Right: Vol context ──────────────────────────────────
+    vol_labels = ['VIX', 'VRP', 'Term Structure', 'VRP Meaning']
+    vol_values = [
+        f"{vol_ctx['vix']:.1f}" if vol_ctx['vix'] else 'N/A',
+        f"{vol_ctx['vrp']:+.1f}" if vol_ctx['vrp'] else 'N/A',
+        vol_ctx['term_structure_label'],
+        vol_ctx['vrp_label'],
+    ]
+    fig.add_trace(go.Table(
+        header=dict(
+            values=['Metric', 'Value'],
+            fill_color='#21262d', font=dict(color='#c9d1d9', size=10),
+            align='left',
+        ),
+        cells=dict(
+            values=[vol_labels, vol_values],
+            fill_color='#0d1117',
+            font=dict(color='#c9d1d9', size=10),
+            align='left', height=30,
+        ),
+    ), row=2, col=2)
+
+    # ── Row 3: Transition context ─────────────────────────────────
+    if trans:
+        t_regimes = [t['regime'] for t in trans]
+        t_probs = [f"{t['probability']:.1%}" for t in trans]
+        t_dir = [t['direction'] for t in trans]
+        t_jump = [str(t['severity_jump']) for t in trans]
+
+        # Color: higher-vol transitions in orange/red
+        t_colors = []
+        for t in trans:
+            if t['direction'] == 'higher vol' and t['severity_jump'] >= 2:
+                t_colors.append('#3d1f00')
+            elif t['direction'] == 'higher vol':
+                t_colors.append('#2a1a00')
+            elif t['direction'] == 'lower vol':
+                t_colors.append('#0a3d0a')
+            else:
+                t_colors.append('#0d1117')
+
+        fig.add_trace(go.Table(
+            header=dict(
+                values=['Nearby Regime', 'Probability', 'Direction', 'Severity Jump'],
+                fill_color='#21262d', font=dict(color='#c9d1d9', size=10),
+                align='left',
+            ),
+            cells=dict(
+                values=[t_regimes, t_probs, t_dir, t_jump],
+                fill_color=[t_colors] * 4,
+                font=dict(color='#c9d1d9', size=10),
+                align='left',
+            ),
+        ), row=3, col=1)
+    else:
+        fig.add_trace(go.Table(
+            header=dict(values=['Transitions'], fill_color='#21262d',
+                        font=dict(color='#c9d1d9')),
+            cells=dict(values=[['No significant transition probabilities']],
+                       fill_color='#0d1117', font=dict(color='#c9d1d9')),
+        ), row=3, col=1)
+
+    # ── Row 4: Validation metrics ─────────────────────────────────
+    val_labels = []
+    val_values = []
+    val_row_colors = []
+
+    # Regime separation
+    sep_p = val.get('separation_pvalue', np.nan)
+    sep_ok = val.get('separation_significant', False)
+    val_labels.append('Regime Separation (Kruskal-Wallis)')
+    val_values.append(
+        f"p={sep_p:.2e} — {'PASS: regimes are distinct' if sep_ok else 'FAIL: regimes may be noise'}"
+    )
+    val_row_colors.append('#0a3d0a' if sep_ok else '#3d0a0a')
+
+    # Vol ordering
+    vol_ord = val.get('vol_ordering_match', False)
+    val_labels.append('Vol Ordering (severity ↔ realized vol)')
+    regime_vols = val.get('regime_vols', {})
+    vol_str = ', '.join(f"{r}: {v*100:.1f}%" for r, v in
+                        sorted(regime_vols.items(),
+                               key=lambda x: x[1]))
+    val_values.append(
+        f"{'PASS' if vol_ord else 'PARTIAL'}: {vol_str}"
+    )
+    val_row_colors.append('#0a3d0a' if vol_ord else '#3d1f00')
+
+    # Persistence
+    persist = val.get('persistent', False)
+    val_labels.append('Regime Persistence')
+    val_values.append(val.get('persistence_interpretation', '—'))
+    val_row_colors.append('#0a3d0a' if persist else '#3d1f00')
+
+    # VaR backtest summary
+    var_bt = val.get('var_backtest', {})
+    for r, vr in var_bt.items():
+        val_labels.append(f'VaR 5% Backtest — {r}')
+        val_values.append(
+            f"Actual breach: {vr['breach_pct']:.1f}% "
+            f"({vr['n_breaches']}/{vr['n_total']}) — "
+            f"{'PASS' if vr['ok'] else 'FAIL'}"
+        )
+        val_row_colors.append('#0a3d0a' if vr['ok'] else '#3d0a0a')
+
+    fig.add_trace(go.Table(
+        header=dict(
+            values=['Validation Check', 'Result'],
+            fill_color='#21262d', font=dict(color='#c9d1d9', size=10),
+            align='left',
+        ),
+        cells=dict(
+            values=[val_labels, val_values],
+            fill_color=[['#0d1117'] * len(val_labels), val_row_colors],
+            font=dict(color='#c9d1d9', size=10),
+            align='left',
+        ),
+    ), row=4, col=1)
+
+    fig.update_layout(
+        template='plotly_dark',
+        paper_bgcolor='#0d1117', plot_bgcolor='#161b22',
+        height=1400, margin=dict(l=30, r=30, t=50, b=30),
+        showlegend=False,
+    )
+    return fig
+
+
 def _write_dashboard_html(tabs):
     """Write all figures into a single tabbed HTML dashboard."""
     import plotly.io as pio
@@ -2117,10 +2376,15 @@ def train():
 
     # ── Walk-forward OOS ──────────────────────────────────────────
     print(f"\nWalk-Forward Validation (mode={WALK_FORWARD_MODE}):")
-    oos_labels, oos_name_map = walk_forward(
-        market, feat_raw, n_states, n_pca, mode=WALK_FORWARD_MODE,
-    )
-    evaluate(market, oos_labels, oos_name_map, spy_ret_5d, 'Out-of-Sample')
+    try:
+        oos_labels, oos_name_map = walk_forward(
+            market, feat_raw, n_states, n_pca, mode=WALK_FORWARD_MODE,
+        )
+        evaluate(market, oos_labels, oos_name_map, spy_ret_5d, 'Out-of-Sample')
+    except Exception as e:
+        print(f"  Walk-forward failed ({type(e).__name__}: {e}) — skipping OOS evaluation")
+        oos_labels = pd.Series(dtype=int)
+        oos_name_map = {}
 
     # ── Transition matrix ─────────────────────────────────────────
     print("\nTransition Matrix:")
@@ -2206,3 +2470,106 @@ def train():
     print(f"{'=' * 60}")
 
     return model, results
+
+
+# ===================================================================
+# Rebuild dashboard from saved artifacts (no SVI re-training)
+# ===================================================================
+
+def rebuild_dashboard():
+    """Reload saved model/results and rebuild only the dashboard HTML."""
+    np.random.seed(RANDOM_SEED)
+    os.makedirs(FIGURE_DIR, exist_ok=True)
+
+    # ── Load saved data ───────────────────────────────────────────
+    results = pd.read_csv(
+        os.path.join(DATA_DIR, 'regime_results.csv'),
+        index_col=0, parse_dates=True,
+    )
+    market = pd.read_csv(
+        os.path.join(DATA_DIR, 'market_data.csv'),
+        index_col=0, parse_dates=True,
+    )
+    feat_scaled = pd.read_csv(
+        os.path.join(DATA_DIR, 'features_scaled.csv'),
+        index_col=0, parse_dates=True,
+    )
+    model = joblib.load(os.path.join(MODEL_DIR, 'hmm_model.pkl'))
+    last_pca = joblib.load(os.path.join(MODEL_DIR, 'pca_model.pkl'))
+
+    # ── Derive labels, name_map, probs from saved results ─────────
+    valid_dates = results.index
+    market_v = market.loc[valid_dates]
+    labels = results['regime'].values
+    regime_names_in_results = results['regime_name'].values
+
+    # Reconstruct name_map: {int_label -> str_name}
+    name_map = {}
+    for lbl, nm in zip(labels, regime_names_in_results):
+        name_map[int(lbl)] = nm
+    ordered = sorted(name_map.keys())
+
+    # Reconstruct probs from saved prob_* columns (ordered by regime int key)
+    probs = np.column_stack([
+        results[f'prob_{name_map[r]}'].values for r in ordered
+    ])
+
+    # mode_ratio
+    mode_ratio = results['market_mode_ratio'].values
+
+    # ── Re-run rolling PCA (needed for KDE surface tab) ───────────
+    X_scaled = feat_scaled.loc[valid_dates].values if valid_dates[0] in feat_scaled.index else feat_scaled.values
+    market_aligned = market.loc[feat_scaled.index]
+    pcs, mr, valid_mask, n_pca, _ = fit_rolling_pca(feat_scaled.values)
+
+    # Trim to valid dates (same alignment as train)
+    pca_valid_dates = feat_scaled.index[valid_mask]
+    # PCs should align with results dates
+    mask_in_results = pca_valid_dates.isin(valid_dates)
+    pcs = pcs[mask_in_results]
+
+    # VIX bypass
+    if VIX_BYPASS:
+        vix_valid = np.asarray(market_v['VIX'].values, dtype=float)
+        vix_mean, vix_std = float(vix_valid.mean()), float(vix_valid.std())
+        vix_scaled = ((vix_valid - vix_mean) / vix_std).reshape(-1, 1)
+        pcs = np.hstack([pcs, vix_scaled])
+
+    # ── SPY returns for SV / GARCH ────────────────────────────────
+    spy_close = market_v['SPY_close']
+    spy_daily_ret = pd.Series(
+        np.log(spy_close / spy_close.shift(1)), index=valid_dates,
+    )
+    spy_dr_v = spy_daily_ret.dropna()
+    common_v = valid_dates.intersection(spy_dr_v.index)
+
+    print("Fitting regime-dependent SV...")
+    sv_results = fit_regime_sv(
+        spy_dr_v.loc[common_v],
+        pd.Series(labels, index=valid_dates).loc[common_v].values,
+        name_map,
+    )
+
+    print("Fitting regime-dependent GARCH...")
+    garch_results = fit_regime_garch(
+        spy_dr_v.loc[common_v],
+        pd.Series(labels, index=valid_dates).loc[common_v].values,
+        name_map,
+    )
+
+    # ── BIC df (not critical, pass None) ──────────────────────────
+    bic_path = os.path.join(DATA_DIR, 'bic_selection.csv')
+    bic_df = pd.read_csv(bic_path) if os.path.exists(bic_path) else None
+
+    # ── Build dashboard ───────────────────────────────────────────
+    print("\nRebuilding dashboard...")
+    build_interactive_dashboard(
+        dates=valid_dates, pcs=pcs, probs=probs, labels=labels,
+        name_map=name_map, market=market_v, sv_results=sv_results,
+        model=model, garch_results=garch_results,
+        mode_ratio=mode_ratio,
+        oos_labels=None, oos_name_map=None, oos_market=None,
+        pca_model=last_pca, bic_df=bic_df,
+        feature_names=list(feat_scaled.columns),
+    )
+    print("Dashboard rebuilt → figures/dashboard.html")

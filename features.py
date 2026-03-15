@@ -257,6 +257,28 @@ def build_features(market: pd.DataFrame) -> pd.DataFrame:
     return f
 
 
+# ── Skewness correction ────────────────────────────────────────────
+
+# Features that are non-negative and right-skewed → log(1+x) compresses
+# the right tail so PCA doesn't over-weight crisis outliers and the
+# symmetric Student-t emissions fit each regime more cleanly.
+_LOG_TRANSFORM_COLS = {
+    'SPY_rv10', 'SPY_rv20', 'SPY_rv63', 'SPY_parkinson10', 'SPY_gk10',
+    'VIX', 'VVIX', 'VVIX_VIX_ratio', 'rv_ratio_10_63',
+    'hy_spread', 'ted_spread',
+    'xasset_disp', 'SPY_rel_volume', 'SPY_vol_adj_ret',
+    'SPY_volvol20', 'SPY_rv10_lag5', 'SPY_rv10_lag10',
+}
+
+
+def _fix_skew(features: pd.DataFrame) -> pd.DataFrame:
+    """Apply log1p to right-skewed non-negative features in-place."""
+    for col in _LOG_TRANSFORM_COLS:
+        if col in features.columns:
+            features[col] = np.log1p(features[col])
+    return features
+
+
 # ── Standardization ────────────────────────────────────────────────
 
 def standardize(features: pd.DataFrame, scaler=None, fit=True):
@@ -294,6 +316,7 @@ def prepare_features(market=None):
         )
 
     features = build_features(market)
+    features = _fix_skew(features)
     X_scaled, scaler = standardize(features)
 
     # Save raw features, scaled features, scaler
