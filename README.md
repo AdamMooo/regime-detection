@@ -160,8 +160,3 @@ All parameters are centralized in `config.py`:
 - Parkinson, M. (1980). *The Extreme Value Method for Estimating the Variance of the Rate of Return.* Journal of Business.
 - Garman, M. B. & Klass, M. J. (1980). *On the Estimation of Security Price Volatilities from Historical Data.* Journal of Business.
 - Phan, D., Pradhan, N., & Jankowiak, M. (2019). *Composable Effects for Flexible and Accelerated Probabilistic Programming in NumPyro.*
-
-
-## License
-
-MIT
