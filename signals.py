@@ -94,33 +94,38 @@ def _regime_awareness(results: pd.DataFrame) -> dict[str, Any]:
     Current regime state: what regime, how confident, how long in it.
     """
     latest = results.iloc[-1]
-    current = str(latest['regime_name'])
 
     # Confidence = probability assigned to current regime
     prob_cols = [c for c in results.columns if c.startswith('prob_')]
     regime_probs = {col.replace('prob_', ''): float(latest[col]) for col in prob_cols}
+    # Derive current regime from probability argmax — not the hysteresis-held label
+    current = max(regime_probs, key=regime_probs.get) if regime_probs else str(latest['regime_name'])
     confidence = regime_probs.get(current, 0.0)
 
-    # How many consecutive days in this regime?
-    regimes = results['regime_name'].values
+    # How many consecutive days the live model calls this regime?
+    # Use argmax of prob columns rather than held regime_name column
+    live_regimes = (
+        results[prob_cols].idxmax(axis=1).str.replace('prob_', '', regex=False).values
+        if prob_cols else results['regime_name'].values
+    )
     streak = 0
-    for i in range(len(regimes) - 1, -1, -1):
-        if regimes[i] == current:
+    for i in range(len(live_regimes) - 1, -1, -1):
+        if live_regimes[i] == current:
             streak += 1
         else:
             break
 
-    # Median duration of this regime historically
+    # Median duration of this regime historically (from live label series)
     rle_lengths = []
     curr_run = 1
-    for i in range(1, len(regimes)):
-        if regimes[i] == regimes[i - 1]:
+    for i in range(1, len(live_regimes)):
+        if live_regimes[i] == live_regimes[i - 1]:
             curr_run += 1
         else:
-            if regimes[i - 1] == current:
+            if live_regimes[i - 1] == current:
                 rle_lengths.append(curr_run)
             curr_run = 1
-    if regimes[-1] == current:
+    if live_regimes[-1] == current:
         rle_lengths.append(curr_run)
     median_dur = float(np.median(rle_lengths)) if rle_lengths else 0.0
 
@@ -147,10 +152,11 @@ def _transition_context(results: pd.DataFrame) -> list[dict]:
     just awareness of what's nearby in probability space.
     """
     latest = results.iloc[-1]
-    current_regime = str(latest['regime_name'])
-    current_sev = _REGIME_SEVERITY.get(current_regime, 2)
-
     prob_cols = [c for c in results.columns if c.startswith('prob_')]
+    # Use probability argmax as current regime — consistent with _regime_awareness
+    _live_probs = {col.replace('prob_', ''): float(latest[col]) for col in prob_cols}
+    current_regime = max(_live_probs, key=_live_probs.get) if _live_probs else str(latest['regime_name'])
+    current_sev = _REGIME_SEVERITY.get(current_regime, 2)
     nearby: list[dict] = []
 
     for col in prob_cols:

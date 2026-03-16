@@ -209,9 +209,9 @@ def analyze():
     market = pd.read_csv(os.path.join(DATA_DIR, 'market_data.csv'),
                          index_col=0, parse_dates=True)
 
-    feat_path = os.path.join(DATA_DIR, 'features_raw.csv')
+    feat_path = os.path.join(DATA_DIR, 'features_transformed.csv')
     if not os.path.exists(feat_path):
-        print("No features_raw.csv found — run 'python run.py features' first.")
+        print("No features_transformed.csv found — run 'python run.py features' first.")
         return market
 
     features = pd.read_csv(feat_path, index_col=0, parse_dates=True)

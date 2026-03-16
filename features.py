@@ -1,14 +1,13 @@
 """
 Feature engineering for PCA -> HMM -> SV pipeline.
 
-Curated feature set (v4): 19 features spanning distinct regime dimensions.
-15 selected for PCA via FEATURE_SUBSET in config.py.
+Curated feature set (v5): 17 features spanning distinct regime dimensions.
+13 selected for PCA via FEATURE_SUBSET in config.py.
 
 Feature groups:
   - Volatility state    (VIX, VRP)
   - Vol dynamics        (rv_ratio_10_63, vix_ts_slope, SPY_volvol20)
-  - Cross-asset risk    (SPY_TLT_corr63, credit_stress, hy_spread)
-  - Macro               (yield_slope)
+  - Cross-asset risk    (SPY_TLT_corr63, credit_stress)
   - Return dynamics     (SPY_ret, SPY_skew20, SPY_ac1_20)
   - Market structure    (eigen_conc, SPY_dd63)
   - Liquidity           (SPY_rel_volume, SPY_vol_adj_ret)
@@ -18,8 +17,6 @@ Feature groups:
 
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-import joblib
 import os
 
 from config import (
@@ -68,9 +65,6 @@ CURATED_FEATURES = [
     # Cross-asset risk
     'SPY_TLT_corr63',   # stock-bond correlation regime
     'credit_stress',     # HY vs Treasury flow (20d rolling)
-    'hy_spread',         # absolute HY credit spread level
-    # Macro
-    'yield_slope',       # yield curve 10Y - 2Y
     # Return dynamics
     'SPY_ret',           # daily log return
     'SPY_skew20',        # rolling skewness (20d)
@@ -147,13 +141,6 @@ def build_features(market: pd.DataFrame) -> pd.DataFrame:
 
     if hyg_ret is not None and tlt_ret is not None:
         f['credit_stress'] = (hyg_ret - tlt_ret).rolling(MED_WINDOW).mean()
-
-    if 'hy_spread' in market.columns:
-        f['hy_spread'] = market['hy_spread']
-
-    # ── Macro ──────────────────────────────────────────────────────
-    if 'yield_slope' in market.columns:
-        f['yield_slope'] = market['yield_slope']
 
     # ── Return dynamics ────────────────────────────────────────────
     if spy_ret is not None:
@@ -252,7 +239,7 @@ def build_features(market: pd.DataFrame) -> pd.DataFrame:
 # symmetric Student-t emissions fit each regime more cleanly.
 _LOG_TRANSFORM_COLS = {
     'VIX', 'rv_ratio_10_63',
-    'hy_spread', 'eigen_conc',
+    'eigen_conc',
 }
 
 
@@ -264,35 +251,164 @@ def _fix_skew(features: pd.DataFrame) -> pd.DataFrame:
     return features
 
 
-# ── Standardization ────────────────────────────────────────────────
+def _winsorize(features: pd.DataFrame,
+               lower: float = 0.005, upper: float = 0.995,
+               min_warmup: int = 252) -> pd.DataFrame:
+    """Expanding-window winsorization (causal — no future leakage).
 
-def standardize(features: pd.DataFrame, scaler=None, fit=True):
+    For row t, percentiles are computed from rows [0..t] only.
+    First *min_warmup* rows use the min_warmup-window percentiles
+    (not enough history for stable estimates before that).
     """
-    Z-score standardize features.
+    result = features.copy()
+    lo_bounds = features.expanding(min_periods=min_warmup).quantile(lower)
+    hi_bounds = features.expanding(min_periods=min_warmup).quantile(upper)
+    for col in features.columns:
+        lo = lo_bounds[col]
+        hi = hi_bounds[col]
+        valid = lo.notna()
+        clipped = result.loc[valid, col].copy()
+        clipped = clipped.clip(lower=lo[valid].values, upper=hi[valid].values)
+        result.loc[valid, col] = clipped
+    return result
 
-    Returns
-    -------
-    X_scaled : ndarray (T x n_features)
-    scaler   : fitted StandardScaler
+
+def _validate_features(features: pd.DataFrame) -> None:
+    """Runtime quality checks before features enter the model.
+
+    Raises AssertionError on hard failures, prints warnings otherwise.
     """
-    if scaler is None:
-        scaler = StandardScaler()
-    if fit:
-        X = scaler.fit_transform(features.values)
+    issues = []
+
+    # Check for infinities
+    inf_cols = features.columns[features.isin([np.inf, -np.inf]).any()]
+    assert len(inf_cols) == 0, (
+        f"Features contain inf values: {list(inf_cols)}"
+    )
+
+    # Near-zero variance (degenerate feature)
+    stds = features.std()
+    dead_cols = stds[stds < 1e-8].index.tolist()
+    if dead_cols:
+        issues.append(f"Near-zero variance: {dead_cols}")
+
+    # Remaining heavy skew after transforms (|skew| > 5)
+    skews = features.skew()
+    heavy_skew = skews[skews.abs() > 5].index.tolist()
+    if heavy_skew:
+        issues.append(
+            f"Heavy skew after transforms: "
+            f"{[(c, f'{skews[c]:.1f}') for c in heavy_skew]}"
+        )
+
+    # Pairwise correlations > 0.95 (redundant features)
+    corr = features.corr()
+    n = len(corr)
+    for i in range(n):
+        for j in range(i + 1, n):
+            r = abs(corr.iloc[i, j])
+            if r > 0.95:
+                issues.append(
+                    f"High correlation ({r:.2f}): "
+                    f"{corr.index[i]} <-> {corr.columns[j]}"
+                )
+
+    # Heavy tails (kurtosis > 20)
+    kurts = features.kurtosis()
+    fat_tails = kurts[kurts > 20].index.tolist()
+    if fat_tails:
+        issues.append(
+            f"Extreme kurtosis: "
+            f"{[(c, f'{kurts[c]:.0f}') for c in fat_tails]}"
+        )
+
+    # ── Stationarity (ADF test) ────────────────────────────────────
+    from statsmodels.tsa.stattools import adfuller
+
+    print("\n  Stationarity (ADF test, H0: unit root):")
+    non_stationary = []
+    for col in features.columns:
+        try:
+            result = adfuller(features[col].dropna(), maxlag=20, autolag='AIC')
+            p = result[1]
+            tag = "STATIONARY" if p < 0.05 else "NON-STATIONARY"
+            if p >= 0.05:
+                non_stationary.append((col, p))
+            print(f"    {col:25s}  p={p:.4f}  {tag}")
+        except Exception:
+            print(f"    {col:25s}  ADF failed")
+    if non_stationary:
+        issues.append(f"Non-stationary features (ADF p>=0.05): "
+                      f"{[(c, f'p={p:.3f}') for c, p in non_stationary]}")
+
+    # ── VIF (multicollinearity) ────────────────────────────────────
+    from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+    print("\n  Variance Inflation Factors:")
+    X_vif = features.dropna().values
+    vif_data = []
+    for i, col in enumerate(features.columns):
+        try:
+            vif = variance_inflation_factor(X_vif, i)
+            vif_data.append((col, vif))
+        except Exception:
+            vif_data.append((col, float('nan')))
+    vif_data.sort(key=lambda x: -x[1] if not np.isnan(x[1]) else 0)
+    for col, vif in vif_data:
+        tag = " *** HIGH" if vif > 10 else ""
+        print(f"    {col:25s}  VIF={vif:8.1f}{tag}")
+    high_vif = [(c, v) for c, v in vif_data if v > 10]
+    if high_vif:
+        issues.append(f"High VIF (>10, multicollinear): "
+                      f"{[(c, f'VIF={v:.1f}') for c, v in high_vif]}")
+
+    # ── Feature importance (PCA loadings + VIX correlation) ────────
+    from sklearn.decomposition import PCA as _DiagPCA
+
+    print("\n  Feature Importance (PCA loadings):")
+    n_diag = min(3, len(features.columns))
+    _pca = _DiagPCA(n_components=n_diag)
+    _pca.fit(features.dropna().values)
+    loadings = pd.DataFrame(
+        _pca.components_.T,
+        index=features.columns,
+        columns=[f'PC{i+1}' for i in range(n_diag)],
+    )
+    loadings['abs_total'] = loadings.abs().sum(axis=1)
+    if 'VIX' in features.columns:
+        vix_corr = features.corrwith(features['VIX']).abs()
+        loadings['|corr_VIX|'] = vix_corr
+    loadings = loadings.sort_values('abs_total', ascending=False)
+    print(loadings.to_string())
+    low_contrib = loadings[loadings['abs_total'] < 0.1].index.tolist()
+    if low_contrib:
+        issues.append(f"Low PCA contribution (abs_total < 0.1): {low_contrib}")
+
+    # ── Normality (Jarque-Bera) ────────────────────────────────────
+    from scipy.stats import jarque_bera
+
+    print("\n  Normality (Jarque-Bera):")
+    for col in features.columns:
+        stat, p = jarque_bera(features[col].dropna())
+        tag = "NORMAL" if p > 0.05 else "non-normal"
+        print(f"    {col:25s}  JB={stat:10.1f}  p={p:.4f}  {tag}")
+
+    if issues:
+        print("\n  Feature quality warnings:")
+        for issue in issues:
+            print(f"    - {issue}")
     else:
-        X = scaler.transform(features.values)
-    return X, scaler
+        print("\n  Feature quality: all checks passed")
 
 
-# ── Convenience: build + scale + save ──────────────────────────────
+# ── Convenience: build + transform + save ───────────────────────────
 
 def prepare_features(market=None):
     """
-    Full feature pipeline:  build -> standardize -> save.
+    Full feature pipeline:  build -> transform -> save.
     If *market* is None, loads from DATA_DIR/market_data.csv.
     """
     os.makedirs(DATA_DIR, exist_ok=True)
-    os.makedirs(MODEL_DIR, exist_ok=True)
 
     if market is None:
         market = pd.read_csv(
@@ -302,19 +418,17 @@ def prepare_features(market=None):
 
     features = build_features(market)
     features = _fix_skew(features)
-    X_scaled, scaler = standardize(features)
+    features = _winsorize(features)
+    _validate_features(features)
 
-    # Save raw features, scaled features (EDA only -- not for training), scaler
-    features.to_csv(os.path.join(DATA_DIR, 'features_raw.csv'))
-    pd.DataFrame(
-        X_scaled, columns=features.columns, index=features.index,
-    ).to_csv(os.path.join(DATA_DIR, 'features_scaled.csv'))
-    joblib.dump(scaler, os.path.join(MODEL_DIR, 'scaler.pkl'))
+    # Transformed features (log1p + winsorized, NOT standardized).
+    # train.py applies its own causal expanding-window standardization.
+    features.to_csv(os.path.join(DATA_DIR, 'features_transformed.csv'))
 
     print(f"Features: {features.shape[1]} indicators x {features.shape[0]} days")
     print(f"  Columns: {list(features.columns)}")
 
-    return features, X_scaled, scaler
+    return features
 
 
 if __name__ == '__main__':

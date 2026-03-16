@@ -4,7 +4,6 @@ Edit parameters here, not in individual scripts.
 """
 
 import os
-from pathlib import Path
 
 # --- Reproducibility ---
 RANDOM_SEED = 42
@@ -13,31 +12,11 @@ RANDOM_SEED = 42
 START_DATE   = '2010-01-01'
 END_DATE     = None             # None = today
 
-# Load FRED API key from .env file or environment variable
-_env_path = Path(__file__).resolve().parent / '.env'
-if _env_path.exists():
-    for _line in _env_path.read_text().splitlines():
-        _line = _line.strip()
-        if _line and not _line.startswith('#') and '=' in _line:
-            _k, _v = _line.split('=', 1)
-            os.environ.setdefault(_k.strip(), _v.strip())
-
-FRED_API_KEY = os.environ.get('FRED_API_KEY', '')
-
 # Universe (OHLCV from yfinance)
 TICKERS    = ['SPY', 'QQQ', 'IWM', 'EEM', 'TLT', 'HYG', 'GLD']
 VIX_TICKER  = '^VIX'
 VIX3M_TICKER = '^VIX3M'      # 3-month VIX (term structure)
 VVIX_TICKER  = '^VVIX'       # vol-of-VIX
-
-# FRED series:  {series_id: column_name}
-FRED_SERIES = {
-    'T10Y2Y':       'yield_slope',      # 10Y-2Y Treasury spread
-    'BAMLH0A0HYM2': 'hy_spread',        # ICE BofA US High Yield spread
-    'DGS10':        'yield_10y',         # 10Y Treasury yield
-    'DGS2':         'yield_2y',          # 2Y Treasury yield
-    'TEDRATE':      'ted_spread',        # TED spread (funding stress)
-}
 
 # --- Feature windows ---
 SHORT_WINDOW = 10       # ~2 weeks
@@ -59,9 +38,7 @@ FEATURE_SUBSET = [
     # Vol dynamics
     'rv_ratio_10_63', 'vix_ts_slope', 'SPY_volvol20',
     # Cross-asset
-    'SPY_TLT_corr63', 'credit_stress', 'hy_spread',
-    # Macro
-    'yield_slope',
+    'SPY_TLT_corr63', 'credit_stress',
     # Return dynamics
     'SPY_ret', 'SPY_skew20', 'SPY_ac1_20',
     # Market structure

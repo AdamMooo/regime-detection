@@ -1,18 +1,17 @@
 """
-Data collection: OHLCV from yfinance, macro series from FRED.
+Data collection: OHLCV from yfinance, VIX family from Yahoo.
 Aligns everything to SPY's trading-day index and saves raw data.
 """
 
 import pandas as pd
 import numpy as np
 import yfinance as yf
-from fredapi import Fred
 import os
 
 from config import (
-    START_DATE, END_DATE, FRED_API_KEY,
+    START_DATE, END_DATE,
     TICKERS, VIX_TICKER, VIX3M_TICKER, VVIX_TICKER,
-    FRED_SERIES, DATA_DIR,
+    DATA_DIR,
 )
 
 
@@ -52,13 +51,6 @@ def collect():
         vol_series[label] = pd.Series(raw['Close'].squeeze())
         print(f"  {label}: {len(raw)} rows")
 
-    # --- FRED ---
-    print("Downloading FRED data...")
-    fred = Fred(api_key=FRED_API_KEY)
-    fred_data = {}
-    for series_id, col_name in FRED_SERIES.items():
-        fred_data[col_name] = fred.get_series(series_id, observation_start=START_DATE)
-
     # --- Build aligned DataFrame on SPY trading days ---
     ref_index = ohlcv['SPY'].index
     if not isinstance(ref_index, pd.DatetimeIndex):
@@ -79,10 +71,6 @@ def collect():
     for label, s in vol_series.items():
         market[label] = pd.Series(s).reindex(ref_index).ffill()
 
-    # FRED (forward-fill to trading days)
-    for col_name, series in fred_data.items():
-        market[col_name] = series.reindex(ref_index).ffill()
-
     market = market.dropna()
 
     assert len(market) >= 252, (
@@ -97,9 +85,6 @@ def collect():
           f"{market.index[0].date()} -> {market.index[-1].date()}")
     print(f"  Tickers : {TICKERS}")
     print(f"  VIX     : {market['VIX'].min():.1f} - {market['VIX'].max():.1f}")
-    for col in FRED_SERIES.values():
-        if col in market.columns:
-            print(f"  {col:10s}: {market[col].min():.2f} - {market[col].max():.2f}")
 
     return market
 

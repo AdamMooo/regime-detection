@@ -29,7 +29,6 @@ from itertools import permutations
 from scipy.linalg import orthogonal_procrustes
 from scipy.stats import multivariate_t as _mvt, norm as _norm, gaussian_kde
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 from statsmodels.tsa.statespace.mlemodel import MLEModel
 
 from config import (
@@ -41,7 +40,7 @@ from config import (
     WALK_FORWARD_MODE, VAR_ALPHA, FEATURE_SUBSET,
     REGIME_NAMES, DATA_DIR, MODEL_DIR, FIGURE_DIR, TICKERS,
 )
-from features import build_features, standardize
+from features import build_features
 from signals import compute_signals
 
 # Suppress noisy warnings
@@ -54,6 +53,38 @@ warnings.filterwarnings('ignore', message='.*overflow.*')
 warnings.filterwarnings('ignore', message='.*divide by zero.*')
 logging.getLogger('hmmlearn').setLevel(logging.ERROR)
 logging.getLogger('statsmodels').setLevel(logging.ERROR)
+
+
+# ===================================================================
+# Expanding-window standardization (shared by train + walk_forward)
+# ===================================================================
+
+def expanding_standardize(X_raw, min_warmup=252):
+    """Expanding-window z-score: row t uses mean/std from [0..t] only.
+
+    Parameters
+    ----------
+    X_raw : ndarray (T, D)
+    min_warmup : int — first N rows get NaN (unstable statistics)
+
+    Returns
+    -------
+    X_scaled : ndarray (T, D)
+    cum_mean_final : ndarray (D,) — cumulative mean at last row
+    cum_std_final : ndarray (D,) — cumulative std at last row
+    """
+    X = X_raw.astype(np.float64)
+    T, D = X.shape
+    cumsum = np.cumsum(X, axis=0)
+    cumsq = np.cumsum(X ** 2, axis=0)
+    counts = np.arange(1, T + 1, dtype=np.float64).reshape(-1, 1)
+    cum_mean = cumsum / counts
+    cum_var = cumsq / counts - cum_mean ** 2
+    cum_std = np.sqrt(np.maximum(cum_var, 0))
+    cum_std[cum_std < 1e-8] = 1.0
+    X_scaled = (X - cum_mean) / cum_std
+    X_scaled[:min_warmup] = np.nan
+    return X_scaled, cum_mean[-1], cum_std[-1]
 
 
 # ===================================================================
@@ -533,10 +564,7 @@ def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE,
     Each fold:  standardize on train -> PCA on last ROLLING_WINDOW days
     -> project full train -> HMM -> predict test
     """
-    # Apply same feature subset used in main training
-    if FEATURE_SUBSET is not None:
-        available = [f for f in FEATURE_SUBSET if f in features.columns]
-        features = features[available]
+    # Note: features are already subset-filtered by train() before this call
 
     min_train = WALK_FORWARD_TRAIN_YEARS * 252
     step      = WALK_FORWARD_STEP_DAYS
@@ -562,10 +590,17 @@ def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE,
             t = end
             continue
 
-        # Standardize (fit on train)
-        scaler_wf = StandardScaler()
-        X_train = scaler_wf.fit_transform(train_feats.values)
-        X_test  = scaler_wf.transform(test_feats.values)
+        # Expanding-window standardize (match train() pipeline exactly)
+        X_combined = np.vstack([train_feats.values, test_feats.values])
+        wf_warmup = min(252, max(50, len(train_feats) // 4))
+        X_all_scaled, _, _ = expanding_standardize(X_combined, min_warmup=wf_warmup)
+        X_train = X_all_scaled[:len(train_feats)]
+        X_test = X_all_scaled[len(train_feats):]
+
+        # Drop warm-up NaN rows from training data
+        valid_train = ~np.isnan(X_train[:, 0])
+        X_train = X_train[valid_train]
+        train_feats_valid = train_feats[valid_train]
 
         # PCA: fit on last ROLLING_WINDOW days of train, project all
         pca_window = min(PCA_ROLLING_WINDOW, len(X_train))
@@ -577,7 +612,7 @@ def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE,
 
         # VIX bypass: append scaled VIX directly to PCs
         if VIX_BYPASS:
-            vix_train = market['VIX'].reindex(train_feats.index).values
+            vix_train = market['VIX'].reindex(train_feats_valid.index).values
             vix_test  = market['VIX'].reindex(test_feats.index).values
             v_mean, v_std = vix_train.mean(), vix_train.std()
             pc_train = np.hstack([pc_train, ((vix_train - v_mean) / v_std).reshape(-1, 1)])
@@ -592,11 +627,11 @@ def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE,
                 best_m, best_ll = m, ll
 
         assert best_m is not None
-        raw_preds = best_m.predict(pc_test)
+        raw_preds = filtered_labels(best_m, pc_test, hold_days=REGIME_HOLD_DAYS)
 
         # Remap labels by VIX rank (consistent across windows)
-        train_labels = best_m.predict(pc_train)
-        vix_vals = market['VIX'].reindex(train_feats.index).values
+        train_labels = filtered_labels(best_m, pc_train, hold_days=REGIME_HOLD_DAYS)
+        vix_vals = market['VIX'].reindex(train_feats_valid.index).values
         regime_vix = {}
         for r in range(n_states):
             mask = (train_labels == r)
@@ -1568,19 +1603,24 @@ def _build_current_state(probs, labels, name_map, dates, market,
 
     current_probs = probs[-1]
     current_date = dates[-1].strftime('%Y-%m-%d')
-    current_label = labels[-1]
-    current_name = name_map.get(current_label, '?')
+    # Live label = argmax of current filtered probabilities (no hysteresis)
+    current_label = int(current_probs.argmax())
+    # Held label = hysteresis-smoothed; may lag live signal by REGIME_HOLD_DAYS days
+    held_label    = labels[-1]
+    current_name  = name_map.get(current_label, '?')
     current_color = _REGIME_COLORS_HEX.get(current_name, '#888')
     K = len(ordered)
 
     # ── Compute statistics ─────────────────────────────────────────
     label_arr = np.asarray(labels)
     total_days = len(label_arr)
+    # Live argmax series — used for streak and block durations
+    live_arr = probs.argmax(axis=1)
 
-    # Current streak
+    # Current streak — consecutive days the live model calls this regime
     streak = 1
-    for t in range(len(label_arr) - 2, -1, -1):
-        if label_arr[t] == current_label:
+    for t in range(len(live_arr) - 2, -1, -1):
+        if live_arr[t] == current_label:
             streak += 1
         else:
             break
@@ -1599,12 +1639,12 @@ def _build_current_state(probs, labels, name_map, dates, market,
         persist = expected_dur = expected_remaining = 0
         p_survive_7d = p_survive_30d = 0
 
-    # Historical block durations for current regime
-    blocks = _get_blocks(label_arr == current_label)
+    # Historical block durations for current regime (from live argmax series)
+    blocks = _get_blocks(live_arr == current_label)
     durations = [e - s + 1 for s, e in blocks]
     median_dur = float(np.median(durations)) if durations else 0
     max_dur = max(durations) if durations else 0
-    pct_time = (label_arr == current_label).sum() / total_days
+    pct_time = (live_arr == current_label).sum() / total_days
 
     # Market context
     vix_val = market['VIX'].iloc[-1] if 'VIX' in market.columns else None
@@ -1675,11 +1715,18 @@ def _build_current_state(probs, labels, name_map, dates, market,
     ))
 
     # Title annotation with regime name
+    held_name = name_map.get(held_label, '?')
+    held_note = (
+        f'<br><span style="color:#f0883e;font-size:12px">'
+        f'held label: {held_name} (pending {REGIME_HOLD_DAYS}-day confirmation)</span>'
+        if held_label != current_label else ''
+    )
     fig_status.add_annotation(
         text=(f'<b style="color:{current_color};font-size:32px">'
               f'{current_name}</b>'
               f'<br><span style="color:#8b949e;font-size:14px">'
-              f'as of {current_date}</span>'),
+              f'as of {current_date}</span>'
+              f'{held_note}'),
         xref='paper', yref='paper', x=0.5, y=1.18,
         showarrow=False, align='center',
     )
@@ -2171,15 +2218,6 @@ def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
     return fig
 
 
-    fig.update_layout(
-        template='plotly_dark',
-        paper_bgcolor='#0d1117', plot_bgcolor='#161b22',
-        height=1400, margin=dict(l=30, r=30, t=50, b=30),
-        showlegend=False,
-    )
-    return fig
-
-
 # ===================================================================
 # Tab 7: Feature Health
 # ===================================================================
@@ -2511,7 +2549,7 @@ def train():
         index_col=0, parse_dates=True,
     )
     feat_raw = pd.read_csv(
-        os.path.join(DATA_DIR, 'features_raw.csv'),
+        os.path.join(DATA_DIR, 'features_transformed.csv'),
         index_col=0, parse_dates=True,
     )
 
@@ -2524,8 +2562,6 @@ def train():
         print(f"  WARNING: {len(bad_cols)} features have >10% NaN: "
               f"{list(bad_cols.index[:5])}")
 
-    # Scale features in-sample here (NOT from features_scaled.csv, which
-    # uses a global scaler and leaks future information).
     # Apply feature subset to reduce collinearity before PCA.
     if FEATURE_SUBSET is not None:
         available = [f for f in FEATURE_SUBSET if f in feat_raw.columns]
@@ -2535,8 +2571,40 @@ def train():
         feat_raw = feat_raw[available]
         print(f"  Feature subset: {len(available)} of {len(FEATURE_SUBSET)} features selected")
 
-    scaler_is = StandardScaler()
-    X_scaled = scaler_is.fit_transform(feat_raw.values)
+    # ── Feature health diagnostics ─────────────────────────────────
+    print("\nFeature health check (post-transform, pre-standardization):")
+    _feat_stds = feat_raw.std()
+    _dead = _feat_stds[_feat_stds < 1e-8]
+    if len(_dead) > 0:
+        print(f"  CRITICAL: {len(_dead)} features have near-zero variance: "
+              f"{list(_dead.index)} — dropping them")
+        feat_raw = feat_raw.drop(columns=_dead.index)
+    _feat_skew = feat_raw.skew()
+    _high_skew = _feat_skew[_feat_skew.abs() > 5]
+    if len(_high_skew) > 0:
+        print(f"  WARNING: {len(_high_skew)} features still heavily skewed "
+              f"after transforms: {list(_high_skew.index)}")
+    _corr = feat_raw.corr()
+    _high_corr = []
+    for _i in range(len(_corr)):
+        for _j in range(_i + 1, len(_corr)):
+            if abs(_corr.iloc[_i, _j]) > 0.95:
+                _high_corr.append(
+                    f"{_corr.index[_i]}<->{_corr.columns[_j]} "
+                    f"({_corr.iloc[_i, _j]:.2f})")
+    if _high_corr:
+        print(f"  WARNING: highly correlated pairs: {_high_corr}")
+    if len(_dead) == 0 and len(_high_skew) == 0 and not _high_corr:
+        print("  All {0} features OK".format(len(feat_raw.columns)))
+
+    # ── Expanding-window standardization (causal) ──────────────────
+    # Each day t is z-scored using mean/std computed from days [0..t] only.
+    # This prevents future statistics from leaking into early PCA windows.
+    _MIN_WARMUP = 252
+    X_scaled, _, _ = expanding_standardize(feat_raw.values, min_warmup=_MIN_WARMUP)
+    print(f"  Expanding-window standardization: {_MIN_WARMUP}-day warm-up, "
+          f"{len(feat_raw) - _MIN_WARMUP} valid days")
+
     feat_scaled = pd.DataFrame(
         X_scaled, columns=feat_raw.columns, index=feat_raw.index,
     )
@@ -2551,11 +2619,16 @@ def train():
                               index=market.index)
 
     # ── 1. Rolling PCA (Procrustes-aligned) ────────────────────────
-    pcs, mode_ratio, valid_mask, n_pca, last_pca = fit_rolling_pca(X_scaled)
+    # Trim data to rows with valid expanding-window standardization
+    _warmup_mask = ~np.isnan(X_scaled[:, 0])
+    X_scaled_valid = X_scaled[_warmup_mask]
+    _warmup_dates = feat_scaled.index[_warmup_mask]
 
-    # Trim everything to valid dates (after PCA warm-up)
-    valid_dates    = feat_scaled.index[valid_mask]
-    market_v       = market.loc[valid_dates]
+    pcs, mode_ratio, valid_mask, n_pca, last_pca = fit_rolling_pca(X_scaled_valid)
+
+    # Trim everything to valid dates (after expanding + PCA warm-up)
+    valid_dates    = _warmup_dates[valid_mask]
+    market_v       = market.reindex(valid_dates).dropna(how='all')
     spy_ret_5d_v   = spy_ret_5d.loc[valid_dates]
     spy_daily_ret_v = spy_daily_ret.loc[valid_dates]
 
@@ -2724,6 +2797,7 @@ def train():
 
     joblib.dump(model,    os.path.join(MODEL_DIR, 'hmm_model.pkl'))
     joblib.dump(last_pca, os.path.join(MODEL_DIR, 'pca_model.pkl'))
+    feat_scaled.to_csv(os.path.join(DATA_DIR, 'features_scaled.csv'))
 
     # ── Dashboard (single interactive HTML) ───────────────────────
     oos_mkt = market.loc[oos_labels.index] if len(oos_labels) > 0 else None

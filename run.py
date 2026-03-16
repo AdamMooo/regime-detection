@@ -146,6 +146,12 @@ def main():
     if step == 'dashboard':
         rebuild_dashboard()
 
+    known = {'all', 'collect', 'features', 'analyze', 'train', 'regime', 'dashboard'}
+    if step not in known:
+        print(f"Unknown step: '{step}'")
+        print(f"Valid steps: {', '.join(sorted(known))}")
+        sys.exit(1)
+
 
 if __name__ == '__main__':
     main()
