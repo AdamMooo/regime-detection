@@ -232,11 +232,14 @@ def _validation_metrics(results: pd.DataFrame) -> dict[str, Any]:
             regime_vols[r] = float(np.std(rets) * np.sqrt(252))
 
     # Check if severity ordering matches vol ordering
-    ordered_by_sev = sorted(regime_vols.keys(),
-                            key=lambda r: _REGIME_SEVERITY.get(r, 2))
-    ordered_by_vol = sorted(regime_vols.keys(),
-                            key=lambda r: regime_vols[r])
-    metrics['vol_ordering_match'] = ordered_by_sev == ordered_by_vol
+    if regime_vols:
+        ordered_by_sev = sorted(regime_vols.keys(),
+                                key=lambda r: _REGIME_SEVERITY.get(r, 2))
+        ordered_by_vol = sorted(regime_vols.keys(),
+                                key=lambda r: regime_vols[r])
+        metrics['vol_ordering_match'] = ordered_by_sev == ordered_by_vol
+    else:
+        metrics['vol_ordering_match'] = False
     metrics['regime_vols'] = regime_vols
 
     # 3. VaR backtest (5% level)

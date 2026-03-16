@@ -70,18 +70,18 @@ def collect():
         df = ohlcv[ticker]
         for field in ['Close', 'High', 'Low', 'Open']:
             series = df[field].squeeze()
-            market[f'{ticker}_{field.lower()}'] = series.reindex(ref_index, method='ffill')
+            market[f'{ticker}_{field.lower()}'] = series.reindex(ref_index).ffill()
         if ticker == 'SPY':
             spy_vol = pd.Series(df['Volume'].squeeze())
-            market['SPY_volume'] = spy_vol.reindex(ref_index, method='ffill')
+            market['SPY_volume'] = spy_vol.reindex(ref_index).ffill()
 
     # VIX family (VIX, VIX3M, VVIX)
     for label, s in vol_series.items():
-        market[label] = pd.Series(s).reindex(ref_index, method='ffill')
+        market[label] = pd.Series(s).reindex(ref_index).ffill()
 
     # FRED (forward-fill to trading days)
     for col_name, series in fred_data.items():
-        market[col_name] = series.reindex(ref_index, method='ffill')
+        market[col_name] = series.reindex(ref_index).ffill()
 
     market = market.dropna()
 

@@ -2551,8 +2551,7 @@ def train():
             fit_hdp_hmm, effective_K, posterior_mean_params,
             get_labels_and_probs, label_regimes_hdp,
             mcmc_diagnostics, save_hdp_results,
-            HDPModelAdapter, get_transition_matrix,
-            merge_similar_states,
+            HDPModelAdapter, merge_similar_states,
         )
 
         mcmc, samples = fit_hdp_hmm(pcs)
