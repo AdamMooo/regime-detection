@@ -54,23 +54,19 @@ VIX_BYPASS         = False  # VIX is now a direct curated feature; no need to ap
 # Set to None to use all features. Using a curated subset prevents
 # the vol cluster (~10 features) from dominating the first PCs.
 FEATURE_SUBSET = [
-    # Vol: one per horizon, plus the high-low estimator
-    'SPY_rv10', 'SPY_rv63', 'SPY_parkinson10',
-    # Implied vol & risk premium
+    # Vol state
     'VIX', 'VRP',
-    # Vol-of-vol & term structure
-    'SPY_volvol20', 'vix_ts_slope',
-    # Returns: SPY + key cross-asset
-    'SPY_ret', 'TLT_ret', 'EEM_ret',
-    # Cross-asset signals
-    'credit_stress', 'SPY_TLT_corr63', 'xasset_disp', 'eigen_conc',
-    # Macro & credit
-    'yield_slope', 'hy_spread', 'ted_spread',
+    # Vol dynamics
+    'rv_ratio_10_63', 'vix_ts_slope', 'SPY_volvol20',
+    # Cross-asset
+    'SPY_TLT_corr63', 'credit_stress', 'hy_spread',
+    # Macro
+    'yield_slope',
     # Return dynamics
-    'SPY_skew20', 'SPY_ac1_20',
-    # Momentum & drawdown
-    'SPY_mom63', 'SPY_dd63',
-    # Leverage effect
+    'SPY_ret', 'SPY_skew20', 'SPY_ac1_20',
+    # Market structure
+    'eigen_conc', 'SPY_dd63',
+    # Leverage / fragility
     'lev_effect20',
 ]
 
