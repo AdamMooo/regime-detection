@@ -205,6 +205,18 @@ def _fit_svi(obs, K_max, seed):
     final_loss = float(svi_result.losses[-1])
     print(f"  Done in {elapsed:.0f}s  |  Final ELBO loss: {final_loss:.1f}")
 
+    # --- SVI convergence check ---
+    losses = np.array(svi_result.losses)
+    tail = losses[-200:]
+    early = losses[-400:-200] if len(losses) >= 400 else losses[:len(losses)//2]
+    if len(early) > 0:
+        rel_change = abs(tail.mean() - early.mean()) / (abs(early.mean()) + 1e-8)
+        if rel_change > 0.05:
+            warnings.warn(
+                f"SVI may not have converged: relative ELBO change in last "
+                f"400 steps = {rel_change:.3f} (> 0.05). Consider more steps."
+            )
+
     # Draw posterior samples from trained guide
     rng_key2 = jrandom.PRNGKey(seed + 1)
     predictive = Predictive(guide, params=svi_result.params,
@@ -248,6 +260,31 @@ def _fit_nuts(obs, K_max, seed):
     mcmc.run(rng_key, obs, K_max=K_max)
     elapsed = time.time() - t0
     print(f"  Done in {elapsed:.0f}s")
+
+    # --- Convergence diagnostics ---
+    if MCMC_NUM_CHAINS > 1:
+        from numpyro.diagnostics import summary
+        diag = summary(mcmc.get_samples(group_by_chain=True))
+        bad_rhat, low_ess = [], []
+        for param_name, stats in diag.items():
+            rh = stats.get('r_hat')
+            ess = stats.get('n_eff')
+            if rh is not None and np.any(rh > 1.05):
+                bad_rhat.append((param_name, float(np.max(rh))))
+            if ess is not None and np.any(ess < 100):
+                low_ess.append((param_name, float(np.min(ess))))
+        if bad_rhat:
+            warnings.warn(
+                f"MCMC convergence issue: R-hat > 1.05 for "
+                f"{[f'{n}={v:.3f}' for n, v in bad_rhat[:5]]}. "
+                f"Consider more warmup or thinning."
+            )
+        if low_ess:
+            warnings.warn(
+                f"Low effective sample size (< 100) for "
+                f"{[f'{n}={v:.0f}' for n, v in low_ess[:5]]}. "
+                f"Consider more samples or thinning."
+            )
 
     samples = {k: np.array(v) for k, v in mcmc.get_samples().items()}
 
@@ -370,7 +407,7 @@ def _logsumexp_2d(a):
     return c + np.log(np.sum(np.exp(a - c), axis=1, keepdims=True))
 
 
-def prune_states(params, filtered, threshold=0.05):
+def prune_states(params, filtered, threshold=0.08):
     """Identify active states: must have meaningful beta weight AND occupy days."""
     beta = params['beta']
     T_len = filtered.shape[0]
@@ -385,6 +422,11 @@ def prune_states(params, filtered, threshold=0.05):
     if len(active) < 2:
         ranked = np.argsort(-beta)
         active = sorted(ranked[:3].tolist())
+    print(f"  Pruning: {len(active)} active states from {params['K_max']} truncation")
+    for k in range(params['K_max']):
+        n_assigned = (max_assignments == k).sum()
+        tag = ' <-- ACTIVE' if k in active else ''
+        print(f"    state {k}: beta={beta[k]:.4f}, days={n_assigned}{tag}")
     return active
 
 
@@ -604,6 +646,15 @@ def save_hdp_results(model_dir, result, samples, params, diagnostics,
     joblib.dump(samples_np, os.path.join(model_dir, 'hdp_samples.pkl'))
 
     inference_type = diagnostics.get('inference', 'unknown')
+    # Per-state beta weights and emission means for inspecting state distinctness
+    beta_weights = params.get('beta', np.array([]))
+    per_state = []
+    for k in range(len(beta_weights)):
+        entry = {'state': k, 'beta': float(beta_weights[k])}
+        if 'locs' in params and k < len(params['locs']):
+            entry['mean_emission'] = [float(v) for v in params['locs'][k]]
+        per_state.append(entry)
+
     metadata = {
         'model_type': f'HDP-HMM (Bayesian, {inference_type.upper()})',
         'K_max': params.get('K_max', HDP_TRUNCATION),
@@ -612,6 +663,7 @@ def save_hdp_results(model_dir, result, samples, params, diagnostics,
         'effective_K_mode': effective_k_info[2],
         'diagnostics': diagnostics,
         'data': data_info,
+        'per_state_detail': per_state,
     }
     with open(os.path.join(model_dir, 'hdp_metadata.json'), 'w') as f:
         json.dump(metadata, f, indent=2, default=str)

@@ -85,6 +85,11 @@ def collect():
 
     market = market.dropna()
 
+    assert len(market) >= 252, (
+        f"Insufficient data after alignment: {len(market)} trading days "
+        f"(need >= 252). Check date range or data sources."
+    )
+
     # --- Save ---
     market.to_csv(os.path.join(DATA_DIR, 'market_data.csv'))
 

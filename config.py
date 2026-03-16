@@ -46,9 +46,33 @@ LONG_WINDOW  = 63       # ~1 quarter
 
 # --- PCA ---
 PCA_MAX_COMPONENTS = 5
-PCA_VAR_THRESHOLD  = 0.85   # cumulative variance for auto-selection
+PCA_VAR_THRESHOLD  = 0.90   # cumulative variance for auto-selection
 PCA_ROLLING_WINDOW = 63     # rolling window for PCA (~3 months)
 VIX_BYPASS         = False  # VIX is now a direct curated feature; no need to append separately
+
+# Representative feature subset for PCA (reduces collinearity).
+# Set to None to use all features. Using a curated subset prevents
+# the vol cluster (~10 features) from dominating the first PCs.
+FEATURE_SUBSET = [
+    # Vol: one per horizon, plus the high-low estimator
+    'SPY_rv10', 'SPY_rv63', 'SPY_parkinson10',
+    # Implied vol & risk premium
+    'VIX', 'VRP',
+    # Vol-of-vol & term structure
+    'SPY_volvol20', 'vix_ts_slope',
+    # Returns: SPY + key cross-asset
+    'SPY_ret', 'TLT_ret', 'EEM_ret',
+    # Cross-asset signals
+    'credit_stress', 'SPY_TLT_corr63', 'xasset_disp', 'eigen_conc',
+    # Macro & credit
+    'yield_slope', 'hy_spread', 'ted_spread',
+    # Return dynamics
+    'SPY_skew20', 'SPY_ac1_20',
+    # Momentum & drawdown
+    'SPY_mom63', 'SPY_dd63',
+    # Leverage effect
+    'lev_effect20',
+]
 
 # --- HMM (classic) ---
 N_STATES_RANGE = [2, 3, 4]       # BIC search grid
@@ -60,7 +84,7 @@ HMM_ITER       = 300
 
 # --- Bayesian HDP-HMM (NumPyro) ---
 USE_HDP            = True        # True = Bayesian HDP-HMM; False = classic StudentTHMM
-HDP_TRUNCATION     = 10          # max states for stick-breaking (10 is plenty for markets)
+HDP_TRUNCATION     = 20          # max states for stick-breaking (must exceed expected K)
 HDP_ALPHA          = 1.0         # DP concentration (global)
 HDP_KAPPA          = 10.0        # sticky self-transition weight
 HDP_MAX_REGIMES    = 6           # merge down to at most this many regimes
@@ -81,7 +105,7 @@ GARCH_P        = 1
 GARCH_Q        = 1
 GARCH_DIST     = 'normal'
 MIN_REGIME_OBS = 50              # minimum obs per regime for GARCH fit
-REGIME_HOLD_DAYS = 3             # hysteresis: require N days before switching regime
+REGIME_HOLD_DAYS = 2             # hysteresis: require N days before switching regime
 
 # --- Validation ---
 WALK_FORWARD_TRAIN_YEARS = 5

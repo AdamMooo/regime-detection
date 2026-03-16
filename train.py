@@ -20,10 +20,7 @@ import os
 import warnings
 
 import joblib
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from matplotlib.patches import Patch
+
 import numpy as np
 import pandas as pd
 from arch import arch_model
@@ -41,7 +38,7 @@ from config import (
     PCA_ROLLING_WINDOW, VIX_BYPASS, USE_HDP, HDP_INFERENCE, HDP_MAX_REGIMES,
     GARCH_P, GARCH_Q, GARCH_DIST, MIN_REGIME_OBS, REGIME_HOLD_DAYS,
     WALK_FORWARD_TRAIN_YEARS, WALK_FORWARD_STEP_DAYS,
-    WALK_FORWARD_MODE, VAR_ALPHA,
+    WALK_FORWARD_MODE, VAR_ALPHA, FEATURE_SUBSET,
     REGIME_NAMES, DATA_DIR, MODEL_DIR, FIGURE_DIR, TICKERS,
 )
 from features import build_features, standardize
@@ -536,6 +533,11 @@ def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE,
     Each fold:  standardize on train -> PCA on last ROLLING_WINDOW days
     -> project full train -> HMM -> predict test
     """
+    # Apply same feature subset used in main training
+    if FEATURE_SUBSET is not None:
+        available = [f for f in FEATURE_SUBSET if f in features.columns]
+        features = features[available]
+
     min_train = WALK_FORWARD_TRAIN_YEARS * 252
     step      = WALK_FORWARD_STEP_DAYS
 
@@ -645,6 +647,74 @@ def evaluate(market, labels, name_map, spy_ret, label_source='In-Sample'):
         print(f"  {name:<14s} {n:>6d} {pct:>5.1f}% {vix_m:>7.1f} "
               f"{hy_m:>6.2f}% {yl_m:>+7.2f} {sp_m:>+6.2f}%")
 
+    # Bootstrap confidence intervals for key statistics
+    _print_bootstrap_cis(market, labels, name_map, spy_ret, label_source)
+
+
+def _print_bootstrap_cis(market, labels, name_map, spy_ret, label_source,
+                         n_boot=1000, block_size=21, ci=90):
+    """Block bootstrap 90% confidence intervals for regime statistics."""
+    label_arr = np.asarray(labels)
+    T = len(label_arr)
+    if T < block_size * 2:
+        return
+
+    n_blocks = (T + block_size - 1) // block_size
+    rng = np.random.RandomState(RANDOM_SEED)
+
+    # Pre-extract aligned data
+    vix = market['VIX'].values if 'VIX' in market.columns else None
+    spy = spy_ret.reindex(market.index).values if spy_ret is not None else None
+
+    boot_stats = {r: {'vix': [], 'duration': [], 'persist': []}
+                  for r in name_map}
+
+    for _ in range(n_boot):
+        # Draw block-bootstrap indices
+        block_starts = rng.randint(0, T - block_size + 1, size=n_blocks)
+        idx = np.concatenate([np.arange(s, min(s + block_size, T))
+                              for s in block_starts])[:T]
+
+        boot_labels = label_arr[idx]
+        for r in name_map:
+            mask = boot_labels == r
+            if mask.sum() < 5:
+                continue
+            if vix is not None:
+                boot_stats[r]['vix'].append(float(vix[idx][mask].mean()))
+            # Block durations
+            blocks = _get_blocks(mask)
+            if blocks:
+                boot_stats[r]['duration'].append(
+                    float(np.mean([e - s + 1 for s, e in blocks])))
+            # Self-transition rate
+            transitions = np.sum(
+                (boot_labels[:-1] == r) & (boot_labels[1:] == r))
+            total = max(np.sum(boot_labels[:-1] == r), 1)
+            boot_stats[r]['persist'].append(float(transitions / total))
+
+    lo = (100 - ci) / 2
+    hi = 100 - lo
+    print(f"\n  Bootstrap {ci}% CIs ({label_source}, block={block_size}d, n={n_boot}):")
+    print(f"  {'Regime':<14s} {'VIX':>18s} {'Avg Dur':>18s} {'Persist':>18s}")
+    print(f"  {'-' * 70}")
+    for r in sorted(name_map.keys()):
+        name = name_map[r]
+        parts = []
+        for stat in ['vix', 'duration', 'persist']:
+            vals = boot_stats[r][stat]
+            if len(vals) >= 10:
+                l, h = np.percentile(vals, [lo, hi])
+                if stat == 'persist':
+                    parts.append(f"[{l:.1%}, {h:.1%}]")
+                elif stat == 'duration':
+                    parts.append(f"[{l:.0f}d, {h:.0f}d]")
+                else:
+                    parts.append(f"[{l:.1f}, {h:.1f}]")
+            else:
+                parts.append(f"{'N/A':>18s}")
+        print(f"  {name:<14s} {parts[0]:>18s} {parts[1]:>18s} {parts[2]:>18s}")
+
 
 def compute_var_backtest(spy_returns, labels, name_map, alpha=VAR_ALPHA):
     """Simple VaR back-test: regime-conditional Gaussian VaR."""
@@ -670,8 +740,225 @@ def compute_var_backtest(spy_returns, labels, name_map, alpha=VAR_ALPHA):
               f"exc={exc}/{len(y)} ({rate:.1%})  expected~{alpha:.1%}")
 
     if total_n > 0:
-        print(f"  Overall      : exc={total_exc}/{total_n} "
-              f"({total_exc / total_n:.1%})")
+        overall_rate = total_exc / total_n
+        print(f"  Overall      : exc={total_exc}/{total_n} ({overall_rate:.1%})")
+
+        # Kupiec Proportion of Failures (POF) test
+        kupiec_p = kupiec_pof_test(total_n, total_exc, alpha)
+        # Christoffersen Independence test
+        chris_p = christoffersen_test(spy_returns, labels, name_map, alpha)
+        print(f"  Kupiec POF p-value    : {kupiec_p:.4f}"
+              f"  {'(OK)' if kupiec_p > 0.05 else '(REJECT — VaR miscalibrated)'}")
+        print(f"  Christoffersen p-value: {chris_p:.4f}"
+              f"  {'(OK)' if chris_p > 0.05 else '(REJECT — exceedances cluster)'}")
+
+
+def kupiec_pof_test(n_obs, n_exc, alpha):
+    """
+    Kupiec (1995) Proportion of Failures test.
+    H0: true exceedance rate = alpha.
+    Returns p-value from likelihood ratio chi-squared test.
+    """
+    from scipy.stats import chi2
+    p0 = alpha
+    p_hat = n_exc / n_obs if n_obs > 0 else 0
+    if p_hat == 0 or p_hat == 1:
+        return 1.0  # degenerate case
+    lr = -2 * (
+        n_exc * np.log(p0) + (n_obs - n_exc) * np.log(1 - p0)
+        - n_exc * np.log(p_hat) - (n_obs - n_exc) * np.log(1 - p_hat)
+    )
+    return float(chi2.sf(lr, df=1))
+
+
+def christoffersen_test(spy_returns, labels, name_map, alpha):
+    """
+    Christoffersen (1998) Independence test for VaR exceedances.
+    Tests that exceedances are not clustered (i.i.d. Bernoulli).
+    Returns p-value from likelihood ratio chi-squared test.
+    """
+    from scipy.stats import chi2
+    z = _norm.ppf(alpha)
+
+    # Build full exceedance indicator series
+    hits = pd.Series(0, index=spy_returns.index, dtype=int)
+    for r in sorted(name_map.keys()):
+        if hasattr(labels, 'index'):
+            idx = labels.index[labels == r]
+        else:
+            idx = spy_returns.index[labels == r]
+        y = spy_returns.reindex(idx).dropna()
+        if len(y) < 30:
+            continue
+        mu, sigma = y.mean(), y.std()
+        var_level = mu + z * sigma
+        hits.loc[y.index] = (y < var_level).astype(int)
+
+    hits = hits.dropna().values
+    if len(hits) < 10:
+        return 1.0
+
+    # 2x2 transition counts: n_ij = count of (hit_{t-1}=i, hit_t=j)
+    n00 = n01 = n10 = n11 = 0
+    for t in range(1, len(hits)):
+        i, j = hits[t - 1], hits[t]
+        if i == 0 and j == 0: n00 += 1
+        elif i == 0 and j == 1: n01 += 1
+        elif i == 1 and j == 0: n10 += 1
+        else: n11 += 1
+
+    # Transition probabilities
+    p01 = n01 / max(n00 + n01, 1)
+    p11 = n11 / max(n10 + n11, 1)
+    p_hat = (n01 + n11) / max(n00 + n01 + n10 + n11, 1)
+
+    if p_hat == 0 or p_hat == 1 or p01 == 0 or p11 == 0:
+        return 1.0
+
+    # LR statistic for independence
+    def _safe_log(x):
+        return np.log(max(x, 1e-300))
+
+    lr = -2 * (
+        n00 * _safe_log(1 - p_hat) + n01 * _safe_log(p_hat)
+        + n10 * _safe_log(1 - p_hat) + n11 * _safe_log(p_hat)
+        - n00 * _safe_log(1 - p01) - n01 * _safe_log(p01)
+        - n10 * _safe_log(1 - p11) - n11 * _safe_log(p11)
+    )
+    return float(chi2.sf(max(lr, 0), df=1))
+
+
+def compute_var_backtest_garch(spy_returns, regime_probs, labels, name_map,
+                               garch_results, alpha=VAR_ALPHA):
+    """
+    GARCH-conditional, probability-weighted VaR back-test.
+
+    For each regime k, runs the GARCH(1,1) recursion with that regime's
+    (ω_k, α_k, β_k) over the full return series to get σ_{k,t}.
+    Then blends: VaR(t) = Σ_k P(regime=k|t) × z × σ_{k,t}.
+
+    This adapts VaR *within* a regime (via GARCH dynamics) and smooths
+    across regimes during transitions (via probability weighting).
+    """
+    z = _norm.ppf(alpha)
+    ordered = sorted(name_map.keys())
+
+    # Full-sample GARCH conditional vol for index alignment
+    cond_vol_full = garch_results['full'].conditional_volatility
+    common_idx = spy_returns.index.intersection(cond_vol_full.index)
+
+    if len(common_idx) < 30:
+        print("\nGARCH-Conditional VaR: insufficient data, skipping.")
+        return
+
+    spy_ret = spy_returns.loc[common_idx]
+    ret_pct = spy_ret.values * 100  # decimal → % (arch convention)
+    T_len = len(common_idx)
+
+    # --- Compute per-regime GARCH σ_t paths over full return series ---
+    # GARCH(1,1): σ²_t = ω + α × ε²_{t-1} + β × σ²_{t-1}
+    # Each regime's parameters produce a different vol path.
+    regime_vol = {}  # r -> ndarray shape (T_len,) in % daily
+    full_res = garch_results['full']
+    full_omega = full_res.params.get('omega', 0.04)
+    full_alpha = full_res.params.get('alpha[1]', 0.10)
+    full_beta = full_res.params.get('beta[1]', 0.85)
+
+    for r in ordered:
+        if r in garch_results and hasattr(garch_results[r], 'params'):
+            res_r = garch_results[r]
+            omega = res_r.params.get('omega', full_omega)
+            alpha_g = res_r.params.get('alpha[1]', full_alpha)
+            beta_g = res_r.params.get('beta[1]', full_beta)
+        else:
+            omega, alpha_g, beta_g = full_omega, full_alpha, full_beta
+
+        # Run GARCH recursion with regime-k params on full return series
+        sig2 = np.empty(T_len)
+        # Initialize with unconditional variance
+        persist = alpha_g + beta_g
+        if persist < 1:
+            sig2[0] = omega / (1 - persist)
+        else:
+            sig2[0] = ret_pct[:20].var() if T_len >= 20 else 1.0
+        for t in range(1, T_len):
+            sig2[t] = omega + alpha_g * ret_pct[t - 1] ** 2 + beta_g * sig2[t - 1]
+            sig2[t] = max(sig2[t], 1e-8)  # floor
+        regime_vol[r] = np.sqrt(sig2) / 100  # % → decimal
+
+    # Align filtered probs to common_idx
+    if hasattr(regime_probs, 'loc'):
+        prob_arr = regime_probs.loc[common_idx].values
+    else:
+        label_idx = labels.index if hasattr(labels, 'index') else spy_returns.index
+        prob_df = pd.DataFrame(regime_probs, index=label_idx[:len(regime_probs)])
+        prob_arr = prob_df.reindex(common_idx).values
+
+    # Blend: VaR(t) = Σ_k P(k|t) × z × σ_{k,t}
+    blended_var = np.zeros(T_len)
+    for k_idx, r in enumerate(ordered):
+        if k_idx >= prob_arr.shape[1]:
+            continue
+        var_k = z * regime_vol[r]  # negative (left tail)
+        blended_var += prob_arr[:, k_idx] * var_k
+
+    # Exceedances
+    label_arr = labels.loc[common_idx].values if hasattr(labels, 'loc') else labels
+    ret_arr = spy_ret.values
+    hits = (ret_arr < blended_var).astype(int)
+    total_exc = int(hits.sum())
+    total_n = len(hits)
+
+    print(f"\nGARCH-Conditional VaR Back-test ({1 - alpha:.0%} confidence):")
+
+    for r in ordered:
+        mask = (label_arr == r)
+        n_r = int(mask.sum())
+        if n_r < 30:
+            continue
+        exc_r = int(hits[mask].sum())
+        mean_var_r = blended_var[mask].mean() * 100
+        mean_vol_r = regime_vol[r][mask].mean() * 100
+        print(f"  {name_map[r]:12s}: VaR={mean_var_r:+.2f}%  "
+              f"exc={exc_r}/{n_r} ({exc_r/n_r:.1%})  "
+              f"vol={mean_vol_r:.2f}%  expected~{alpha:.1%}")
+
+    overall_rate = total_exc / total_n if total_n > 0 else 0
+    print(f"  Overall      : exc={total_exc}/{total_n} ({overall_rate:.1%})")
+
+    # Kupiec POF test
+    kupiec_p = kupiec_pof_test(total_n, total_exc, alpha)
+    print(f"  Kupiec POF p-value    : {kupiec_p:.4f}"
+          f"  {'(OK)' if kupiec_p > 0.05 else '(REJECT — VaR miscalibrated)'}")
+
+    # Christoffersen Independence test on the blended VaR
+    n00 = n01 = n10 = n11 = 0
+    for t in range(1, len(hits)):
+        i, j = hits[t - 1], hits[t]
+        if i == 0 and j == 0: n00 += 1
+        elif i == 0 and j == 1: n01 += 1
+        elif i == 1 and j == 0: n10 += 1
+        else: n11 += 1
+
+    p01 = n01 / max(n00 + n01, 1)
+    p11 = n11 / max(n10 + n11, 1)
+    p_hat = (n01 + n11) / max(n00 + n01 + n10 + n11, 1)
+
+    if p_hat == 0 or p_hat == 1 or p01 == 0 or p11 == 0:
+        chris_p = 1.0
+    else:
+        from scipy.stats import chi2
+        def _sl(x): return np.log(max(x, 1e-300))
+        lr = -2 * (
+            n00 * _sl(1 - p_hat) + n01 * _sl(p_hat)
+            + n10 * _sl(1 - p_hat) + n11 * _sl(p_hat)
+            - n00 * _sl(1 - p01) - n01 * _sl(p01)
+            - n10 * _sl(1 - p11) - n11 * _sl(p11)
+        )
+        chris_p = float(chi2.sf(max(lr, 0), df=1))
+
+    print(f"  Christoffersen p-value: {chris_p:.4f}"
+          f"  {'(OK)' if chris_p > 0.05 else '(REJECT — exceedances cluster)'}")
 
 
 # ===================================================================
@@ -693,31 +980,6 @@ _REGIME_COLORS = {
 # Plotly-compatible hex colors — same mapping
 _REGIME_COLORS_HEX = _REGIME_COLORS.copy()
 
-# Matplotlib global styling for all static figures
-_MPL_STYLE = {
-    'figure.facecolor':  '#0d1117',
-    'axes.facecolor':    '#161b22',
-    'axes.edgecolor':    '#30363d',
-    'axes.labelcolor':   '#c9d1d9',
-    'text.color':        '#c9d1d9',
-    'xtick.color':       '#8b949e',
-    'ytick.color':       '#8b949e',
-    'grid.color':        '#21262d',
-    'grid.alpha':        0.6,
-    'legend.facecolor':  '#161b22',
-    'legend.edgecolor':  '#30363d',
-    'figure.dpi':        150,
-    'savefig.dpi':       300,
-    'font.size':         11,
-    'axes.titlesize':    13,
-    'axes.labelsize':    11,
-}
-
-
-def _apply_style():
-    """Apply the dark theme to matplotlib."""
-    plt.rcParams.update(_MPL_STYLE)
-
 
 def _get_blocks(mask):
     """Return (start, end) index pairs for contiguous True blocks."""
@@ -733,256 +995,7 @@ def _get_blocks(mask):
     return blocks
 
 
-def _shade_regimes(ax, label_series, name_map, index):
-    for r, name in name_map.items():
-        mask = label_series == r
-        for s, e in _get_blocks(mask):
-            ax.axvspan(
-                index[s], index[e],
-                alpha=0.25 if 'Crisis' in name or 'High' in name else 0.15,
-                color=_REGIME_COLORS.get(name, '#888'),
-            )
 
-
-def _regime_legend(name_map):
-    return [Patch(facecolor=_REGIME_COLORS.get(n, '#888'), alpha=0.5, label=n)
-            for n in name_map.values()]
-
-
-def plot_regime_history(market, labels, name_map, title_suffix=''):
-    """Multi-panel: SPY, VIX, HY spread, yield slope with regime shading."""
-    _apply_style()
-    panels = [('SPY', market.get('SPY_close'), '#58a6ff')]
-    panels.append(('VIX', market.get('VIX'), '#bc8cff'))
-    if 'hy_spread' in market.columns:
-        panels.append(('HY Spread (%)', market['hy_spread'], '#ff7b72'))
-    if 'yield_slope' in market.columns:
-        panels.append(('Yield Slope', market['yield_slope'], '#7ee787'))
-
-    fig, axes = plt.subplots(len(panels), 1,
-                             figsize=(18, 3.5 * len(panels)), sharex=True)
-    if len(panels) == 1:
-        axes = [axes]
-
-    label_series = pd.Series(labels, index=market.index[:len(labels)])
-
-    for ax, (ylabel, data, color) in zip(axes, panels):
-        _shade_regimes(ax, label_series, name_map, market.index)
-        if data is not None:
-            ax.plot(data.index, data, '-', color=color, lw=0.8, alpha=0.9)
-        ax.set_ylabel(ylabel, fontweight='bold')
-        ax.grid(True)
-
-    axes[0].set_title(f'Market Regimes {title_suffix}',
-                      fontsize=15, fontweight='bold')
-    axes[0].legend(handles=_regime_legend(name_map), loc='upper left',
-                   fontsize=9, ncol=min(len(name_map), 3))
-    if len(axes) > 1:
-        axes[1].axhline(20, color='#f0883e', ls='--', alpha=0.5, lw=0.7)
-        axes[1].axhline(30, color='#ff7b72', ls='--', alpha=0.5, lw=0.7)
-    if 'yield_slope' in market.columns:
-        axes[-1].axhline(0, color='#ff7b72', ls='--', alpha=0.5, lw=0.7)
-
-    fig.tight_layout(h_pad=0.3)
-    return fig
-
-
-def plot_regime_probabilities(market, model, pcs, name_map):
-    """Stacked area chart of filtered (forward-only) regime probabilities."""
-    _apply_style()
-    probs = filtered_probs(model, pcs)
-    ordered = sorted(name_map.keys())
-    idx = market.index[:len(probs)]
-    fig, ax = plt.subplots(figsize=(18, 5))
-    bottom = np.zeros(len(probs))
-    for r in ordered:
-        name = name_map[r]
-        ax.fill_between(idx, bottom, bottom + probs[:, r],
-                        alpha=0.7,
-                        color=_REGIME_COLORS.get(name, '#888'), label=name)
-        bottom += probs[:, r]
-    ax.set_ylabel('Probability', fontweight='bold')
-    ax.set_title('Regime Probabilities', fontsize=15, fontweight='bold')
-    ax.legend(loc='upper left', fontsize=9, ncol=min(len(name_map), 3))
-    ax.set_ylim(0, 1)
-    ax.grid(True)
-    fig.tight_layout()
-    return fig
-
-
-def plot_current_state(market, model, pcs, name_map):
-    """Current regime bar + last 90d donut."""
-    _apply_style()
-    probs  = filtered_probs(model, pcs)
-    labels = filtered_labels(model, pcs)
-    current_probs = probs[-1]
-    current_date  = market.index[-1].date()
-
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
-    ordered    = sorted(name_map.keys())
-    bar_names  = [name_map[r] for r in ordered]
-    bar_vals   = [current_probs[r] for r in ordered]
-    bar_colors = [_REGIME_COLORS.get(n, '#888') for n in bar_names]
-
-    bars = ax1.barh(bar_names, bar_vals, color=bar_colors, alpha=0.85,
-                    edgecolor='#30363d', linewidth=0.5)
-    ax1.set_xlabel('Probability', fontweight='bold')
-    ax1.set_title(f'Current Regime  ({current_date})',
-                  fontsize=13, fontweight='bold')
-    ax1.set_xlim(0, 1)
-    ax1.grid(axis='x')
-    for bar, v in zip(bars, bar_vals):
-        if v > 0.03:
-            ax1.text(v + 0.02, bar.get_y() + bar.get_height() / 2,
-                     f'{v:.0%}', va='center', fontsize=11, color='#c9d1d9')
-
-    recent = labels[-90:]
-    name_series = pd.Series([name_map[l] for l in recent])
-    counts = name_series.value_counts()
-    wedge_colors = [_REGIME_COLORS.get(n, '#888') for n in counts.index]
-    wedges, texts, autotexts = ax2.pie(
-        counts, labels=counts.index, autopct='%1.0f%%',
-        colors=wedge_colors, startangle=90,
-        pctdistance=0.8, wedgeprops=dict(width=0.45, edgecolor='#0d1117'),
-        textprops=dict(color='#c9d1d9'),
-    )
-    for t in autotexts:
-        t.set_color('#c9d1d9')
-        t.set_fontsize(10)
-    ax2.set_title('Last 90 Days', fontsize=13, fontweight='bold')
-    fig.tight_layout()
-    return fig
-
-
-def plot_model_diagnostics(pca_model, bic_df, garch_results, name_map):
-    """PCA scree + GARCH parameters (skip BIC panel for HDP mode)."""
-    _apply_style()
-    regimes = [r for r in sorted(name_map.keys()) if r in garch_results]
-    has_garch = len(regimes) > 0
-    has_bic = bic_df is not None
-    n_panels = 1 + int(has_bic) + int(has_garch)
-
-    fig, axes = plt.subplots(1, n_panels, figsize=(6 * n_panels, 5))
-    if n_panels == 1:
-        axes = [axes]
-    pi = 0
-
-    # PCA scree
-    ax = axes[pi]; pi += 1
-    var = pca_model.explained_variance_ratio_
-    cum = np.cumsum(var)
-    x = range(1, len(var) + 1)
-    ax.bar(x, var, alpha=0.7, color='#58a6ff', label='Individual')
-    ax.plot(x, cum, 'o-', color='#f0883e', lw=1.5, label='Cumulative')
-    ax.axhline(PCA_VAR_THRESHOLD, color='#8b949e', ls='--', alpha=0.5,
-               label=f'{PCA_VAR_THRESHOLD:.0%} threshold')
-    ax.set_xlabel('Principal Component')
-    ax.set_ylabel('Explained Variance')
-    ax.set_title('PCA Scree')
-    ax.legend(fontsize=8); ax.grid(True)
-
-    # BIC (only in classic mode)
-    if has_bic:
-        ax = axes[pi]; pi += 1
-        best_idx = bic_df['BIC'].idxmin()
-        colors = ['#f0883e' if i == best_idx else '#58a6ff'
-                  for i in range(len(bic_df))]
-        ax.bar(bic_df['K'], bic_df['BIC'], color=colors, alpha=0.7)
-        ax.set_xlabel('States (K)')
-        ax.set_ylabel('BIC')
-        ax.set_title(f"BIC  (best K={int(bic_df.loc[best_idx, 'K'])})")
-        ax.grid(True)
-
-    # GARCH
-    if has_garch:
-        ax = axes[pi]
-        names_g = [name_map[r] for r in regimes]
-        omegas = [garch_results[r].params.get('omega', 0) for r in regimes]
-        alphas = [garch_results[r].params.get('alpha[1]', 0) for r in regimes]
-        betas  = [garch_results[r].params.get('beta[1]', 0) for r in regimes]
-        xr = np.arange(len(regimes))
-        w = 0.22
-        ax.bar(xr - w, omegas, w, label='omega', alpha=0.8, color='#58a6ff')
-        ax.bar(xr,     alphas, w, label='alpha', alpha=0.8, color='#f0883e')
-        ax.bar(xr + w, betas,  w, label='beta',  alpha=0.8, color='#7ee787')
-        ax.set_xticks(xr); ax.set_xticklabels(names_g, fontsize=9)
-        ax.set_ylabel('Parameter')
-        ax.set_title('GARCH(1,1) by Regime')
-        ax.legend(fontsize=8); ax.grid(True)
-
-    fig.suptitle('Model Diagnostics', fontsize=15, fontweight='bold')
-    fig.tight_layout()
-    return fig
-
-
-def plot_market_mode(dates, mode_ratio, labels, name_map):
-    """Market-mode ratio with regime shading."""
-    _apply_style()
-    fig, ax = plt.subplots(figsize=(18, 5))
-    label_series = pd.Series(labels, index=dates[:len(labels)])
-    _shade_regimes(ax, label_series, name_map, dates)
-    ax.plot(dates, mode_ratio, '-', color='#bc8cff', lw=0.9)
-    ax.set_ylabel('$\\lambda_1 / \\Sigma\\lambda$', fontweight='bold')
-    ax.set_title('Market-Mode Ratio (Rolling PCA)',
-                 fontsize=15, fontweight='bold')
-    ax.legend(handles=_regime_legend(name_map), loc='upper right',
-              fontsize=8, ncol=2)
-    ax.grid(True)
-    fig.tight_layout()
-    return fig
-
-
-def plot_sv_volatility(dates, sv_results, labels, name_map, vix_series=None):
-    """SV latent vol vs VIX + SV params by regime."""
-    _apply_style()
-    fig, axes = plt.subplots(2, 1, figsize=(18, 9), sharex=False)
-
-    ax1 = axes[0]
-    label_series = pd.Series(labels, index=dates[:len(labels)])
-    _shade_regimes(ax1, label_series, name_map, dates)
-
-    if vix_series is not None:
-        ax1.plot(vix_series.index, vix_series.values, '-', color='#bc8cff',
-                 lw=0.6, alpha=0.7, label='VIX')
-
-    full_sv = sv_results.get('full', {})
-    ann_vol = full_sv.get('annualized_vol')
-    if ann_vol is not None:
-        ax1.plot(dates[:len(ann_vol)], ann_vol, '-', color='#f0883e',
-                 lw=0.8, label='SV Latent Vol (%)')
-
-    ax1.set_ylabel('Volatility (%)', fontweight='bold')
-    ax1.set_title('Stochastic Volatility: Latent Vol vs VIX',
-                  fontsize=15, fontweight='bold')
-    ax1.legend(loc='upper left', fontsize=9)
-    ax1.grid(True)
-
-    ax2 = axes[1]
-    regime_keys = [r for r in sorted(name_map.keys())
-                   if r in sv_results and 'params' in sv_results.get(r, {})]
-    if regime_keys:
-        names_r = [name_map[r] for r in regime_keys]
-        phis = [sv_results[r]['params']['phi'] for r in regime_keys]
-        sigmas = [sv_results[r]['params']['sigma_eta'] for r in regime_keys]
-        mean_vols = [sv_results[r]['annualized_vol'].mean()
-                     for r in regime_keys]
-
-        x = np.arange(len(regime_keys))
-        w = 0.22
-        ax2.bar(x - w, phis, w, label='phi (persistence)',
-                alpha=0.8, color='#58a6ff')
-        ax2.bar(x, [s * 5 for s in sigmas], w,
-                label='sigma_eta x5', alpha=0.8, color='#f0883e')
-        ax2.bar(x + w, [v / 100 for v in mean_vols], w,
-                label='mean_vol / 100', alpha=0.8, color='#7ee787')
-        ax2.set_xticks(x); ax2.set_xticklabels(names_r, fontsize=9)
-        ax2.set_ylabel('Parameter', fontweight='bold')
-        ax2.set_title('SV Parameters by Regime')
-        ax2.legend(loc='upper left', fontsize=8)
-        ax2.grid(True)
-
-    fig.tight_layout()
-    return fig
 
 
 # ===================================================================
@@ -2473,14 +2486,35 @@ def train():
         os.path.join(DATA_DIR, 'features_raw.csv'),
         index_col=0, parse_dates=True,
     )
-    feat_scaled = pd.read_csv(
-        os.path.join(DATA_DIR, 'features_scaled.csv'),
-        index_col=0, parse_dates=True,
+
+    assert len(feat_raw) >= 252, (
+        f"Insufficient feature data: {len(feat_raw)} rows (need >= 252 = 1 year)."
+    )
+    nan_pct = feat_raw.isnull().mean()
+    bad_cols = nan_pct[nan_pct > 0.1]
+    if len(bad_cols) > 0:
+        print(f"  WARNING: {len(bad_cols)} features have >10% NaN: "
+              f"{list(bad_cols.index[:5])}")
+
+    # Scale features in-sample here (NOT from features_scaled.csv, which
+    # uses a global scaler and leaks future information).
+    # Apply feature subset to reduce collinearity before PCA.
+    if FEATURE_SUBSET is not None:
+        available = [f for f in FEATURE_SUBSET if f in feat_raw.columns]
+        dropped = [f for f in FEATURE_SUBSET if f not in feat_raw.columns]
+        if dropped:
+            print(f"  Feature subset: {len(dropped)} requested features not found: {dropped}")
+        feat_raw = feat_raw[available]
+        print(f"  Feature subset: {len(available)} of {len(FEATURE_SUBSET)} features selected")
+
+    scaler_is = StandardScaler()
+    X_scaled = scaler_is.fit_transform(feat_raw.values)
+    feat_scaled = pd.DataFrame(
+        X_scaled, columns=feat_raw.columns, index=feat_raw.index,
     )
 
     # Align market to feature dates
     market = market.loc[feat_scaled.index]
-    X_scaled = feat_scaled.values
 
     # SPY returns (independent evaluation -- not in HMM features)
     spy_close     = market['SPY_close']
@@ -2624,20 +2658,41 @@ def train():
         name_map,
     )
 
-    # VaR back-test
+    # VaR back-test (static Gaussian)
     compute_var_backtest(
         spy_dr_v.loc[common_v],
         pd.Series(labels, index=valid_dates).loc[common_v],
         name_map,
     )
 
-    # ── Save results ──────────────────────────────────────────────
+    # VaR back-test (GARCH-conditional, probability-weighted)
+    compute_var_backtest_garch(
+        spy_dr_v.loc[common_v],
+        pd.DataFrame(probs, index=valid_dates).loc[common_v],
+        pd.Series(labels, index=valid_dates).loc[common_v],
+        name_map,
+        garch_results,
+    )
+
+    # ── Save results (in-sample + OOS) ────────────────────────────
     results = market_v.copy()
     results['regime'] = labels
     results['regime_name'] = [name_map[l] for l in labels]
     for r, name in name_map.items():
         results[f'prob_{name}'] = probs[:, r]
     results['market_mode_ratio'] = mode_ratio
+
+    # Stitch OOS labels into results for trust & transparency
+    results['is_oos'] = False
+    results['regime_oos'] = np.nan
+    results['regime_name_oos'] = ''
+    if oos_labels is not None and len(oos_labels) > 0:
+        oos_idx = oos_labels.index.intersection(results.index)
+        results.loc[oos_idx, 'is_oos'] = True
+        results.loc[oos_idx, 'regime_oos'] = oos_labels.loc[oos_idx].values
+        results.loc[oos_idx, 'regime_name_oos'] = [
+            oos_name_map.get(int(l), '') for l in oos_labels.loc[oos_idx].values
+        ]
     results.to_csv(os.path.join(DATA_DIR, 'regime_results.csv'))
 
     joblib.dump(model,    os.path.join(MODEL_DIR, 'hmm_model.pkl'))

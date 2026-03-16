@@ -90,20 +90,28 @@ def build_features(market: pd.DataFrame) -> pd.DataFrame:
 
     # ── Helper returns (needed for derived features) ───────────────
     spy_close = market.get('SPY_close')
-    spy_ret = None
+    spy_ret: pd.Series | None = None
     if spy_close is not None:
-        spy_ret = np.log(spy_close / spy_close.shift(1))
+        spy_ret = pd.Series(np.log(spy_close / spy_close.shift(1)),
+                            index=market.index)
         f['SPY_ret'] = spy_ret
 
-    tlt_ret = None
+    tlt_ret: pd.Series | None = None
     if 'TLT_close' in market.columns:
-        tlt_ret = np.log(market['TLT_close'] / market['TLT_close'].shift(1))
+        tlt_ret = pd.Series(
+            np.log(market['TLT_close'] / market['TLT_close'].shift(1)),
+            index=market.index)
 
-    hyg_ret = None
+    hyg_ret: pd.Series | None = None
     if 'HYG_close' in market.columns:
-        hyg_ret = np.log(market['HYG_close'] / market['HYG_close'].shift(1))
+        hyg_ret = pd.Series(
+            np.log(market['HYG_close'] / market['HYG_close'].shift(1)),
+            index=market.index)
 
     # ── Volatility state ───────────────────────────────────────────
+    rv10: pd.Series | None = None
+    rv20: pd.Series | None = None
+    rv63: pd.Series | None = None
     if spy_ret is not None:
         rv10 = _realized_vol(spy_ret, SHORT_WINDOW)
         rv20 = _realized_vol(spy_ret, MED_WINDOW)
@@ -113,11 +121,11 @@ def build_features(market: pd.DataFrame) -> pd.DataFrame:
         f['VIX'] = market['VIX']
 
     # VRP: VIX - realized vol (20d) in vol points
-    if 'VIX' in market.columns and spy_ret is not None:
+    if 'VIX' in market.columns and rv20 is not None:
         f['VRP'] = market['VIX'] - rv20 * 100
 
     # ── Vol dynamics ───────────────────────────────────────────────
-    if spy_ret is not None:
+    if rv10 is not None and rv63 is not None:
         f['rv_ratio_10_63'] = rv10 / rv63.clip(lower=1e-6)
 
     if 'VIX' in market.columns and 'VIX3M' in market.columns:
@@ -170,8 +178,45 @@ def build_features(market: pd.DataFrame) -> pd.DataFrame:
 
     # ── Leverage effect ────────────────────────────────────────────
     if spy_ret is not None:
-        rv10_for_lev = _realized_vol(spy_ret, SHORT_WINDOW)
-        vol_chg = rv10_for_lev.diff()
+        f['SPY_skew20'] = spy_ret.rolling(MED_WINDOW).skew()
+
+    # 22. Rolling first-order autocorrelation (20d, efficient proxy)
+    #     ρ̂₁ ≈ Σ(r_t · r_{t-1}) / Σ(r_t²)
+    if spy_ret is not None:
+        ret_lag = spy_ret.shift(1)
+        f['SPY_ac1_20'] = (
+            (spy_ret * ret_lag).rolling(MED_WINDOW).sum()
+            / (spy_ret ** 2).rolling(MED_WINDOW).sum().clip(lower=1e-12)
+        )
+
+    # ── Liquidity ──────────────────────────────────────────────────
+
+    # 23. Relative volume (SPY volume vs 20d mean)
+    if 'SPY_volume' in market.columns:
+        vol_ma = market['SPY_volume'].rolling(MED_WINDOW).mean()
+        f['SPY_rel_volume'] = market['SPY_volume'] / vol_ma.clip(lower=1)
+
+    # 24. Volume-normalized absolute return (fragility proxy)
+    if 'SPY_volume' in market.columns and spy_ret is not None:
+        norm_vol = market['SPY_volume'] / market['SPY_volume'].rolling(LONG_WINDOW).mean()
+        f['SPY_vol_adj_ret'] = spy_ret.abs() / norm_vol.clip(lower=0.1)
+
+    # ── SV-specific features (critical for ρ, ϕ identification) ───
+
+    # 25. Lagged realized vol (SV persistence ϕ support)
+    if 'SPY_rv10' in f.columns:
+        f['SPY_rv10_lag5'] = f['SPY_rv10'].shift(5)
+        f['SPY_rv10_lag10'] = f['SPY_rv10'].shift(10)
+
+    # 26. Vol-of-vol estimate (discrete-time ξ analog)
+    if 'SPY_rv10' in f.columns:
+        f['SPY_volvol20'] = f['SPY_rv10'].rolling(MED_WINDOW).std()
+
+    # 27. Leverage effect proxy (rolling corr between return and lagged vol change)
+    #     Empirically measures ρ < 0 in Heston / SV models.
+    #     vol_chg is shifted by 1 day for strict causality (avoid same-day info).
+    if spy_ret is not None and 'SPY_rv10' in f.columns:
+        vol_chg = f['SPY_rv10'].diff().shift(1)
         f['lev_effect20'] = spy_ret.rolling(MED_WINDOW).corr(vol_chg)
 
     # ── Drop warm-up NaN rows ──────────────────────────────────────
@@ -184,9 +229,10 @@ def build_features(market: pd.DataFrame) -> pd.DataFrame:
 
     f = f.dropna()
 
-    # Reorder columns to canonical order
-    ordered = [c for c in CURATED_FEATURES if c in f.columns]
-    f = f[ordered]
+    assert len(f) >= 252, (
+        f"Insufficient data after warm-up: {len(f)} rows (need >= 252). "
+        f"Check data availability or reduce LONG_WINDOW."
+    )
 
     return f
 
@@ -250,11 +296,11 @@ def prepare_features(market=None):
     features = _fix_skew(features)
     X_scaled, scaler = standardize(features)
 
-    # Save raw features, scaled features, scaler
+    # Save raw features, scaled features (EDA only -- not for training), scaler
     features.to_csv(os.path.join(DATA_DIR, 'features_raw.csv'))
     pd.DataFrame(
         X_scaled, columns=features.columns, index=features.index,
-    ).to_csv(os.path.join(DATA_DIR, 'features_scaled.csv'))
+    ).to_csv(os.path.join(DATA_DIR, 'features_scaled_eda.csv'))
     joblib.dump(scaler, os.path.join(MODEL_DIR, 'scaler.pkl'))
 
     print(f"Features: {features.shape[1]} indicators x {features.shape[0]} days")

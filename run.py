@@ -106,17 +106,39 @@ def print_regime():
 def main():
     step = sys.argv[1] if len(sys.argv) > 1 else 'all'
 
-    if step in ('all', 'collect'):
-        market = collect()
+    try:
+        if step in ('all', 'collect'):
+            market = collect()
+    except Exception as e:
+        print(f"[ERROR] collect failed: {e}")
+        if step != 'all':
+            sys.exit(1)
+        return
 
-    if step in ('all', 'features'):
-        prepare_features()
+    try:
+        if step in ('all', 'features'):
+            prepare_features()
+    except Exception as e:
+        print(f"[ERROR] features failed: {e}")
+        if step != 'all':
+            sys.exit(1)
+        return
 
-    if step in ('all', 'analyze'):
-        analyze()
+    try:
+        if step in ('all', 'analyze'):
+            analyze()
+    except Exception as e:
+        print(f"[ERROR] analyze failed: {e}")
+        if step != 'all':
+            sys.exit(1)
+        return
 
-    if step in ('all', 'train'):
-        train()
+    try:
+        if step in ('all', 'train'):
+            train()
+    except Exception as e:
+        print(f"[ERROR] train failed: {e}")
+        sys.exit(1)
 
     if step == 'regime':
         print_regime()
