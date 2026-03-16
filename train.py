@@ -1022,19 +1022,18 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
     regime_names = [name_map[r] for r in ordered]
     colors = [_REGIME_COLORS_HEX.get(n, '#888') for n in regime_names]
     T_len = len(dates)
-    date_strs = [d.strftime('%Y-%m-%d') for d in dates[:T_len]]
     label_arr = np.asarray(labels[:T_len])
 
     # helper: add regime shading via filled scatter shapes
-    def _add_shading(fig, lab_arr, d_strs, cols, ords, row=None, col=None):
+    def _add_shading(fig, lab_arr, dt_arr, cols, ords, row=None, col=None):
         for r_idx, r in enumerate(ords):
             c_hex = cols[r_idx].lstrip('#')
             rv, gv, bv = int(c_hex[:2], 16), int(c_hex[2:4], 16), int(c_hex[4:6], 16)
-            rgba = f'rgba({rv},{gv},{bv},0.18)'
+            rgba = f'rgba({rv},{gv},{bv},0.22)'
             mask = lab_arr == r
             for s, e in _get_blocks(mask):
                 kw = dict(
-                    x0=d_strs[s], x1=d_strs[min(e, len(d_strs) - 1)],
+                    x0=dt_arr[s], x1=dt_arr[min(e, len(dt_arr) - 1)],
                     fillcolor=rgba, opacity=1.0, line_width=0,
                     layer='below',
                 )
@@ -1062,7 +1061,7 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
     )
 
     for row_i in [1, 2]:
-        _add_shading(fig_tl, label_arr, date_strs, colors, ordered,
+        _add_shading(fig_tl, label_arr, dates, colors, ordered,
                      row=row_i, col=1)
 
     spy_data = market.get('SPY_close')
@@ -1091,10 +1090,10 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
         oos_ord = sorted(oos_name_map.keys())
         oos_nm = [oos_name_map[r] for r in oos_ord]
         oos_cols = [_REGIME_COLORS_HEX.get(n, '#888') for n in oos_nm]
-        oos_ds = [d.strftime('%Y-%m-%d') for d in oos_labels.index]
+        oos_dt = list(oos_labels.index)
         oos_la = oos_labels.values
         for row_i in [3, 4]:
-            _add_shading(fig_tl, oos_la, oos_ds, oos_cols, oos_ord,
+            _add_shading(fig_tl, oos_la, oos_dt, oos_cols, oos_ord,
                          row=row_i, col=1)
         spy_oos = oos_market.get('SPY_close')
         if spy_oos is not None:
@@ -1113,7 +1112,7 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
         oos_row_start = 5
 
     mode_row = oos_row_start
-    _add_shading(fig_tl, label_arr, date_strs, colors, ordered,
+    _add_shading(fig_tl, label_arr, dates, colors, ordered,
                  row=mode_row, col=1)
     fig_tl.add_trace(go.Scatter(
         x=dates, y=mode_ratio, mode='lines',
@@ -1126,8 +1125,16 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
         template='plotly_dark',
         paper_bgcolor='#0d1117', plot_bgcolor='#161b22',
         height=250 * n_rows, margin=dict(l=60, r=30, t=50, b=40),
-        legend=dict(orientation='h', yanchor='bottom', y=1.01, font_size=11),
+        legend=dict(orientation='h', yanchor='bottom', y=1.01, font_size=12),
     )
+
+    # Regime legend — invisible scatter traces with colored markers
+    for r_idx, r in enumerate(ordered):
+        fig_tl.add_trace(go.Scatter(
+            x=[None], y=[None], mode='markers',
+            marker=dict(size=10, color=colors[r_idx], symbol='square'),
+            name=regime_names[r_idx], showlegend=True,
+        ))
 
     # ── Tab 2: SV Volatility ──────────────────────────────────────
     fig_sv = _build_sv_volatility(dates, sv_results, labels, name_map,
@@ -1391,20 +1398,22 @@ def _build_transitions(model, labels, name_map, colors, ordered, regime_names):
     trans = model.transmat_
     K = len(ordered)
 
-    # ── Sankey (top) ───────────────────────────────────────────────
-    sources, targets, values, link_colors = [], [], [], []
+    # ── Sankey (top) — conditional probs P(j | leave i) ──────────
+    sources, targets, values, link_colors, link_labels = [], [], [], [], []
     for i in range(K):
+        off_diag = 1.0 - trans[i, i]
         for j in range(K):
             if i == j:
                 continue
-            p = trans[i, j]
-            if p > 0.005:
+            cond_p = trans[i, j] / off_diag if off_diag > 1e-9 else 0.0
+            if cond_p > 0.01:
                 sources.append(i)
                 targets.append(j + K)
-                values.append(round(p * 100, 1))
+                values.append(round(cond_p * 100, 1))
+                link_labels.append(f'{regime_names[i]} → {regime_names[j]}: {cond_p:.0%}')
                 c = colors[i].lstrip('#')
                 rv, gv, bv = int(c[:2], 16), int(c[2:4], 16), int(c[4:6], 16)
-                link_colors.append(f'rgba({rv},{gv},{bv},0.3)')
+                link_colors.append(f'rgba({rv},{gv},{bv},0.4)')
 
     fig_sankey = go.Figure(go.Sankey(
         arrangement='snap',
@@ -1414,7 +1423,7 @@ def _build_transitions(model, labels, name_map, colors, ordered, regime_names):
             color=colors + colors,
         ),
         link=dict(source=sources, target=targets, value=values,
-                  color=link_colors),
+                  color=link_colors, label=link_labels),
     ))
 
     # Self-loop annotations
@@ -1422,16 +1431,17 @@ def _build_transitions(model, labels, name_map, colors, ordered, regime_names):
     for i in range(K):
         p = trans[i, i]
         annotations.append(dict(
-            text=f'{regime_names[i]}: {p:.1%} stay',
+            text=f'{regime_names[i]}: {p:.1%} persist',
             x=0, y=1 - i / max(K - 1, 1),
             xref='paper', yref='paper',
-            showarrow=False, font=dict(size=10, color=colors[i]),
+            showarrow=False, font=dict(size=11, color=colors[i]),
             xanchor='left',
         ))
 
     fig_sankey.update_layout(
         template='plotly_dark', paper_bgcolor='#0d1117',
-        title=dict(text='Regime Transition Flows', font_size=18),
+        title=dict(text='Conditional Transition Flows  (P(j | leave i))',
+                   font_size=18),
         height=450, margin=dict(l=140, r=30, t=60, b=10),
         annotations=annotations,
     )
@@ -1441,9 +1451,13 @@ def _build_transitions(model, labels, name_map, colors, ordered, regime_names):
         z=[[trans[i, j] for j in range(K)] for i in range(K)],
         x=regime_names, y=regime_names,
         text=[[f'{trans[i, j]:.1%}' for j in range(K)] for i in range(K)],
-        texttemplate='%{text}', textfont=dict(size=12),
-        colorscale=[[0, '#161b22'], [0.5, '#1f6feb'], [1, '#f0883e']],
-        zmin=0, zmax=1, showscale=False,
+        texttemplate='%{text}', textfont=dict(size=13),
+        colorscale=[
+            [0, '#0d1117'], [0.02, '#161b22'],
+            [0.1, '#1f6feb'], [0.5, '#f0883e'], [1, '#f85149'],
+        ],
+        zmin=0, zmax=1, showscale=True,
+        colorbar=dict(title='P', tickformat='.0%', len=0.8),
         hovertemplate='From %{y} → %{x}<br>P = %{z:.2%}<extra></extra>',
     ))
     fig_matrix.update_layout(
@@ -1459,9 +1473,9 @@ def _build_transitions(model, labels, name_map, colors, ordered, regime_names):
     label_arr = np.asarray(labels)
     total_days = len(label_arr)
 
-    header_vals = ['Regime', 'Days', '%', 'Avg Duration', 'Persistence',
-                   'Top Exit →', 'Exit %']
-    cell_vals = [[] for _ in range(7)]
+    header_vals = ['Regime', 'Days', '%', 'Avg Duration', 'Median Duration',
+                   'Persistence', 'Top Exit →', 'Cond Exit %']
+    cell_vals = [[] for _ in range(8)]
 
     for i, r in enumerate(ordered):
         name = regime_names[i]
@@ -1469,15 +1483,21 @@ def _build_transitions(model, labels, name_map, colors, ordered, regime_names):
         n_days = mask.sum()
         pct = n_days / total_days
 
-        # average duration via blocks
+        # average & median duration via blocks
         blocks = _get_blocks(mask)
-        avg_dur = np.mean([e - s + 1 for s, e in blocks]) if blocks else 0
+        block_durs = [e - s + 1 for s, e in blocks]
+        avg_dur = np.mean(block_durs) if block_durs else 0
+        med_dur = float(np.median(block_durs)) if block_durs else 0
 
         persist = trans[i, i]
 
-        # top exit destination (excluding self)
-        exit_probs = [(trans[i, j], regime_names[oi])
-                      for oi, j in enumerate(range(K)) if j != i]
+        # top exit destination — conditional P(j | leave i)
+        off_diag = 1.0 - persist
+        exit_probs = []
+        for oi, j in enumerate(range(K)):
+            if j != i:
+                cond_p = trans[i, j] / off_diag if off_diag > 1e-9 else 0.0
+                exit_probs.append((cond_p, regime_names[oi]))
         exit_probs.sort(reverse=True)
         top_exit_name = exit_probs[0][1] if exit_probs else '-'
         top_exit_pct = exit_probs[0][0] if exit_probs else 0
@@ -1486,9 +1506,17 @@ def _build_transitions(model, labels, name_map, colors, ordered, regime_names):
         cell_vals[1].append(f'{n_days}')
         cell_vals[2].append(f'{pct:.1%}')
         cell_vals[3].append(f'{avg_dur:.1f}d')
-        cell_vals[4].append(f'{persist:.1%}')
-        cell_vals[5].append(top_exit_name)
-        cell_vals[6].append(f'{top_exit_pct:.1%}')
+        cell_vals[4].append(f'{med_dur:.0f}d')
+        cell_vals[5].append(f'{persist:.1%}')
+        cell_vals[6].append(top_exit_name)
+        cell_vals[7].append(f'{top_exit_pct:.0%}')
+
+    # Row-level fill: light tint of regime color
+    row_fills = []
+    for n in cell_vals[0]:
+        c_hex = _REGIME_COLORS_HEX.get(n, '#888888').lstrip('#')
+        rv, gv, bv = int(c_hex[:2], 16), int(c_hex[2:4], 16), int(c_hex[4:6], 16)
+        row_fills.append(f'rgba({rv},{gv},{bv},0.08)')
 
     fig_table = go.Figure(go.Table(
         header=dict(
@@ -1498,13 +1526,10 @@ def _build_transitions(model, labels, name_map, colors, ordered, regime_names):
         ),
         cells=dict(
             values=cell_vals,
-            fill_color=[
-                [_REGIME_COLORS_HEX.get(n, '#888') + '33' if False
-                 else '#0d1117' for n in cell_vals[0]]
-            ] * 7,
+            fill_color=[row_fills] * 8,
             line_color='#30363d',
             font=dict(
-                color=[colors] + [['#c9d1d9'] * K] * 6,
+                color=[colors] + [['#c9d1d9'] * K] * 7,
                 size=12,
             ),
             align='center',
@@ -1735,8 +1760,8 @@ def _build_current_state(probs, labels, name_map, dates, market,
     # Duration stats table
     outlook_metrics = [
         'Current Streak',
-        'Expected Duration (geometric)',
-        'Expected Remaining',
+        'Geometric Expected Duration',
+        'Geometric Remaining',
         'Median Historical Duration',
         'Longest Historical Episode',
         f'P(still {current_name} in 7d)',
@@ -1830,7 +1855,6 @@ def _build_sv_volatility(dates, sv_results, labels, name_map,
 
     T_len = len(dates)
     label_arr = np.asarray(labels[:T_len])
-    date_strs = [d.strftime('%Y-%m-%d') for d in dates[:T_len]]
 
     fig = make_subplots(
         rows=2, cols=1, shared_xaxes=False, row_heights=[0.6, 0.4],
@@ -1842,11 +1866,11 @@ def _build_sv_volatility(dates, sv_results, labels, name_map,
     for r_idx, r in enumerate(ordered):
         c_hex = colors[r_idx].lstrip('#')
         rv, gv, bv = int(c_hex[:2], 16), int(c_hex[2:4], 16), int(c_hex[4:6], 16)
-        rgba = f'rgba({rv},{gv},{bv},0.18)'
+        rgba = f'rgba({rv},{gv},{bv},0.22)'
         mask = label_arr == r
         for s, e in _get_blocks(mask):
             fig.add_vrect(
-                x0=date_strs[s], x1=date_strs[min(e, T_len - 1)],
+                x0=dates[s], x1=dates[min(e, T_len - 1)],
                 fillcolor=rgba, opacity=1.0, line_width=0,
                 layer='below', row=1, col=1,  # type: ignore[arg-type]
             )
@@ -2007,14 +2031,14 @@ def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
         header=dict(
             values=['Regime', 'Ann Vol', 'Skew', 'Kurtosis',
                     'VaR 5%', 'CVaR 5%', 'Max DD', 'Days', 'Normal?'],
-            fill_color='#21262d', font=dict(color='#c9d1d9', size=10),
+            fill_color='#21262d', font=dict(color='#c9d1d9', size=12),
             align='left',
         ),
         cells=dict(
             values=[dist_regime, dist_vol, dist_skew, dist_kurt,
                     dist_var5, dist_cvar5, dist_dd, dist_days, dist_normal],
             fill_color=cell_colors_dist,
-            font=dict(color='#c9d1d9', size=10),
+            font=dict(color='#c9d1d9', size=12),
             align='left',
         ),
     ), row=2, col=1)
@@ -2030,13 +2054,13 @@ def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
     fig.add_trace(go.Table(
         header=dict(
             values=['Metric', 'Value'],
-            fill_color='#21262d', font=dict(color='#c9d1d9', size=10),
+            fill_color='#21262d', font=dict(color='#c9d1d9', size=12),
             align='left',
         ),
         cells=dict(
             values=[vol_labels, vol_values],
             fill_color='#0d1117',
-            font=dict(color='#c9d1d9', size=10),
+            font=dict(color='#c9d1d9', size=12),
             align='left', height=30,
         ),
     ), row=2, col=2)
@@ -2063,13 +2087,13 @@ def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
         fig.add_trace(go.Table(
             header=dict(
                 values=['Nearby Regime', 'Probability', 'Direction', 'Severity Jump'],
-                fill_color='#21262d', font=dict(color='#c9d1d9', size=10),
+                fill_color='#21262d', font=dict(color='#c9d1d9', size=12),
                 align='left',
             ),
             cells=dict(
                 values=[t_regimes, t_probs, t_dir, t_jump],
                 fill_color=[t_colors] * 4,
-                font=dict(color='#c9d1d9', size=10),
+                font=dict(color='#c9d1d9', size=12),
                 align='left',
             ),
         ), row=3, col=1)
@@ -2127,13 +2151,13 @@ def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
     fig.add_trace(go.Table(
         header=dict(
             values=['Validation Check', 'Result'],
-            fill_color='#21262d', font=dict(color='#c9d1d9', size=10),
+            fill_color='#21262d', font=dict(color='#c9d1d9', size=12),
             align='left',
         ),
         cells=dict(
             values=[val_labels, val_values],
             fill_color=[['#0d1117'] * len(val_labels), val_row_colors],
-            font=dict(color='#c9d1d9', size=10),
+            font=dict(color='#c9d1d9', size=12),
             align='left',
         ),
     ), row=4, col=1)
@@ -2238,7 +2262,7 @@ def _build_feature_health_tab(features_df, pcs, pca_model):
     fig.add_trace(go.Table(
         header=dict(
             values=['Feature', 'Skew', '', 'Kurtosis', '', 'VIF', ''],
-            fill_color='#21262d', font=dict(color='#c9d1d9', size=10),
+            fill_color='#21262d', font=dict(color='#c9d1d9', size=12),
             align='left',
         ),
         cells=dict(
@@ -2285,7 +2309,7 @@ def _build_feature_health_tab(features_df, pcs, pca_model):
     fig.add_trace(go.Table(
         header=dict(
             values=header_vals,
-            fill_color='#21262d', font=dict(color='#c9d1d9', size=10),
+            fill_color='#21262d', font=dict(color='#c9d1d9', size=12),
             align='left',
         ),
         cells=dict(
@@ -2331,7 +2355,7 @@ def _build_feature_health_tab(features_df, pcs, pca_model):
                 ['#0d1117'] * len(checks),
                 _status_color([c[2] for c in checks]),
             ],
-            font=dict(color='#c9d1d9', size=10),
+            font=dict(color='#c9d1d9', size=12),
             align='left',
         ),
     ), row=3, col=1)
@@ -2349,6 +2373,9 @@ def _build_feature_health_tab(features_df, pcs, pca_model):
 def _write_dashboard_html(tabs):
     """Write all figures into a single tabbed HTML dashboard."""
     import plotly.io as pio
+    from datetime import datetime as _dt
+
+    timestamp = _dt.now().strftime('%Y-%m-%d %H:%M')
 
     plotly_included = False
     tab_buttons = ''
@@ -2406,7 +2433,7 @@ def _write_dashboard_html(tabs):
     flex-wrap: wrap;
   }}
   .header h1 {{
-    font-size: 22px; font-weight: 600;
+    font-size: 24px; font-weight: 600;
     background: linear-gradient(90deg, #58a6ff, #bc8cff);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }}
@@ -2419,15 +2446,15 @@ def _write_dashboard_html(tabs):
     border-bottom: 2px solid #21262d; padding: 0 20px;
   }}
   .tab-btn {{
-    background: none; border: none; color: #8b949e; padding: 12px 20px;
-    font-size: 14px; cursor: pointer; border-bottom: 2px solid transparent;
+    background: none; border: none; color: #8b949e; padding: 12px 22px;
+    font-size: 15px; cursor: pointer; border-bottom: 2px solid transparent;
     transition: all 0.2s; font-weight: 500;
   }}
-  .tab-btn:hover {{ color: #c9d1d9; }}
+  .tab-btn:hover {{ color: #c9d1d9; background: rgba(88, 166, 255, 0.06); }}
   .tab-btn.active {{
     color: #58a6ff; border-bottom-color: #58a6ff;
   }}
-  .tab-content {{ padding: 8px; max-width: 100%; overflow-x: auto; }}
+  .tab-content {{ padding: 12px 8px; max-width: 100%; overflow-x: auto; }}
   .tab-content .plotly-graph-div {{ width: 100% !important; }}
   @media (max-width: 768px) {{
     .header {{ padding: 12px 16px; }}
@@ -2442,6 +2469,7 @@ def _write_dashboard_html(tabs):
 <div class="header">
   <h1>Regime Detection Dashboard</h1>
   <span class="badge">HDP-HMM &middot; Bayesian</span>
+  <span class="badge">Updated: {timestamp}</span>
 </div>
 <div class="tab-bar">
 {tab_buttons}
