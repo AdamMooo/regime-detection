@@ -13,6 +13,7 @@
 | 5 | No stationarity / VIF / importance testing | **RESOLVED** | `_validate_features()` has ADF, VIF, PCA loadings, Jarque-Bera |
 | 6 | `features_raw.csv` is not raw | **RESOLVED** | Renamed to `features_transformed.csv` everywhere |
 | 7 | Redundant FEATURE_SUBSET + unused scaler.pkl | **RESOLVED** | Duplicate filtering removed; `scaler.pkl` no longer produced |
+| 8 | Vestigial FRED references (`hy_spread`, `yield_slope`, `fredapi`) | **RESOLVED** | Dead code removed from `train.py`; `fredapi` removed from `requirements.txt` |
 
 ## Tech Debt
 
@@ -29,16 +30,10 @@
 - Fix approach: Pin to exact versions with `pip freeze > requirements.lock`
 
 **Unused dependencies in `requirements.txt`:**
-- Issue: `fredapi` and `matplotlib` are listed but never imported or used in any source file
+- Issue: `matplotlib` is listed but never imported or used in any source file
 - Files: `requirements.txt`
 - Impact: Unnecessary install size; misleading about project capabilities
-- Fix approach: Remove `fredapi` and `matplotlib` from `requirements.txt`
-
-**Vestigial FRED references in `train.py`:**
-- Issue: `evaluate()` and dashboard code reference `hy_spread`, `yield_slope` columns that don't exist in `market_data.csv`. Handled gracefully with `if col in market` guards, but misleading
-- Files: `train.py` (lines 678-679, 1656-1657, 2833-2836)
-- Impact: Confusing dead branches; dashboard tables show N/A for those rows
-- Fix approach: Remove FRED column references or add actual FRED data back to `collect.py`
+- Fix approach: Remove `matplotlib` from `requirements.txt`
 
 **Stale comment in `features.py` (`CURATED_FEATURES`):**
 - Issue: Comment says "All 19 features" and "15 are selected" — actual counts are 17 features total, 13 selected by `FEATURE_SUBSET`

@@ -660,10 +660,9 @@ def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE,
 def evaluate(market, labels, name_map, spy_ret, label_source='In-Sample'):
     """Print regime characteristics using 5-day SPY returns (independent)."""
     print(f"\nRegime Characteristics ({label_source}):")
-    hdr = (f"  {'Regime':<14s} {'Days':>6s} {'Pct':>6s} {'VIX':>7s} "
-           f"{'HYSprd':>7s} {'YldSlp':>7s} {'SPY5d':>7s}")
+    hdr = (f"  {'Regime':<14s} {'Days':>6s} {'Pct':>6s} {'VIX':>7s} {'SPY5d':>7s}")
     print(hdr)
-    print(f"  {'-' * 58}")
+    print(f"  {'-' * 44}")
 
     for r in sorted(name_map.keys()):
         name = name_map[r]
@@ -674,13 +673,10 @@ def evaluate(market, labels, name_map, spy_ret, label_source='In-Sample'):
         n   = len(idx)
         pct = n / len(labels) * 100
 
-        vix_m = market.loc[idx, 'VIX'].mean()           if 'VIX'         in market else np.nan
-        hy_m  = market.loc[idx, 'hy_spread'].mean()     if 'hy_spread'   in market else np.nan
-        yl_m  = market.loc[idx, 'yield_slope'].mean()   if 'yield_slope' in market else np.nan
+        vix_m = market.loc[idx, 'VIX'].mean() if 'VIX' in market else np.nan
         sp_m  = spy_ret.reindex(idx).mean() * 100
 
-        print(f"  {name:<14s} {n:>6d} {pct:>5.1f}% {vix_m:>7.1f} "
-              f"{hy_m:>6.2f}% {yl_m:>+7.2f} {sp_m:>+6.2f}%")
+        print(f"  {name:<14s} {n:>6d} {pct:>5.1f}% {vix_m:>7.1f} {sp_m:>+6.2f}%")
 
     # Bootstrap confidence intervals for key statistics
     _print_bootstrap_cis(market, labels, name_map, spy_ret, label_source)
@@ -1653,9 +1649,6 @@ def _build_current_state(probs, labels, name_map, dates, market,
     if 'SPY_close' in market.columns and len(market) >= 20:
         spy_20d_ret = (market['SPY_close'].iloc[-1] /
                        market['SPY_close'].iloc[-20] - 1) * 100
-    hy_spread = market['hy_spread'].iloc[-1] if 'hy_spread' in market.columns else None
-    yield_slope = market['yield_slope'].iloc[-1] if 'yield_slope' in market.columns else None
-
     # VIX interpretation
     if vix_val is not None:
         if vix_val < 15:
@@ -1762,16 +1755,6 @@ def _build_current_state(probs, labels, name_map, dates, market,
         metrics.append('SV Latent Vol')
         values.append(f'{sv_vol:.1f}%')
         interps.append('Annualized, Kalman-smoothed')
-    if hy_spread is not None:
-        metrics.append('HY Spread (OAS)')
-        values.append(f'{hy_spread:.2f}%')
-        hy_interp = 'Tight — risk-on' if hy_spread < 4 else ('Wide — stress' if hy_spread > 6 else 'Normal range')
-        interps.append(hy_interp)
-    if yield_slope is not None:
-        metrics.append('Yield Curve (10Y-2Y)')
-        values.append(f'{yield_slope:+.2f}%')
-        yc_interp = 'Inverted — recession signal' if yield_slope < 0 else 'Normal — expansion'
-        interps.append(yc_interp)
 
     fig_market = go.Figure(go.Table(
         header=dict(
@@ -2822,10 +2805,6 @@ def train():
     print(f"  Model           : {model_type}")
     print(f"  Regime          : {current['regime_name']}")
     print(f"  VIX             : {current['VIX']:.1f}")
-    if 'hy_spread' in current:
-        print(f"  HY Spread       : {current['hy_spread']:.2f}%")
-    if 'yield_slope' in current:
-        print(f"  Yield Slope     : {current['yield_slope']:.2f}")
     print(f"  Market-Mode     : {current['market_mode_ratio']:.1%}")
     print(f"  PCA dims        : {n_pca}")
     print(f"  HMM states      : {n_states}"

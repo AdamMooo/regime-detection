@@ -1,5 +1,4 @@
 yfinance>=1.2,<3
-fredapi>=0.5,<1
 hmmlearn>=0.3,<0.4
 scikit-learn>=1.8,<2
 pandas>=2.2,<3

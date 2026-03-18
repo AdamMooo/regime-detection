@@ -36,7 +36,7 @@ run.py      →  orchestrates all stages; CLI entrypoint
 - Contains: `collect()` function; `yfinance` calls for OHLCV + VIX family
 - Depends on: `config.py` (tickers, date range)
 - Output: `data/market_data.csv` — single aligned DataFrame on SPY trading-day index
-- Note: No FRED / macro series; `fredapi` is in `requirements.txt` but unused
+- Note: No FRED / macro series
 
 **Feature Engineering (`features.py`):**
 - Purpose: Build 17-feature panel from raw OHLCV + VIX data
