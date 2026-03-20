@@ -39,6 +39,7 @@ from config import (
     WALK_FORWARD_TRAIN_YEARS, WALK_FORWARD_STEP_DAYS,
     WALK_FORWARD_MODE, VAR_ALPHA, FEATURE_SUBSET,
     REGIME_NAMES, DATA_DIR, MODEL_DIR, FIGURE_DIR, TICKERS,
+    MAX_DATA_STALENESS_DAYS,
 )
 from features import build_features
 from signals import compute_signals
@@ -2548,6 +2549,21 @@ def train():
         os.path.join(DATA_DIR, 'market_data.csv'),
         index_col=0, parse_dates=True,
     )
+
+    # Data freshness check
+    last_date = market.index[-1]
+    today = pd.Timestamp.now().normalize()
+    trading_days_stale = int(np.busday_count(
+        last_date.date(), today.date()
+    ))
+    if trading_days_stale > MAX_DATA_STALENESS_DAYS:
+        warnings.warn(
+            f"market_data.csv is {trading_days_stale} trading days old "
+            f"(last date: {last_date.date()}). Run 'python run.py collect' "
+            f"to refresh.",
+            UserWarning, stacklevel=2,
+        )
+
     feat_raw = pd.read_csv(
         os.path.join(DATA_DIR, 'features_transformed.csv'),
         index_col=0, parse_dates=True,
@@ -2653,6 +2669,7 @@ def train():
             get_labels_and_probs, label_regimes_hdp,
             mcmc_diagnostics, save_hdp_results,
             HDPModelAdapter, merge_similar_states,
+            hdp_stability_check,
         )
 
         mcmc, samples = fit_hdp_hmm(pcs)
@@ -2687,6 +2704,12 @@ def train():
         )
         print(f"  Final regimes: {list(name_map.values())}")
 
+        # Stability check: label agreement across posterior samples
+        stability = hdp_stability_check(samples, pcs, n_draws=10)
+        print(f"  HDP Stability: {stability['mean_agreement']:.1%} label agreement "
+              f"across {stability['n_draws']} posterior draws "
+              f"(mean K={stability['mean_effective_k']:.1f})")
+
         # Build adapter for compatibility with existing plotting/eval code
         model = HDPModelAdapter(params, active_states, labels, filt_probs)
         probs = filt_probs
@@ -2711,6 +2734,7 @@ def train():
         model, agreement = check_stability(pcs, n_states)
         labels, name_map = label_regimes(model, pcs, market_v)
         probs = filtered_probs(model, pcs)
+        smooth_probs = model.predict_proba(pcs)
 
     # ── Evaluate in-sample ────────────────────────────────────────
     evaluate(market_v, pd.Series(labels, index=valid_dates),
@@ -2780,6 +2804,10 @@ def train():
     results['regime_name'] = [name_map[l] for l in labels]
     for r, name in name_map.items():
         results[f'prob_{name}'] = probs[:, r]
+    # Smoothed (full-sample) probs for confidence calibration
+    if smooth_probs is not None and smooth_probs.shape[1] == len(name_map):
+        for r, name in name_map.items():
+            results[f'smooth_prob_{name}'] = smooth_probs[:, r]
     results['market_mode_ratio'] = mode_ratio
 
     # Stitch OOS labels into results for trust & transparency

@@ -248,24 +248,31 @@ def _validation_metrics(results: pd.DataFrame) -> dict[str, Any]:
         metrics['vol_ordering_match'] = False
     metrics['regime_vols'] = regime_vols
 
-    # 3. VaR backtest (5% level)
+    # 3. VaR backtest (5% level, expanding-window — proper OOS)
+    # For each day t, VaR is computed from returns [0..t-1] only,
+    # then we check if return at t breaches it. This avoids the
+    # tautological in-sample check where ~5% always breach by construction.
     var_results = {}
+    warmup = 60  # need enough history for stable VaR estimate
     for r in regimes:
         mask = results_aligned['regime_name'] == r
         rets = np.asarray(pd.Series(results_aligned.loc[mask, 'spy_ret']).values, dtype=float)
-        if len(rets) < 30:
+        if len(rets) < warmup + 30:
             continue
-        var_5 = np.percentile(rets, 5)
-        breaches = np.sum(rets < var_5)
-        expected = len(rets) * 0.05
-        # Kupiec test: are breaches consistent with 5%?
-        actual_pct = breaches / len(rets) * 100
+        breaches = 0
+        evaluated = 0
+        for t in range(warmup, len(rets)):
+            historical_var = np.percentile(rets[:t], 5)
+            if rets[t] < historical_var:
+                breaches += 1
+            evaluated += 1
+        actual_pct = breaches / evaluated * 100 if evaluated > 0 else 0
         var_results[r] = {
-            'var_5_daily': float(var_5),
+            'var_5_daily': float(np.percentile(rets, 5)),
             'breach_pct': float(actual_pct),
             'n_breaches': int(breaches),
-            'n_total': len(rets),
-            'ok': 2.0 <= actual_pct <= 8.0,  # rough CI for 5%
+            'n_evaluated': int(evaluated),
+            'ok': 2.0 <= actual_pct <= 8.0,
         }
     metrics['var_backtest'] = var_results
 
@@ -333,6 +340,172 @@ def _vol_context(results: pd.DataFrame) -> dict[str, Any]:
     }
 
 
+# ── Out-of-sample validation ──────────────────────────────────────
+
+def _oos_validation(results: pd.DataFrame) -> dict[str, Any]:
+    """Compare in-sample vs out-of-sample regime labels where both exist.
+
+    This is the hardest test: does the model say the same thing
+    when it hasn't seen the data?
+    """
+    if 'regime_name_oos' not in results.columns or 'is_oos' not in results.columns:
+        return {'available': False, 'reason': 'No OOS labels in results'}
+
+    oos_mask = results['is_oos'] == True  # noqa: E712
+    oos = results.loc[oos_mask].copy()
+
+    if len(oos) < 50:
+        return {'available': False, 'reason': f'Only {len(oos)} OOS rows (need >= 50)'}
+
+    oos_valid = oos.dropna(subset=['regime_name', 'regime_name_oos'])
+    if len(oos_valid) < 50:
+        return {'available': False, 'reason': 'Too few non-null OOS labels'}
+
+    out: dict[str, Any] = {'available': True}
+
+    # 1. Overall IS-OOS agreement rate
+    agree = (oos_valid['regime_name'] == oos_valid['regime_name_oos'])
+    out['agreement_rate'] = float(agree.mean())
+    out['n_oos_days'] = len(oos_valid)
+
+    # 2. Per-regime agreement
+    per_regime = {}
+    for r in sorted(oos_valid['regime_name'].unique()):
+        mask = oos_valid['regime_name'] == r
+        if mask.sum() > 10:
+            per_regime[r] = float(agree[mask].mean())
+    out['per_regime_agreement'] = per_regime
+
+    # 3. OOS regime separation (Kruskal-Wallis on OOS dates only)
+    if 'SPY_close' in oos_valid.columns and len(oos_valid) > 100:
+        spy_ret = np.log(oos_valid['SPY_close'] / oos_valid['SPY_close'].shift(1)).dropna()
+        oos_aligned = oos_valid.iloc[1:].copy()
+        oos_aligned['spy_ret'] = spy_ret.values
+
+        abs_ret_groups = []
+        for r in sorted(oos_aligned['regime_name_oos'].unique()):
+            mask = oos_aligned['regime_name_oos'] == r
+            g = np.abs(oos_aligned.loc[mask, 'spy_ret'].values)
+            if len(g) > 5:
+                abs_ret_groups.append(g)
+
+        if len(abs_ret_groups) >= 2:
+            kw_stat, kw_p = sp_stats.kruskal(*abs_ret_groups)
+            out['oos_separation_pvalue'] = float(kw_p)
+            out['oos_separation_significant'] = kw_p < 0.01
+        else:
+            out['oos_separation_pvalue'] = float('nan')
+            out['oos_separation_significant'] = False
+
+        # 4. OOS vol ordering
+        regime_vols = {}
+        for r in sorted(oos_aligned['regime_name_oos'].unique()):
+            mask = oos_aligned['regime_name_oos'] == r
+            rets = oos_aligned.loc[mask, 'spy_ret'].values
+            if len(rets) > 10:
+                regime_vols[r] = float(np.std(rets) * np.sqrt(252))
+        out['oos_regime_vols'] = regime_vols
+
+        if regime_vols:
+            ordered_by_sev = sorted(regime_vols.keys(),
+                                    key=lambda r: _REGIME_SEVERITY.get(r, 2))
+            ordered_by_vol = sorted(regime_vols.keys(),
+                                    key=lambda r: regime_vols[r])
+            out['oos_vol_ordering_match'] = ordered_by_sev == ordered_by_vol
+        else:
+            out['oos_vol_ordering_match'] = False
+    else:
+        out['oos_separation_pvalue'] = float('nan')
+        out['oos_separation_significant'] = False
+        out['oos_vol_ordering_match'] = False
+
+    return out
+
+
+# ── Confidence calibration ───────────────────────────────────────
+
+def _confidence_calibration(results: pd.DataFrame, n_bins: int = 10) -> dict[str, Any]:
+    """Check whether reported confidence matches actual accuracy.
+
+    Compares filtered (real-time) probabilities against smoothed
+    (full-sample) probabilities as ground truth proxy.  Returns
+    Expected Calibration Error (ECE) and per-bin accuracy.
+    """
+    # Find filtered and smoothed prob columns
+    filt_cols = sorted([c for c in results.columns if c.startswith('prob_')])
+    smooth_cols = sorted([c for c in results.columns if c.startswith('smooth_prob_')])
+
+    if not filt_cols or not smooth_cols:
+        return {'available': False, 'reason': 'Missing filtered or smoothed probability columns'}
+
+    # Extract names and align
+    filt_names = [c.replace('prob_', '') for c in filt_cols]
+    smooth_names = [c.replace('smooth_prob_', '') for c in smooth_cols]
+    if filt_names != smooth_names:
+        return {'available': False, 'reason': 'Filtered/smoothed column names mismatch'}
+
+    filt_probs = results[filt_cols].values
+    smooth_probs = results[smooth_cols].values
+
+    # Drop rows with NaN
+    valid = ~(np.isnan(filt_probs).any(axis=1) | np.isnan(smooth_probs).any(axis=1))
+    filt_probs = filt_probs[valid]
+    smooth_probs = smooth_probs[valid]
+
+    if len(filt_probs) < 100:
+        return {'available': False, 'reason': f'Only {len(filt_probs)} valid rows'}
+
+    # Max filtered probability = confidence
+    confidence = filt_probs.max(axis=1)
+    filt_argmax = filt_probs.argmax(axis=1)
+    smooth_argmax = smooth_probs.argmax(axis=1)
+    correct = (filt_argmax == smooth_argmax).astype(float)
+
+    # Bin into n_bins buckets
+    bin_edges = np.linspace(0.0, 1.0, n_bins + 1)
+    bin_centers = []
+    bin_accuracies = []
+    bin_counts = []
+    ece = 0.0
+
+    for i in range(n_bins):
+        lo, hi = bin_edges[i], bin_edges[i + 1]
+        mask = (confidence >= lo) & (confidence < hi) if i < n_bins - 1 else (confidence >= lo) & (confidence <= hi)
+
+        count = mask.sum()
+        bin_counts.append(int(count))
+        center = (lo + hi) / 2
+        bin_centers.append(float(center))
+
+        if count > 0:
+            acc = float(correct[mask].mean())
+            bin_accuracies.append(acc)
+            ece += count * abs(acc - center)
+        else:
+            bin_accuracies.append(float('nan'))
+
+    ece /= len(confidence)
+
+    # Interpretation
+    if ece < 0.05:
+        interp = f'Well-calibrated (ECE={ece:.1%})'
+    elif ece < 0.10:
+        interp = f'Acceptable calibration (ECE={ece:.1%})'
+    else:
+        interp = f'Miscalibrated (ECE={ece:.1%})'
+
+    return {
+        'available': True,
+        'ece': float(ece),
+        'is_calibrated': ece < 0.10,
+        'interpretation': interp,
+        'bin_centers': bin_centers,
+        'bin_accuracies': bin_accuracies,
+        'bin_counts': bin_counts,
+        'n_samples': int(len(confidence)),
+    }
+
+
 # ── Master computation ─────────────────────────────────────────────
 
 def compute_signals(results: pd.DataFrame, model: Any = None,
@@ -353,6 +526,8 @@ def compute_signals(results: pd.DataFrame, model: Any = None,
     transitions = _transition_context(results)
     vol_ctx = _vol_context(results)
     validation = _validation_metrics(results)
+    oos = _oos_validation(results)
+    calibration = _confidence_calibration(results)
 
     return {
         'awareness': awareness,
@@ -360,6 +535,8 @@ def compute_signals(results: pd.DataFrame, model: Any = None,
         'transitions': transitions,
         'vol_context': vol_ctx,
         'validation': validation,
+        'oos_validation': oos,
+        'calibration': calibration,
         'current_regime': awareness['current_regime'],
         'date': (str(results.index[-1].date())
                  if hasattr(results.index[-1], 'date')

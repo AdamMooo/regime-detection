@@ -8,6 +8,7 @@ Usage:
     python run.py analyze      # feature analysis / diagnostics
     python run.py train        # PCA + HMM + GARCH training
     python run.py regime       # print current regime awareness
+    python run.py trust        # print trust scorecard only
     python run.py dashboard    # rebuild dashboard from saved model
 """
 
@@ -46,7 +47,8 @@ def print_regime():
 
     # Current state
     conf = aw['confidence']
-    conf_bar = '█' * int(conf * 20) + '░' * (20 - int(conf * 20))
+    filled = int(conf * 20)
+    conf_bar = '#' * filled + '-' * (20 - filled)
     print(f"\n  Regime     : {current}")
     print(f"  Confidence : {conf:.0%}  {conf_bar}")
     print(f"  Streak     : {aw['days_in_regime']} days (median for this regime: {aw['median_duration']:.0f})")
@@ -97,10 +99,63 @@ def print_regime():
     passes = sum(1 for v in var_bt.values() if v['ok'])
     print(f"  VaR Backtest     : {passes}/{len(var_bt)} regimes pass")
 
-    print(f"\n{'=' * W}")
-    print(f"  This model detects RISK REGIMES, not returns.")
-    print(f"  Use it to size positions, set stops, and expect drawdowns.")
-    print(f"{'=' * W}\n")
+    # Out-of-sample validation
+    oos = sigs.get('oos_validation', {})
+    if oos.get('available'):
+        print(f"\n{'─' * W}")
+        print(f"  Out-of-Sample Validation")
+        print(f"{'─' * W}")
+        agr = oos['agreement_rate']
+        agr_tag = 'PASS' if agr > 0.70 else 'WARN' if agr > 0.50 else 'FAIL'
+        print(f"  IS-OOS Agreement : {agr_tag}  {agr:.1%}  ({oos['n_oos_days']} OOS days)")
+
+        oos_sep = oos.get('oos_separation_significant', False)
+        oos_p = oos.get('oos_separation_pvalue', float('nan'))
+        print(f"  OOS Separation   : {'PASS' if oos_sep else 'FAIL'}  (p={oos_p:.2e})")
+        print(f"  OOS Vol Ordering : {'PASS' if oos.get('oos_vol_ordering_match') else 'FAIL'}")
+
+        per_r = oos.get('per_regime_agreement', {})
+        if per_r:
+            print(f"  Per-Regime:")
+            for r, a in sorted(per_r.items()):
+                print(f"    {r:14s}: {a:.1%}")
+
+    # Confidence calibration
+    cal = sigs.get('calibration', {})
+    if cal.get('available'):
+        print(f"\n{'─' * W}")
+        print(f"  Confidence Calibration")
+        print(f"{'─' * W}")
+        ece = cal['ece']
+        ece_tag = 'PASS' if ece < 0.05 else 'WARN' if ece < 0.10 else 'FAIL'
+        print(f"  Calibration  : {ece_tag}  ECE={ece:.1%}  ({cal['interpretation']})")
+
+    # Trust scorecard
+    from trust import compute_trust_scorecard, format_scorecard
+    scorecard = compute_trust_scorecard(sigs)
+    print(format_scorecard(scorecard, W))
+
+    print(f"\n  This model detects RISK REGIMES, not returns.")
+    print(f"  Use it to size positions, set stops, and expect drawdowns.\n")
+
+
+def print_trust():
+    """Print trust scorecard only (no full regime awareness)."""
+    import os
+    import pandas as pd
+    from config import DATA_DIR
+    from signals import compute_signals
+    from trust import compute_trust_scorecard, format_scorecard
+
+    path = os.path.join(DATA_DIR, 'regime_results.csv')
+    if not os.path.exists(path):
+        print("No regime_results.csv — run 'python run.py train' first.")
+        return
+
+    results = pd.read_csv(path, index_col=0, parse_dates=True)
+    sigs = compute_signals(results)
+    scorecard = compute_trust_scorecard(sigs)
+    print(format_scorecard(scorecard))
 
 
 def main():
@@ -143,10 +198,13 @@ def main():
     if step == 'regime':
         print_regime()
 
+    if step == 'trust':
+        print_trust()
+
     if step == 'dashboard':
         rebuild_dashboard()
 
-    known = {'all', 'collect', 'features', 'analyze', 'train', 'regime', 'dashboard'}
+    known = {'all', 'collect', 'features', 'analyze', 'train', 'regime', 'trust', 'dashboard'}
     if step not in known:
         print(f"Unknown step: '{step}'")
         print(f"Valid steps: {', '.join(sorted(known))}")

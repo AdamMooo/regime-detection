@@ -96,6 +96,9 @@ REGIME_NAMES = {
     6: ['Very-Low', 'Low-Vol', 'Moderate', 'Elevated', 'High-Vol', 'Crisis'],
 }
 
+# --- Data freshness ---
+MAX_DATA_STALENESS_DAYS = 3  # warn if market_data.csv is this many trading days old
+
 # --- Paths ---
 DATA_DIR   = 'data'
 MODEL_DIR  = 'models'

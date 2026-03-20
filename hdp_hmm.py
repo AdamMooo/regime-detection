@@ -683,6 +683,92 @@ def get_transition_matrix(params, active_states):
 
 
 # ===================================================================
+# HDP stability check
+# ===================================================================
+
+def hdp_stability_check(samples, obs, n_draws=10, seed=42):
+    """Check label agreement across posterior samples (no re-inference).
+
+    Draws n_draws sets of parameters from the posterior samples,
+    runs forward decoding on each, and measures pairwise label agreement.
+
+    Returns
+    -------
+    dict with 'mean_agreement', 'n_draws', 'per_draw_effective_k'
+    """
+    rng = np.random.RandomState(seed)
+    n_posterior = len(samples['beta'])
+    draw_indices = rng.choice(n_posterior, size=min(n_draws, n_posterior), replace=False)
+
+    all_labels = []
+    effective_ks = []
+
+    for idx in draw_indices:
+        # Extract single posterior sample as params dict
+        params_i = {
+            'beta': samples['beta'][idx],
+            'trans_matrix': samples['trans_matrix'][idx],
+            'init_probs': samples['beta'][idx] / samples['beta'][idx].sum(),
+            'locs': samples['locs'][idx],
+            'scale_diag': samples['scale_diag'][idx],
+            'df': samples['df'][idx],
+            'K_max': len(samples['beta'][idx]),
+        }
+
+        # Forward pass only (fast)
+        filtered, _ = forward_backward_numpy(obs, params_i)
+        labels_i = filtered.argmax(axis=1)
+        all_labels.append(labels_i)
+
+        # Effective K for this draw
+        effective_ks.append(len(np.unique(labels_i)))
+
+    # Pairwise agreement (mode-based: find best permutation alignment)
+    agreements = []
+    for i in range(len(all_labels)):
+        for j in range(i + 1, len(all_labels)):
+            # Simple agreement: fraction of matching labels
+            # (without permutation alignment, since state indices may differ)
+            # Use maximum overlap across simple relabeling
+            a = all_labels[i]
+            b = all_labels[j]
+            states_a = np.unique(a)
+            states_b = np.unique(b)
+
+            # Build contingency and find best greedy mapping
+            best_match = 0
+            mapping = {}
+            used_b = set()
+            for sa in states_a:
+                mask_a = (a == sa)
+                best_overlap = 0
+                best_sb = None
+                for sb in states_b:
+                    if sb in used_b:
+                        continue
+                    overlap = np.sum(mask_a & (b == sb))
+                    if overlap > best_overlap:
+                        best_overlap = overlap
+                        best_sb = sb
+                if best_sb is not None:
+                    mapping[sa] = best_sb
+                    used_b.add(best_sb)
+                    best_match += best_overlap
+
+            agreement = best_match / len(a) if len(a) > 0 else 0
+            agreements.append(agreement)
+
+    mean_agreement = float(np.mean(agreements)) if agreements else 1.0
+
+    return {
+        'mean_agreement': mean_agreement,
+        'n_draws': len(all_labels),
+        'per_draw_effective_k': effective_ks,
+        'mean_effective_k': float(np.mean(effective_ks)),
+    }
+
+
+# ===================================================================
 # Adapter (compatibility with hmmlearn interface)
 # ===================================================================
 
