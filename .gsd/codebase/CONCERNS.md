@@ -98,8 +98,9 @@
 
 **`merge_similar_states()` in `hdp_hmm.py`:**
 - Files: `hdp_hmm.py` line 478
-- Why fragile: Merges HDP states down to `HDP_MAX_REGIMES=6` by KL-divergence; if merging produces degenerate state assignments, downstream code may silently mislabel regimes
+- Why fragile: Merges HDP states down to `HDP_MAX_REGIMES=6` by emission distance; if merging produces degenerate state assignments, downstream code may silently mislabel regimes
 - Safe modification: Add assertion that each merged state has at least `MIN_REGIME_OBS=50` observations
+- Note: Regime naming now uses absolute vol-bracket labeling (`VOL_BRACKETS` in config.py) instead of VIX-rank naming, which resolves the IS-OOS label instability issue
 
 **In-training standardization depends on `FEATURE_SUBSET` alignment:**
 - Files: `train.py::train()`, `config.py`
@@ -127,9 +128,8 @@
 
 ## Missing Critical Features
 
-**No automated data freshness check:**
-- Problem: If `collect()` is skipped and existing `market_data.csv` is stale, the pipeline runs on stale data silently
-- Suggested fix: Add data-age check in `train.py::train()` — warn if `market_data.csv` is older than 2 trading days
+**~~No automated data freshness check:~~** **RESOLVED**
+- Now implemented in `train.py::train()` and `run.py::print_regime()` using `MAX_DATA_STALENESS_DAYS` config. Warns if `market_data.csv` is older than N trading days. Integrated into trust scorecard as Data Freshness check.
 
 **No incremental update path:**
 - Problem: Every pipeline run re-downloads all data and re-trains from scratch
@@ -137,17 +137,11 @@
 
 ## Test Coverage Gaps
 
-**`filtered_probs()` (no lookahead guarantee):**
-- What's not tested: No automated verification that forward-only filtering is actually applied
-- Files: `train.py` line 115
-- Risk: A refactor that accidentally uses `.predict()` (smoother) could introduce future lookahead undetected
-- Priority: High
+**~~`filtered_probs()` (no lookahead guarantee):~~** **RESOLVED**
+- Now tested in `tests/test_causality.py::TestFilteredProbs` (3 tests: uses_only_past_data, differs_from_smoother, probabilities_sum_to_one)
 
-**`expanding_standardize()` (causality guarantee):**
-- What's not tested: No automated verification that row t only uses data from [0..t]
-- Files: `train.py` line 62
-- Risk: A refactor could break the causal property
-- Priority: High
+**~~`expanding_standardize()` (causality guarantee):~~** **RESOLVED**
+- Now tested in `tests/test_causality.py::TestExpandingStandardize` (3 tests: uses_only_past_data, warmup_is_nan, manual_computation)
 
 **`features.py` individual indicators:**
 - What's not tested: Garman-Klass vol, Parkinson vol, realized vol, VRP, VIX term structure
@@ -163,4 +157,4 @@
 
 ---
 
-*Concerns audit: 2026-03-16 (updated)*
+*Concerns audit: 2026-03-20 (updated — trust layer added, vol-bracket naming, test gaps resolved)*

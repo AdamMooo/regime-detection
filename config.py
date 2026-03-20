@@ -86,8 +86,8 @@ WALK_FORWARD_STEP_DAYS   = 21   # ~monthly re-fit
 WALK_FORWARD_MODE        = 'rolling'  # 'expanding' or 'rolling'
 VAR_ALPHA                = 0.05 # 95% VaR
 
-# --- Regime naming (sorted by ascending VIX mean) ---
-# For fixed-K HMM. HDP-HMM generates names dynamically for any K.
+# --- Regime naming ---
+# REGIME_NAMES: fallback for fixed-K classic HMM (sorted by ascending VIX mean).
 REGIME_NAMES = {
     2: ['Low-Vol', 'High-Vol'],
     3: ['Low-Vol', 'Medium-Vol', 'High-Vol'],
@@ -95,6 +95,17 @@ REGIME_NAMES = {
     5: ['Low-Vol', 'Moderate', 'Elevated', 'High-Vol', 'Crisis'],
     6: ['Very-Low', 'Low-Vol', 'Moderate', 'Elevated', 'High-Vol', 'Crisis'],
 }
+
+# Absolute vol-bracket thresholds for HDP regime naming.
+# Each state is named by its realized vol level, not its rank — so a state
+# with 14% annualized vol is always "Moderate-Vol" whether the model finds
+# 2 states or 5.  Thresholds are annualized SPY realized vol (%).
+VOL_BRACKETS = [
+    (0,   10,  'Low-Vol'),
+    (10,  18,  'Moderate-Vol'),
+    (18,  28,  'Elevated-Vol'),
+    (28, 999,  'Crisis-Vol'),
+]
 
 # --- Data freshness ---
 MAX_DATA_STALENESS_DAYS = 3  # warn if market_data.csv is this many trading days old

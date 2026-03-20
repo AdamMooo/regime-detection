@@ -38,7 +38,7 @@ from config import (
     GARCH_P, GARCH_Q, GARCH_DIST, MIN_REGIME_OBS, REGIME_HOLD_DAYS,
     WALK_FORWARD_TRAIN_YEARS, WALK_FORWARD_STEP_DAYS,
     WALK_FORWARD_MODE, VAR_ALPHA, FEATURE_SUBSET,
-    REGIME_NAMES, DATA_DIR, MODEL_DIR, FIGURE_DIR, TICKERS,
+    REGIME_NAMES, VOL_BRACKETS, DATA_DIR, MODEL_DIR, FIGURE_DIR, TICKERS,
     MAX_DATA_STALENESS_DAYS,
 )
 from features import build_features
@@ -570,8 +570,8 @@ def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE,
     min_train = WALK_FORWARD_TRAIN_YEARS * 252
     step      = WALK_FORWARD_STEP_DAYS
 
-    oos_labels = pd.Series(index=features.index, dtype=float)
-    oos_labels[:] = np.nan
+    oos_name_labels = pd.Series(index=features.index, dtype=object)
+    oos_name_labels[:] = np.nan
 
     t = min_train
     step_num = 0
@@ -630,27 +630,52 @@ def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE,
         assert best_m is not None
         raw_preds = filtered_labels(best_m, pc_test, hold_days=REGIME_HOLD_DAYS)
 
-        # Remap labels by VIX rank (consistent across windows)
+        # Assign vol-bracket names using training-window SPY returns
         train_labels = filtered_labels(best_m, pc_train, hold_days=REGIME_HOLD_DAYS)
-        vix_vals = market['VIX'].reindex(train_feats_valid.index).values
-        regime_vix = {}
-        for r in range(n_states):
-            mask = (train_labels == r)
-            regime_vix[r] = vix_vals[mask].mean() if mask.any() else 0
-        sorted_by_vix = sorted(regime_vix, key=lambda k: regime_vix[k])
-        remap = {orig: rank for rank, orig in enumerate(sorted_by_vix)}
-        remapped = np.array([remap[r] for r in raw_preds])
+        spy_col = 'SPY_close' if 'SPY_close' in market.columns else 'SPY_Close'
+        spy_train = market[spy_col].reindex(train_feats_valid.index)
+        spy_ret_train = np.log(spy_train / spy_train.shift(1)).dropna().values
 
-        oos_labels.iloc[t:end] = remapped
+        # Build per-state vol-bracket name map for this fold
+        # (align train_labels with available returns — drop first row for diff)
+        tl_aligned = train_labels[1:len(spy_ret_train) + 1]
+        fold_vol = {}
+        for r in range(n_states):
+            mask = (tl_aligned == r)
+            if mask.sum() > 5:
+                fold_vol[r] = float(np.std(spy_ret_train[mask]) * np.sqrt(252) * 100)
+            else:
+                fold_vol[r] = 0.0
+
+        # Map each state to its vol-bracket name
+        fold_name_map = {}
+        name_counts = {}
+        for r in sorted(fold_vol, key=lambda k: fold_vol[k]):
+            vol = fold_vol[r]
+            bracket_name = f'Regime-{r}'
+            for lo, hi, bname in VOL_BRACKETS:
+                if lo <= vol < hi:
+                    bracket_name = bname
+                    break
+            name_counts[bracket_name] = name_counts.get(bracket_name, 0) + 1
+            if name_counts[bracket_name] > 1:
+                bracket_name = f"{bracket_name}-{chr(64 + name_counts[bracket_name])}"
+            fold_name_map[r] = bracket_name
+
+        # Store OOS labels as vol-bracket names for direct IS-OOS comparison
+        oos_name_labels.iloc[t:end] = [fold_name_map.get(r, f'Regime-{r}') for r in raw_preds]
 
         step_num += 1
         if step_num % 10 == 0:
             print(f"    step {step_num}")
         t = end
 
-    valid = oos_labels.dropna().astype(int)
-    names = REGIME_NAMES.get(n_states, [f'Regime-{i}' for i in range(n_states)])
-    name_map = {i: names[i] for i in range(n_states)}
+    valid_names = oos_name_labels.dropna()
+    # Convert string names to integer labels with a unified name_map
+    unique_names = sorted(valid_names.unique())
+    name_to_int = {name: i for i, name in enumerate(unique_names)}
+    name_map = {i: name for i, name in enumerate(unique_names)}
+    valid = valid_names.map(name_to_int).astype(int)
     return valid, name_map
 
 
@@ -2700,7 +2725,7 @@ def train():
         n_states = max(len(active_states), 2)
 
         name_map = label_regimes_hdp(
-            labels, active_states, market_v['VIX'].values,
+            labels, active_states, spy_daily_ret_v.values,
         )
         print(f"  Final regimes: {list(name_map.values())}")
 

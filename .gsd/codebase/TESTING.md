@@ -1,98 +1,96 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-03-16 (updated)
+**Analysis Date:** 2026-03-20 (updated)
 
 ## Test Framework
 
-**Runner:**
-- None — no formal test framework is installed or configured
-- No `pytest`, `unittest`, or equivalent present in `requirements.txt` or project root
-
-**Assertion Library:**
-- Python `assert` statements used inline for data quality guards (not unit tests)
+**Runner:** pytest >= 8.0 (added to `requirements.txt`)
 
 **Run Commands:**
 ```bash
-# No test commands available
-# Full pipeline acts as integration smoke test:
-python run.py
+pytest tests/ -v          # run all 28 tests (~4 seconds)
+pytest tests/ -v -k causality   # run only causality tests
+python run.py             # full pipeline integration smoke test
 ```
 
 ## Test File Organization
 
-**Location:**
-- No test files present — no `tests/`, `test_*.py`, or `*_test.py` files
+**Location:** `tests/`
 
-## What Exists Instead of Tests
+| File | Tests | Coverage Area |
+|------|-------|---------------|
+| `test_causality.py` | 10 | Forward-only guarantees: `expanding_standardize`, `filtered_probs`, `filtered_labels`, `_winsorize` |
+| `test_oos_validation.py` | 5 | OOS agreement rate, separation, graceful fallback |
+| `test_calibration.py` | 5 | ECE computation, bin structure, missing data handling |
+| `test_trust_scorecard.py` | 5 | Trust scorecard aggregation: PASS/WARN/FAIL propagation |
+| `test_validation.py` | 3 | Expanding-window VaR backtest (non-tautological) |
 
-The codebase has several forms of baked-in validation that partially substitute for tests:
+**Total: 28 tests, all passing**
 
-**1. Data quality assertions (`collect.py`, `features.py`, `train.py`):**
-```python
-assert len(market) >= 252, "Need at least 1 year of data"
-```
-These fail-fast if data is insufficient but do not test logic correctness.
+**Shared fixtures:** `tests/conftest.py` provides `rng`, `synthetic_array`, `synthetic_features` fixtures.
 
-**2. Feature validation (`features.py::_validate_features()`, line 276):**
-- Infinity checks (hard fail)
-- Near-zero variance detection
-- Heavy skew warnings (|skew| > 5)
-- Pairwise correlation > 0.95 warnings
-- Extreme kurtosis warnings (> 20)
-- ADF stationarity test per feature
-- VIF multicollinearity check per feature
-- PCA loadings (feature importance)
-- Jarque-Bera normality test per feature
+## What Each Test Proves
 
-**3. Statistical model validation (`signals.py::_validation_metrics()`):**
-- Kruskal-Wallis H-test — verifies regimes are statistically distinct on returns
-- Vol ordering check — verifies regimes sort by volatility as expected
-- Kupiec POF test — verifies VaR 5% violation rate is within 95% CI
-- Persistence check — verifies regimes persist > 1 day on average
+### Causality Tests (`test_causality.py`)
+These are the bedrock — if any fail, every regime label is fraudulent.
 
-**4. Walk-forward out-of-sample validation (`train.py::walk_forward()`, line 556):**
-- Rolls a 5-year training window forward in 21-day steps
-- Re-fits full model on each window; assigns regimes on next 21-day period
-- Uses identical pipeline to `train()`: `expanding_standardize()` + `filtered_labels()`
-- Produces OOS labels stored in `regime_results.csv` for comparison
+- `test_uses_only_past_data` (expanding_standardize): Modifying rows after t doesn't change z-score at t
+- `test_warmup_is_nan`: First `min_warmup` rows are NaN, row `min_warmup` is not
+- `test_manual_computation`: Small 5x1 array matches hand-computed z-scores
+- `test_uses_only_past_data` (filtered_probs): Replacing rows t+1..T with garbage doesn't change `probs[t]`
+- `test_differs_from_smoother`: `filtered_probs()` != `model.predict_proba()` (proves forward-only)
+- `test_probabilities_sum_to_one`: Row-wise probability normalization
+- `test_hysteresis_suppresses_brief_blip`: 1-day blip doesn't flip label with `hold_days=3`
+- `test_hold_days_1_equals_raw_argmax`: Hysteresis disabled = raw argmax
+- `test_uses_only_past_data` (winsorize): Late outliers don't affect early winsorized values
+- `test_warmup_period_unchanged`: First `min_warmup` rows pass through unclipped
 
-**5. Stability check (`train.py::check_stability()`, line 329):**
-- Fits HMM with N_SEEDS (20) different random seeds; checks label agreement score
-- Only used on the classic HMM path (USE_HDP=False)
+### OOS Validation Tests (`test_oos_validation.py`)
+- Agreement rate computation matches expected value
+- Missing OOS columns handled gracefully (`{'available': False}`)
+- Too few OOS rows → graceful fallback
+- OOS separation (Kruskal-Wallis) runs without error
+- Per-regime agreement breakdown is correct
 
-**6. HDP posterior diagnostics (`hdp_hmm.py`):**
-- `effective_K(samples)` computes posterior mean/mode of active states from SVI samples
-- SVI ELBO loss tracked across 3000 steps; convergence visible in terminal output
+### Calibration Tests (`test_calibration.py`)
+- Perfect confidence-accuracy alignment → ECE near 0
+- Random calibration baseline
+- Missing smooth probability columns → graceful N/A
+- Bin structure and interpretation string format
 
-## Coverage
+### Trust Scorecard Tests (`test_trust_scorecard.py`)
+- All checks passing → overall PASS
+- Single FAIL → overall FAIL (fail propagation)
+- WARN without FAIL → overall WARN
+- Missing OOS data → N/A (not crash)
+- `format_scorecard()` produces non-empty string with expected content
 
-**Requirements:** None enforced
+### VaR Backtest Tests (`test_validation.py`)
+- Expanding-window VaR breach rate is ~5% for normal returns
+- `n_evaluated` < `n_total` (warmup excluded)
+- Mean-shifted data produces non-trivial breach rate (proves test is not tautological)
 
-**Untested modules:**
-- `config.py` — no tests for path construction
-- `collect.py` — no mocked tests for `yfinance` calls
-- `features.py` — no unit tests for individual feature formulas (`_garman_klass_vol`, `_parkinson_vol`, etc.)
-- `hdp_hmm.py` — no unit tests for stick-breaking, forward algorithm, or `merge_similar_states`
-- `signals.py` — no unit tests for individual context functions
-- `train.py` — no unit tests for `filtered_probs`, `expanding_standardize`, `fit_rolling_pca`, `label_regimes`
+## Baked-in Validation (Not Unit Tests)
 
-## Recommended Test Additions (Priority Order)
+Beyond the test suite, the codebase has runtime validation:
 
-**High priority — logic correctness:**
-- `filtered_probs`: verify forward-only (no future data leaks into probabilities)
-- `expanding_standardize`: verify row t only uses data from rows [0..t], warm-up rows are NaN
-- `_winsorize`: verify expanding-window percentiles (no future leakage)
-- `fit_rolling_pca` + Procrustes alignment: verify loadings don't flip sign between windows
-- `_fix_skew` / `_LOG_TRANSFORM_COLS`: verify log1p applied correctly and no negative values pre-transform
-- `label_regimes`: verify regimes sort by ascending VIX mean correctly
+1. **Feature validation** (`features.py::_validate_features()`): ADF, VIF, PCA loadings, Jarque-Bera
+2. **Statistical model validation** (`signals.py::_validation_metrics()`): Kruskal-Wallis, vol ordering, Kupiec POF, persistence
+3. **Walk-forward OOS** (`train.py::walk_forward()`): Re-fits model on rolling windows
+4. **HDP stability check** (`hdp_hmm.py::hdp_stability_check()`): Pairwise label agreement across 10 posterior draws
+5. **Trust scorecard** (`trust.py::compute_trust_scorecard()`): Aggregates 8 checks into PASS/WARN/FAIL
 
-**Medium priority — data pipeline:**
-- `features.py::build_features()`: smoke test with synthetic OHLCV DataFrame
-- `collect.py::collect()`: verify reindex + ffill produces correct aligned dates
+## Remaining Coverage Gaps
 
-**Low priority — statistical:**
-- `signals.py::_validation_metrics()`: verify Kruskal-Wallis runs without error on synthetic labels
+**Medium priority:**
+- `features.py` individual indicators (Garman-Klass, Parkinson, VRP)
+- `hdp_hmm.py` stick-breaking, forward algorithm, `merge_similar_states`
+- `fit_rolling_pca` + Procrustes alignment sign stability
+
+**Low priority:**
+- `collect.py` data download (requires mocking yfinance)
+- `config.py` path construction
 
 ---
 
-*Testing analysis: 2026-03-16 (updated)*
+*Testing analysis: 2026-03-20 (updated — 28 tests added, causality gaps resolved)*

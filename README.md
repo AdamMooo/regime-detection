@@ -33,15 +33,19 @@ collect.py          features.py           train.py              train.py
 ## Key Features
 
 - **Bayesian nonparametric regime discovery** — HDP-HMM with stick-breaking prior automatically determines the number of market regimes (no manual K selection)
+- **Absolute vol-bracket labeling** — Regimes are named by realized volatility level (e.g., "Moderate-Vol" = 10-18% annualized), not by rank — labels are stable across IS/OOS windows
 - **Sticky transitions** — Dirichlet-weighted self-transition bias prevents spurious regime switching
 - **Student-t emissions** — Heavy-tailed observation model captures market fat tails
-- **13 curated features** spanning volatility state, vol dynamics, cross-asset risk, macro, return dynamics, market structure, and leverage/fragility — hand-picked to minimize multicollinearity (max |r| < 0.85, VIF-validated)
+- **13 curated features** spanning volatility state, vol dynamics, cross-asset risk, return dynamics, market structure, and leverage/fragility — hand-picked to minimize multicollinearity (max |r| < 0.85, VIF-validated)
 - **Rolling PCA with Procrustes alignment** — Dimensionality reduction that maintains temporal consistency across windows
 - **Regime-dependent stochastic volatility** — Linearized SV (Harvey 1994) and GARCH(1,1) per regime
 - **Walk-forward validation** — Out-of-sample regime prediction with configurable rolling/expanding windows
-- **95% VaR backtesting** — Per-regime Value-at-Risk with exceedance ratio evaluation
+- **Trust scorecard** — Aggregated PASS/WARN/FAIL verdict across 8 validation checks (regime separation, vol ordering, persistence, VaR backtest, OOS agreement, OOS separation, calibration, data freshness)
+- **Expanding-window VaR backtesting** — Per-regime Value-at-Risk with proper out-of-sample exceedance testing
+- **Confidence calibration** — Expected Calibration Error (ECE) verifying that reported confidence matches actual accuracy
 - **Interactive Plotly dashboard** — Single self-contained HTML file with 7 tabbed panels
-- **CLI regime awareness** — Terminal command showing current regime, distribution profile, and model validation
+- **CLI regime awareness** — Terminal command showing current regime, distribution profile, trust scorecard, and model validation
+- **28 automated tests** — Causality guarantees, OOS validation, calibration, VaR backtest, trust scorecard
 
 
 ## Feature Engineering (13 curated indicators)
@@ -111,6 +115,7 @@ python run.py analyze     # feature diagnostics (figures/feature_analysis.html)
 python run.py train       # PCA → HDP-HMM → SV → dashboard
 python run.py dashboard   # rebuild dashboard from saved model (no retraining)
 python run.py regime      # current regime awareness (CLI)
+python run.py trust       # standalone trust scorecard
 ```
 
 The interactive dashboard will be saved to `figures/dashboard.html`.
@@ -125,13 +130,15 @@ All parameters are centralized in `config.py`:
 | `START_DATE` | 2010-01-01 | Data start date |
 | `TICKERS` | SPY, QQQ, IWM, EEM, TLT, HYG, GLD | Equity/bond/commodity universe |
 | `PCA_ROLLING_WINDOW` | 63 | Rolling PCA window (~1 quarter) |
-| `PCA_VAR_THRESHOLD` | 0.85 | Cumulative variance for component selection |
+| `PCA_VAR_THRESHOLD` | 0.90 | Cumulative variance for component selection |
 | `USE_HDP` | True | Bayesian HDP-HMM vs classic fixed-K HMM |
-| `HDP_TRUNCATION` | 10 | Max states for stick-breaking |
+| `HDP_TRUNCATION` | 20 | Max states for stick-breaking |
 | `HDP_KAPPA` | 10.0 | Sticky self-transition weight |
 | `HDP_INFERENCE` | svi | `svi` (fast) or `nuts` (gold-standard) |
 | `SVI_NUM_STEPS` | 3000 | Variational inference optimization steps |
 | `HDP_MAX_REGIMES` | 6 | Merge down to at most this many regimes |
+| `VOL_BRACKETS` | 0-10-18-28% | Absolute vol thresholds for regime naming |
+| `MAX_DATA_STALENESS_DAYS` | 3 | Warn if market data is stale |
 
 
 ## Project Structure
@@ -143,8 +150,10 @@ All parameters are centralized in `config.py`:
 ├── hdp_hmm.py       # Bayesian HDP-HMM (NumPyro/JAX)
 ├── train.py         # PCA, HMM fitting, SV, GARCH, dashboard
 ├── signals.py       # Regime awareness & validation metrics
+├── trust.py         # Trust scorecard aggregation
 ├── analyze.py       # Feature diagnostics
 ├── run.py           # CLI entry point
+├── tests/           # 28 automated tests (causality, OOS, calibration, VaR)
 ├── requirements.txt # Pinned dependencies
 ├── .env             # FRED API key (git-ignored)
 ├── data/            # Generated CSVs (git-ignored)

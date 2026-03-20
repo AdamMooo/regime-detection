@@ -39,6 +39,7 @@ from config import (
     HDP_INFERENCE, MCMC_NUM_WARMUP, MCMC_NUM_SAMPLES, MCMC_NUM_CHAINS,
     SVI_NUM_STEPS, SVI_LEARNING_RATE, SVI_NUM_SAMPLES,
     T_DF, REGIME_NAMES, MIN_REGIME_OBS, HDP_MAX_REGIMES,
+    VOL_BRACKETS,
 )
 
 # Silence JAX/NumPyro startup noise
@@ -519,28 +520,56 @@ def merge_similar_states(labels, filt_probs, params, active_states,
     return final_labels, len(new_active), new_active
 
 
-def label_regimes_hdp(labels, active_states, vix_values):
-    """Assign interpretive regime names sorted by VIX mean."""
+def label_regimes_hdp(labels, active_states, spy_returns, vol_brackets=None):
+    """Assign regime names based on absolute realized volatility brackets.
+
+    Each state is named by its actual annualized realized vol, not by its
+    rank relative to other states.  This makes IS and OOS labels directly
+    comparable — a 14% vol state is always "Moderate-Vol" whether the
+    model discovers 2 states or 5.
+
+    Parameters
+    ----------
+    labels : ndarray, shape (T,)
+        Integer regime labels (0-indexed into active_states).
+    active_states : list[int]
+        Indices of active HDP states.
+    spy_returns : ndarray, shape (T,)
+        Daily SPY log returns (used to compute realized vol per regime).
+    vol_brackets : list[tuple] or None
+        Each tuple is (lo, hi, name).  Falls back to config.VOL_BRACKETS.
+    """
+    if vol_brackets is None:
+        vol_brackets = VOL_BRACKETS
+
     K_eff = len(active_states)
-    regime_vix = {}
+
+    # Compute annualized realized vol (%) for each discovered state
+    regime_vol = {}
     for i in range(K_eff):
         mask = (labels == i)
-        regime_vix[i] = float(vix_values[mask].mean()) if mask.sum() > 0 else 0.0
-
-    sorted_by_vix = sorted(regime_vix, key=lambda k: regime_vix[k])
-
-    names = REGIME_NAMES.get(K_eff)
-    if names is None:
-        # Always produce meaningful names for any K
-        _ALL_NAMES = ['Low-Vol', 'Moderate', 'Elevated', 'High-Vol', 'Stressed', 'Crisis']
-        if K_eff <= len(_ALL_NAMES):
-            # Evenly space through the name ladder
-            idxs = np.linspace(0, len(_ALL_NAMES) - 1, K_eff, dtype=int)
-            names = [_ALL_NAMES[i] for i in idxs]
+        if mask.sum() > 5:
+            regime_vol[i] = float(np.std(spy_returns[mask]) * np.sqrt(252) * 100)
         else:
-            names = _ALL_NAMES + [f'Regime-{i}' for i in range(K_eff - len(_ALL_NAMES))]
+            regime_vol[i] = 0.0
 
-    return {sorted_by_vix[i]: names[i] for i in range(K_eff)}
+    # Assign bracket name by actual vol level (sorted low-to-high for consistency)
+    name_map = {}
+    name_counts = {}
+    for i in sorted(regime_vol, key=lambda k: regime_vol[k]):
+        vol = regime_vol[i]
+        bracket_name = f'Regime-{i}'  # fallback
+        for lo, hi, bname in vol_brackets:
+            if lo <= vol < hi:
+                bracket_name = bname
+                break
+        # Disambiguate if two states fall in the same bracket
+        name_counts[bracket_name] = name_counts.get(bracket_name, 0) + 1
+        if name_counts[bracket_name] > 1:
+            bracket_name = f"{bracket_name}-{chr(64 + name_counts[bracket_name])}"
+        name_map[i] = bracket_name
+
+    return name_map
 
 
 # ===================================================================
