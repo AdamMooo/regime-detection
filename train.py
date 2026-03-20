@@ -1028,18 +1028,40 @@ def compute_var_backtest_garch(spy_returns, regime_probs, labels, name_map,
 
 # Modern color palette — every regime gets a distinct, attractive color
 _REGIME_COLORS = {
-    'Very-Low':   '#2ecc71',   # emerald green
-    'Low-Vol':    '#27ae60',   # nephritis green
-    'Moderate':   '#3498db',   # peter river blue
-    'Medium-Vol': '#f39c12',   # orange
-    'Elevated':   '#f1c40f',   # sunflower yellow
-    'Stressed':   '#e67e22',   # carrot orange
-    'High-Vol':   '#e74c3c',   # alizarin red
-    'Crisis':     '#c0392b',   # pomegranate red
+    # Vol-bracket names (HDP path)
+    'Low-Vol':         '#27ae60',   # green
+    'Moderate-Vol':    '#3498db',   # blue
+    'Elevated-Vol':    '#f39c12',   # orange
+    'Crisis-Vol':      '#e74c3c',   # red
+    # Disambiguated variants (walk-forward may produce these)
+    'Low-Vol-B':       '#2ecc71',
+    'Moderate-Vol-B':  '#2980b9',
+    'Moderate-Vol-C':  '#1abc9c',
+    'Elevated-Vol-B':  '#f1c40f',
+    'Crisis-Vol-B':    '#c0392b',
+    # Legacy names (classic HMM path)
+    'Very-Low':   '#2ecc71',
+    'Moderate':   '#3498db',
+    'Medium-Vol': '#f39c12',
+    'Elevated':   '#f1c40f',
+    'Stressed':   '#e67e22',
+    'High-Vol':   '#e74c3c',
+    'Crisis':     '#c0392b',
 }
 
 # Plotly-compatible hex colors — same mapping
 _REGIME_COLORS_HEX = _REGIME_COLORS.copy()
+
+
+def _hex_to_rgba(hex_color, alpha=0.22):
+    """Convert hex color to rgba string, handling 3 or 6 char hex."""
+    c = hex_color.lstrip('#')
+    if len(c) == 3:
+        c = c[0] * 2 + c[1] * 2 + c[2] * 2
+    elif len(c) < 6:
+        c = c.ljust(6, c[-1])
+    r, g, b = int(c[:2], 16), int(c[2:4], 16), int(c[4:6], 16)
+    return f'rgba({r},{g},{b},{alpha})'
 
 
 def _get_blocks(mask):
@@ -1081,16 +1103,14 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
 
     ordered = sorted(name_map.keys())
     regime_names = [name_map[r] for r in ordered]
-    colors = [_REGIME_COLORS_HEX.get(n, '#888') for n in regime_names]
+    colors = [_REGIME_COLORS_HEX.get(n, '#888888') for n in regime_names]
     T_len = len(dates)
     label_arr = np.asarray(labels[:T_len])
 
     # helper: add regime shading via filled scatter shapes
     def _add_shading(fig, lab_arr, dt_arr, cols, ords, row=None, col=None):
         for r_idx, r in enumerate(ords):
-            c_hex = cols[r_idx].lstrip('#')
-            rv, gv, bv = int(c_hex[:2], 16), int(c_hex[2:4], 16), int(c_hex[4:6], 16)
-            rgba = f'rgba({rv},{gv},{bv},0.22)'
+            rgba = _hex_to_rgba(cols[r_idx], 0.22)
             mask = lab_arr == r
             for s, e in _get_blocks(mask):
                 kw = dict(
@@ -1150,7 +1170,7 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
         assert oos_name_map is not None and oos_labels is not None and oos_market is not None
         oos_ord = sorted(oos_name_map.keys())
         oos_nm = [oos_name_map[r] for r in oos_ord]
-        oos_cols = [_REGIME_COLORS_HEX.get(n, '#888') for n in oos_nm]
+        oos_cols = [_REGIME_COLORS_HEX.get(n, '#888888') for n in oos_nm]
         oos_dt = list(oos_labels.index)
         oos_la = oos_labels.values
         for row_i in [3, 4]:
@@ -1262,10 +1282,6 @@ def _build_kde_surface(pcs, labels, name_map, colors, ordered, regime_names,
     y_min, y_max = pc2_all.min() - margin, pc2_all.max() + margin
     grid_x, grid_y = np.mgrid[x_min:x_max:80j, y_min:y_max:80j]
     grid_positions = np.vstack([grid_x.ravel(), grid_y.ravel()])
-
-    def _hex_to_rgba(h, a=0.85):
-        c = h.lstrip('#')
-        return f'rgba({int(c[:2],16)},{int(c[2:4],16)},{int(c[4:6],16)},{a})'
 
     def _make_colorscale(hex_c):
         return [[0, _hex_to_rgba(hex_c, 0)], [1, _hex_to_rgba(hex_c, 0.85)]]
@@ -1472,9 +1488,7 @@ def _build_transitions(model, labels, name_map, colors, ordered, regime_names):
                 targets.append(j + K)
                 values.append(round(cond_p * 100, 1))
                 link_labels.append(f'{regime_names[i]} → {regime_names[j]}: {cond_p:.0%}')
-                c = colors[i].lstrip('#')
-                rv, gv, bv = int(c[:2], 16), int(c[2:4], 16), int(c[4:6], 16)
-                link_colors.append(f'rgba({rv},{gv},{bv},0.4)')
+                link_colors.append(_hex_to_rgba(colors[i], 0.4))
 
     fig_sankey = go.Figure(go.Sankey(
         arrangement='snap',
@@ -1575,9 +1589,7 @@ def _build_transitions(model, labels, name_map, colors, ordered, regime_names):
     # Row-level fill: light tint of regime color
     row_fills = []
     for n in cell_vals[0]:
-        c_hex = _REGIME_COLORS_HEX.get(n, '#888888').lstrip('#')
-        rv, gv, bv = int(c_hex[:2], 16), int(c_hex[2:4], 16), int(c_hex[4:6], 16)
-        row_fills.append(f'rgba({rv},{gv},{bv},0.08)')
+        row_fills.append(_hex_to_rgba(_REGIME_COLORS_HEX.get(n, '#888888'), 0.08))
 
     fig_table = go.Figure(go.Table(
         header=dict(
@@ -1634,7 +1646,7 @@ def _build_current_state(probs, labels, name_map, dates, market,
     # Held label = hysteresis-smoothed; may lag live signal by REGIME_HOLD_DAYS days
     held_label    = labels[-1]
     current_name  = name_map.get(current_label, '?')
-    current_color = _REGIME_COLORS_HEX.get(current_name, '#888')
+    current_color = _REGIME_COLORS_HEX.get(current_name, '#888888')
     K = len(ordered)
 
     # ── Compute statistics ─────────────────────────────────────────
@@ -1725,9 +1737,7 @@ def _build_current_state(probs, labels, name_map, dates, market,
         if r == current_label:
             bar_colors_list.append(colors[r_idx])
         else:
-            c = colors[r_idx].lstrip('#')
-            rv, gv, bv = int(c[:2], 16), int(c[2:4], 16), int(c[4:6], 16)
-            bar_colors_list.append(f'rgba({rv},{gv},{bv},0.4)')
+            bar_colors_list.append(_hex_to_rgba(colors[r_idx], 0.4))
 
     fig_status.add_trace(go.Bar(
         x=[current_probs[r] for r in ordered],
@@ -1873,7 +1883,7 @@ def _build_current_state(probs, labels, name_map, dates, market,
     recent = labels[-90:]
     name_series = pd.Series([name_map[l] for l in recent])
     counts = name_series.value_counts()
-    pie_colors = [_REGIME_COLORS_HEX.get(n, '#888') for n in counts.index]
+    pie_colors = [_REGIME_COLORS_HEX.get(n, '#888888') for n in counts.index]
     fig_outlook.add_trace(go.Pie(
         labels=counts.index, values=counts.values,
         hole=0.5, marker=dict(colors=pie_colors,
@@ -1893,7 +1903,7 @@ def _build_current_state(probs, labels, name_map, dates, market,
     if exit_info:
         exit_names = [e[1] for e in exit_info[:5]]
         exit_probs_vals = [e[0] for e in exit_info[:5]]
-        exit_colors = [_REGIME_COLORS_HEX.get(n, '#888') for n in exit_names]
+        exit_colors = [_REGIME_COLORS_HEX.get(n, '#888888') for n in exit_names]
 
         fig_exit = go.Figure(go.Bar(
             x=exit_probs_vals, y=exit_names, orientation='h',
@@ -1937,9 +1947,7 @@ def _build_sv_volatility(dates, sv_results, labels, name_map,
 
     # Regime shading on top panel
     for r_idx, r in enumerate(ordered):
-        c_hex = colors[r_idx].lstrip('#')
-        rv, gv, bv = int(c_hex[:2], 16), int(c_hex[2:4], 16), int(c_hex[4:6], 16)
-        rgba = f'rgba({rv},{gv},{bv},0.22)'
+        rgba = _hex_to_rgba(colors[r_idx], 0.22)
         mask = label_arr == r
         for s, e in _get_blocks(mask):
             fig.add_vrect(
@@ -2216,7 +2224,7 @@ def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
         val_labels.append(f'VaR 5% Backtest — {r}')
         val_values.append(
             f"Actual breach: {vr['breach_pct']:.1f}% "
-            f"({vr['n_breaches']}/{vr['n_total']}) — "
+            f"({vr['n_breaches']}/{vr.get('n_evaluated', vr.get('n_total', '?'))}) — "
             f"{'PASS' if vr['ok'] else 'FAIL'}"
         )
         val_row_colors.append('#0a3d0a' if vr['ok'] else '#3d0a0a')
