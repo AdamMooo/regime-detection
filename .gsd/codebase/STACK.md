@@ -40,8 +40,7 @@
 - `plotly` 5.20+ / 6.x — All interactive charts; output is a single self-contained HTML file
 
 **Unused but in requirements.txt:**
-- `fredapi` 0.5+ — Listed in `requirements.txt` but not imported or used anywhere in source
-- `matplotlib` 3.9+ — Listed in `requirements.txt`; referenced only in a comment in `train.py` line 1000 but not actually imported or used for any output
+- `matplotlib` 3.9+ — Listed in `requirements.txt`; referenced only in a comment in `train.py` but not actually imported or used for any output
 
 ## Key Dependencies
 

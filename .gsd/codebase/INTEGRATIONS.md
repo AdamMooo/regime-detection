@@ -12,8 +12,7 @@
   - Config: `TICKERS`, `VIX_TICKER`, `VIX3M_TICKER`, `VVIX_TICKER` in `config.py`
 
 **Macroeconomic Data:**
-- None currently used. `fredapi` is listed in `requirements.txt` but is not imported or called anywhere.
-- `train.py` has vestigial references to `hy_spread` and `yield_slope` columns (gracefully handled with `if col in market` guards) but these columns do not exist in `market_data.csv`.
+- None. No FRED integration; all data sourced exclusively from yfinance.
 
 ## Data Storage
 
