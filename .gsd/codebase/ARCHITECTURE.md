@@ -1,6 +1,6 @@
 # Architecture
 
-**Analysis Date:** 2026-03-16 (updated)
+**Analysis Date:** 2026-03-22 (updated)
 
 ## Pattern Overview
 
@@ -25,6 +25,7 @@ train.py    →  data/regime_results.csv  +  data/features_scaled.csv
               + models/  +  figures/dashboard.html
    │
 signals.py  →  (called by train.py & run.py; reads regime_results.csv)
+trust.py    →  (called by run.py; aggregates 8 checks → PASS/WARN/FAIL)
 run.py      →  orchestrates all stages; CLI entrypoint
 ```
 
@@ -56,8 +57,8 @@ run.py      →  orchestrates all stages; CLI entrypoint
 - Reads: `data/features_transformed.csv`
 - Output: `figures/feature_analysis.html` (self-contained Plotly HTML)
 
-**Model Training (`train.py` — 2941 lines, the core module):**
-- Purpose: Rolling PCA → HMM regime detection → SV + GARCH volatility models → validation → dashboard
+**Model Training (`train.py` — 1452 lines):**
+- Purpose: Rolling PCA → HMM regime detection → SV + GARCH volatility models → validation
 - Location: `train.py`
 - Sub-pipeline:
   1. `expanding_standardize()` — causal z-score (shared by train + walk-forward)
@@ -85,10 +86,17 @@ run.py      →  orchestrates all stages; CLI entrypoint
 - Sub-computations: `_compute_regime_distributions()`, `_regime_awareness()`, `_transition_context()`, `_validation_metrics()`, `_vol_context()`
 - Called by both `train.py` (for dashboard) and `run.py` (`python run.py regime`)
 
+**Trust Scorecard (`trust.py`):**
+- Purpose: Aggregates 8 validation checks into a single PASS/WARN/FAIL verdict
+- Location: `trust.py`
+- Key function: `compute_trust_scorecard(results, signals)` → dict
+- Checks: data freshness, regime separation, vol ordering, persistence, VaR backtest, OOS agreement, OOS separation, calibration ECE
+- Called by `run.py` (`python run.py trust`) and optionally by dashboard
+
 **Orchestration (`run.py`):**
 - Purpose: CLI entry point; chains all stages
 - Location: `run.py` (157 lines)
-- Steps: `collect` → `features` → `analyze` → `train`; also `regime`, `dashboard` sub-commands
+- Steps: `collect` → `features` → `analyze` → `train`; also `regime`, `trust`, `dashboard` sub-commands
 - Unknown commands produce an error message with valid step list
 
 ## Data Flow
@@ -188,4 +196,4 @@ run.py      →  orchestrates all stages; CLI entrypoint
 
 ---
 
-*Architecture analysis: 2026-03-16 (updated)*
+*Architecture analysis: 2026-03-22 (updated)*

@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -:*)"
+      "Bash(python -:*)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(python -c \":*)",
+      "Bash(find C:ProjectsRegime-Detectiontests -type f -name *.py)",
+      "Bash(xargs wc:*)",
+      "Bash(python -m pytest \"C:\\\\Projects\\\\Regime-Detection\\\\tests\" --collect-only -q)"
     ]
   }
 }

@@ -1,6 +1,6 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-03-16 (updated)
+**Analysis Date:** 2026-03-22 (updated)
 
 ## Directory Layout
 
@@ -11,23 +11,31 @@ Regime-Detection/
 ├── collect.py          # Stage 1: Download market data via yfinance (93 lines)
 ├── features.py         # Stage 2: Feature engineering (17 indicators, 435 lines)
 ├── analyze.py          # Stage 3: Interactive EDA report (optional, 235 lines)
-├── train.py            # Stage 4: Rolling PCA → HMM → SV/GARCH → Dashboard (2941 lines)
+├── train.py            # Stage 4: Rolling PCA → HMM → SV/GARCH (1452 lines)
+├── dashboard.py        # Interactive 7-tab Plotly dashboard builder (1549 lines)
 ├── hdp_hmm.py          # Bayesian HDP-HMM model — NumPyro + JAX (729 lines)
 ├── signals.py          # Regime awareness engine — translates model output (367 lines)
+├── trust.py            # Trust scorecard — aggregates 8 validation checks into PASS/WARN/FAIL
 ├── requirements.txt    # Python dependencies (semver ranges, not pinned)
 ├── README.md           # Project documentation
 ├── data/               # Pipeline data artifacts (CSV)
 │   ├── market_data.csv         # Raw aligned OHLCV + VIX family
 │   ├── features_transformed.csv# 17 engineered features (log1p + causal winsorized)
 │   ├── features_scaled.csv     # Expanding-window standardized (saved by train.py for rebuild_dashboard)
-│   ├── regime_results.csv      # Final regime labels + probabilities + OOS labels
-│   └── bic_selection.csv       # BIC scores per K (only when USE_HDP=False)
+│   └── regime_results.csv      # Final regime labels + probabilities + OOS labels
 ├── models/             # Serialized model artifacts (joblib PKL + JSON)
 │   ├── pca_model.pkl           # Last-window PCA object
 │   ├── hmm_model.pkl           # HMM model (classic or HDPModelAdapter)
 │   ├── hdp_params.pkl          # HDP posterior mean parameters
 │   ├── hdp_samples.pkl         # HDP posterior samples (SVI_NUM_SAMPLES)
 │   └── hdp_metadata.json       # Human-readable HDP diagnostics
+├── tests/             # pytest test suite (28 tests)
+│   ├── conftest.py            # Shared fixtures (rng, synthetic_array, synthetic_features)
+│   ├── test_causality.py      # 10 tests — forward-only guarantees
+│   ├── test_oos_validation.py # 5 tests — OOS agreement, separation
+│   ├── test_calibration.py    # 5 tests — ECE computation
+│   ├── test_trust_scorecard.py# 5 tests — trust scorecard aggregation
+│   └── test_validation.py     # 3 tests — VaR backtest
 ├── figures/            # Generated HTML visualizations
 │   ├── dashboard.html          # 7-tab interactive Plotly dashboard
 │   └── feature_analysis.html   # Feature EDA report
@@ -38,7 +46,7 @@ Regime-Detection/
 
 **Root (Python source):**
 - Purpose: All source code lives flat at project root — no `src/` subdirectory
-- Key files: `run.py` (entry), `config.py` (settings), `collect.py`, `features.py`, `analyze.py`, `train.py`, `hdp_hmm.py`, `signals.py`
+- Key files: `run.py` (entry), `config.py` (settings), `collect.py`, `features.py`, `analyze.py`, `train.py`, `hdp_hmm.py`, `signals.py`, `trust.py`
 
 **`data/`:**
 - Purpose: Pipeline CSV outputs; read/written by pipeline stages
@@ -84,7 +92,8 @@ Regime-Detection/
 - `signals.py::compute_signals()`: Regime awareness computation (line 338)
 
 **Testing:**
-- No test files present in codebase
+- `tests/` directory with 28 tests across 5 files + `conftest.py` shared fixtures
+- `trust.py::compute_trust_scorecard()`: Aggregates 8 validation checks (line-level entry point)
 
 ## Naming Conventions
 
@@ -150,4 +159,4 @@ Regime-Detection/
 
 ---
 
-*Structure analysis: 2026-03-16 (updated)*
+*Structure analysis: 2026-03-22 (updated)*

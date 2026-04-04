@@ -1,6 +1,6 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-03-16 (updated)
+**Analysis Date:** 2026-03-22 (updated)
 
 ## Resolved Issues (from PLAN.md audit)
 
@@ -16,11 +16,11 @@
 
 ## Tech Debt
 
-**`train.py` is 2941 lines — monolithic module:**
-- Issue: A single file contains expanding standardization, PCA, HMM fitting, SV/GARCH fitting, walk-forward validation, VaR backtests, 7 dashboard tab builders, and HTML generation
+**`train.py` is 1452 lines (down from 3002 after dashboard extraction):**
+- Issue: Still contains expanding standardization, PCA, HMM fitting, SV/GARCH fitting, walk-forward validation, and VaR backtests — but these are tightly coupled
 - Files: `train.py`
-- Impact: Hard to navigate, test, or modify one area without risk of affecting others
-- Fix approach: Split into `pca.py`, `validation.py`, `dashboard.py` sub-modules; `train.py` becomes a thin orchestrator
+- Impact: Manageable but not ideal; further splitting requires `core.py` to avoid circular imports
+- Fix approach: Further extraction deferred — remaining functions have tight cross-dependencies
 
 **`requirements.txt` uses semver ranges, not pinned versions:**
 - Issue: `numpyro>=0.16`, `jax>=0.4.30` etc. mean fresh installs may break with future releases
