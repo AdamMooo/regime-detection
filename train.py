@@ -43,7 +43,6 @@ from config import (
 )
 from features import build_features
 from signals import compute_signals
-from dashboard import build_interactive_dashboard, _get_blocks
 
 # Suppress noisy warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
