@@ -24,7 +24,7 @@ import numpy as np
 from typing import Any
 from scipy import stats as sp_stats
 
-from config import TICKERS, SHORT_WINDOW, MED_WINDOW, LONG_WINDOW
+from config import TICKERS, SHORT_WINDOW, MED_WINDOW, LONG_WINDOW, LABEL_MAPPING
 
 
 # ── Regime-conditional distribution profiles ───────────────────────
@@ -519,7 +519,10 @@ def compute_signals(results: pd.DataFrame, model: Any = None,
       - transitions: nearby regimes in probability space
       - vol_context: VIX, VRP, term structure — just facts
       - validation: proof the model isn't hallucinating
+      - bot_label: canonical label for Algo-Trading-Bot integration
       - date: as-of date
+
+    Signals now include both internal regime_name and bot_label for integration.
     """
     awareness = _regime_awareness(results)
     distributions = _compute_regime_distributions(results)
@@ -529,6 +532,15 @@ def compute_signals(results: pd.DataFrame, model: Any = None,
     oos = _oos_validation(results)
     calibration = _confidence_calibration(results)
 
+    # Map internal regime name to bot label
+    regime_name = awareness['current_regime']
+    if regime_name not in LABEL_MAPPING:
+        raise KeyError(
+            f"Regime '{regime_name}' not in LABEL_MAPPING. "
+            f"Valid regimes: {list(LABEL_MAPPING.keys())}"
+        )
+    bot_label = LABEL_MAPPING[regime_name]
+
     return {
         'awareness': awareness,
         'distributions': distributions,
@@ -537,7 +549,8 @@ def compute_signals(results: pd.DataFrame, model: Any = None,
         'validation': validation,
         'oos_validation': oos,
         'calibration': calibration,
-        'current_regime': awareness['current_regime'],
+        'current_regime': regime_name,
+        'bot_label': bot_label,
         'date': (str(results.index[-1].date())
                  if hasattr(results.index[-1], 'date')
                  else str(results.index[-1])),

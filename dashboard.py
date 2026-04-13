@@ -996,6 +996,7 @@ def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
     vol_ctx = sigs['vol_context']
     val = sigs['validation']
     current = aw['current_regime']
+    bot_label = sigs['bot_label']
     date_str = sigs['date']
 
     fig = make_subplots(
@@ -1009,7 +1010,7 @@ def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
         row_heights=[0.18, 0.32, 0.25, 0.25],
         vertical_spacing=0.04,
         subplot_titles=[
-            f'Regime Awareness — {current} ({date_str})',
+            f'Regime Awareness — {current} → {bot_label} ({date_str})',
             'Distribution Profile per Regime (SPY daily)',
             'Vol Context',
             'Transition Probabilities',
@@ -1020,11 +1021,12 @@ def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
     # ── Row 1: Regime awareness summary ───────────────────────────
     conf_pct = f"{aw['confidence']:.0%}"
     summary_labels = [
-        'Current Regime', 'Confidence', 'Days in Regime',
-        'Median Duration (this regime)', 'VIX', 'VRP',
+        'Current Regime (internal)', 'Bot Label (canonical)', 'Confidence',
+        'Days in Regime', 'Median Duration (this regime)', 'VIX', 'VRP',
     ]
     summary_values = [
         current,
+        bot_label,
         conf_pct,
         str(aw['days_in_regime']),
         f"{aw['median_duration']:.0f} days",
@@ -1037,7 +1039,7 @@ def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
     conf_color = '#7ee787' if conf > 0.7 else '#f0883e' if conf > 0.4 else '#f85149'
 
     val_colors = ['#0d1117'] * len(summary_labels)
-    val_colors[1] = conf_color  # confidence cell
+    val_colors[2] = conf_color  # confidence cell (index 2 after regime + bot_label)
 
     fig.add_trace(go.Table(
         header=dict(

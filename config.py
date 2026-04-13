@@ -36,13 +36,13 @@ FEATURE_SUBSET = [
     # Vol state
     'VIX', 'VRP',
     # Vol dynamics
-    'rv_ratio_10_63', 'vix_ts_slope', 'SPY_volvol20',
+    'rv_ratio_10_63',
     # Cross-asset
-    'SPY_TLT_corr63', 'credit_stress',
+    'SPY_TLT_corr63',
     # Return dynamics
-    'SPY_ret', 'SPY_skew20', 'SPY_ac1_20',
+    'SPY_skew20',
     # Market structure
-    'eigen_conc', 'SPY_dd63',
+    'SPY_dd63',
     # Leverage / fragility
     'lev_effect20',
 ]
@@ -56,7 +56,7 @@ N_SEEDS        = 20              # multi-seed stability check
 HMM_ITER       = 300
 
 # --- Bayesian HDP-HMM (NumPyro) ---
-USE_HDP            = True        # True = Bayesian HDP-HMM; False = classic StudentTHMM
+USE_HDP            = False       # Simplified: Use classic StudentTHMM instead of full Bayesian HDP-HMM
 HDP_TRUNCATION     = 20          # max states for stick-breaking (must exceed expected K)
 HDP_ALPHA          = 1.0         # DP concentration (global)
 HDP_KAPPA          = 10.0        # sticky self-transition weight
@@ -78,7 +78,7 @@ GARCH_P        = 1
 GARCH_Q        = 1
 GARCH_DIST     = 'normal'
 MIN_REGIME_OBS = 50              # minimum obs per regime for GARCH fit
-REGIME_HOLD_DAYS = 2             # hysteresis: require N days before switching regime
+REGIME_HOLD_DAYS = 1             # Simplified: Reduced hysteresis filter
 
 # --- Validation ---
 WALK_FORWARD_TRAIN_YEARS = 5
@@ -94,6 +94,15 @@ REGIME_NAMES = {
     4: ['Low-Vol', 'Moderate', 'Elevated', 'Crisis'],
     5: ['Low-Vol', 'Moderate', 'Elevated', 'High-Vol', 'Crisis'],
     6: ['Very-Low', 'Low-Vol', 'Moderate', 'Elevated', 'High-Vol', 'Crisis'],
+}
+
+# --- Bot Label Mapping ---
+# Maps internal regime names to Algo-Trading-Bot canonical labels.
+# This is the source of truth for all downstream integrations.
+LABEL_MAPPING = {
+    'Low-Vol': 'LOW_VOL',
+    'Medium-Vol': 'MED_VOL',
+    'High-Vol': 'HIGH_VOL',
 }
 
 # Absolute vol-bracket thresholds for HDP regime naming.

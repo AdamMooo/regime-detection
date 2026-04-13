@@ -39,11 +39,18 @@ JAX and NumPyro versions are pinned exactly (==, not >=) to guarantee regime lab
 - CI/CD validation step rejects any PR loosening these constraints
 - Reference: `requirements.txt`, `.github/workflows/tests.yml` (check-version-pins job)
 
-## Downstream Integration
-When integrating with Algo-Trading-Bot, regime labels must align:
-- Regime 0 (expansion) → LOW_VOL
-- Regime 1 (neutral) → MED_VOL
-- Regime 2 (contraction) → HIGH_VOL
+## Bot Integration: Label Mapping
+Regime labels are mapped to Algo-Trading-Bot canonical format:
+- Regime 0 (Low-Vol) → LOW_VOL
+- Regime 1 (Medium-Vol) → MED_VOL
+- Regime 2 (High-Vol) → HIGH_VOL
+
+All signals output both:
+- `current_regime`: Internal regime name (e.g., "Low-Vol") — human-readable, economic meaning
+- `bot_label`: Canonical label for Algo-Trading-Bot (e.g., "LOW_VOL") — always use this when communicating with the bot
+
+The mapping is defined in `config.py` as `LABEL_MAPPING` (source of truth for all downstream integrations).
+Signals are validated via `signals.py::compute_signals()` to ensure bot_label is always present and valid.
 
 ## Do Not
 - Use K-means or hard clustering for regime assignment
