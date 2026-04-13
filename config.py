@@ -148,3 +148,22 @@ CACHE_PATH     = 'data/cache'     # Directory for incremental data cache (CSV + 
 # --- Incremental Data Collection ---
 CACHE_WINDOW       = 252           # Trading days for rolling PCA refit (1 year window)
 INCREMENTAL_MODE   = 'auto'        # 'auto' = auto-detect based on cache existence, 'full', or 'incremental'
+
+# ===================================================================
+# Phase 3.4: Multi-Signal Combination (Optional Ensemble Mode)
+# ===================================================================
+
+# Enable 11-step signal combination engine (Fundamental Law of Active Management)
+# When True: regime probabilities from combined signal engine
+# When False: regime probabilities from single-HMM baseline (current behavior)
+# Default: False (backward compatible, single-HMM)
+USE_SIGNAL_COMBINATION = False
+
+# Signal combination configuration
+SIGNAL_COMBINATION_CONFIG = {
+    'hold_days': 1,              # Forward-looking window for IC calculation
+    'min_warmup': 252,           # Minimum observations before calculating IC
+    'n_cross_val_folds': 5,      # Number of CV folds for evaluation
+    'bias_adjustment_factor': 0.1,  # Penalty factor for IC overfitting correction
+    'winsorize_sigma': 3.0,      # Clipping threshold (n sigma)
+}
