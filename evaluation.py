@@ -23,6 +23,7 @@ import logging
 import numpy as np
 import pandas as pd
 from scipy.stats import binom, chi2
+from scipy.special import erfinv
 
 from config import RANDOM_SEED, VAR_ALPHA
 
@@ -214,7 +215,7 @@ def compute_var_backtest(spy_returns, labels, name_map, alpha=VAR_ALPHA):
             continue
 
         y = spy_returns[mask].dropna()
-        z_crit = np.sqrt(2) * np.erfinv(2 * (1 - alpha) - 1)
+        z_crit = np.sqrt(2) * erfinv(2 * (1 - alpha) - 1)
         var_threshold = z_crit * y.std()
         n_obs = len(y)
         n_exc = (y < -var_threshold).sum()
@@ -296,7 +297,7 @@ def christoffersen_test(spy_returns, labels, name_map, alpha):
     """
     # Combine all regimes for this test
     y = spy_returns.dropna()
-    z_crit = np.sqrt(2) * np.erfinv(2 * (1 - alpha) - 1)
+    z_crit = np.sqrt(2) * erfinv(2 * (1 - alpha) - 1)
     var_threshold = z_crit * y.std()
     indicators = (y < -var_threshold).astype(int).values
 
@@ -355,7 +356,7 @@ def compute_var_backtest_garch(spy_returns, regime_probs, labels, name_map,
     res = am.fit(disp='off')
     cond_vol = res.conditional_volatility.values / 100  # back to decimal
 
-    z_crit = np.sqrt(2) * np.erfinv(2 * (1 - alpha) - 1)
+    z_crit = np.sqrt(2) * erfinv(2 * (1 - alpha) - 1)
     var_dynamic = z_crit * cond_vol
     n_exc = (y.values < -var_dynamic).sum()
     n_obs = len(y)
