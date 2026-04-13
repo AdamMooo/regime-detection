@@ -90,7 +90,7 @@ def _validate_data_and_impute(data: pd.DataFrame, data_name: str, strategy: str 
         logger.warning(f"{data_name}: {n_missing} missing values ({pct_missing:.1f}%)")
 
     if strategy == 'forward_fill':
-        return data.fillna(method='ffill').fillna(method='bfill')
+        return data.ffill().bfill()
     else:
         return data.dropna()
 
