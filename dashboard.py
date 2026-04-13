@@ -13,8 +13,98 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from pathlib import Path
+import re
+import logging
+import time
+import functools
 
 from config import DATA_DIR, MODEL_DIR
+
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def _validate_and_fix_color(color_str: str, fallback: str = '#999999') -> str:
+    """
+    Validate hex color; if invalid, log warning and return fallback.
+
+    Valid formats:
+    - #RRGGBB (6-digit)
+    - #RGB (3-digit, expanded to 6)
+    - #RRGGBBAA (8-digit with alpha)
+
+    Args:
+        color_str: Color string to validate
+        fallback: Fallback color if validation fails (default: #999999)
+
+    Returns:
+        Validated hex color string
+    """
+    if not isinstance(color_str, str):
+        logger.warning(f"Color is not string: {color_str}, using fallback {fallback}")
+        return fallback
+
+    color_str = color_str.strip()
+
+    # 8-digit (with alpha)
+    if re.match(r'^#[0-9A-Fa-f]{8}$', color_str):
+        return color_str
+
+    # 6-digit
+    if re.match(r'^#[0-9A-Fa-f]{6}$', color_str):
+        return color_str
+
+    # 3-digit → expand to 6
+    if re.match(r'^#[0-9A-Fa-f]{3}$', color_str):
+        r, g, b = color_str[1], color_str[2], color_str[3]
+        return f'#{r}{r}{g}{g}{b}{b}'
+
+    # Invalid format
+    logger.warning(f"Invalid hex color '{color_str}', using fallback {fallback}")
+    return fallback
+
+
+def _validate_data_and_impute(data: pd.DataFrame, data_name: str, strategy: str = 'forward_fill') -> pd.DataFrame:
+    """
+    Validate data for NaN/missing values. Log warnings if found.
+    Impute if strategy='forward_fill', else drop rows with NaN.
+
+    Parameters
+    ----------
+    data : DataFrame
+        Input data to validate
+    data_name : str
+        Description for logging (e.g., "regime_probs")
+    strategy : str
+        'forward_fill' or 'drop'
+
+    Returns
+    -------
+    DataFrame (with missing values handled)
+    """
+    n_missing = data.isna().sum().sum()
+    if n_missing > 0:
+        pct_missing = 100 * n_missing / (data.shape[0] * data.shape[1])
+        logger.warning(f"{data_name}: {n_missing} missing values ({pct_missing:.1f}%)")
+
+    if strategy == 'forward_fill':
+        return data.fillna(method='ffill').fillna(method='bfill')
+    else:
+        return data.dropna()
+
+
+def profile_render_time(func):
+    """Decorator to profile rendering time."""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        elapsed = time.time() - start
+        logger.info(f"{func.__name__} render time: {elapsed:.2f}s")
+        return result
+    return wrapper
 
 
 def load_regime_results():
@@ -54,7 +144,7 @@ def display_current_regime(results):
         'Medium-Vol': '#f39c12',   # Orange
         'High-Vol': '#e74c3c',     # Red
     }
-    color = regime_colors.get(regime_name, '#95a5a6')
+    color = _validate_and_fix_color(regime_colors.get(regime_name, '#95a5a6'))
 
     # Display in columns
     col1, col2, col3 = st.columns(3)
@@ -165,46 +255,51 @@ def display_recent_regime_switches(results):
         st.info("No regime switches detected in recent data")
 
 
+@profile_render_time
 def main():
-    """Main dashboard application."""
-    st.set_page_config(
-        page_title="Regime Detection Dashboard",
-        page_icon="📊",
-        layout="wide"
-    )
+    """Main dashboard application with error boundary."""
+    try:
+        st.set_page_config(
+            page_title="Regime Detection Dashboard",
+            page_icon="📊",
+            layout="wide"
+        )
 
-    st.title("Regime Detection Dashboard")
-    st.write("Real-time market regime detection and validation.")
+        st.title("Regime Detection Dashboard")
+        st.write("Real-time market regime detection and validation.")
 
-    # Load data
-    results = load_regime_results()
-    scorecard = load_trust_scorecard()
+        # Load data
+        results = load_regime_results()
+        scorecard = load_trust_scorecard()
 
-    if results is None:
-        st.error("❌ No regime results found. Run 'python run.py' to generate results.")
-        return
+        if results is None:
+            st.error("❌ No regime results found. Run 'python run.py' to generate results.")
+            return
 
-    # Display sections
-    st.divider()
-    display_current_regime(results)
+        # Display sections
+        st.divider()
+        display_current_regime(results)
 
-    st.divider()
-    display_regime_probabilities(results)
+        st.divider()
+        display_regime_probabilities(results)
 
-    st.divider()
-    display_trust_scorecard(scorecard)
+        st.divider()
+        display_trust_scorecard(scorecard)
 
-    st.divider()
-    display_recent_regime_switches(results)
+        st.divider()
+        display_recent_regime_switches(results)
 
-    # Footer
-    st.divider()
-    st.caption(
-        "Analysis scripts available: "
-        "`python analyze_feature_importance.py`, "
-        "`python analyze_regime_characterization.py`, "
-        "`python analyze_signal_quality.py`"
-    )
+        # Footer
+        st.divider()
+        st.caption(
+            "Analysis scripts available: "
+            "`python analyze_feature_importance.py`, "
+            "`python analyze_regime_characterization.py`, "
+            "`python analyze_signal_quality.py`"
+        )
+    except Exception as e:
+        logger.error(f"Dashboard rendering failed: {e}", exc_info=True)
+        st.error(f"Dashboard rendering error: {str(e)[:200]}. Check logs for details.")
 
 
 if __name__ == '__main__':
