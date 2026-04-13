@@ -15,7 +15,9 @@
       "Skill(gsd-code-review)",
       "Bash(python:*)",
       "Bash(pytest tests/test_causality.py -v)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(git push:*)",
+      "Bash(ls -lh .planning/phases/03-refactor/*-SUMMARY.md)"
     ]
   }
 }
