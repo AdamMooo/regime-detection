@@ -30,6 +30,21 @@ collect.py          features.py           train.py              train.py
                                          └─────────────────┘
 ```
 
+## Documentation
+
+Comprehensive guides for users, integrators, and maintainers:
+
+- **[Architecture Guide](docs/ARCHITECTURE.md)** — Explains HDP-HMM design rationale, why 3 regimes, rolling PCA pipeline, causal guarantees, regime meaning, and performance validation
+- **[Integration Guide](docs/INTEGRATION.md)** — Signal output schema, label mapping convention (LOW_VOL/MED_VOL/HIGH_VOL), how Algo-Trading-Bot consumes regime signals, Kelly sizing example, and troubleshooting
+- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** — Common issues (regime flipping, accuracy degradation, dashboard crashes, integration test failures), debug workflows, performance tuning, and recovery procedures
+
+## Examples
+
+Interactive Jupyter notebooks demonstrating real-world usage:
+
+- **[Regime Analysis Notebook](examples/regime_analysis.ipynb)** — Explore regime distributions, characterize market conditions, analyze regime duration, and backtest regime-aware position sizing
+- **[Backtesting Notebook](examples/backtesting.ipynb)** — Full trading strategy workflow with Kelly sizing per regime, performance metrics, walk-forward validation, and per-regime performance analysis
+
 ## Key Features
 
 - **Bayesian nonparametric regime discovery** — HDP-HMM with stick-breaking prior automatically determines the number of market regimes (no manual K selection)
