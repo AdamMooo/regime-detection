@@ -1,17 +1,34 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: executing
+last_updated: "2026-04-13T16:05:51.619Z"
+progress:
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 33
+---
+
 # STATE — Regime-Detection Project Memory
 
 ## Latest Status
-**As of:** 2026-04-12 (Session #3)  
-**Phase:** Planning complete, ready for Phase 1 execution  
+
+**As of:** 2026-04-13 (Session #4)  
+**Phase:** Phase 1.1 Complete, executing Phase 1.2 next  
 **Branch:** main  
+**Last executed plan:** 01-blockers/01-01 (JAX/NumPyro pinning)  
 
 ---
 
 ## Critical Blockers (Identified & Scheduled)
+
 1. **JAX Version Pinning** — `jax>=0.4.30` allows breaking changes; reproducibility risk
    - **Fix in:** Phase 1.1
    - **Effort:** 4 hrs
-   - **Status:** Scheduled
+   - **Status:** ✅ COMPLETE (commit 0b3c480)
 
 2. **Bot Label Mapping** — Regime names not validated for Algo-Trading-Bot integration
    - **Fix in:** Phase 1.2
@@ -33,6 +50,7 @@
 ## Architecture Decision Log
 
 ### Decision 1: Keep NumPyro, Don't Switch HMM Libraries
+
 **Context:** Previous sessions tried multiple approaches; K-means caused instability  
 **Decision:** NumPyro is final choice (Bayesian HDP-HMM with probabilistic regimes)  
 **Rationale:** Causal guarantees, no lookahead, stable regime assignments  
@@ -42,6 +60,7 @@
 ---
 
 ### Decision 2: 3 Regime Fixed Count
+
 **Context:** Model produces 3 latent regimes; labels map to market volatility regimes  
 **Decision:** Fix at 3 regimes (Low-Vol, Moderate-Vol, High-Vol)  
 **Rationale:** Matches economic intuition and Algo-Trading-Bot convention  
@@ -51,6 +70,7 @@
 ---
 
 ### Decision 3: Monolithic train.py Stays in Phase 1
+
 **Context:** train.py is 1452 lines; hard to modify, but functional  
 **Decision:** Refactoring deferred to Phase 3 (post-deadline, non-blocking)  
 **Rationale:** Phase 1 focus is unblocking integration, not refactoring  
@@ -60,6 +80,7 @@
 ---
 
 ### Decision 4: Incremental Updates in Phase 2 (Not Phase 1)
+
 **Context:** Every training run takes 10–20 min (16 years of data re-download)  
 **Decision:** Phase 1 fixes blockers, Phase 2 optimizes incremental updates  
 **Rationale:** Blockers are integration-critical; optimization is performance-critical but not blocking production  
@@ -69,7 +90,9 @@
 ---
 
 ## Code Quality Baseline
+
 From codebase analysis (commit 95ea51b):
+
 - **Test count:** 28 tests (causality, validation, calibration)
 - **Hard constraint compliance:** ✅ All 4 met (NumPyro, 13→PCA→HMM, no K-means, 3 regimes)
 - **Causal guarantees:** ✅ Verified (no lookahead in features, standardization, PCA)
@@ -79,22 +102,26 @@ From codebase analysis (commit 95ea51b):
 ---
 
 ## Phase 1 Execution Plan
+
 **Timeline:** 3–5 days  
 **Parallel structure:**
+
 - 1.1 (JAX pinning) → 1.2 (bot mapping) → (1.3 + 1.4 in parallel) → Phase 2
 
 **Deliverables:**
-- [ ] Updated `requirements.txt` with exact pinned versions
-- [ ] `config.py` regime label mapping (Regime 0 → LOW_VOL, etc.)
-- [ ] `test_causality.py` with 6+ test cases
-- [ ] `test_bot_integration.py` validating end-to-end signal flow
-- [ ] Updated CLAUDE.md with label convention documentation
-- [ ] All tests passing in CI/CD
-- [ ] Code review approved
+
+- [x] Updated `requirements.txt` with exact pinned versions (1.1 COMPLETE)
+- [ ] `config.py` regime label mapping (Regime 0 → LOW_VOL, etc.) (1.2 NEXT)
+- [ ] `test_causality.py` with 6+ test cases (1.3 TODO)
+- [ ] `test_bot_integration.py` validating end-to-end signal flow (1.4 TODO)
+- [x] Updated CLAUDE.md with reproducibility guarantees (1.1 COMPLETE)
+- [x] All tests passing in CI/CD (1.1 verified)
+- [ ] Code review approved (pending Phase 1 completion)
 
 ---
 
 ## Known Gotchas (Learned from History)
+
 1. **K-Means Instability** — Hard clustering produces different labels with different random seeds
    - **Prevention:** Use only NumPyro (probabilistic); verified in tests
    
@@ -107,17 +134,21 @@ From codebase analysis (commit 95ea51b):
 ---
 
 ## Integration Dependencies
+
 **Depends on:**
+
 - Algo-Trading-Bot: signal schema, regime label convention, trading decision logic
 - Portfolio-Manager: regime probability outputs, dashboard visibility
 
 **Blocks:**
+
 - Any live trading deployment (bot depends on regime signals)
 - Portfolio risk adjustments (manager depends on regime confidence)
 
 ---
 
 ## Resources & References
+
 - **Repository:** https://github.com/AdamMooo/Regime-Detection
 - **Codebase analysis:** `.planning/CODEBASE-STATE.md` (465 lines, detailed audit)
 - **Hard constraints:** `.planning/CLAUDE.md` and local `CLAUDE.md`
@@ -127,6 +158,7 @@ From codebase analysis (commit 95ea51b):
 ---
 
 ## Next Steps
+
 1. **Immediate:** Run `/gsd-plan-phase 1` to generate detailed phase plan
 2. **Then:** Execute Phase 1 with atomic commits and integration tests
 3. **Success:** All blockers closed, integration test green, code review passed
@@ -135,9 +167,27 @@ From codebase analysis (commit 95ea51b):
 ---
 
 ## Session Notes
+
 - User requested "full reset on planning and GSD structure" (tons of things happened, wasn't well organized)
 - Model accuracy/stability issues + code organization issues identified
 - Goal: Clean code + good model + live integration by 2026-04-30
 - Codebase analysis revealed 4 critical production blockers (not 10+)
 - Architecture is **fundamentally sound** (NumPyro, 28 tests, causal guarantees)
 - Reset is **unblocking + optimization**, not rewrite
+
+---
+
+## Execution Progress (Session #5 - 2026-04-13)
+
+**Plan 01-01 Execution Summary:**
+- Work completed in prior session (commit 0b3c480)
+- Verified all success criteria met:
+  - ✅ requirements.txt: clean, no merge markers
+  - ✅ JAX 0.9.1 and NumPyro 0.20.0 pinned exactly
+  - ✅ CLAUDE.md reproducibility section documented
+  - ✅ CI/CD pin-check workflow in place
+  - ✅ 12+ JAX/NumPyro imports verified in codebase
+- Summary created and committed (82156e6)
+- Progress updated: 1/3 plans complete
+
+**Next:** Execute plan 01-02 (Bot Label Mapping)
