@@ -687,12 +687,8 @@ def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE,
 def evaluate(market, labels, name_map, spy_ret, label_source='In-Sample'):
     """Print regime characteristics using 5-day SPY returns (independent)."""
     print(f"\nRegime Characteristics ({label_source}):")
-<<<<<<< HEAD
     hdr = (f"  {'Regime':<14s} {'Days':>6s} {'Pct':>6s} {'VIX':>7s} "
            f"{'SPY5d':>7s}")
-=======
-    hdr = (f"  {'Regime':<14s} {'Days':>6s} {'Pct':>6s} {'VIX':>7s} {'SPY5d':>7s}")
->>>>>>> 728b0502bc77e0925a4dc3c3ba2af4b335a05fb7
     print(hdr)
     print(f"  {'-' * 44}")
 
@@ -708,12 +704,8 @@ def evaluate(market, labels, name_map, spy_ret, label_source='In-Sample'):
         vix_m = market.loc[idx, 'VIX'].mean() if 'VIX' in market else np.nan
         sp_m  = spy_ret.reindex(idx).mean() * 100
 
-<<<<<<< HEAD
         print(f"  {name:<14s} {n:>6d} {pct:>5.1f}% {vix_m:>7.1f} "
               f"{sp_m:>+6.2f}%")
-=======
-        print(f"  {name:<14s} {n:>6d} {pct:>5.1f}% {vix_m:>7.1f} {sp_m:>+6.2f}%")
->>>>>>> 728b0502bc77e0925a4dc3c3ba2af4b335a05fb7
 
     # Bootstrap confidence intervals for key statistics
     _print_bootstrap_cis(market, labels, name_map, spy_ret, label_source)
@@ -1029,27 +1021,7 @@ def compute_var_backtest_garch(spy_returns, regime_probs, labels, name_map,
           f"  {'(OK)' if chris_p > 0.05 else '(REJECT — exceedances cluster)'}")
 
 
-<<<<<<< HEAD
 # Dashboard functions moved to dashboard.py
-=======
-# ===================================================================
-# 9. Plotting  (publication-quality matplotlib + interactive Plotly)
-# ===================================================================
-
-# Modern color palette — every regime gets a distinct, attractive color
-_REGIME_COLORS = {
-    'Very-Low':   '#2ecc71',   # emerald green
-    'Low-Vol':    '#27ae60',   # nephritis green
-    'Moderate':   '#3498db',   # peter river blue
-    'Medium-Vol': '#f39c12',   # orange
-    'Elevated':   '#f1c40f',   # sunflower yellow
-    'Stressed':   '#e67e22',   # carrot orange
-    'High-Vol':   '#e74c3c',   # alizarin red
-    'Crisis':     '#c0392b',   # pomegranate red
-}
-
-# Plotly-compatible hex colors — same mapping
-_REGIME_COLORS_HEX = _REGIME_COLORS.copy()
 
 
 def _get_blocks(mask):
@@ -2557,7 +2529,6 @@ function switchTab(idx) {{
     print(f"  Interactive dashboard saved: {path}")
 
 
->>>>>>> 728b0502bc77e0925a4dc3c3ba2af4b335a05fb7
 # ===================================================================
 # Main
 # ===================================================================
