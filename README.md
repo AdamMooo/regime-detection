@@ -121,6 +121,57 @@ python run.py trust       # standalone trust scorecard
 The interactive dashboard will be saved to `figures/dashboard.html`.
 
 
+## Incremental Data Mode
+
+The Regime-Detection pipeline automatically detects and uses incremental data collection to avoid re-downloading 16 years of historical data on every run.
+
+### First Run (Full Backtest)
+
+```bash
+python run.py
+```
+
+First run downloads all historical data from FRED and yfinance (2010–present):
+- Duration: ~20 minutes
+- Creates cache: `data/cache/`
+- Output: `data/regime_results.csv` with full regime history
+
+### Subsequent Runs (Incremental Update)
+
+```bash
+python run.py
+```
+
+Subsequent runs detect the cache and fetch only new data:
+- Duration: <5 minutes (typically 1–2 min)
+- Detects changes via file hash + modification time
+- Updates cache: `data/cache/{ticker}_incremental.csv`
+- Output: `data/regime_results.csv` with updated regimes
+
+### Force Full Re-Download
+
+To force a full backtest re-download (ignoring cache):
+
+```bash
+rm -rf data/cache/
+python run.py
+```
+
+### Analysis Scripts (Optional)
+
+Analysis and visualization are decoupled from the core pipeline.
+
+Run analysis manually when needed:
+
+```bash
+python analyze_feature_importance.py       # PCA loadings, feature correlation
+python analyze_regime_characterization.py  # Per-regime statistics, transition rates
+python analyze_signal_quality.py           # Regime persistence, probability trends
+```
+
+Analysis scripts are **optional** — not required for bot integration or dashboard.
+
+
 ## Configuration
 
 All parameters are centralized in `config.py`:
