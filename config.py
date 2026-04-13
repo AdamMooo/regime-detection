@@ -99,10 +99,29 @@ REGIME_NAMES = {
 # --- Bot Label Mapping ---
 # Maps internal regime names to Algo-Trading-Bot canonical labels.
 # This is the source of truth for all downstream integrations.
+# Covers all possible regime names from REGIME_NAMES and VOL_BRACKETS.
 LABEL_MAPPING = {
+    # Classic 2-state and 3-state regimes
     'Low-Vol': 'LOW_VOL',
     'Medium-Vol': 'MED_VOL',
     'High-Vol': 'HIGH_VOL',
+
+    # 4-state regime names (from REGIME_NAMES[4])
+    'Moderate': 'MED_VOL',
+    'Elevated': 'HIGH_VOL',
+    'Crisis': 'HIGH_VOL',
+
+    # 5-state regime names (from REGIME_NAMES[5])
+    # Low-Vol, Moderate, Elevated, High-Vol, Crisis already covered above
+
+    # 6-state regime names (from REGIME_NAMES[6])
+    'Very-Low': 'LOW_VOL',
+    # Other names already covered above
+
+    # VOL_BRACKETS regime names (absolute vol-based naming)
+    'Moderate-Vol': 'MED_VOL',
+    'Elevated-Vol': 'HIGH_VOL',
+    'Crisis-Vol': 'HIGH_VOL',
 }
 
 # Absolute vol-bracket thresholds for HDP regime naming.
