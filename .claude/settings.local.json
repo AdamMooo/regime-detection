@@ -6,7 +6,16 @@
       "Bash(python -c \":*)",
       "Bash(find C:ProjectsRegime-Detectiontests -type f -name *.py)",
       "Bash(xargs wc:*)",
-      "Bash(python -m pytest \"C:\\\\Projects\\\\Regime-Detection\\\\tests\" --collect-only -q)"
+      "Bash(python -m pytest \"C:\\\\Projects\\\\Regime-Detection\\\\tests\" --collect-only -q)",
+      "Skill(gsd-new-project)",
+      "Skill(gsd-plan-phase)",
+      "Skill(gsd-progress)",
+      "Skill(gsd-discuss-phase)",
+      "Skill(gsd-execute-phase)",
+      "Skill(gsd-code-review)",
+      "Bash(python:*)",
+      "Bash(pytest tests/test_causality.py -v)",
+      "Bash(node:*)"
     ]
   }
 }

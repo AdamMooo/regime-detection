@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-04-13T18:32:19.601Z"
+status: executing
+last_updated: "2026-04-13T19:12:50.163Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 4
+  total_plans: 5
   completed_plans: 4
-  percent: 100
+  percent: 80
 ---
 
 # STATE — Regime-Detection Project Memory
@@ -28,7 +28,7 @@ progress:
 1. **JAX Version Pinning** — `jax>=0.4.30` allows breaking changes; reproducibility risk
    - **Fix in:** Phase 1.1
    - **Effort:** 4 hrs
-   - **Status:** Ready to plan
+   - **Status:** Executing Phase 02
 
 2. **Bot Label Mapping** — Regime names not validated for Algo-Trading-Bot integration
    - **Fix in:** Phase 1.2
@@ -160,6 +160,7 @@ From codebase analysis (commit 95ea51b):
 ## Phase 2 Context Gathered (Session #7 - 2026-04-13)
 
 **Phase 2 architecture decisions locked:**
+
 - 2.1 (Incremental Data): File hash delta detection, CSV+feather cache, auto-detect mode, hybrid consistency
 - 2.2 (Dashboard Refactor): Slim to results visualization, move analysis to separate scripts
 - 2.3 (PCA Optimization): Rolling refit for accuracy (causal, no future data)
@@ -182,6 +183,7 @@ Current system naively combines 13 features via PCA → HMM. Institutional resea
 4. **Optimal weighting** based on independent IC, not signal strength
 
 **Expected Impact:**
+
 - Current: 13 features, PCA rotates but doesn't optimize for independence
 - After: Effective N = √13 ≈ 3.6x diversification benefit from genuine independence
 - IC baseline 0.05–0.15 → potential 0.10–0.25 with proper combination
