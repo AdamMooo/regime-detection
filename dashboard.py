@@ -134,38 +134,42 @@ def display_current_regime(results):
         st.warning("No regime results available")
         return
 
-    current = results.iloc[-1]
-    regime_name = current.get('regime_name', 'Unknown')
-    regime_prob = current.get('regime_prob', 0)
+    try:
+        current = results.iloc[-1]
+        regime_name = current.get('regime_name', 'Unknown')
+        regime_prob = current.get('regime_prob', 0)
 
-    # Color code by regime
-    regime_colors = {
-        'Low-Vol': '#2ecc71',      # Green
-        'Medium-Vol': '#f39c12',   # Orange
-        'High-Vol': '#e74c3c',     # Red
-    }
-    color = _validate_and_fix_color(regime_colors.get(regime_name, '#95a5a6'))
+        # Color code by regime
+        regime_colors = {
+            'Low-Vol': '#2ecc71',      # Green
+            'Medium-Vol': '#f39c12',   # Orange
+            'High-Vol': '#e74c3c',     # Red
+        }
+        color = _validate_and_fix_color(regime_colors.get(regime_name, '#95a5a6'))
 
-    # Display in columns
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric(
-            "Current Regime",
-            regime_name,
-            f"{regime_prob:.1%} confidence"
-        )
-    with col2:
-        st.metric(
-            "VIX",
-            f"{current.get('VIX', 0):.1f}",
-            "Market volatility index"
-        )
-    with col3:
-        st.metric(
-            "Date",
-            current.name.strftime("%Y-%m-%d"),
-            "Most recent trading day"
-        )
+        # Display in columns
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric(
+                "Current Regime",
+                regime_name,
+                f"{regime_prob:.1%} confidence"
+            )
+        with col2:
+            st.metric(
+                "VIX",
+                f"{current.get('VIX', 0):.1f}",
+                "Market volatility index"
+            )
+        with col3:
+            st.metric(
+                "Date",
+                current.name.strftime("%Y-%m-%d"),
+                "Most recent trading day"
+            )
+    except Exception as e:
+        logger.error(f"Failed to render current regime display: {e}")
+        st.warning(f"Could not display current regime: {str(e)[:100]}")
 
 
 def display_regime_probabilities(results):
@@ -173,23 +177,28 @@ def display_regime_probabilities(results):
     if results is None or len(results) == 0:
         return
 
-    # Extract probability columns
-    prob_cols = [c for c in results.columns if c.startswith('prob_')]
-    if not prob_cols:
-        st.warning("No probability data available")
-        return
+    try:
+        # Extract probability columns
+        prob_cols = [c for c in results.columns if c.startswith('prob_')]
+        if not prob_cols:
+            st.warning("No probability data available")
+            return
 
-    st.subheader("Regime Probabilities Over Time")
+        st.subheader("Regime Probabilities Over Time")
 
-    # Create time series plot
-    prob_df = results[prob_cols].copy()
-    prob_df.columns = [c.replace('prob_', 'Regime ') for c in prob_cols]
+        # Validate and impute missing data
+        prob_df = results[prob_cols].copy()
+        prob_df = _validate_data_and_impute(prob_df, "regime_probabilities", strategy='forward_fill')
+        prob_df.columns = [c.replace('prob_', 'Regime ') for c in prob_cols]
 
-    st.line_chart(prob_df)
+        st.line_chart(prob_df)
 
-    # Show summary statistics
-    with st.expander("Probability Statistics"):
-        st.dataframe(prob_df.describe())
+        # Show summary statistics
+        with st.expander("Probability Statistics"):
+            st.dataframe(prob_df.describe())
+    except Exception as e:
+        logger.error(f"Failed to render regime probabilities: {e}")
+        st.warning(f"Could not render probability chart: {str(e)[:100]}")
 
 
 def display_trust_scorecard(scorecard):
@@ -232,27 +241,31 @@ def display_recent_regime_switches(results):
     if results is None or len(results) < 2:
         return
 
-    st.subheader("Recent Regime Switches")
+    try:
+        st.subheader("Recent Regime Switches")
 
-    # Find regime changes
-    regime_col = 'regime_name' if 'regime_name' in results.columns else results.columns[0]
-    regimes = results[regime_col]
+        # Find regime changes
+        regime_col = 'regime_name' if 'regime_name' in results.columns else results.columns[0]
+        regimes = results[regime_col]
 
-    switches = []
-    for i in range(1, len(regimes)):
-        if regimes.iloc[i] != regimes.iloc[i - 1]:
-            switches.append({
-                'Date': results.index[i].strftime("%Y-%m-%d"),
-                'From': regimes.iloc[i - 1],
-                'To': regimes.iloc[i],
-            })
+        switches = []
+        for i in range(1, len(regimes)):
+            if regimes.iloc[i] != regimes.iloc[i - 1]:
+                switches.append({
+                    'Date': results.index[i].strftime("%Y-%m-%d"),
+                    'From': regimes.iloc[i - 1],
+                    'To': regimes.iloc[i],
+                })
 
-    # Show last 10 switches
-    if switches:
-        switches_df = pd.DataFrame(switches[-10:])
-        st.dataframe(switches_df, use_container_width=True)
-    else:
-        st.info("No regime switches detected in recent data")
+        # Show last 10 switches
+        if switches:
+            switches_df = pd.DataFrame(switches[-10:])
+            st.dataframe(switches_df, use_container_width=True)
+        else:
+            st.info("No regime switches detected in recent data")
+    except Exception as e:
+        logger.error(f"Failed to render regime switches: {e}")
+        st.warning(f"Could not display regime switches: {str(e)[:100]}")
 
 
 @profile_render_time
