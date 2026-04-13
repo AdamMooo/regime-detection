@@ -2533,7 +2533,14 @@ function switchTab(idx) {{
 # Main
 # ===================================================================
 
-def train():
+def train(reload_pca_checkpoint_path=None):
+    """
+    Train HMM model with optional PCA checkpoint reload.
+
+    Args:
+        reload_pca_checkpoint_path: Path to joblib checkpoint containing cached PCA.
+                                   If None, compute PCA from scratch.
+    """
     np.random.seed(RANDOM_SEED)
     os.makedirs(FIGURE_DIR, exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
@@ -2627,6 +2634,18 @@ def train():
     spy_ret_5d    = spy_close.pct_change(5)
     spy_daily_ret = pd.Series(np.log(spy_close / spy_close.shift(1)),
                               index=market.index)
+
+    # ── PCA Checkpoint Load (incremental mode) ─────────────────────
+    # Per D-07: Load cached PCA from prior run if available
+    reload_pca = None
+    if reload_pca_checkpoint_path and os.path.exists(reload_pca_checkpoint_path):
+        try:
+            checkpoint = joblib.load(reload_pca_checkpoint_path)
+            reload_pca = checkpoint.get('pca')
+            print(f"  Loaded cached PCA from checkpoint: {reload_pca_checkpoint_path}")
+        except Exception as e:
+            print(f"  WARNING: Failed to load PCA checkpoint ({e}); recomputing from scratch")
+            reload_pca = None
 
     # ── 1. Rolling PCA (Procrustes-aligned) ────────────────────────
     # Trim data to rows with valid expanding-window standardization
@@ -2817,6 +2836,17 @@ def train():
         ]
     results.to_csv(os.path.join(DATA_DIR, 'regime_results.csv'))
 
+    # Save unified model checkpoint (includes PCA for incremental mode)
+    model_checkpoint = {
+        'model': model,
+        'pca': last_pca,
+        'regime_results': results,
+    }
+    checkpoint_path = os.path.join(MODEL_DIR, 'regime_model.pkl')
+    joblib.dump(model_checkpoint, checkpoint_path)
+    print(f"  Saved model checkpoint (with PCA): {checkpoint_path}")
+
+    # Also save individual checkpoints for backward compatibility
     joblib.dump(model,    os.path.join(MODEL_DIR, 'hmm_model.pkl'))
     joblib.dump(last_pca, os.path.join(MODEL_DIR, 'pca_model.pkl'))
     feat_scaled.to_csv(os.path.join(DATA_DIR, 'features_scaled.csv'))
@@ -2852,7 +2882,7 @@ def train():
         print(f"  Stability       : {agreement:.1%}")
     print(f"{'=' * 60}")
 
-    return model, results
+    return model, last_pca, results
 
 
 # ===================================================================

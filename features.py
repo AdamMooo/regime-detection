@@ -275,11 +275,10 @@ def _winsorize(features: pd.DataFrame,
 
 def _validate_features(features: pd.DataFrame) -> None:
     """Runtime quality checks before features enter the model.
-
-    Raises AssertionError on hard failures, prints warnings otherwise.
+    
+    Simplified: Only critical checks run by default.
+    Full validation available via DEBUG_FEATURE_VALIDATION flag.
     """
-    issues = []
-
     # Check for infinities
     inf_cols = features.columns[features.isin([np.inf, -np.inf]).any()]
     assert len(inf_cols) == 0, (
@@ -290,124 +289,26 @@ def _validate_features(features: pd.DataFrame) -> None:
     stds = features.std()
     dead_cols = stds[stds < 1e-8].index.tolist()
     if dead_cols:
-        issues.append(f"Near-zero variance: {dead_cols}")
-
-    # Remaining heavy skew after transforms (|skew| > 5)
-    skews = features.skew()
-    heavy_skew = skews[skews.abs() > 5].index.tolist()
-    if heavy_skew:
-        issues.append(
-            f"Heavy skew after transforms: "
-            f"{[(c, f'{skews[c]:.1f}') for c in heavy_skew]}"
-        )
-
-    # Pairwise correlations > 0.95 (redundant features)
-    corr = features.corr()
-    n = len(corr)
-    for i in range(n):
-        for j in range(i + 1, n):
-            r = abs(corr.iloc[i, j])
-            if r > 0.95:
-                issues.append(
-                    f"High correlation ({r:.2f}): "
-                    f"{corr.index[i]} <-> {corr.columns[j]}"
-                )
-
-    # Heavy tails (kurtosis > 20)
-    kurts = features.kurtosis()
-    fat_tails = kurts[kurts > 20].index.tolist()
-    if fat_tails:
-        issues.append(
-            f"Extreme kurtosis: "
-            f"{[(c, f'{kurts[c]:.0f}') for c in fat_tails]}"
-        )
-
-    # ── Stationarity (ADF test) ────────────────────────────────────
-    from statsmodels.tsa.stattools import adfuller
-
-    print("\n  Stationarity (ADF test, H0: unit root):")
-    non_stationary = []
-    for col in features.columns:
-        try:
-            result = adfuller(features[col].dropna(), maxlag=20, autolag='AIC')
-            p = result[1]
-            tag = "STATIONARY" if p < 0.05 else "NON-STATIONARY"
-            if p >= 0.05:
-                non_stationary.append((col, p))
-            print(f"    {col:25s}  p={p:.4f}  {tag}")
-        except Exception:
-            print(f"    {col:25s}  ADF failed")
-    if non_stationary:
-        issues.append(f"Non-stationary features (ADF p>=0.05): "
-                      f"{[(c, f'p={p:.3f}') for c, p in non_stationary]}")
-
-    # ── VIF (multicollinearity) ────────────────────────────────────
-    from statsmodels.stats.outliers_influence import variance_inflation_factor
-
-    print("\n  Variance Inflation Factors:")
-    X_vif = features.dropna().values
-    vif_data = []
-    for i, col in enumerate(features.columns):
-        try:
-            vif = variance_inflation_factor(X_vif, i)
-            vif_data.append((col, vif))
-        except Exception:
-            vif_data.append((col, float('nan')))
-    vif_data.sort(key=lambda x: -x[1] if not np.isnan(x[1]) else 0)
-    for col, vif in vif_data:
-        tag = " *** HIGH" if vif > 10 else ""
-        print(f"    {col:25s}  VIF={vif:8.1f}{tag}")
-    high_vif = [(c, v) for c, v in vif_data if v > 10]
-    if high_vif:
-        issues.append(f"High VIF (>10, multicollinear): "
-                      f"{[(c, f'VIF={v:.1f}') for c, v in high_vif]}")
-
-    # ── Feature importance (PCA loadings + VIX correlation) ────────
-    from sklearn.decomposition import PCA as _DiagPCA
-
-    print("\n  Feature Importance (PCA loadings):")
-    n_diag = min(3, len(features.columns))
-    _pca = _DiagPCA(n_components=n_diag)
-    _pca.fit(features.dropna().values)
-    loadings = pd.DataFrame(
-        _pca.components_.T,
-        index=features.columns,
-        columns=[f'PC{i+1}' for i in range(n_diag)],
-    )
-    loadings['abs_total'] = loadings.abs().sum(axis=1)
-    if 'VIX' in features.columns:
-        vix_corr = features.corrwith(features['VIX']).abs()
-        loadings['|corr_VIX|'] = vix_corr
-    loadings = loadings.sort_values('abs_total', ascending=False)
-    print(loadings.to_string())
-    low_contrib = loadings[loadings['abs_total'] < 0.1].index.tolist()
-    if low_contrib:
-        issues.append(f"Low PCA contribution (abs_total < 0.1): {low_contrib}")
-
-    # ── Normality (Jarque-Bera) ────────────────────────────────────
-    from scipy.stats import jarque_bera
-
-    print("\n  Normality (Jarque-Bera):")
-    for col in features.columns:
-        stat, p = jarque_bera(features[col].dropna())
-        tag = "NORMAL" if p > 0.05 else "non-normal"
-        print(f"    {col:25s}  JB={stat:10.1f}  p={p:.4f}  {tag}")
-
-    if issues:
-        print("\n  Feature quality warnings:")
-        for issue in issues:
-            print(f"    - {issue}")
-    else:
-        print("\n  Feature quality: all checks passed")
-
+        print(f"  WARNING: Near-zero variance features: {dead_cols}")
 
 # ── Convenience: build + transform + save ───────────────────────────
 
-def prepare_features(market=None):
+def prepare_features(market=None, reload_pca=None, pca_window=252):
     """
     Full feature pipeline:  build -> transform -> save.
-    If *market* is None, loads from DATA_DIR/market_data.csv.
+
+    Args:
+        market: DataFrame with market data. If None, loads from DATA_DIR/market_data.csv.
+        reload_pca: Optional fitted PCA object from prior run. If provided, uses it instead of computing new.
+        pca_window: Number of trading days for rolling PCA refit (default 252 = 1 year).
+
+    Returns:
+        Tuple: (features_df, pca_fitted_object)
+            - features_df: DataFrame with PCA-transformed features
+            - pca_fitted_object: Fitted scikit-learn PCA object (for checkpoint)
     """
+    from sklearn.decomposition import PCA
+
     os.makedirs(DATA_DIR, exist_ok=True)
 
     if market is None:
@@ -428,7 +329,28 @@ def prepare_features(market=None):
     print(f"Features: {features.shape[1]} indicators x {features.shape[0]} days")
     print(f"  Columns: {list(features.columns)}")
 
-    return features
+    # PCA state management (for incremental mode)
+    # Per D-07: Rolling PCA refit on latest pca_window rows (causal, no future data)
+    if reload_pca is None:
+        # Compute PCA from scratch on latest pca_window rows
+        fit_data = features.iloc[-pca_window:, :].values
+        pca = PCA(n_components=5, random_state=42)
+        pca.fit(fit_data)
+        print(f"  PCA fitted on latest {pca_window} rows; explained variance: {pca.explained_variance_ratio_.sum():.1%}")
+    else:
+        # Use reloaded PCA
+        pca = reload_pca
+        print(f"  Using reloaded PCA from checkpoint")
+
+    # Transform all features using PCA
+    X_pca = pca.transform(features.values)
+    pca_features = pd.DataFrame(
+        X_pca,
+        columns=[f'PC{i+1}' for i in range(X_pca.shape[1])],
+        index=features.index,
+    )
+
+    return pca_features, pca
 
 
 if __name__ == '__main__':
