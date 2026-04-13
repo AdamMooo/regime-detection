@@ -52,6 +52,25 @@ jobs:
         run: |
           pytest tests/test_bot_integration.py -v
 
+      - name: Run incremental collection tests
+        run: |
+          pytest tests/test_incremental_collection.py -v
+
+      - name: Run PCA caching tests
+        run: |
+          pytest tests/test_pca_caching.py -v
+
+      - name: Run dashboard and analysis tests
+        run: |
+          pytest tests/test_dashboard_refactor.py -v
+
       - name: Run all tests
         run: |
           pytest tests/ -v --tb=short
+
+      - name: Validate analysis scripts
+        run: |
+          echo "Checking analysis scripts are importable..."
+          python -c "import analyze_feature_importance; print('✓ analyze_feature_importance.py OK')"
+          python -c "import analyze_regime_characterization; print('✓ analyze_regime_characterization.py OK')"
+          python -c "import analyze_signal_quality; print('✓ analyze_signal_quality.py OK')"
