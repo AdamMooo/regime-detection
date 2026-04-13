@@ -55,8 +55,9 @@ class SignalCombination:
             cum_mean = cumsum / counts
             cum_var = cumsq / counts - cum_mean ** 2
             cum_std = np.sqrt(np.maximum(cum_var, 1e-8))
-            X_std[col] = (X[col] - cum_mean) / cum_std
-            X_std[col].iloc[:min_warmup] = np.nan
+            std_values = (X[col] - cum_mean) / cum_std
+            std_values.iloc[:min_warmup] = np.nan
+            X_std[col] = std_values
         return X_std
 
     def _rank(self, X: pd.DataFrame) -> pd.DataFrame:
