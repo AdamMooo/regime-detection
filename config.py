@@ -140,6 +140,11 @@ VOL_BRACKETS = [
 MAX_DATA_STALENESS_DAYS = 3  # warn if market_data.csv is this many trading days old
 
 # --- Paths ---
-DATA_DIR   = 'data'
-MODEL_DIR  = 'models'
-FIGURE_DIR = 'figures'
+DATA_DIR       = 'data'
+MODEL_DIR      = 'models'
+FIGURE_DIR     = 'figures'
+CACHE_PATH     = 'data/cache'     # Directory for incremental data cache (CSV + Feather indices)
+
+# --- Incremental Data Collection ---
+CACHE_WINDOW       = 252           # Trading days for rolling PCA refit (1 year window)
+INCREMENTAL_MODE   = 'auto'        # 'auto' = auto-detect based on cache existence, 'full', or 'incremental'
