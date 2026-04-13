@@ -1,0 +1,51 @@
+{
+  "project": {
+    "name": "Regime-Detection",
+    "description": "HDP-HMM market regime detection pipeline for algorithmic trading",
+    "version": "1.0.0",
+    "created": "2026-04-12",
+    "owner": "Adam Morris"
+  },
+  "workflow": {
+    "mode": "gsd",
+    "parallelization": "wave-based",
+    "code_review_required": true,
+    "commit_style": "atomic",
+    "ci_cd_enabled": true
+  },
+  "execution": {
+    "model_profile": "balanced",
+    "max_context_per_phase": 100000,
+    "enable_background_agents": true,
+    "verify_after_each_phase": true
+  },
+  "git": {
+    "main_branch": "main",
+    "feature_branch_prefix": "phase-",
+    "commit_template": "[Phase X.Y] {subject}\n\n{description}\n\nReferences: REQUIREMENTS.md#{req_number}",
+    "auto_push": false
+  },
+  "testing": {
+    "min_test_coverage": 28,
+    "fail_on_regression": true,
+    "run_integration_tests": true,
+    "ci_cd_checks": ["linting", "type_checking", "unit_tests", "integration_tests"]
+  },
+  "hard_constraints": {
+    "hmm_library": "NumPyro only (not hmmlearn, pomegranate)",
+    "feature_pipeline": "13 features → rolling PCA → HDP-HMM (no skipping PCA)",
+    "regime_clustering": "Probabilistic only (no K-means)",
+    "regime_count": "3 regimes (Low-Vol, Moderate-Vol, High-Vol)"
+  },
+  "soft_constraints": {
+    "max_training_time_full": "20 minutes",
+    "max_training_time_incremental": "5 minutes",
+    "maintain_test_suite": true,
+    "backward_compatibility": "signals.py API"
+  },
+  "deadlines": {
+    "phase_1_end": "2026-04-19",
+    "phase_2_end": "2026-04-26",
+    "production_deployment": "2026-04-30"
+  }
+}
