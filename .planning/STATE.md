@@ -170,12 +170,31 @@ See `.planning/phases/02-incremental/02-CONTEXT.md` for all 11 decisions.
 
 ---
 
+## Strategic Direction — Signal Combination Framework (Phase 3.4)
+
+**Integrated from research article:** "The Math Behind Combining 50 Weak Signals Into One Winning Trade"
+
+Current system naively combines 13 features via PCA → HMM. Institutional research (Fundamental Law: IR = IC × √N) shows optimal approach is:
+
+1. **11-step alpha combination engine** to calculate independent edge of each signal
+2. **Cross-sectional demeaning** (Step 6) to remove shared variance across features
+3. **Orthogonal regression** (Step 9) to identify what each signal contributes uniquely
+4. **Optimal weighting** based on independent IC, not signal strength
+
+**Expected Impact:**
+- Current: 13 features, PCA rotates but doesn't optimize for independence
+- After: Effective N = √13 ≈ 3.6x diversification benefit from genuine independence
+- IC baseline 0.05–0.15 → potential 0.10–0.25 with proper combination
+
+**Implementation:** Phase 3.4 (post-Phase 2), foundation for multi-model ensemble.
+
+---
+
 ## Next Steps
 
-1. **Immediate:** Run `/gsd-plan-phase 2` to generate detailed phase plan
-2. **Then:** Execute Phase 2 with atomic commits and testing
-3. **Success:** Incremental data collection working, dashboard refactored, tests green
-4. **Then:** Phase 3 (refactoring, backlog)
+1. **Immediate:** Run `/gsd-execute-phase 2` to complete incremental data + dashboard refactor
+2. **Success:** Phase 2 complete by 2026-04-26, ready for Phase 3
+3. **Phase 3 (Post-Deadline):** 3.1 (refactor), 3.2 (hardening), 3.3 (docs), **3.4 (signal combination)**
 
 ---
 

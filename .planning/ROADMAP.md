@@ -158,6 +158,23 @@
 
 ---
 
+### 3.4 — Multi-Signal Combination (Fundamental Law of Active Management)
+**Why:** Current system combines features into single HMM regime. Institutional research (Fundamental Law: IR = IC × √N) shows combining independent signals beats single models. Apply 11-step alpha combination procedure to weight 13 features independently, not just via PCA.
+
+**Deliverables:**
+- Implement 11-step signal combination engine (Steps 1–11 from institutional framework)
+- Replace naive PCA weighting with independent edge estimation (Step 9: orthogonal regression)
+- Calculate effective signal independence (Effective N vs. raw count of 13 features)
+- Cross-validate combined regime probabilities vs. single-HMM baseline
+- Documentation: How signal independence improves regime accuracy
+
+**Impact:** 
+- Expected IC improvement: 0.05–0.15 → 0.10–0.25 (from √13 ≈ 3.6x diversification benefit)
+- Regime probability estimates more robust (noise-penalized, correlation-adjusted)
+- Foundation for multi-model ensemble (HMM + Bayesian + tree-based regime classifiers)
+
+---
+
 ## Dependency Graph
 ```
 Phase 1.1 (JAX pinning)

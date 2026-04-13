@@ -10,6 +10,8 @@ Probabilistic regime detection pipeline that feeds clean, validated regime signa
 - Bot label mapping and validation
 - Full integration test with Algo-Trading-Bot
 - Dashboard for regime visualization and analysis
+- **Strategic roadmap:** Foundation for multi-signal combination (Phase 3.4) using Fundamental Law of Active Management (IR = IC × √N)
+- **Strategic roadmap:** Foundation for multi-signal combination (Phase 3.4) using Fundamental Law of Active Management (IR = IC × √N)
 
 ## Non-Goals
 - Change underlying HMM algorithm (NumPyro is final choice)
