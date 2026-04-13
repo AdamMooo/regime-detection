@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-04-13T16:16:30.000Z"
+status: planning
+last_updated: "2026-04-13T18:32:19.601Z"
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 4
+  percent: 100
 ---
 
 # STATE — Regime-Detection Project Memory
@@ -17,7 +17,7 @@ progress:
 ## Latest Status
 
 **As of:** 2026-04-13 (Session #4)  
-**Phase:** Phase 1.1 Complete, executing Phase 1.2 next  
+**Phase:** 2
 **Branch:** main  
 **Last executed plan:** 01-blockers/01-01 (JAX/NumPyro pinning)  
 
@@ -28,7 +28,7 @@ progress:
 1. **JAX Version Pinning** — `jax>=0.4.30` allows breaking changes; reproducibility risk
    - **Fix in:** Phase 1.1
    - **Effort:** 4 hrs
-   - **Status:** ✅ COMPLETE (commit 0b3c480)
+   - **Status:** Ready to plan
 
 2. **Bot Label Mapping** — Regime names not validated for Algo-Trading-Bot integration
    - **Fix in:** Phase 1.2
@@ -157,12 +157,25 @@ From codebase analysis (commit 95ea51b):
 
 ---
 
+## Phase 2 Context Gathered (Session #7 - 2026-04-13)
+
+**Phase 2 architecture decisions locked:**
+- 2.1 (Incremental Data): File hash delta detection, CSV+feather cache, auto-detect mode, hybrid consistency
+- 2.2 (Dashboard Refactor): Slim to results visualization, move analysis to separate scripts
+- 2.3 (PCA Optimization): Rolling refit for accuracy (causal, no future data)
+
+See `.planning/phases/02-incremental/02-CONTEXT.md` for all 11 decisions.
+
+**Next Step:** Run `/gsd-plan-phase 2` to generate detailed phase plan
+
+---
+
 ## Next Steps
 
-1. **Immediate:** Run `/gsd-plan-phase 1` to generate detailed phase plan
-2. **Then:** Execute Phase 1 with atomic commits and integration tests
-3. **Success:** All blockers closed, integration test green, code review passed
-4. **Then:** Phase 2 (incremental updates), Phase 3 (refactoring, backlog)
+1. **Immediate:** Run `/gsd-plan-phase 2` to generate detailed phase plan
+2. **Then:** Execute Phase 2 with atomic commits and testing
+3. **Success:** Incremental data collection working, dashboard refactored, tests green
+4. **Then:** Phase 3 (refactoring, backlog)
 
 ---
 
@@ -180,6 +193,7 @@ From codebase analysis (commit 95ea51b):
 ## Execution Progress (Session #5 - 2026-04-13)
 
 **Plan 01-01 Execution Summary:**
+
 - Work completed in prior session (commit 0b3c480)
 - Verified all success criteria met:
   - ✅ requirements.txt: clean, no merge markers
@@ -195,6 +209,7 @@ From codebase analysis (commit 95ea51b):
 Executed all remaining tasks for blockers 1.2, 1.3, 1.4:
 
 **Task 1.3: Causality Tests + Documentation (commit 6a38283)**
+
 - Reviewed test_causality.py: 10 tests covering 6 guarantees ✅
 - Updated CLAUDE.md: "Causality Guarantees (No Lookahead)" section ✅
   - Documents expanding windows, standardization, PCA, HMM filtering
@@ -203,6 +218,7 @@ Executed all remaining tasks for blockers 1.2, 1.3, 1.4:
 - All tests pass: 10/10 ✅
 
 **Task 1.4: Integration Test with Algo-Trading-Bot (commit ac22a78)**
+
 - Created tests/test_bot_integration.py with:
   - Schema validator function: validate_signal_schema() ✅
   - Mock bot handler: MockBotSignalHandler class ✅
@@ -212,11 +228,13 @@ Executed all remaining tasks for blockers 1.2, 1.3, 1.4:
 - All tests pass: 33/33 (28 existing + 5 new) ✅
 
 **Summary Created (commit 91d264c)**
+
 - Comprehensive SUMMARY.md documenting all 4 blockers
 - 427 lines with full context, decisions, and verification results
 - All success criteria verified
 
 **Final Status:**
+
 - All 4 critical blockers CLOSED ✅
 - Code ready for production handoff
 - Integration test green
@@ -228,6 +246,7 @@ Executed all remaining tasks for blockers 1.2, 1.3, 1.4:
 ## Execution Progress (Session #7 - 2026-04-13)
 
 **Plan 01-02 Execution Summary:**
+
 - Work completed in prior session (commit c319b1a)
 - Verified all success criteria met:
   - ✅ LABEL_MAPPING in config.py (Low-Vol→LOW_VOL mapping)
@@ -240,11 +259,13 @@ Executed all remaining tasks for blockers 1.2, 1.3, 1.4:
 - Progress updated: 2/3 plans complete (01-01 and 01-02)
 
 **Deviations from Plan 01-02 (all justified by CLAUDE.md):**
+
 - Used LABEL_MAPPING instead of BOT_LABEL_MAP (per CLAUDE.md specification)
 - Used bot_label field instead of bot_regime (per CLAUDE.md specification)
 - Inline validation instead of separate validate_regime_labels() function (simpler, more direct)
 
 **Final Status:**
+
 - Blocker 1.1 (JAX pinning): ✅ COMPLETE
 - Blocker 1.2 (Bot label mapping): ✅ COMPLETE
 - Blocker 1.3 (Causality tests): ✅ COMPLETE
