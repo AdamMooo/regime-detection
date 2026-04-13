@@ -21,7 +21,7 @@ from typing import Any
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from config import LABEL_MAPPING
+from config import LABEL_MAPPING, REGIME_NAMES
 from signals import compute_signals
 from train import StudentTHMM, filtered_probs, filtered_labels
 
@@ -357,3 +357,31 @@ class TestBotIntegration:
                 # Also accept other date formats like '2025-12-16'
                 # Just verify it's a non-empty string
                 assert len(date_str) > 0
+
+    def test_label_mapping_completeness(self):
+        """Test 6: LABEL_MAPPING covers all possible regime names.
+
+        Validates:
+        - For each N_STATES in [2, 3, 4, 5, 6]:
+          - All regime names from REGIME_NAMES[N_STATES] are in LABEL_MAPPING
+          - Each mapping produces a valid bot label
+        - This prevents CR-01 from regressing if config is changed
+        """
+        # Test all supported N_STATES values
+        for n_states in [2, 3, 4, 5, 6]:
+            regime_names = REGIME_NAMES.get(n_states, [])
+
+            for regime_name in regime_names:
+                # Every regime name must be in LABEL_MAPPING
+                assert regime_name in LABEL_MAPPING, (
+                    f"N_STATES={n_states}: Regime '{regime_name}' not in LABEL_MAPPING. "
+                    f"Valid entries: {list(LABEL_MAPPING.keys())}"
+                )
+
+                # Mapped label should be valid (one of LOW_VOL, MED_VOL, HIGH_VOL)
+                bot_label = LABEL_MAPPING[regime_name]
+                valid_bot_labels = {'LOW_VOL', 'MED_VOL', 'HIGH_VOL'}
+                assert bot_label in valid_bot_labels, (
+                    f"N_STATES={n_states}: Regime '{regime_name}' maps to invalid label '{bot_label}'. "
+                    f"Must be one of {valid_bot_labels}"
+                )
