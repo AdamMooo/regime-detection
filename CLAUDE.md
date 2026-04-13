@@ -6,20 +6,48 @@
 HDP-HMM market regime detection from macro and price features. Produces regime labels
 (3 regimes expected) consumed downstream by Algo-Trading-Bot and Portfolio-Manager.
 
-## Architecture
-```
-collect.py              Data collection (market prices + macro indicators)
-features.py             13-feature engineering pipeline + rolling PCA
-train.py                HDP-HMM model training (NumPyro)
-hdp_hmm.py              Core HMM implementation
-signals.py              Regime signal generation from trained model
-run.py                  Orchestration: collect → features → train → signals
-analyze.py              Post-hoc analysis and regime characterization
-trust.py                Regime trust/confidence scoring
-dashboard.py            Streamlit visualization dashboard
-config.py               Model params, feature config, file paths
-tests/                  Test suite
-```
+## Architecture (Post-Phase 3.1 Refactoring)
+
+### Data & Feature Pipeline
+- **collect.py** — Data collection (market prices + macro indicators)
+- **features.py** — 13-feature engineering pipeline + rolling PCA
+- **config.py** — Model params, feature config, file paths
+
+### Core HMM & Regime Detection (Modularized)
+- **hdp_hmm.py** — Bayesian HDP-HMM (NumPyro)
+- **inference.py** — Core regime inference (probability filtering, label assignment)
+  - `expanding_standardize()` — Expanding-window z-score (no lookahead)
+  - `StudentTHMM` — Student-t HMM backend
+  - `_fit_hmm()` — Model fitting wrapper
+  - `filtered_probs()` — Forward-pass regime probabilities
+  - `filtered_labels()` — Regime labeling with hysteresis (no lookahead)
+- **hmm_training.py** — HMM training & feature engineering
+  - `fit_rolling_pca()` — Procrustes-aligned rolling PCA
+  - `select_states_bic()` — Model selection via BIC
+  - `check_stability()` — Regime label stability (multi-seed)
+  - `label_regimes()` — Map learned regimes to (Low-Vol, Med-Vol, High-Vol)
+  - `fit_regime_sv()` / `fit_regime_garch()` — Per-regime volatility models
+- **evaluation.py** — Diagnostics & validation
+  - `evaluate()` — Comprehensive regime statistics
+  - `compute_var_backtest()` — VaR validation (Kupiec POF, Christoffersen independence)
+  - `compute_var_backtest_garch()` — GARCH-based VaR
+- **orchestrator.py** — Workflow coordination
+  - `walk_forward()` — Rolling-window out-of-sample validation
+
+### Output & Integration
+- **signals.py** — Regime signal generation from trained model
+- **train.py** — Training orchestrator (delegates to inference/hmm_training/evaluation/orchestrator)
+- **run.py** — Top-level pipeline: collect → features → train → signals
+- **dashboard.py** — Streamlit visualization dashboard
+- **trust.py** — Regime trust/confidence scoring
+- **analyze.py** — Post-hoc analysis and regime characterization
+
+### Testing
+- **tests/** — 128 test suite
+  - test_causality.py — Causal guarantees (no lookahead)
+  - test_bot_integration.py — Algo-Trading-Bot signal schema
+  - test_train_refactor.py — Refactoring regression tests
+  - (+ 8 other test files covering validation, calibration, caching)
 
 ## Current State
 - No formal GSD plan yet
@@ -66,6 +94,34 @@ The pipeline guarantees:
 All causality guarantees are automated in `tests/test_causality.py` (10 tests total, 100% coverage). CI/CD fails if any guarantee is violated. Live trading and backtesting are on equal footing.
 
 Last verified: 2026-04-13 against `tests/test_causality.py` (10 tests, all PASSED).
+
+## Module Responsibilities (Phase 3.1 Refactoring)
+
+**inference.py** — Foundation layer
+- Regime probability filtering (forward-pass only, no lookahead)
+- Regime label assignment with hysteresis (minimum hold period)
+- HMM training via StudentTHMM
+- Expanding-window standardization (causal, no future data)
+
+**hmm_training.py** — Training & feature engineering
+- Rolling PCA with Procrustes alignment (regime stability)
+- BIC-based model selection (number of regimes)
+- Regime naming (learned regimes → Low-Vol, Med-Vol, High-Vol)
+- Per-regime volatility models (SV and GARCH)
+
+**evaluation.py** — Diagnostics & backtesting
+- Regime separation tests (VaR, POF, independence)
+- Bootstrap confidence intervals for regime statistics
+- Out-of-sample validation metrics
+
+**orchestrator.py** — Workflow coordination
+- Walk-forward validation (rolling training/test windows)
+- Integration of training, prediction, and evaluation loops
+
+**train.py** — Thin orchestrator
+- Orchestrates pipeline: hmm_training → inference → evaluation
+- Maintains backward compatibility with run.py (train(), rebuild_dashboard())
+- Dashboard building (Plotly-based interactive visualizations)
 
 ## Do Not
 - Use K-means or hard clustering for regime assignment
