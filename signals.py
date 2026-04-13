@@ -535,9 +535,11 @@ def compute_signals(results: pd.DataFrame, model: Any = None,
     # Map internal regime name to bot label
     regime_name = awareness['current_regime']
     if regime_name not in LABEL_MAPPING:
+        valid_regimes = sorted(LABEL_MAPPING.keys())
         raise KeyError(
             f"Regime '{regime_name}' not in LABEL_MAPPING. "
-            f"Valid regimes: {list(LABEL_MAPPING.keys())}"
+            f"This usually means N_STATES configuration was changed without updating LABEL_MAPPING. "
+            f"Valid regimes: {valid_regimes}"
         )
     bot_label = LABEL_MAPPING[regime_name]
 
