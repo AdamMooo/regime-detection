@@ -49,7 +49,8 @@ FEATURE_SUBSET = [
 
 # --- HMM (classic) ---
 N_STATES_RANGE = [2, 3, 4]       # BIC search grid
-N_STATES       = 4               # default if BIC is skipped
+N_STATES       = 3               # 3-regime target for Algo-Trading-Bot integration (see CLAUDE.md)
+                                # default if BIC is skipped; BIC search can explore 2, 3, 4
 COV_TYPE       = 'full'
 T_DF           = 4               # Student-t degrees of freedom
 N_SEEDS        = 20              # multi-seed stability check
