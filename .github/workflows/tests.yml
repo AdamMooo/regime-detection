@@ -48,6 +48,10 @@ jobs:
         run: |
           pytest tests/test_causality.py -v
 
+      - name: Run bot integration tests
+        run: |
+          pytest tests/test_bot_integration.py -v
+
       - name: Run all tests
         run: |
           pytest tests/ -v --tb=short
