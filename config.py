@@ -49,10 +49,10 @@ FEATURE_SUBSET = [
 ]
 
 # --- HMM (classic) ---
-N_STATES_RANGE = [4]             # Final K=4 enforced per Phase 2.5.3 walk-forward validation
-N_STATES       = 4               # K=4 selected via 2.5.3 walk-forward analysis (4.9% BIC improvement over K=3)
-                                # See regime_count_selection_report.txt for detailed analysis
-                                # K=4: Low-Vol, Moderate, Elevated, Crisis (mapped to 3 bot regimes)
+N_STATES_RANGE = [3]             # Reverted to K=3 (Phase 2.5.3+ analysis showed K=4 regimes 0&1 overlap too much)
+N_STATES       = 3               # K=3 confirmed cleaner: Low-Vol (15.3 VIX), Moderate (17.4), High-Vol (22.8)
+                                # K=4 was statistically justified by BIC but empirically weak - 2 regimes barely different
+                                # Phase 3.1 next: feature diversification (reduce correlated vol signals)
 COV_TYPE       = 'full'
 T_DF           = 4               # Student-t degrees of freedom
 N_SEEDS        = 20              # multi-seed stability check

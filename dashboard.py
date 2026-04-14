@@ -1,548 +1,205 @@
 """
-Streamlit dashboard for regime detection — 3D PCA regime distributions + probability analysis.
+Clean regime detection dashboard (K=3 + GARCH VaR + Statistics)
 
 Run: streamlit run dashboard.py
 """
 
 import os
-import json
 import pandas as pd
 import numpy as np
 import streamlit as st
 from pathlib import Path
-import logging
-
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from scipy.stats import gaussian_kde
-
 from config import DATA_DIR, MODEL_DIR
 
+# --- Page setup ---
+st.set_page_config(page_title="Regime Detection", layout="wide")
+st.title("Market Regime Detection & Risk Management")
+st.caption("K=3 regimes | GARCH-conditional VaR | Phase 2.5+ validation")
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-
+# --- Load data ---
 @st.cache_data(ttl=300)
-def load_regime_results():
-    """Load regime results from CSV."""
+def load_data():
     results_path = os.path.join(DATA_DIR, 'regime_results.csv')
-    if os.path.exists(results_path):
-        df = pd.read_csv(results_path, index_col=0, parse_dates=True)
-        return df
-    return None
-
-
-@st.cache_data(ttl=300)
-def load_pca_components():
-    """Load PCA components from CSV."""
     pca_path = os.path.join(DATA_DIR, 'pca_components.csv')
-    if os.path.exists(pca_path):
-        df = pd.read_csv(pca_path, index_col=0, parse_dates=True)
-        return df
-    return None
 
+    results = pd.read_csv(results_path, index_col=0, parse_dates=True) if os.path.exists(results_path) else None
+    pca = pd.read_csv(pca_path, index_col=0, parse_dates=True) if os.path.exists(pca_path) else None
 
-@st.cache_data(ttl=300)
-def load_trust_scorecard():
-    """Load trust scorecard from JSON."""
-    scorecard_path = os.path.join(DATA_DIR, 'trust_scorecard.json')
-    if os.path.exists(scorecard_path):
-        try:
-            with open(scorecard_path, 'r') as f:
-                return json.load(f)
-        except:
-            return None
-    return None
+    return results, pca
 
+results, pca = load_data()
 
-@st.cache_data(ttl=300)
-def load_model_training_info():
-    """Load model training history and metrics."""
-    model_info_path = os.path.join(MODEL_DIR, 'training_history.json')
+if results is None:
+    st.error("No data. Run: python run.py all")
+    st.stop()
 
-    info = {}
-    if os.path.exists(model_info_path):
-        try:
-            with open(model_info_path, 'r') as f:
-                info = json.load(f)
-        except:
-            pass
+# --- SECTION 1: Current Regime (Top) ---
+st.markdown("## Current Regime")
+col1, col2, col3, col4 = st.columns(4)
 
-    return info
+current = results.iloc[-1]
+regime_name = current['regime']
+regime_prob = current.get('regime_prob', 0)
+vix = current['VIX']
+garch_var = current.get('garch_var_95', np.nan)
+last_date = current.name
 
-
-def get_regime_colors():
-    """Return consistent regime colors."""
-    return {
-        'Low-Vol': '#2ecc71',      # Green
-        'Moderate': '#f39c12',     # Orange
-        'Elevated': '#e67e22',     # Dark Orange
-        'Crisis': '#e74c3c',       # Red
-    }
-
-
-def display_current_regime(results):
-    """Display current regime with staleness indicator."""
-    if results is None or len(results) == 0:
-        st.warning("No regime results available")
-        return
-
-    try:
-        current = results.iloc[-1]
-        regime_name = current.get('regime_name', 'Unknown')
-        regime_prob = current.get('prob_' + current.get('regime_name', ''), 0)
-
-        # Detect stale data
-        last_date = current.name
-        days_old = (pd.Timestamp.now(tz=last_date.tz) - last_date).days
-
-        # Show staleness indicator prominently
-        if days_old > 7:
-            st.error(f"🚨 CRITICALLY STALE: Data is {days_old} days old")
-        elif days_old > 3:
-            st.warning(f"⚠️ STALE: Data is {days_old} days old")
-        elif days_old > 1:
-            st.info(f"ℹ️ Data is {days_old} days old")
-
-        # Display metrics
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Current Regime", regime_name, f"{regime_prob:.1%} confidence")
-        with col2:
-            st.metric("VIX", f"{current.get('VIX', 0):.1f}", "Volatility")
-        with col3:
-            st.metric("Date", current.name.strftime("%Y-%m-%d"), "Last update")
-
-    except Exception as e:
-        logger.error(f"Failed to render current regime: {e}")
-        st.warning(f"Could not display regime: {str(e)[:100]}")
-
-
-def display_3d_regime_distributions(results, pca_df):
-    """
-    Display overlaid 3D KDE density surfaces for all regimes in PCA space.
-    X=PC1, Y=PC2, Z=probability density. All regimes shown together for comparison.
-    """
-    if results is None or pca_df is None:
-        st.warning("Missing data for 3D regime distributions")
-        return
-
-    if pca_df.shape[1] < 2:
-        st.warning("Not enough PCA dimensions for 3D visualization")
-        return
-
-    try:
-        st.subheader("Regime Distributions in PCA Space")
-        st.write("Each surface shows where that regime appears in PC1/PC2 space. All 3 overlaid for comparison.")
-
-        # Extract PC1, PC2
-        pc1 = pca_df.iloc[:, 0].values
-        pc2 = pca_df.iloc[:, 1].values
-
-        # Get regime labels
-        regime_col = 'regime_name'
-        if regime_col not in results.columns:
-            st.warning("No regime labels found")
-            return
-
-        # Align by date
-        common_dates = results.index.intersection(pca_df.index)
-        if len(common_dates) < 30:
-            st.warning(f"Only {len(common_dates)} shared dates between PCA and regimes")
-            return
-
-        labels = results.loc[common_dates, regime_col].values
-        pc1_aligned = pca_df.loc[common_dates, 'PC1'].values
-        pc2_aligned = pca_df.loc[common_dates, 'PC2'].values
-
-        # Build 3D surfaces
-        colors = get_regime_colors()
-        unique_regimes = sorted(set(labels))
-
-        # Create grid
-        margin = 0.5
-        x_min, x_max = pc1_aligned.min() - margin, pc1_aligned.max() + margin
-        y_min, y_max = pc2_aligned.min() - margin, pc2_aligned.max() + margin
-        grid_x, grid_y = np.mgrid[x_min:x_max:60j, y_min:y_max:60j]
-        grid_positions = np.vstack([grid_x.ravel(), grid_y.ravel()])
-
-        fig = go.Figure()
-
-        for regime in unique_regimes:
-            mask = labels == regime
-            if mask.sum() < 15:
-                continue
-
-            pc1_r = pc1_aligned[mask]
-            pc2_r = pc2_aligned[mask]
-
-            try:
-                # Compute KDE
-                kde = gaussian_kde(np.vstack([pc1_r, pc2_r]), bw_method=0.25)
-                density = kde(grid_positions).reshape(grid_x.shape)
-
-                # Add surface
-                fig.add_trace(go.Surface(
-                    x=grid_x,
-                    y=grid_y,
-                    z=density,
-                    name=regime,
-                    colorscale=[[0, colors.get(regime, '#999')], [1, colors.get(regime, '#999')]],
-                    showscale=(regime == unique_regimes[0]),
-                    opacity=0.7,
-                    hovertemplate='PC1: %{x:.2f}<br>PC2: %{y:.2f}<br>Density: %{z:.4f}<extra></extra>',
-                ))
-            except Exception as e:
-                logger.warning(f"Could not build KDE for regime {regime}: {e}")
-                continue
-
-        fig.update_layout(
-            title='3D Regime Distributions — Compare Shapes & Overlaps Across PCA Space',
-            scene=dict(
-                xaxis_title='PC1 (First Principal Component)',
-                yaxis_title='PC2 (Second Principal Component)',
-                zaxis_title='Probability Density',
-                camera_eye=dict(x=1.5, y=1.5, z=1.2),
-            ),
-            height=700,
-            template='plotly_dark',
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-    except Exception as e:
-        logger.error(f"Failed to render 3D distributions: {e}")
-        st.warning(f"Could not render 3D surfaces: {str(e)[:100]}")
-
-
-def display_regime_probabilities_separate(results):
-    """
-    Display 3 separate line charts (one per regime), each showing probability over time (0-1 scale).
-    """
-    if results is None or len(results) == 0:
-        st.warning("No probability data available")
-        return
-
-    try:
-        st.subheader("Regime Probabilities Over Time")
-        st.write("Each chart shows one regime's probability. Compare to see regime shifts.")
-
-        # Identify probability columns
-        prob_cols = [c for c in results.columns if c.startswith('prob_')]
-        if not prob_cols:
-            st.warning("No probability columns found")
-            return
-
-        prob_df = results[prob_cols].copy()
-        prob_df = prob_df.fillna(method='ffill', limit=3).bfill(limit=1)
-
-        # Rename for display
-        regime_names = [c.replace('prob_', '') for c in prob_cols]
-        prob_df.columns = regime_names
-
-        colors = get_regime_colors()
-
-        # Create 3 separate charts
-        cols = st.columns(len(regime_names))
-        for idx, regime in enumerate(regime_names):
-            with cols[idx]:
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(
-                    x=prob_df.index,
-                    y=prob_df[regime],
-                    mode='lines',
-                    name=regime,
-                    line=dict(color=colors.get(regime, '#999'), width=2),
-                    hovertemplate='%{x|%Y-%m-%d}<br>Probability: %{y:.1%}<extra></extra>',
-                ))
-
-                fig.update_layout(
-                    title=f'{regime} Probability',
-                    xaxis_title='Date',
-                    yaxis_title='Probability',
-                    height=350,
-                    margin=dict(l=40, r=20, t=40, b=40),
-                    template='plotly_dark',
-                    hovermode='x unified',
-                    yaxis=dict(range=[0, 1]),
-                )
-
-                st.plotly_chart(fig, use_container_width=True)
-
-        # Show summary stats
-        with st.expander("Probability Statistics"):
-            st.dataframe(prob_df.describe().T.style.format("{:.4f}"))
-
-    except Exception as e:
-        logger.error(f"Failed to render probabilities: {e}")
-        st.warning(f"Could not render probability charts: {str(e)[:100]}")
-
-
-def display_regime_density_distribution(results):
-    """Display probability density histogram for each regime."""
-    if results is None or len(results) == 0:
-        return
-
-    try:
-        st.subheader("Regime Probability Density Distribution")
-        st.write("How often is each regime at different probability levels?")
-
-        prob_cols = [c for c in results.columns if c.startswith('prob_')]
-        if not prob_cols:
-            return
-
-        prob_df = results[prob_cols].copy()
-        prob_df.columns = [c.replace('prob_', '') for c in prob_cols]
-
-        colors = get_regime_colors()
-
-        fig = go.Figure()
-        for regime in prob_df.columns:
-            values = prob_df[regime].dropna()
-            fig.add_trace(go.Histogram(
-                x=values,
-                name=regime,
-                nbinsx=20,
-                marker_color=colors.get(regime, '#999'),
-                opacity=0.7,
-                hovertemplate='%{x:.2f} - %{y} occurrences<extra></extra>',
-            ))
-
-        fig.update_layout(
-            title='When Are Regimes At Each Probability Level?',
-            xaxis_title='Probability',
-            yaxis_title='Frequency',
-            height=400,
-            barmode='overlay',
-            template='plotly_dark',
-            hovermode='x unified',
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-    except Exception as e:
-        logger.error(f"Failed to render density distribution: {e}")
-
-
-def display_trust_scorecard(scorecard):
-    """Display trust scorecard."""
-    if scorecard is None:
-        st.info("No trust scorecard available")
-        return
-
-    st.subheader("Trust Scorecard")
-    st.write("Regime detection validation results:")
-
-    checks = scorecard.get('checks', {})
-    check_data = []
-    for check_name, result in checks.items():
-        status = "✅ PASS" if result.get('passed', False) else "❌ FAIL"
-        message = result.get('message', '')
-        check_data.append({'Check': check_name, 'Status': status, 'Details': message})
-
-    if check_data:
-        st.dataframe(pd.DataFrame(check_data), use_container_width=True)
+with col1:
+    st.metric("Regime", regime_name)
+with col2:
+    st.metric("Confidence", f"{regime_prob:.1%}")
+with col3:
+    st.metric("VIX", f"{vix:.1f}")
+with col4:
+    if not np.isnan(garch_var):
+        st.metric("GARCH VaR (95%)", f"{garch_var:.2%}")
     else:
-        st.info("No validation checks recorded")
+        st.metric("GARCH VaR (95%)", "N/A")
 
+st.caption(f"Last update: {last_date.strftime('%Y-%m-%d')}")
 
-def display_recent_regime_switches(results):
-    """Display recent regime transitions."""
-    if results is None or len(results) < 2:
-        return
+# --- SECTION 2: Regime Statistics Table ---
+st.markdown("## Regime Statistics (Full Sample)")
 
-    try:
-        st.subheader("Recent Regime Switches")
+regime_stats = []
+for regime in sorted(results['regime'].unique()):
+    regime_data = results[results['regime'] == regime]
+    regime_stats.append({
+        'Regime': regime,
+        'Days': len(regime_data),
+        'Freq %': f"{len(regime_data)/len(results)*100:.1f}%",
+        'Avg VIX': f"{regime_data['VIX'].mean():.1f}",
+        'Avg GARCH VaR': f"{regime_data['garch_var_95'].mean():.2%}",
+        'Persistence %': f"{regime_data['persist_pct'].mean():.1f}%",
+        'Avg Duration': f"{regime_data['dwell_time'].mean():.1f} days",
+    })
 
-        regime_col = 'regime_name'
-        if regime_col not in results.columns:
-            return
+stats_df = pd.DataFrame(regime_stats)
+st.dataframe(stats_df, use_container_width=True, hide_index=True)
 
-        regimes = results[regime_col]
-        switches = []
+# --- SECTION 3: Two Charts Side-by-Side ---
+col_left, col_right = st.columns(2)
 
-        for i in range(1, len(regimes)):
-            if regimes.iloc[i] != regimes.iloc[i - 1]:
-                switches.append({
-                    'Date': results.index[i].strftime("%Y-%m-%d"),
-                    'From': regimes.iloc[i - 1],
-                    'To': regimes.iloc[i],
-                })
+# Chart 1: Regime Probabilities Over Time
+with col_left:
+    st.markdown("### Regime Probabilities Over Time")
 
-        if switches:
-            st.dataframe(pd.DataFrame(switches[-10:]), use_container_width=True)
-        else:
-            st.info("No regime switches in recent data")
-    except Exception as e:
-        logger.error(f"Failed to render regime switches: {e}")
-
-
-def display_garch_var_monitoring(results):
-    """Display GARCH-conditional VaR monitoring (Phase 2.5.4).
-
-    Shows primary GARCH VaR plot, comparison with static VaR, risk parameters,
-    and warning alerts.
-    """
-    try:
-        st.subheader("💰 Value-at-Risk (VaR) Monitoring — GARCH-Conditional")
-        st.write("**Phase 2.5.4:** GARCH-conditional VaR captures volatility persistence. "
-                 "Passes both Kupiec POF and Christoffersen independence tests. "
-                 "Safe for production risk management.")
-
-        # Check if garch_var_95 is available in results
-        if 'garch_var_95' not in results.columns:
-            st.info("GARCH VaR not yet computed. Run pipeline with include_garch_var=True.")
-            return
-
-        # Extract GARCH VaR time series
-        garch_var = results['garch_var_95'].dropna()
-        if len(garch_var) == 0:
-            st.warning("No GARCH VaR data available.")
-            return
-
-        # Prepare regime colors
-        regime_colors = {'Low-Vol': 'green', 'Med-Vol': 'orange', 'High-Vol': 'red'}
-        regime_color_list = [regime_colors.get(r, 'blue') for r in results['regime_name']]
-
-        # Create GARCH VaR plot
-        fig = go.Figure()
-
-        # Primary: GARCH VaR (colored by regime)
-        for regime in results['regime_name'].unique():
-            mask = results['regime_name'] == regime
-            x = results.index[mask]
-            y = garch_var[mask] * 100  # Convert to percentage
-
-            fig.add_trace(go.Scatter(
-                x=x, y=y,
-                mode='lines',
-                name=f'GARCH VaR ({regime})',
-                line=dict(color=regime_colors.get(regime, 'blue'), width=2),
-                hovertemplate='<b>%{x|%Y-%m-%d}</b><br>GARCH VaR: %{y:.2f}%<extra></extra>'
+    fig_probs = go.Figure()
+    for regime in sorted(results['regime'].unique()):
+        prob_col = f'prob_{regime}'
+        if prob_col in results.columns:
+            fig_probs.add_trace(go.Scatter(
+                x=results.index, y=results[prob_col],
+                name=regime, mode='lines', hovertemplate='%{y:.2%}'
             ))
 
-        # Add -3% alert threshold
-        fig.add_hline(y=-3, line_dash="dash", line_color="red",
-                      annotation_text="Alert: -3% threshold", annotation_position="right")
+    fig_probs.update_layout(
+        height=400,
+        hovermode='x unified',
+        yaxis_title='Probability',
+        yaxis=dict(range=[0, 1.05]),
+        margin=dict(l=0, r=0, t=0, b=0),
+    )
+    st.plotly_chart(fig_probs, use_container_width=True, key="probs")
 
-        fig.update_layout(
-            title="GARCH-Conditional VaR (95% Confidence)",
-            xaxis_title="Date",
-            yaxis_title="VaR (% daily loss)",
-            hovermode='x unified',
-            height=400,
-            template='plotly_white'
-        )
+# Chart 2: GARCH VaR Over Time
+with col_right:
+    st.markdown("### GARCH VaR Over Time (by Regime)")
 
-        st.plotly_chart(fig, use_container_width=True)
+    fig_var = go.Figure()
+    colors = {'Low-Vol': '#2ecc71', 'Medium-Vol': '#f39c12', 'High-Vol': '#e74c3c'}
 
-        # Risk metrics
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            current_var = garch_var.iloc[-1] * 100
-            st.metric("Current GARCH VaR", f"{current_var:.2f}%", delta=None)
+    for regime in sorted(results['regime'].unique()):
+        regime_data = results[results['regime'] == regime]
+        fig_var.add_trace(go.Scatter(
+            x=regime_data.index, y=regime_data['garch_var_95'],
+            name=regime, mode='markers',
+            marker=dict(color=colors.get(regime, '#95a5a6'), size=3, opacity=0.6),
+            hovertemplate='%{y:.2%}'
+        ))
 
-        with col2:
-            mean_var = garch_var.mean() * 100
-            st.metric("Mean GARCH VaR", f"{mean_var:.2f}%", delta=None)
+    fig_var.update_layout(
+        height=400,
+        hovermode='x unified',
+        yaxis_title='VaR (95% CI)',
+        margin=dict(l=0, r=0, t=0, b=0),
+    )
+    st.plotly_chart(fig_var, use_container_width=True, key="var")
 
-        with col3:
-            max_loss = garch_var.min() * 100
-            st.metric("Worst VaR", f"{max_loss:.2f}%", delta=None)
+# --- SECTION 4: Recent Regime Switches ---
+st.markdown("## Recent Regime Switches (Last 10)")
 
-        # Risk warning section
-        st.markdown("### ⚠️ Risk Alerts")
-        alerts = []
-        if current_var < -3.0:
-            alerts.append(("HIGH TAIL RISK", f"GARCH VaR ({current_var:.2f}%) exceeds -3% threshold", "error"))
-        if len(results) > 1 and results['regime_name'].iloc[-1] != results['regime_name'].iloc[-2]:
-            alerts.append(("REGIME SHIFT", "Regime changed today", "warning"))
+recent_switches = []
+prev_regime = None
 
-        if alerts:
-            for label, msg, alert_type in alerts:
-                if alert_type == "error":
-                    st.error(f"🔴 {label}: {msg}")
-                else:
-                    st.warning(f"🟠 {label}: {msg}")
-        else:
-            st.info("✅ No alerts. Risk metrics within normal ranges.")
+for idx, row in results.iterrows():
+    curr_regime = row['regime']
+    if prev_regime is not None and prev_regime != curr_regime:
+        recent_switches.append({
+            'Date': idx.strftime('%Y-%m-%d'),
+            'From': prev_regime,
+            'To': curr_regime,
+        })
+    prev_regime = curr_regime
 
-        # Comparison table
-        st.markdown("### VaR Method Comparison")
-        comparison_data = {
-            'Method': ['Static VaR', 'GARCH VaR'],
-            'Kupiec POF (p-value)': ['0.45–0.55', '0.952 ✓'],
-            'Christoffersen (p-value)': ['0.0039 ✗', '0.547 ✓'],
-            'Exceedance clustering': ['YES (fails)', 'NO (passes)'],
-            'Safe for risk?': ['NO ✗', 'YES ✓']
-        }
-        st.dataframe(pd.DataFrame(comparison_data), use_container_width=True)
+recent_df = pd.DataFrame(recent_switches[-10:])
+if len(recent_df) > 0:
+    st.dataframe(recent_df, use_container_width=True, hide_index=True)
+else:
+    st.info("No regime switches in dataset")
 
-        st.markdown(
-            "**Note:** Static VaR is **deprecated**. GARCH VaR is the official risk metric. "
-            "See `docs/RISK_MODEL_CARD.md` for full technical details."
-        )
+# --- SECTION 5: 3D PCA Scatter ---
+if pca is not None and len(pca.columns) >= 3:
+    st.markdown("## 3D PCA Space (All Regimes)")
 
-    except Exception as e:
-        logger.error(f"Failed to render GARCH VaR monitoring: {e}")
-        st.error(f"Error rendering VaR plots: {str(e)[:100]}")
+    # Prepare 3D scatter
+    fig_3d = go.Figure()
+    colors = {'Low-Vol': '#2ecc71', 'Medium-Vol': '#f39c12', 'High-Vol': '#e74c3c'}
 
+    for regime in sorted(results['regime'].unique()):
+        regime_mask = results['regime'] == regime
+        regime_indices = regime_mask.index[regime_mask].tolist()
 
-def main():
-    """Main dashboard."""
-    try:
-        st.set_page_config(
-            page_title="Regime Detection Dashboard",
-            page_icon="📊",
-            layout="wide"
-        )
+        pca_subset = pca.loc[pca.index.isin(regime_indices)]
 
-        st.title("Regime Detection & VaR Monitoring Dashboard")
-        st.write("Market regime detection with 3D PCA space visualization and GARCH-conditional VaR "
-                 "(Phase 2.5.4 — Production Risk Management)")
+        fig_3d.add_trace(go.Scatter3d(
+            x=pca_subset.iloc[:, 0],
+            y=pca_subset.iloc[:, 1],
+            z=pca_subset.iloc[:, 2],
+            name=regime,
+            mode='markers',
+            marker=dict(
+                size=2,
+                color=colors.get(regime, '#95a5a6'),
+                opacity=0.5
+            ),
+            hovertemplate='PC1: %{x:.2f}<br>PC2: %{y:.2f}<br>PC3: %{z:.2f}'
+        ))
 
-        # Load data
-        results = load_regime_results()
-        pca_df = load_pca_components()
-        scorecard = load_trust_scorecard()
-        model_info = load_model_training_info()
+    fig_3d.update_layout(
+        scene=dict(
+            xaxis_title='PC1 (47%)',
+            yaxis_title='PC2 (26%)',
+            zaxis_title='PC3 (15%)',
+            camera=dict(eye=dict(x=1.5, y=1.5, z=1.3))
+        ),
+        height=600,
+        margin=dict(l=0, r=0, t=0, b=0),
+    )
+    st.plotly_chart(fig_3d, use_container_width=True, key="3d")
 
-        if results is None:
-            st.error("No regime results found. Run 'python run.py' to generate results.")
-            return
+# --- Footer ---
+st.markdown("---")
+st.markdown("""
+**Model Info:**
+- K=3 regimes (Low-Vol, Medium-Vol, High-Vol)
+- GARCH-conditional VaR (passes Kupiec + Christoffersen tests)
+- 6-feature set (VRP, VIX, SPY_skew20, SPY_TLT_corr63, lev_effect20, rv_ratio_10_63)
+- Phase 2.5 production validation complete
 
-        # Display sections
-        st.divider()
-        display_current_regime(results)
-
-        st.divider()
-        display_garch_var_monitoring(results)
-
-        st.divider()
-        display_3d_regime_distributions(results, pca_df)
-
-        st.divider()
-        display_regime_probabilities_separate(results)
-
-        st.divider()
-        display_regime_density_distribution(results)
-
-        if scorecard:
-            st.divider()
-            display_trust_scorecard(scorecard)
-
-        st.divider()
-        display_recent_regime_switches(results)
-
-        # Footer
-        st.divider()
-        st.caption("Run `python run.py` to refresh all data and recompute regime analysis.")
-
-    except Exception as e:
-        logger.error(f"Dashboard error: {e}", exc_info=True)
-        st.error(f"Error: {str(e)[:200]}. Check logs.")
-
-
-if __name__ == '__main__':
-    main()
+**Next Phase (3.1):**
+- Feature diversification: reduce correlated vol signals
+- Add cross-asset + macro indicators
+""")
