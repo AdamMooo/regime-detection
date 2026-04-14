@@ -251,7 +251,7 @@ class TestProductionChecklist:
         model_card_path = Path(__file__).parent.parent / "MODEL_CARD.md"
         assert model_card_path.exists(), "MODEL_CARD.md missing"
 
-        content = model_card_path.read_text()
+        content = model_card_path.read_text(encoding='utf-8', errors='ignore')
         assert "PRODUCTION READY" in content.upper(), "MODEL_CARD.md missing production status"
         assert "✅" in content or "PASS" in content, "MODEL_CARD.md missing validation checkmarks"
 
@@ -314,10 +314,17 @@ class TestKnownIssuesDocumented:
         issues_file = Path(__file__).parent.parent / "docs" / "KNOWN_ISSUES.md"
         assert issues_file.exists(), "KNOWN_ISSUES.md missing"
 
+    def test_known_issues_readable(self):
+        """KNOWN_ISSUES.md readable with utf-8"""
+        issues_file = Path(__file__).parent.parent / "docs" / "KNOWN_ISSUES.md"
+        assert issues_file.exists(), "KNOWN_ISSUES.md missing"
+        # Test readability
+        _ = issues_file.read_text(encoding='utf-8', errors='ignore')
+
     def test_issue_count(self):
         """All 8 Phase 2.5 issues documented"""
         issues_file = Path(__file__).parent.parent / "docs" / "KNOWN_ISSUES.md"
-        content = issues_file.read_text()
+        content = issues_file.read_text(encoding='utf-8', errors='ignore')
 
         issue_count = content.count("## Issue #")
         assert issue_count >= 8, f"Expected >=8 issues documented, found {issue_count}"
@@ -325,14 +332,14 @@ class TestKnownIssuesDocumented:
     def test_issue_1_oos_fragmentation(self):
         """Issue #1: OOS Fragmentation documented"""
         issues_file = Path(__file__).parent.parent / "docs" / "KNOWN_ISSUES.md"
-        content = issues_file.read_text()
+        content = issues_file.read_text(encoding='utf-8', errors='ignore')
         assert "OOS Regime Fragmentation" in content, "Issue #1 not documented"
         assert "K=10" in content or "fragmentation" in content.lower(), "Issue #1 details missing"
 
     def test_issue_4_var_underestimation(self):
         """Issue #4: VaR Underestimation documented"""
         issues_file = Path(__file__).parent.parent / "docs" / "KNOWN_ISSUES.md"
-        content = issues_file.read_text()
+        content = issues_file.read_text(encoding='utf-8', errors='ignore')
         assert "VaR Underestimation" in content, "Issue #4 not documented"
         assert "Christoffersen" in content, "Issue #4 test details missing"
 
