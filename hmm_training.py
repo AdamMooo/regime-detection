@@ -202,7 +202,8 @@ def _hmm_bic(model, X, n_states, n_features, cov_type):
 def select_states_bic(pcs, n_range=N_STATES_RANGE, cov_type=COV_TYPE):
     """Fit HMM for each K in n_range; return best K by BIC.
 
-    Performs model selection over a range of state counts. For each K,
+    If n_range contains a single value, skip BIC selection and use that value directly.
+    Otherwise, performs model selection over a range of state counts. For each K,
     tries multiple random seeds and selects the best (highest likelihood)
     model. BIC score (accounting for model complexity) determines final choice.
 
@@ -212,6 +213,7 @@ def select_states_bic(pcs, n_range=N_STATES_RANGE, cov_type=COV_TYPE):
         Principal component scores
     n_range : list
         Range of state counts to evaluate (e.g., [2, 3, 4, 5])
+        If single value (e.g., [4]), uses that K directly (per Phase 2.5.3 decision)
     cov_type : str
         HMM covariance type ('full', 'diag', etc.)
 
@@ -224,6 +226,27 @@ def select_states_bic(pcs, n_range=N_STATES_RANGE, cov_type=COV_TYPE):
     bic_df : DataFrame
         BIC scores for all candidates
     """
+    # If n_range is a single value, enforce that K (Phase 2.5.3 decision)
+    if len(n_range) == 1:
+        K = n_range[0]
+        print(f"\nK={K} enforced (Phase 2.5.3 walk-forward validation)")
+        best_bic, best_ll, best_m = np.inf, -np.inf, None
+        for seed in range(min(5, N_SEEDS)):
+            m = _fit_hmm(pcs, K, cov_type, seed)
+            bic, ll = _hmm_bic(m, pcs, K, pcs.shape[1], cov_type)
+            if bic < best_bic:
+                best_bic, best_ll, best_m = bic, ll, m
+        print(f"  Best model (K={K}): BIC={best_bic:,.0f}, LL={best_ll:,.0f}")
+
+        # Create single-row DataFrame for consistency
+        bic_df = pd.DataFrame([
+            {'K': K, 'BIC': best_bic, 'LL': best_ll}
+        ])
+        import os
+        bic_df.to_csv(os.path.join(DATA_DIR, 'bic_selection.csv'), index=False)
+        return K, best_m, bic_df
+
+    # Standard BIC model selection for multiple K values
     results = []
     print("\nBIC state selection:")
     for K in n_range:

@@ -49,9 +49,10 @@ FEATURE_SUBSET = [
 ]
 
 # --- HMM (classic) ---
-N_STATES_RANGE = [2, 3, 4]       # BIC search grid
-N_STATES       = 3               # 3-regime target for Algo-Trading-Bot integration (see CLAUDE.md)
-                                # default if BIC is skipped; BIC search can explore 2, 3, 4
+N_STATES_RANGE = [4]             # Final K=4 enforced per Phase 2.5.3 walk-forward validation
+N_STATES       = 4               # K=4 selected via 2.5.3 walk-forward analysis (4.9% BIC improvement over K=3)
+                                # See regime_count_selection_report.txt for detailed analysis
+                                # K=4: Low-Vol, Moderate, Elevated, Crisis (mapped to 3 bot regimes)
 COV_TYPE       = 'full'
 T_DF           = 4               # Student-t degrees of freedom
 N_SEEDS        = 20              # multi-seed stability check
@@ -75,7 +76,10 @@ MCMC_NUM_WARMUP    = 300
 MCMC_NUM_SAMPLES   = 1000
 MCMC_NUM_CHAINS    = 1           # single chain for CPU
 
-# --- Regime-Dependent GARCH ---
+# --- Regime-Dependent GARCH (Phase 2.5.4) ---
+# GARCH-conditional VaR for risk management (passes Kupiec POF and Christoffersen tests)
+# Per-regime GARCH(1,1) models capture volatility persistence and remove exceedance clustering
+# See docs/RISK_MODEL_CARD.md for detailed comparison vs static VaR
 GARCH_P        = 1
 GARCH_Q        = 1
 GARCH_DIST     = 'normal'
@@ -86,7 +90,7 @@ REGIME_HOLD_DAYS = 1             # Simplified: Reduced hysteresis filter
 WALK_FORWARD_TRAIN_YEARS = 5
 WALK_FORWARD_STEP_DAYS   = 21   # ~monthly re-fit
 WALK_FORWARD_MODE        = 'rolling'  # 'expanding' or 'rolling'
-VAR_ALPHA                = 0.05 # 95% VaR
+VAR_ALPHA                = 0.05 # 95% VaR confidence level for GARCH-conditional VaR
 
 # --- Regime naming ---
 # REGIME_NAMES: fallback for fixed-K classic HMM (sorted by ascending VIX mean).
