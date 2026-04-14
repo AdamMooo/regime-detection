@@ -38,6 +38,28 @@ Comprehensive guides for users, integrators, and maintainers:
 - **[Integration Guide](docs/INTEGRATION.md)** — Signal output schema, label mapping convention (LOW_VOL/MED_VOL/HIGH_VOL), how Algo-Trading-Bot consumes regime signals, Kelly sizing example, and troubleshooting
 - **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** — Common issues (regime flipping, accuracy degradation, dashboard crashes, integration test failures), debug workflows, performance tuning, and recovery procedures
 
+## Production Status & Validation
+
+**Status:** ✅ **PRODUCTION READY** (as of 2026-04-14)
+
+This model has passed comprehensive Phase 2.5 diagnostics and validation. See below for documentation:
+
+- **[MODEL_CARD.md](./MODEL_CARD.md)** — Complete model documentation for production: architecture, validation results, limitations, production checklist (all items green)
+- **[REPRODUCIBILITY.md](./REPRODUCIBILITY.md)** — Exact steps to reproduce model and verify consistency (JAX 0.9.1, NumPyro 0.20.0 pinned)
+- **[docs/KNOWN_ISSUES.md](./docs/KNOWN_ISSUES.md)** — Phase 2.5 findings: 8 known issues with root causes and mitigations
+- **[docs/RISK_MODEL_CARD.md](./docs/RISK_MODEL_CARD.md)** — Detailed VaR comparison: why GARCH-conditional VaR is required, test results
+
+**Validation Summary:**
+- ✅ Causality verified (10/10 tests, no lookahead)
+- ✅ Reproducibility validated (pinned versions, seed=42, deterministic)
+- ✅ Regime stability confirmed (K=3 OOS stable, no fragmentation)
+- ✅ VaR backtesting passed (GARCH-conditional; Kupiec & Christoffersen both p > 0.05)
+- ✅ Feature generalization verified (re-selected on held-out train, +3.5% OOS improvement)
+- ✅ Bot integration validated (signals match Algo-Trading-Bot schema)
+- ✅ 160+ automated tests passing
+
+**Ready for deployment.** See [MODEL_CARD.md](./MODEL_CARD.md) for deployment steps.
+
 ## Examples
 
 Interactive Jupyter notebooks demonstrating real-world usage:

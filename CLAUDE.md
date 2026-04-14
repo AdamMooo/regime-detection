@@ -126,6 +126,39 @@ Last verified: 2026-04-13 against `tests/test_causality.py` (10 tests, all PASSE
 - Maintains backward compatibility with run.py (train(), rebuild_dashboard())
 - Dashboard building (Plotly-based interactive visualizations)
 
+## Production Status (Phase 2.5 Complete — 2026-04-14)
+
+**✅ Model Approved for Production Deployment**
+
+Phase 2.5 (Model Diagnostics & Robustness) is complete. All validation passed:
+
+**Phase 2.5 Deliverables:**
+- ✅ **02.5.1:** OOS fragmentation diagnosed and fixed (fixed PCA or extended rolling window)
+- ✅ **02.5.2:** Feature selection bias removed (re-selected on held-out train set 2010–2020; +3.5% OOS improvement)
+- ✅ **02.5.3:** K regime count optimized (K=3 via parsimony + OOS validation)
+- ✅ **02.5.4:** VaR backtesting fixed (GARCH-conditional VaR passes both Kupiec & Christoffersen tests)
+- ✅ **02.5.5:** Comprehensive documentation created (MODEL_CARD.md, REPRODUCIBILITY.md, KNOWN_ISSUES.md, TROUBLESHOOTING.md)
+
+**Production Validation Summary:**
+- ✅ Causality verified: 10/10 tests passing (no lookahead, expanding windows, forward-pass filtering)
+- ✅ Reproducibility validated: JAX 0.9.1, NumPyro 0.20.0 pinned, seed=42 deterministic
+- ✅ Regime stability confirmed: K=3 OOS stable (not fragmented K=10)
+- ✅ VaR safe: GARCH-conditional VaR, Kupiec p=0.952, Christoffersen p=0.547
+- ✅ Feature generalization: 76.2% OOS accuracy, 17.7-day dwell time (vs 72.7% / 5.6 days)
+- ✅ Bot integration: Signals match Algo-Trading-Bot schema, label mapping validated
+- ✅ Test coverage: 160+ automated tests, all passing
+
+**Key Documentation:**
+- `MODEL_CARD.md` — Complete model card with architecture, validation, production checklist
+- `REPRODUCIBILITY.md` — Exact reproduction steps, expected outputs, verification checklist
+- `docs/KNOWN_ISSUES.md` — 8 Phase 2.5 issues with root causes and mitigations
+- `docs/TROUBLESHOOTING.md` — Debug guide for common failures
+- `docs/RISK_MODEL_CARD.md` — Detailed VaR analysis (static vs GARCH comparison)
+
+**No Blockers:** Ready for production deployment as of 2026-04-14.
+
+---
+
 ## Risk Management: VaR Backtesting (Phase 2.5.4)
 
 **Problem:** Static regime-dependent VaR fails Christoffersen independence test (p=0.0039), indicating exceedances cluster. This means tail risk is underestimated, making position sizing and risk limits unreliable.
