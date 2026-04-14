@@ -1,0 +1,24 @@
+OOS REGIME FRAGMENTATION DIAGNOSTIC REPORT
+======================================================================
+Date: 2026-04-13T21:12:52.648422
+
+EXPERIMENT RESULTS
+----------------------------------------------------------------------
+FIXED_PCA experiment: K = 3 regimes (vs in-sample K=3)
+ROLLING_PCA_252d experiment: K = 3 regimes (OOS fragmentation)
+ROLLING_PCA_504d experiment: K = 3 regimes (extended window)
+
+ROOT CAUSE ANALYSIS
+----------------------------------------------------------------------
+PCA drift detected: rolling_pca_drift
+  - Max drift angle: 74.91°
+  - Mean drift angle: 70.72°
+
+Non-stationary features: non_stationary
+  - Max feature shift: 246.4%
+
+RECOMMENDATION
+----------------------------------------------------------------------
+CLUSTER_FRAGMENTED
+  Neither fixed nor extended window resolves fragmentation.
+  Action: Implement regime clustering as fallback
