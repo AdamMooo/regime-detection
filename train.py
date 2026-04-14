@@ -61,6 +61,32 @@ logging.getLogger('statsmodels').setLevel(logging.ERROR)
 
 
 # ===================================================================
+# Color mapping for regime visualization
+# ===================================================================
+_REGIME_COLORS_HEX = {
+    # Classic regimes
+    'Low-Vol': '#2E7D32',           # Green
+    'Medium-Vol': '#F57C00',        # Orange
+    'High-Vol': '#C62828',          # Red
+    'Moderate': '#F57C00',          # Orange
+    'Elevated': '#FF9800',          # Light Orange
+    'Crisis': '#C62828',            # Red
+    'Very-Low': '#1B5E20',          # Dark Green
+    'Moderate-Vol': '#F57C00',      # Orange
+    'Elevated-Vol': '#FF9800',      # Light Orange
+    'Crisis-Vol': '#C62828',        # Red
+}
+
+def _get_regime_color(regime_name):
+    """Get color for regime, handling suffixes like -B, -C from walk-forward validation."""
+    if regime_name in _REGIME_COLORS_HEX:
+        return _REGIME_COLORS_HEX[regime_name]
+    # Strip suffix (-B, -C, etc.) and try base name
+    base_name = regime_name.rsplit('-', 1)[0] if '-' in regime_name else regime_name
+    return _REGIME_COLORS_HEX.get(base_name, '#888888')
+
+
+# ===================================================================
 # 7. Walk-Forward Validation
 # ===================================================================
 
@@ -542,7 +568,7 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
 
     ordered = sorted(name_map.keys())
     regime_names = [name_map[r] for r in ordered]
-    colors = [_REGIME_COLORS_HEX.get(n, '#888') for n in regime_names]
+    colors = [_get_regime_color(n) for n in regime_names]
     T_len = len(dates)
     label_arr = np.asarray(labels[:T_len])
 
@@ -611,7 +637,7 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
         assert oos_name_map is not None and oos_labels is not None and oos_market is not None
         oos_ord = sorted(oos_name_map.keys())
         oos_nm = [oos_name_map[r] for r in oos_ord]
-        oos_cols = [_REGIME_COLORS_HEX.get(n, '#888') for n in oos_nm]
+        oos_cols = [_get_regime_color(n) for n in oos_nm]
         oos_dt = list(oos_labels.index)
         oos_la = oos_labels.values
         for row_i in [3, 4]:
@@ -1036,7 +1062,7 @@ def _build_transitions(model, labels, name_map, colors, ordered, regime_names):
     # Row-level fill: light tint of regime color
     row_fills = []
     for n in cell_vals[0]:
-        c_hex = _REGIME_COLORS_HEX.get(n, '#888888').lstrip('#')
+        c_hex = _get_regime_color(n).lstrip('#')
         rv, gv, bv = int(c_hex[:2], 16), int(c_hex[2:4], 16), int(c_hex[4:6], 16)
         row_fills.append(f'rgba({rv},{gv},{bv},0.08)')
 
@@ -1095,7 +1121,7 @@ def _build_current_state(probs, labels, name_map, dates, market,
     # Held label = hysteresis-smoothed; may lag live signal by REGIME_HOLD_DAYS days
     held_label    = labels[-1]
     current_name  = name_map.get(current_label, '?')
-    current_color = _REGIME_COLORS_HEX.get(current_name, '#888')
+    current_color = _get_regime_color(current_name)
     K = len(ordered)
 
     # ── Compute statistics ─────────────────────────────────────────
@@ -1321,7 +1347,7 @@ def _build_current_state(probs, labels, name_map, dates, market,
     recent = labels[-90:]
     name_series = pd.Series([name_map[l] for l in recent])
     counts = name_series.value_counts()
-    pie_colors = [_REGIME_COLORS_HEX.get(n, '#888') for n in counts.index]
+    pie_colors = [_get_regime_color(n) for n in counts.index]
     fig_outlook.add_trace(go.Pie(
         labels=counts.index, values=counts.values,
         hole=0.5, marker=dict(colors=pie_colors,
@@ -1341,7 +1367,7 @@ def _build_current_state(probs, labels, name_map, dates, market,
     if exit_info:
         exit_names = [e[1] for e in exit_info[:5]]
         exit_probs_vals = [e[0] for e in exit_info[:5]]
-        exit_colors = [_REGIME_COLORS_HEX.get(n, '#888') for n in exit_names]
+        exit_colors = [_get_regime_color(n) for n in exit_names]
 
         fig_exit = go.Figure(go.Bar(
             x=exit_probs_vals, y=exit_names, orientation='h',
@@ -1664,7 +1690,7 @@ def _build_signals_tab(results, model, name_map, colors, ordered, regime_names):
         val_labels.append(f'VaR 5% Backtest — {r}')
         val_values.append(
             f"Actual breach: {vr['breach_pct']:.1f}% "
-            f"({vr['n_breaches']}/{vr['n_total']}) — "
+            f"({vr['n_breaches']}/{vr['n_evaluated']}) — "
             f"{'PASS' if vr['ok'] else 'FAIL'}"
         )
         val_row_colors.append('#0a3d0a' if vr['ok'] else '#3d0a0a')
@@ -2313,6 +2339,23 @@ def train(reload_pca_checkpoint_path=None):
         results.loc[oos_idx, 'regime_name_oos'] = [
             oos_name_map.get(int(l), '') for l in oos_labels.loc[oos_idx].values
         ]
+
+    # ── Compute GARCH-conditional VaR for each date ─────────────────
+    from signals import compute_garch_var
+    garch_var_95 = []
+    spy_ret = np.log(results['SPY_close'] / results['SPY_close'].shift(1)).dropna()
+    for i, (date, row) in enumerate(results.iterrows()):
+        regime_name = row['regime_name']
+        # Use past 20 days of returns
+        start_idx = max(0, i - 20)
+        recent_rets = spy_ret.iloc[start_idx:i].values
+        if len(recent_rets) >= 5:
+            var_95 = compute_garch_var(regime_name, recent_rets, alpha=0.05)
+        else:
+            var_95 = np.nan
+        garch_var_95.append(var_95)
+    results['garch_var_95'] = garch_var_95
+
     results.to_csv(os.path.join(DATA_DIR, 'regime_results.csv'))
 
     # Save unified model checkpoint (includes PCA for incremental mode)
@@ -2329,6 +2372,12 @@ def train(reload_pca_checkpoint_path=None):
     joblib.dump(model,    os.path.join(MODEL_DIR, 'hmm_model.pkl'))
     joblib.dump(last_pca, os.path.join(MODEL_DIR, 'pca_model.pkl'))
     feat_scaled.to_csv(os.path.join(DATA_DIR, 'features_scaled.csv'))
+
+    # Save PCA components for dashboard
+    pca_cols = [f'PC{i+1}' for i in range(pcs.shape[1])]
+    pca_df = pd.DataFrame(pcs, index=valid_dates, columns=pca_cols)
+    pca_df.to_csv(os.path.join(DATA_DIR, 'pca_components.csv'))
+    print(f"  Saved PCA components ({pcs.shape[1]} dims, {len(pcs)} dates)")
 
     # ── Dashboard (single interactive HTML) ───────────────────────
     oos_mkt = market.loc[oos_labels.index] if len(oos_labels) > 0 else None

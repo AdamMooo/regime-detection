@@ -121,6 +121,97 @@
 
 ---
 
+## Phase 2.5: Model Diagnostics & Robustness Fixes
+**Goal:** Fix critical model validation issues (OOS regime fragmentation, feature selection bias, VaR backtesting) before production deployment.  
+**Effort:** 3–5 days  
+**Depends on:** Phase 2.1 complete  
+**Blocker:** Yes — must pass before go-live
+
+### 2.5.1 — Diagnose Out-of-Sample Regime Fragmentation
+**Why:** In-sample model has 4 regimes, but OOS walk-forward produces 10 fragmented regimes. This breaks signal stability and trading.
+
+**UAT:**
+- [ ] Root cause identified: rolling PCA drift vs non-stationary features
+- [ ] Test with FIXED PCA (fitted on train set) vs rolling PCA on OOS data
+- [ ] If fixed PCA reduces OOS regimes from 10→~4, rolling PCA is culprit
+- [ ] Decision made: Use fixed PCA for production or longer rolling window
+- [ ] OOS regime count documented in model card
+
+**Deliverables:**
+- `analyze_oos_fragmentation.py` — Compare fixed vs rolling PCA on OOS data
+- Model card with findings (cause, impact, mitigation)
+- Updated `hmm_training.py` or `orchestrator.py` to use fixed PCA (if decided)
+
+---
+
+### 2.5.2 — Fix Feature Selection Bias
+**Why:** 7 features were selected on full dataset (2010–2026), creating implicit overfitting. Features should be selected on train set only.
+
+**UAT:**
+- [ ] Feature selection re-done: train set (2010–2020), held-out test (2021–2026)
+- [ ] Re-selected features compared to original 7
+- [ ] Model retrained with new features; OOS performance compared
+- [ ] Test set performance reported (regime accuracy, VaR metrics)
+- [ ] Decision: Use new features if OOS improves, else keep original
+
+**Deliverables:**
+- `analyze_feature_selection.py` — Train/test feature selection
+- Updated `features.py` if new features selected
+- Performance comparison report
+
+---
+
+### 2.5.3 — Resolve K=3 vs K=4 Regime Count
+**Why:** BIC selected K=4 (crisis regime) with marginal improvement over K=3. May be overfitting.
+
+**UAT:**
+- [ ] Walk-forward validate both K=3 and K=4 on OOS data
+- [ ] Compare: in-sample likelihood, OOS likelihood, regime stability
+- [ ] Parsimony test: If BIC improvement < 2%, default to K=3
+- [ ] Decision rule documented in code
+- [ ] Bot integration requirement confirmed (3 regimes: Low/Med/High)
+
+**Deliverables:**
+- `select_k_via_crossval.py` — WF cross-validate K=3 vs K=4
+- Comparison report with recommendation
+- Updated code to enforce K=3 (if decided)
+
+---
+
+### 2.5.4 — Fix VaR Backtesting (Christoffersen Rejection)
+**Why:** In-sample VaR fails Christoffersen test (p=0.0039), meaning exceedances cluster. GARCH-conditional VaR passes (p=0.5465). Static VaR underestimates tail clustering.
+
+**UAT:**
+- [ ] Document why static regime-dependent VaR clusters (volatility persistence)
+- [ ] Validate GARCH-conditional VaR passes both Kupiec & Christoffersen tests
+- [ ] Risk model card created: use GARCH-conditional VaR only for risk limits
+- [ ] Dashboard updated to show GARCH VaR, deprecate static VaR
+- [ ] Signals.py augmented with GARCH-conditional VaR warnings
+
+**Deliverables:**
+- Risk model card (static vs GARCH VaR comparison)
+- Dashboard update to use GARCH VaR
+- Code comments documenting why Christoffersen matters for trading
+
+---
+
+### 2.5.5 — Create Model Validation Scorecard
+**Why:** Document all validation results before production. Future phases can reference this.
+
+**UAT:**
+- [ ] Model card created: architecture, data, assumptions, limitations
+- [ ] Causality guarantees re-verified (no lookahead)
+- [ ] Reproducibility checklist: JAX/NumPyro pinned, seed reproducible
+- [ ] Known issues and workarounds documented
+- [ ] Production checklist: All green before go-live
+
+**Deliverables:**
+- `MODEL_CARD.md` in root (accessible from README)
+- Reproducibility guide
+- Known issues & mitigations
+
+---
+
 ## Phase 3: Code Refactoring + Polish (BACKLOG — Post-Deadline)
 **Goal:** Improve maintainability and robustness; no blockers to deployment.  
 **Effort:** 2–3 weeks  
