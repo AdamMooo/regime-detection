@@ -126,6 +126,32 @@ Last verified: 2026-04-13 against `tests/test_causality.py` (10 tests, all PASSE
 - Maintains backward compatibility with run.py (train(), rebuild_dashboard())
 - Dashboard building (Plotly-based interactive visualizations)
 
+## Risk Management: VaR Backtesting (Phase 2.5.4)
+
+**Problem:** Static regime-dependent VaR fails Christoffersen independence test (p=0.0039), indicating exceedances cluster. This means tail risk is underestimated, making position sizing and risk limits unreliable.
+
+**Solution:** GARCH-conditional VaR captures volatility persistence and passes both tests:
+- Kupiec POF: p=0.952 (correct coverage, 95% CI)
+- Christoffersen: p=0.547 (exceedances independent, no clustering)
+
+**Production Approach:** Use GARCH-conditional VaR exclusively for all risk limits and trading decisions.
+- **Primary metric:** `garch_var_95` in signals.py output (95% confidence level)
+- **Dashboard:** GARCH VaR prominently displayed; static VaR deprecated
+- **Risk warnings:** Alert if VaR < -3%, regime uncertain (p < 0.6), or regime shift detected
+- **Per-regime GARCH(1,1):** Separate volatility models for each regime
+
+**Implementation:**
+- `evaluation.py`: `compute_var_backtest_garch()` for GARCH VaR backtesting, `compare_var_methods()` for comparison
+- `signals.py`: `compute_garch_var()` computes current VaR, `varhhmm_warning()` generates risk alerts, `validate_signal_schema()` ensures garch_var_95 is present
+- `dashboard.py`: `display_garch_var_monitoring()` visualizes GARCH VaR with risk metrics and alerts
+
+**Limitations:**
+- GARCH lags during regime shifts (5–20 days until σ_t catches up); pair with regime detection
+- Requires ≥30 observations per regime; fall back to conservative static VaR if insufficient
+- Parameter uncertainty not quantified; optional: use bootstrap or Bayesian GARCH for confidence bounds
+
+**References:** `docs/RISK_MODEL_CARD.md` for detailed technical comparison, test results, and production checklist.
+
 ## Do Not
 - Use K-means or hard clustering for regime assignment
 - Skip PCA before HMM (dimensionality too high otherwise)
