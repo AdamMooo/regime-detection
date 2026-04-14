@@ -32,19 +32,20 @@ VIX_BYPASS         = False  # VIX is now a direct curated feature; no need to ap
 # Representative feature subset for PCA (reduces collinearity).
 # Set to None to use all features. Using a curated subset prevents
 # the vol cluster (~10 features) from dominating the first PCs.
+# Updated per Phase 2.5.2: Feature selection on held-out train set (2010-2020)
+# improved OOS regime accuracy from 72.7% to 76.2% and dwell time from 5.6 to 17.7 days.
+# See data/feature_selection_report.txt for full analysis.
 FEATURE_SUBSET = [
     # Vol state
-    'VIX', 'VRP',
-    # Vol dynamics
-    'rv_ratio_10_63',
-    # Cross-asset
-    'SPY_TLT_corr63',
+    'VRP', 'VIX',
     # Return dynamics
     'SPY_skew20',
-    # Market structure
-    'SPY_dd63',
+    # Cross-asset
+    'SPY_TLT_corr63',
     # Leverage / fragility
     'lev_effect20',
+    # Vol dynamics
+    'rv_ratio_10_63',
 ]
 
 # --- HMM (classic) ---

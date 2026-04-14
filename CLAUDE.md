@@ -57,7 +57,10 @@ HDP-HMM market regime detection from macro and price features. Produces regime l
 
 ## Hard Constraints
 - Use NumPyro for HMM — not hmmlearn, pomegranate, or other libraries
-- 13 features → rolling PCA reduction → HDP-HMM (do not skip PCA)
+- 6 features (selected on held-out train set 2010–2020) → rolling PCA reduction → HDP-HMM (do not skip PCA)
+  - Features: VRP, SPY_skew20, VIX, SPY_TLT_corr63, lev_effect20, rv_ratio_10_63
+  - Improvement over original 7: 72.7% → 76.2% regime accuracy, 5.6 → 17.7 day dwell time
+  - Decision made in Phase 2.5.2; see `analyze_feature_selection.py` and `data/feature_selection_report.txt`
 - 3 regime target: match labels to Algo-Trading-Bot convention when integrating
 - Do not use K-means — probabilistic regime detection only
 
