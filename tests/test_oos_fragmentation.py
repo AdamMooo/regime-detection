@@ -13,13 +13,13 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 
-from collect import collect
-from features import build_features
-from config import (
+from src.features.collect import collect
+from src.features.features import build_features
+from src.config import (
     RANDOM_SEED, N_STATES, COV_TYPE, PCA_MAX_COMPONENTS, PCA_VAR_THRESHOLD,
     WALK_FORWARD_TRAIN_YEARS,
 )
-from inference import expanding_standardize, _fit_hmm, filtered_labels
+from src.core.inference import expanding_standardize, _fit_hmm, filtered_labels
 
 
 @pytest.fixture(scope="session")

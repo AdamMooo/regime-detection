@@ -13,7 +13,7 @@ import json
 import hashlib
 from datetime import datetime
 
-from config import (
+from src.config import (
     START_DATE, END_DATE,
     TICKERS, VIX_TICKER, VIX3M_TICKER, VVIX_TICKER,
     DATA_DIR, CACHE_PATH, INCREMENTAL_MODE,

@@ -7,7 +7,7 @@ import pytest
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from signals import _oos_validation
+from src.signals.signals import _oos_validation
 
 
 def _make_results(n=500, agreement_frac=0.7, seed=42):

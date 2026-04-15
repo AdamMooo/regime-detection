@@ -18,14 +18,14 @@ import logging
 from datetime import datetime
 
 # Local imports
-from config import (
+from src.config import (
     FEATURE_SUBSET, DATA_DIR, RANDOM_SEED, REGIME_NAMES,
     PCA_MAX_COMPONENTS, PCA_VAR_THRESHOLD, PCA_ROLLING_WINDOW
 )
-from features import build_features
-from inference import expanding_standardize, filtered_labels, StudentTHMM
-from hmm_training import fit_rolling_pca, label_regimes, check_stability
-from evaluation import evaluate, compute_var_backtest
+from src.features.features import build_features
+from src.core.inference import expanding_standardize, filtered_labels, StudentTHMM
+from src.core.hmm_training import fit_rolling_pca, label_regimes, check_stability
+from src.core.evaluation import evaluate, compute_var_backtest
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

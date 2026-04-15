@@ -17,14 +17,14 @@ import pandas as pd
 import os
 from datetime import datetime
 
-from config import (
+from src.config import (
     DATA_DIR, FEATURE_SUBSET, RANDOM_SEED, REGIME_NAMES,
     PCA_MAX_COMPONENTS, PCA_VAR_THRESHOLD, PCA_ROLLING_WINDOW
 )
-from inference import expanding_standardize, filtered_labels, StudentTHMM
-from hmm_training import fit_rolling_pca
-from evaluation import compute_var_backtest
-from features import build_features
+from src.core.inference import expanding_standardize, filtered_labels, StudentTHMM
+from src.core.hmm_training import fit_rolling_pca
+from src.core.evaluation import compute_var_backtest
+from src.features.features import build_features
 
 
 # ===================================================================

@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from config import DATA_DIR
+from src.config import DATA_DIR
 
 
 def load_regime_results():

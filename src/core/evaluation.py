@@ -43,7 +43,7 @@ import pandas as pd
 from scipy.stats import binom, chi2
 from scipy.special import erfinv
 
-from config import RANDOM_SEED, VAR_ALPHA
+from src.config import RANDOM_SEED, VAR_ALPHA
 
 logger = logging.getLogger(__name__)
 

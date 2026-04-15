@@ -13,10 +13,15 @@ Usage:
 """
 
 import sys
-from collect import collect
-from features import prepare_features
-from analyze import analyze
-from train import train, rebuild_dashboard
+import os
+
+# Add parent directory to path so we can import src/ modules
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.features.collect import collect
+from src.features.features import prepare_features
+from scripts.pipelines.analyze import analyze
+from scripts.pipelines.train import train, rebuild_dashboard
 
 
 def print_regime():
@@ -24,8 +29,8 @@ def print_regime():
     import os
     import numpy as np
     import pandas as pd
-    from config import DATA_DIR
-    from signals import compute_signals
+    from src.config import DATA_DIR
+    from src.signals.signals import compute_signals
 
     path = os.path.join(DATA_DIR, 'regime_results.csv')
     if not os.path.exists(path):
@@ -131,7 +136,7 @@ def print_regime():
         print(f"  Calibration  : {ece_tag}  ECE={ece:.1%}  ({cal['interpretation']})")
 
     # Trust scorecard
-    from trust import compute_trust_scorecard, format_scorecard
+    from src.signals.trust import compute_trust_scorecard, format_scorecard
     scorecard = compute_trust_scorecard(sigs)
     print(format_scorecard(scorecard, W))
 
@@ -143,9 +148,9 @@ def print_trust():
     """Print trust scorecard only (no full regime awareness)."""
     import os
     import pandas as pd
-    from config import DATA_DIR
-    from signals import compute_signals
-    from trust import compute_trust_scorecard, format_scorecard
+    from src.config import DATA_DIR
+    from src.signals.signals import compute_signals
+    from src.signals.trust import compute_trust_scorecard, format_scorecard
 
     path = os.path.join(DATA_DIR, 'regime_results.csv')
     if not os.path.exists(path):

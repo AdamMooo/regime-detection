@@ -14,7 +14,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from config import DATA_DIR
+from src.config import DATA_DIR
 
 
 def load_regime_results():

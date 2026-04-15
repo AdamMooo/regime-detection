@@ -13,8 +13,8 @@ import shutil
 import joblib
 from sklearn.decomposition import PCA
 
-from features import prepare_features
-from config import CACHE_WINDOW
+from src.features.features import prepare_features
+from src.config import CACHE_WINDOW
 
 
 @pytest.fixture

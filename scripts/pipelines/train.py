@@ -31,7 +31,7 @@ from scipy.stats import multivariate_t as _mvt, norm as _norm, gaussian_kde
 from sklearn.decomposition import PCA
 from statsmodels.tsa.statespace.mlemodel import MLEModel
 
-from config import (
+from src.config import (
     RANDOM_SEED, N_STATES, N_STATES_RANGE, COV_TYPE, T_DF,
     N_SEEDS, HMM_ITER, PCA_MAX_COMPONENTS, PCA_VAR_THRESHOLD,
     PCA_ROLLING_WINDOW, VIX_BYPASS, USE_HDP, HDP_INFERENCE, HDP_MAX_REGIMES,
@@ -41,12 +41,12 @@ from config import (
     REGIME_NAMES, VOL_BRACKETS, DATA_DIR, MODEL_DIR, FIGURE_DIR, TICKERS,
     MAX_DATA_STALENESS_DAYS,
 )
-from features import build_features
-from signals import compute_signals
-from inference import expanding_standardize, StudentTHMM, _fit_hmm, filtered_probs, filtered_labels
-from hmm_training import fit_rolling_pca, select_states_bic, check_stability, label_regimes, fit_regime_sv, fit_regime_garch
-from evaluation import evaluate, compute_var_backtest, compute_var_backtest_garch, kupiec_pof_test, christoffersen_test
-from orchestrator import walk_forward
+from src.features.features import build_features
+from src.signals.signals import compute_signals
+from src.core.inference import expanding_standardize, StudentTHMM, _fit_hmm, filtered_probs, filtered_labels
+from src.core.hmm_training import fit_rolling_pca, select_states_bic, check_stability, label_regimes, fit_regime_sv, fit_regime_garch
+from src.core.evaluation import evaluate, compute_var_backtest, compute_var_backtest_garch, kupiec_pof_test, christoffersen_test
+from src.core.orchestrator import walk_forward
 
 # Suppress noisy warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -2182,7 +2182,7 @@ def train(reload_pca_checkpoint_path=None):
 
     if USE_HDP:
         # ── Bayesian HDP-HMM (auto-K, sticky transitions, Student-t) ──
-        from hdp_hmm import (
+        from src.core.hdp_hmm import (
             fit_hdp_hmm, effective_K, posterior_mean_params,
             get_labels_and_probs, label_regimes_hdp,
             mcmc_diagnostics, save_hdp_results,
@@ -2341,7 +2341,7 @@ def train(reload_pca_checkpoint_path=None):
         ]
 
     # ── Compute GARCH-conditional VaR for each date ─────────────────
-    from signals import compute_garch_var
+    from src.signals.signals import compute_garch_var
     garch_var_95 = []
     spy_ret = np.log(results['SPY_close'] / results['SPY_close'].shift(1)).dropna()
     for i, (date, row) in enumerate(results.iterrows()):

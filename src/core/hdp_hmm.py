@@ -34,7 +34,7 @@ from numpyro.infer import MCMC, NUTS, SVI, Trace_ELBO, Predictive
 from numpyro.infer.autoguide import AutoNormal
 from numpyro.infer.initialization import init_to_feasible
 
-from config import (
+from src.config import (
     RANDOM_SEED, HDP_TRUNCATION, HDP_ALPHA, HDP_KAPPA,
     HDP_INFERENCE, MCMC_NUM_WARMUP, MCMC_NUM_SAMPLES, MCMC_NUM_CHAINS,
     SVI_NUM_STEPS, SVI_LEARNING_RATE, SVI_NUM_SAMPLES,

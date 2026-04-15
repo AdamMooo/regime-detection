@@ -31,12 +31,12 @@ from sklearn.decomposition import PCA
 from arch import arch_model
 from statsmodels.tsa.statespace.mlemodel import MLEModel
 
-from config import (
+from src.config import (
     RANDOM_SEED, N_STATES_RANGE, COV_TYPE, N_SEEDS, PCA_MAX_COMPONENTS,
     PCA_VAR_THRESHOLD, PCA_ROLLING_WINDOW, GARCH_P, GARCH_Q, GARCH_DIST,
     MIN_REGIME_OBS, REGIME_NAMES, VOL_BRACKETS, DATA_DIR,
 )
-from inference import _fit_hmm, filtered_labels, StudentTHMM
+from src.core.inference import _fit_hmm, filtered_labels, StudentTHMM
 
 logger = logging.getLogger(__name__)
 

@@ -12,7 +12,7 @@ import inspect
 
 def test_inference_imports():
     """Verify all inference functions can be imported."""
-    from inference import expanding_standardize, StudentTHMM, _fit_hmm, filtered_probs, filtered_labels
+    from src.core.inference import expanding_standardize, StudentTHMM, _fit_hmm, filtered_probs, filtered_labels
     assert callable(expanding_standardize)
     assert callable(_fit_hmm)
     assert callable(filtered_probs)
@@ -21,7 +21,7 @@ def test_inference_imports():
 
 def test_hmmlearn_imports():
     """Verify all hmm_training functions can be imported."""
-    from hmm_training import (fit_rolling_pca, select_states_bic, check_stability,
+    from src.core.hmm_training import (fit_rolling_pca, select_states_bic, check_stability,
                               label_regimes, fit_regime_sv, fit_regime_garch)
     assert callable(fit_rolling_pca)
     assert callable(select_states_bic)
@@ -33,7 +33,7 @@ def test_hmmlearn_imports():
 
 def test_evaluation_imports():
     """Verify all evaluation functions can be imported."""
-    from evaluation import (evaluate, compute_var_backtest, compute_var_backtest_garch,
+    from src.core.evaluation import (evaluate, compute_var_backtest, compute_var_backtest_garch,
                             kupiec_pof_test, christoffersen_test)
     assert callable(evaluate)
     assert callable(compute_var_backtest)
@@ -44,7 +44,7 @@ def test_evaluation_imports():
 
 def test_orchestrator_imports():
     """Verify orchestrator functions can be imported."""
-    from orchestrator import walk_forward
+    from src.core.orchestrator import walk_forward
     assert callable(walk_forward)
 
 
@@ -68,7 +68,7 @@ def test_rebuild_dashboard_signature():
 
 def test_expanding_standardize_from_inference():
     """Verify expanding_standardize behavior from inference module."""
-    from inference import expanding_standardize
+    from src.core.inference import expanding_standardize
     X = np.random.randn(500, 5)
     X_scaled, mean_f, std_f = expanding_standardize(X, min_warmup=50)
 
@@ -81,7 +81,7 @@ def test_expanding_standardize_from_inference():
 
 def test_student_t_hmm_from_inference():
     """Verify StudentTHMM class works from inference module."""
-    from inference import StudentTHMM
+    from src.core.inference import StudentTHMM
     model = StudentTHMM(n_components=2)
     X = np.random.randn(100, 3)
     model.fit(X)
@@ -94,7 +94,7 @@ def test_student_t_hmm_from_inference():
 
 def test_filtered_probs_shape():
     """Verify filtered_probs returns expected shape."""
-    from inference import StudentTHMM, filtered_probs
+    from src.core.inference import StudentTHMM, filtered_probs
     import numpy as np
     X = np.random.randn(100, 3)
     model = StudentTHMM(n_components=2)
@@ -108,7 +108,7 @@ def test_filtered_probs_shape():
 
 def test_filtered_labels_basic():
     """Verify filtered_labels returns regime labels."""
-    from inference import StudentTHMM, filtered_labels
+    from src.core.inference import StudentTHMM, filtered_labels
     X = np.random.randn(100, 3)
     model = StudentTHMM(n_components=2)
     model.fit(X)
@@ -120,7 +120,7 @@ def test_filtered_labels_basic():
 
 def test_fit_rolling_pca_output():
     """Verify fit_rolling_pca returns expected structure."""
-    from hmm_training import fit_rolling_pca
+    from src.core.hmm_training import fit_rolling_pca
     X_scaled = np.random.randn(300, 5)
     pcs, mr, valid_mask, n_selected, pca = fit_rolling_pca(X_scaled, window=50)
 
@@ -135,8 +135,8 @@ def test_fit_rolling_pca_output():
 def test_select_states_bic_best_selection():
     """Verify select_states_bic returns best model."""
     import os
-    from hmm_training import select_states_bic
-    from config import DATA_DIR
+    from src.core.hmm_training import select_states_bic
+    from src.config import DATA_DIR
 
     # Create data directory if it doesn't exist (for test environments)
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -152,7 +152,7 @@ def test_select_states_bic_best_selection():
 
 def test_evaluate_runs_without_error():
     """Verify evaluate function runs."""
-    from evaluation import evaluate
+    from src.core.evaluation import evaluate
     import pandas as pd
 
     dates = pd.date_range('2020-01-01', periods=100)
@@ -167,14 +167,14 @@ def test_evaluate_runs_without_error():
 
 def test_kupiec_pof_test_returns_float():
     """Verify kupiec_pof_test returns numeric result."""
-    from evaluation import kupiec_pof_test
+    from src.core.evaluation import kupiec_pof_test
     stat = kupiec_pof_test(n_obs=100, n_exc=5, alpha=0.05)
     assert isinstance(stat, (float, np.floating))
 
 
 def test_christoffersen_test_returns_float():
     """Verify christoffersen_test returns numeric result."""
-    from evaluation import christoffersen_test
+    from src.core.evaluation import christoffersen_test
     import pandas as pd
 
     dates = pd.date_range('2020-01-01', periods=100)
@@ -189,7 +189,7 @@ def test_christoffersen_test_returns_float():
 
 def test_walk_forward_basic():
     """Verify walk_forward returns expected structure."""
-    from orchestrator import walk_forward
+    from src.core.orchestrator import walk_forward
     import pandas as pd
 
     dates = pd.date_range('2015-01-01', periods=2000)
@@ -222,10 +222,10 @@ def test_rebuild_dashboard_still_callable():
 def test_no_circular_imports():
     """Verify no circular import issues."""
     # This will fail if there are circular imports
-    import inference
-    import hmm_training
-    import evaluation
-    import orchestrator
+    import src.core.inference
+    import src.core.hmm_training
+    import src.core.evaluation
+    import src.core.orchestrator
     import train
     # If we got here, no circular imports
     assert True

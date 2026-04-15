@@ -14,7 +14,7 @@ import pandas as pd
 from scipy.special import erfinv
 from scipy.stats import chi2
 
-from evaluation import (
+from src.core.evaluation import (
     compute_var_backtest,
     compute_var_backtest_garch,
     compare_var_methods,
@@ -279,7 +279,7 @@ class TestGarchVarComputation:
 
     def test_garch_var_basic_computation(self, spy_returns_sample):
         """Test that compute_garch_var() computes reasonable VaR."""
-        from signals import compute_garch_var
+        from src.signals.signals import compute_garch_var
 
         returns, _ = spy_returns_sample
         recent_returns = returns.iloc[-50:].values
@@ -296,7 +296,7 @@ class TestGarchVarComputation:
 
     def test_garch_var_regime_sensitivity(self, spy_returns_sample):
         """Test that GARCH VaR increases with volatility (more negative in high-vol)."""
-        from signals import compute_garch_var
+        from src.signals.signals import compute_garch_var
 
         returns, _ = spy_returns_sample
 
@@ -316,7 +316,7 @@ class TestGarchVarComputation:
 
     def test_garch_var_with_small_sample(self):
         """Test that compute_garch_var() handles small samples gracefully."""
-        from signals import compute_garch_var
+        from src.signals.signals import compute_garch_var
 
         # Very small sample (5 observations)
         small_returns = np.array([0.01, -0.005, 0.002, -0.008, 0.003])
@@ -335,7 +335,7 @@ class TestVarValidation:
 
     def test_validate_signal_schema_garch_var_present(self):
         """Test that schema validation requires garch_var_95 field."""
-        from signals import validate_signal_schema
+        from src.signals.signals import validate_signal_schema
 
         signal = {
             'current_regime': 'Low-Vol',
@@ -349,7 +349,7 @@ class TestVarValidation:
 
     def test_validate_signal_schema_garch_var_missing(self):
         """Test that schema validation fails if garch_var_95 missing."""
-        from signals import validate_signal_schema
+        from src.signals.signals import validate_signal_schema
 
         signal = {
             'current_regime': 'Low-Vol',
@@ -363,7 +363,7 @@ class TestVarValidation:
 
     def test_validate_signal_schema_garch_var_range(self):
         """Test that schema validation enforces VaR range [-1.0, 0.0]."""
-        from signals import validate_signal_schema
+        from src.signals.signals import validate_signal_schema
 
         # VaR too positive (should be negative/zero for loss)
         signal_invalid_pos = {
@@ -389,7 +389,7 @@ class TestVarValidation:
 
     def test_validate_signal_schema_bot_label_valid(self):
         """Test schema validation for valid bot_label values."""
-        from signals import validate_signal_schema
+        from src.signals.signals import validate_signal_schema
 
         for bot_label in ['LOW_VOL', 'MED_VOL', 'HIGH_VOL']:
             signal = {
@@ -403,7 +403,7 @@ class TestVarValidation:
 
     def test_validate_signal_schema_bot_label_invalid(self):
         """Test schema validation rejects invalid bot_label."""
-        from signals import validate_signal_schema
+        from src.signals.signals import validate_signal_schema
 
         signal = {
             'current_regime': 'Low-Vol',

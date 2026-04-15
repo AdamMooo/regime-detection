@@ -31,16 +31,16 @@ from scipy import stats as sp_stats
 # Add repo to path
 sys.path.insert(0, os.path.dirname(__file__))
 
-from config import (
+from src.config import (
     DATA_DIR, MODEL_DIR, FIGURE_DIR, RANDOM_SEED, COV_TYPE,
     REGIME_HOLD_DAYS, PCA_ROLLING_WINDOW, N_SEEDS, LABEL_MAPPING,
 )
-from inference import expanding_standardize, _fit_hmm, filtered_labels, StudentTHMM
-from hmm_training import (
+from src.core.inference import expanding_standardize, _fit_hmm, filtered_labels, StudentTHMM
+from src.core.hmm_training import (
     fit_rolling_pca, select_states_bic, check_stability,
     label_regimes, _hmm_n_params, _hmm_bic,
 )
-from orchestrator import walk_forward
+from src.core.orchestrator import walk_forward
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -469,7 +469,7 @@ def main():
     )
 
     # Apply feature subset
-    from config import FEATURE_SUBSET
+    from src.config import FEATURE_SUBSET
     if FEATURE_SUBSET:
         feat_raw = feat_raw[[f for f in FEATURE_SUBSET if f in feat_raw.columns]]
 

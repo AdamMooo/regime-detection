@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 
-from config import DATA_DIR, MODEL_DIR
+from src.config import DATA_DIR, MODEL_DIR
 
 
 def load_pca_model():

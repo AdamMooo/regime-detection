@@ -10,7 +10,7 @@ import plotly.graph_objects as go          # type: ignore[import-untyped]
 from plotly.subplots import make_subplots  # type: ignore[import-untyped]
 import os
 
-from config import DATA_DIR, FIGURE_DIR
+from src.config import DATA_DIR, FIGURE_DIR
 
 # ── Dark theme (matches main dashboard) ───────────────────────────
 _BG       = '#0d1117'

@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from typing import Any
 
-from config import DATA_DIR, MAX_DATA_STALENESS_DAYS
+from src.config import DATA_DIR, MAX_DATA_STALENESS_DAYS
 
 
 # ── Individual checks ─────────────────────────────────────────────

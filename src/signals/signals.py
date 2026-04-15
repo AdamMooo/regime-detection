@@ -24,7 +24,7 @@ import numpy as np
 from typing import Any
 from scipy import stats as sp_stats
 
-from config import TICKERS, SHORT_WINDOW, MED_WINDOW, LONG_WINDOW, LABEL_MAPPING
+from src.config import TICKERS, SHORT_WINDOW, MED_WINDOW, LONG_WINDOW, LABEL_MAPPING
 
 
 # ── Regime-conditional distribution profiles ───────────────────────

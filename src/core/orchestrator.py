@@ -12,12 +12,12 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 
-from config import (
+from src.config import (
     RANDOM_SEED, PCA_ROLLING_WINDOW, REGIME_HOLD_DAYS, VIX_BYPASS,
     WALK_FORWARD_TRAIN_YEARS, WALK_FORWARD_STEP_DAYS, WALK_FORWARD_MODE,
     COV_TYPE, VOL_BRACKETS,
 )
-from inference import expanding_standardize, _fit_hmm, filtered_labels
+from src.core.inference import expanding_standardize, _fit_hmm, filtered_labels
 
 
 def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE,

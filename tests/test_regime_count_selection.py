@@ -16,15 +16,15 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from config import (
+from src.config import (
     DATA_DIR, COV_TYPE, RANDOM_SEED, REGIME_HOLD_DAYS,
     PCA_ROLLING_WINDOW, N_SEEDS, LABEL_MAPPING,
 )
-from inference import expanding_standardize, _fit_hmm, filtered_labels
-from hmm_training import (
+from src.core.inference import expanding_standardize, _fit_hmm, filtered_labels
+from src.core.hmm_training import (
     fit_rolling_pca, _hmm_bic, check_stability,
 )
-from orchestrator import walk_forward
+from src.core.orchestrator import walk_forward
 
 
 # ===================================================================
@@ -49,7 +49,7 @@ def feature_data():
         index_col=0, parse_dates=True,
     )
     # Apply feature subset
-    from config import FEATURE_SUBSET
+    from src.config import FEATURE_SUBSET
     if FEATURE_SUBSET:
         feat_raw = feat_raw[[f for f in FEATURE_SUBSET if f in feat_raw.columns]]
     return feat_raw

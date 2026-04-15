@@ -7,7 +7,7 @@ import pytest
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from trust import compute_trust_scorecard, format_scorecard
+from src.signals.trust import compute_trust_scorecard, format_scorecard
 
 
 def _make_signals(separation_p=1e-10, vol_match=True, median_run=10,

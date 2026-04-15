@@ -25,13 +25,13 @@ from pathlib import Path
 from scipy.linalg import orthogonal_procrustes
 from sklearn.decomposition import PCA
 
-from collect import collect
-from features import build_features
-from config import (
+from src.features.collect import collect
+from src.features.features import build_features
+from src.config import (
     RANDOM_SEED, N_STATES, COV_TYPE, PCA_MAX_COMPONENTS, PCA_VAR_THRESHOLD,
     REGIME_NAMES, DATA_DIR, FEATURE_SUBSET, WALK_FORWARD_TRAIN_YEARS,
 )
-from inference import expanding_standardize, _fit_hmm, filtered_labels
+from src.core.inference import expanding_standardize, _fit_hmm, filtered_labels
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)

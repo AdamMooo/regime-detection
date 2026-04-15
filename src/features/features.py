@@ -19,7 +19,7 @@ import pandas as pd
 import numpy as np
 import os
 
-from config import (
+from src.config import (
     TICKERS, SHORT_WINDOW, MED_WINDOW, LONG_WINDOW,
     DATA_DIR, MODEL_DIR,
 )

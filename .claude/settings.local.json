@@ -23,7 +23,10 @@
       "Bash(sed -n '158,495p' .planning/phases/03-refactor/03-04-PLAN.md)",
       "Read(//tmp/**)",
       "Bash(git ls-tree:*)",
-      "Bash(ls -la *.py)"
+      "Bash(ls -la *.py)",
+      "Bash(ls:*)",
+      "mcp__plugin_claude-mem_mcp-search__smart_outline",
+      "Bash(grep:*)"
     ]
   }
 }

@@ -29,7 +29,7 @@ import numpy as np
 from hmmlearn import hmm
 from scipy.stats import multivariate_t as _mvt
 
-from config import T_DF, HMM_ITER, REGIME_HOLD_DAYS
+from src.config import T_DF, HMM_ITER, REGIME_HOLD_DAYS
 
 logger = logging.getLogger(__name__)
 

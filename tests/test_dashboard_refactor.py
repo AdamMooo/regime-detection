@@ -204,9 +204,9 @@ class TestDashboardRefactoring:
 
         # Dashboard should NOT import train or features
         assert 'from train import' not in content
-        assert 'from features import' not in content
+        assert 'from src.features.features import' not in content
         assert 'import train' not in content
-        assert 'import features' not in content
+        assert 'import src.features.features' not in content
 
     def test_analysis_scripts_independent(self):
         """Verify analysis scripts don't import from pipeline."""
@@ -223,8 +223,8 @@ class TestDashboardRefactoring:
                 content = f.read()
 
             # Should NOT import from collect, features, train, or run
-            assert 'from collect import' not in content
-            assert 'from features import' not in content
+            assert 'from src.features.collect import' not in content
+            assert 'from src.features.features import' not in content
             assert 'from train import' not in content
             assert 'from run import' not in content
 

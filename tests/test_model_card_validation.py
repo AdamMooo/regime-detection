@@ -17,8 +17,8 @@ import sys
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import RANDOM_SEED, LABEL_MAPPING, N_STATES, REGIME_HOLD_DAYS
-from signals import compute_signals, validate_signal_schema
+from src.config import RANDOM_SEED, LABEL_MAPPING, N_STATES, REGIME_HOLD_DAYS
+from src.signals.signals import compute_signals, validate_signal_schema
 
 
 class TestCausalityGuarantees:

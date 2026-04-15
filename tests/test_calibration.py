@@ -7,7 +7,7 @@ import pytest
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from signals import _confidence_calibration
+from src.signals.signals import _confidence_calibration
 
 
 def _make_calibration_df(n=1000, perfect=False, seed=42):
