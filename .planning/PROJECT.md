@@ -1,63 +1,91 @@
 # PROJECT — Regime-Detection
 
-## Vision
-Probabilistic regime detection pipeline that feeds clean, validated regime signals to Algo-Trading-Bot and Portfolio-Manager. HDP-HMM discovers market regimes from macro + price features without hand-tuning. Model is causal, tested, and production-ready.
+## What This Is
 
-## Scope
-- HDP-HMM regime classification (3 regimes: Low-Vol, Moderate-Vol, High-Vol)
-- 13-feature engineering pipeline with rolling PCA dimensionality reduction
-- Incremental data updates (collect only new data, not full 16-year history)
-- Bot label mapping and validation
-- Full integration test with Algo-Trading-Bot
-- Dashboard for regime visualization and analysis
-- **Strategic roadmap:** Foundation for multi-signal combination (Phase 3.4) using Fundamental Law of Active Management (IR = IC × √N)
-- **Strategic roadmap:** Foundation for multi-signal combination (Phase 3.4) using Fundamental Law of Active Management (IR = IC × √N)
+Production-ready HDP-HMM regime detection pipeline. Classifies market conditions into 4 probabilistic regimes from 13 macro + price features. Feeds validated signals to Algo-Trading-Bot and Portfolio-Manager. v1.0 shipped — now entering validation phase before live trading.
 
-## Non-Goals
-- Change underlying HMM algorithm (NumPyro is final choice)
-- Rewrite data collection (collect.py is stable)
-- Build trading execution logic (that's Algo-Trading-Bot's job)
-- Add new regime count or naming (3 regimes, fixed labels)
+## Core Value
 
-## Team
-- **Owner:** Adam Morris (mathematics/quant focus)
-- **Consumers:** Algo-Trading-Bot, Portfolio-Manager
-- **Integration deadline:** This month (2026-04-30)
+Causal, reproducible regime signals that downstream systems can trust. No lookahead, no K-means instability, statistically validated.
+
+## Current State (v1.0 shipped 2026-04-16)
+
+- **Architecture:** NumPyro HDP-HMM, 13 features → rolling PCA → 4 regimes
+- **Codebase:** ~13,300 LOC Python, 160+ tests passing
+- **VaR:** GARCH-conditional (Christoffersen p=0.547, passes)
+- **Reproducibility:** JAX/NumPyro pinned exactly, seeds logged, CI enforced
+- **Integration:** Bot label mapping live, end-to-end test passing
+- **Known concern:** Model not yet trusted for live trading — v1.1 is full validation
+
+## Requirements
+
+### Validated (v1.0)
+
+- ✓ HDP-HMM produces K=4 regime classes from 13 features — v1.0
+- ✓ Rolling PCA with Procrustes alignment for label consistency — v1.0
+- ✓ Regime assignments are probabilistic (not hard-clustered) — v1.0
+- ✓ Incremental update mode (<5 min on new data) — v1.0
+- ✓ Bot label mapping validated in integration test — v1.0
+- ✓ No lookahead in features, standardization, or PCA — v1.0 (10 causality tests)
+- ✓ JAX/NumPyro versions pinned exactly — v1.0
+- ✓ Integration test with Algo-Trading-Bot passing — v1.0
+- ✓ 160+ tests passing — v1.0
+- ✓ train.py refactored into focused modules — v1.0
+- ✓ GARCH-conditional VaR replaces static VaR — v1.0
+- ✓ MODEL_CARD.md, REPRODUCIBILITY.md, KNOWN_ISSUES.md — v1.0
+
+### Active (v1.1 — Model Validation & Trust)
+
+- [ ] Out-of-sample regime quality metrics (stability, economic interpretability)
+- [ ] Walk-forward backtest: regime-conditional returns vs baseline
+- [ ] Regime transition matrix validation (are transitions economically sensible?)
+- [ ] Clear "trust threshold" defined and met before live trading
+- [ ] Stress test: model behavior during known crisis periods (2008, 2020, 2022)
+- [ ] Confidence calibration check (do predicted probabilities match observed frequencies?)
+
+### Out of Scope
+
+- Change underlying HMM algorithm (NumPyro is final)
+- Add new regime count or naming (K=4 locked)
+- Build trading execution logic (Algo-Trading-Bot's job)
+- GPU acceleration (CPU performance sufficient)
+- Real-time signal streaming (bot handles that)
+
+## Key Decisions
+
+| Decision | Outcome | Milestone |
+|----------|---------|-----------|
+| NumPyro over hmmlearn/pomegranate | ✓ Good — stable, causal guarantees | v1.0 |
+| K=4 regimes (not K=3) | ✓ Good — walk-forward BIC justified | v1.0 |
+| Rolling PCA with Procrustes alignment | ✓ Good — reduces OOS fragmentation | v1.0 |
+| GARCH-conditional VaR | ✓ Good — passes Christoffersen test | v1.0 |
+| 6 held-out features over original 7 | ✓ Good — +3.5% OOS accuracy | v1.0 |
+| Incremental delta fetch (not full re-download) | ✓ Good — 20 min → <5 min | v1.0 |
 
 ## Constraints
-**Hard constraints (non-negotiable):**
-- NumPyro only for HMM (not hmmlearn, pomegranate)
-- 13 features → rolling PCA → HDP-HMM pipeline (skip PCA = unstable)
-- No K-means or hard clustering (only probabilistic regime assignment)
-- 3 regime target with fixed labels: Regime 0 (Low-Vol), Regime 1 (Moderate-Vol), Regime 2 (High-Vol)
 
-**Soft constraints:**
-- Keep existing test suite (28 tests minimum)
-- Minimize API changes to signals.py (downstream dependency)
-- Dashboard must remain Streamlit-based
+**Hard (non-negotiable):**
+- NumPyro only for HMM
+- 13 features → rolling PCA → HDP-HMM pipeline
+- No K-means or hard clustering
+- K=4 regimes with fixed labels
 
-## Success Metrics
-1. ✅ All 4 critical blockers closed (incremental update, bot mapping, JAX pinning, integration test)
-2. ✅ Test coverage stable or improved (minimum 28 tests passing)
-3. ✅ Regime signals validated against Algo-Trading-Bot convention (round-trip test)
-4. ✅ No causal errors (lookhead in features, filtering, or standardization — verified by tests)
-5. ✅ Pipeline runs in <5 min with incremental update, <20 min with full backtest
-6. ✅ Dashboard renders without crashes
-7. ✅ Code is organized, documented, and ready for production handoff
+**Soft:**
+- Keep existing test suite (160+ tests minimum)
+- Minimize API changes to signals.py
+- Dashboard remains Streamlit-based
 
-## Known Issues (from Codebase Analysis)
-- train.py is 1452 lines (monolithic but functional — refactor is Phase 3 backlog, not Phase 1)
-- JAX version constraint too loose (`jax>=0.4.30`)
-- No incremental update mode (always re-downloads full history)
-- Regime label mapping to bot convention not validated
-- No integration test with downstream systems
+## Integration Dependencies
 
-## Timeline
-- **Phase 1 (CRITICAL):** Fix blockers — 1–2 weeks
-- **Phase 2:** Incremental update mode — 1–2 weeks
-- **Phase 3 (BACKLOG):** Refactor + dashboard hardening — post-deadline
+- **Downstream:** Algo-Trading-Bot (regime signals → trading decisions)
+- **Downstream:** Portfolio-Manager (regime probabilities → risk adjustments)
+- **Public API (do not break):** `detect()`, `fit()`, regime labels in signals.py
 
 ## References
+
 - Codebase: https://github.com/AdamMooo/Regime-Detection
-- Downstream: Algo-Trading-Bot (regime signals feed trading decisions)
-- Training data: FRED (macro) + market prices (yfinance)
+- Archive: `.planning/milestones/v1.0-ROADMAP.md`
+- Model card: `MODEL_CARD.md`
+
+---
+*Last updated: 2026-04-16 after v1.0 milestone*

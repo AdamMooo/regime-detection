@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Ready
-status: complete
-last_updated: "2026-04-14T02:30:00.000Z"
+status: archived
+last_updated: "2026-04-16T01:47:17.992Z"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 14
+  completed_plans: 14
   percent: 100
 ---
 
@@ -28,7 +28,7 @@ progress:
 1. **JAX Version Pinning** — `jax>=0.4.30` allows breaking changes; reproducibility risk
    - **Fix in:** Phase 1.1
    - **Effort:** 4 hrs
-   - **Status:** Executing Phase 02
+   - **Status:** v1.0 milestone complete
 
 2. **Bot Label Mapping** — Regime names not validated for Algo-Trading-Bot integration
    - **Fix in:** Phase 1.2
@@ -197,6 +197,7 @@ Current system naively combines 13 features via PCA → HMM. Institutional resea
 **All 5 Plans Executed & Verified via Wave-Based Parallelization:**
 
 ### Wave 1 (Parallel): Diagnostics
+
 - ✅ **02.5-01:** OOS Fragmentation Diagnosis
   - Finding: K=3 stable, rolling PCA superior to fixed PCA
   - Decision: Continue rolling PCA (current approach confirmed)
@@ -209,6 +210,7 @@ Current system naively combines 13 features via PCA → HMM. Institutional resea
   - Tests: 21/21 passing
 
 ### Wave 2 (Dependent): Model Optimization
+
 - ✅ **02.5-03:** K Regime Count Selection
   - Finding: K=4 justified (4.9% BIC improvement >> 2% threshold)
   - Walk-forward validation: OOS regime count, stability, multi-seed agreement
@@ -222,6 +224,7 @@ Current system naively combines 13 features via PCA → HMM. Institutional resea
   - Tests: 16/16 passing
 
 ### Wave 3 (Final): Validation & Documentation
+
 - ✅ **02.5-05:** Model Validation Scorecard & Production Checklist
   - Deliverables: MODEL_CARD.md, REPRODUCIBILITY.md, KNOWN_ISSUES.md, TROUBLESHOOTING.md
   - Documentation: 8 sections, 280+ lines per file
