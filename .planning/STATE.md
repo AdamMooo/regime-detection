@@ -1,25 +1,37 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Production Ready
-status: archived
-last_updated: "2026-04-16T01:47:17.992Z"
+milestone: v1.1
+milestone_name: Model Quality & Regime Reliability
+status: planning
+last_updated: "2026-04-18T01:05:18.382Z"
+last_activity: 2026-04-15 — v1.1 roadmap created (Phases 4–7)
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 14
-  completed_plans: 14
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # STATE — Regime-Detection Project Memory
 
 ## Latest Status
 
-**As of:** 2026-04-13 (Session #9)  
-**Phase:** 3 (Wave 1 Complete, Proceeding to Wave 2)
-**Branch:** main  
-**Last executed plan:** 03-refactor/03-03 (Documentation + Examples)  
+**As of:** 2026-04-15  
+**Phase:** Phase 4 (not yet started — roadmap just defined)  
+**Plan:** —  
+**Status:** Roadmap defined, ready to plan Phase 4  
+**Last activity:** 2026-04-15 — v1.1 roadmap created (Phases 4–7)
+
+---
+
+## v1.1 Phase Structure
+
+| Phase | Goal | Requirements | Status |
+|-------|------|--------------|--------|
+| 4. Empirical Diagnostics | Measure regime quality before any changes | DIAG-01, DIAG-02, DIAG-03, DIAG-04 | Not started |
+| 5. Feature Engineering Overhaul | Expand and walk-forward validate features | FEAT-01, FEAT-02, FEAT-03 | Not started |
+| 6. Model Architecture Experiments | K selection, HDP-HMM decision, refactor | MODEL-01, MODEL-02, MODEL-03 | Not started |
+| 7. Daily Pipeline & Clean Outputs | Single entry point, 2 HTML outputs, cron-ready | PIPE-01, PIPE-02, PIPE-03 | Not started |
 
 ---
 
@@ -55,7 +67,7 @@ progress:
 **Decision:** NumPyro is final choice (Bayesian HDP-HMM with probabilistic regimes)  
 **Rationale:** Causal guarantees, no lookahead, stable regime assignments  
 **Trade-offs:** Slower than K-means, but mathematically sound  
-**Status:** ✅ Locked in hard constraints (CLAUDE.md)  
+**Status:** Locked in hard constraints (CLAUDE.md)  
 
 ---
 
@@ -65,7 +77,7 @@ progress:
 **Decision:** Fix at 3 regimes (Low-Vol, Moderate-Vol, High-Vol)  
 **Rationale:** Matches economic intuition and Algo-Trading-Bot convention  
 **Trade-offs:** Less flexibility, but simpler integration  
-**Status:** ✅ Locked in hard constraints  
+**Status:** Locked in hard constraints (superseded by Phase 2.5-03: K=4 justified by BIC)
 
 ---
 
@@ -75,7 +87,7 @@ progress:
 **Decision:** Refactoring deferred to Phase 3 (post-deadline, non-blocking)  
 **Rationale:** Phase 1 focus is unblocking integration, not refactoring  
 **Trade-offs:** Code remains monolithic, but no risk to deadline  
-**Status:** ✅ Tracked in ROADMAP.md Phase 3  
+**Status:** Tracked in ROADMAP.md Phase 3 (v1.0 complete)
 
 ---
 
@@ -85,38 +97,37 @@ progress:
 **Decision:** Phase 1 fixes blockers, Phase 2 optimizes incremental updates  
 **Rationale:** Blockers are integration-critical; optimization is performance-critical but not blocking production  
 **Trade-offs:** First production deployment still uses full re-download; Phase 2 is fast-follow  
-**Status:** ✅ Phased in ROADMAP.md  
+**Status:** Phased in ROADMAP.md (v1.0 complete)
 
 ---
 
-## Code Quality Baseline
+### Decision 5: Forward Returns Are Validation Only (v1.1)
 
-From codebase analysis (commit 95ea51b):
-
-- **Test count:** 28 tests (causality, validation, calibration)
-- **Hard constraint compliance:** ✅ All 4 met (NumPyro, 13→PCA→HMM, no K-means, 3 regimes)
-- **Causal guarantees:** ✅ Verified (no lookahead in features, standardization, PCA)
-- **Trust scorecard:** ✅ 8 validation checks implemented
-- **Known issues:** ❌ 4 blockers (JAX pinning, bot mapping, incremental update, integration test)
+**Context:** DIAG-04 implements regime-conditional return analysis for economic validity checking  
+**Decision:** Forward returns (1d/5d/21d SPY/EEM/TLT/HYG) live in evaluation.py as diagnostics only — never added as model features or used in training  
+**Rationale:** Adding forward returns as features would introduce lookahead bias and invalidate causality guarantees  
+**Trade-offs:** Cannot use return predictability to improve model directly, but preserves integrity  
+**Status:** Locked — enforced by out-of-scope constraint in REQUIREMENTS.md
 
 ---
 
-## Phase 1 Execution Plan
+### Decision 6: USE_HDP Decision Deferred to Phase 6 (v1.1)
 
-**Timeline:** 3–5 days  
-**Parallel structure:**
+**Context:** StudentTHMM in production (USE_HDP=False); NumPyro HDP-HMM code present but disabled  
+**Decision:** Formal evaluation of HDP-HMM vs StudentTHMM scheduled for Phase 6  
+**Rationale:** Need Phase 4 diagnostics and Phase 5 features before a fair comparison is possible  
+**Trade-offs:** Dead code remains until Phase 6 resolves the question  
+**Status:** Scheduled — MODEL-02 in Phase 6
 
-- 1.1 (JAX pinning) → 1.2 (bot mapping) → (1.3 + 1.4 in parallel) → Phase 2
+---
 
-**Deliverables:**
+## Code Quality Baseline (v1.0 shipped)
 
-- [x] Updated `requirements.txt` with exact pinned versions (1.1 COMPLETE)
-- [ ] `config.py` regime label mapping (Regime 0 → LOW_VOL, etc.) (1.2 NEXT)
-- [ ] `test_causality.py` with 6+ test cases (1.3 TODO)
-- [ ] `test_bot_integration.py` validating end-to-end signal flow (1.4 TODO)
-- [x] Updated CLAUDE.md with reproducibility guarantees (1.1 COMPLETE)
-- [x] All tests passing in CI/CD (1.1 verified)
-- [ ] Code review approved (pending Phase 1 completion)
+- **Test count:** 160+ tests passing
+- **Hard constraint compliance:** All 4 met (NumPyro, 13→PCA→HMM, no K-means, K=4 regimes)
+- **Causal guarantees:** Verified (no lookahead in features, standardization, PCA)
+- **VaR:** GARCH-conditional (Kupiec p=0.952, Christoffersen p=0.547)
+- **Known concern:** Model not empirically validated for economic meaningfulness — v1.1 addresses this
 
 ---
 
@@ -130,6 +141,12 @@ From codebase analysis (commit 95ea51b):
    
 3. **Lookahead in Features** — Rolling windows computed on future data leak information
    - **Prevention:** Causality tests verify no future data in features, standardization, PCA
+
+4. **Forward Returns as Features** — DIAG-04 forward return analysis must never be fed back into training
+   - **Prevention:** Enforced by out-of-scope constraint; evaluation.py is read-only diagnostic output
+
+5. **HTML Output Proliferation** — Previous runs left stale HTML files beyond the 2 required outputs
+   - **Prevention:** PIPE-02 enforces exactly 2 outputs; cleanup logic required in run.py
 
 ---
 
@@ -152,43 +169,9 @@ From codebase analysis (commit 95ea51b):
 - **Repository:** https://github.com/AdamMooo/Regime-Detection
 - **Codebase analysis:** `.planning/CODEBASE-STATE.md` (465 lines, detailed audit)
 - **Hard constraints:** `.planning/CLAUDE.md` and local `CLAUDE.md`
-- **Test suite:** `tests/` directory (28 tests minimum)
+- **Test suite:** `tests/` directory (160+ tests minimum)
 - **Training data:** FRED (macro indicators) + yfinance (market prices)
-
----
-
-## Phase 2 Context Gathered (Session #7 - 2026-04-13)
-
-**Phase 2 architecture decisions locked:**
-
-- 2.1 (Incremental Data): File hash delta detection, CSV+feather cache, auto-detect mode, hybrid consistency
-- 2.2 (Dashboard Refactor): Slim to results visualization, move analysis to separate scripts
-- 2.3 (PCA Optimization): Rolling refit for accuracy (causal, no future data)
-
-See `.planning/phases/02-incremental/02-CONTEXT.md` for all 11 decisions.
-
-**Next Step:** Run `/gsd-plan-phase 2` to generate detailed phase plan
-
----
-
-## Strategic Direction — Signal Combination Framework (Phase 3.4)
-
-**Integrated from research article:** "The Math Behind Combining 50 Weak Signals Into One Winning Trade"
-
-Current system naively combines 13 features via PCA → HMM. Institutional research (Fundamental Law: IR = IC × √N) shows optimal approach is:
-
-1. **11-step alpha combination engine** to calculate independent edge of each signal
-2. **Cross-sectional demeaning** (Step 6) to remove shared variance across features
-3. **Orthogonal regression** (Step 9) to identify what each signal contributes uniquely
-4. **Optimal weighting** based on independent IC, not signal strength
-
-**Expected Impact:**
-
-- Current: 13 features, PCA rotates but doesn't optimize for independence
-- After: Effective N = √13 ≈ 3.6x diversification benefit from genuine independence
-- IC baseline 0.05–0.15 → potential 0.10–0.25 with proper combination
-
-**Implementation:** Phase 3.4 (post-Phase 2), foundation for multi-model ensemble.
+- **v1.0 archive:** `.planning/milestones/v1.0-ROADMAP.md`
 
 ---
 
@@ -198,49 +181,38 @@ Current system naively combines 13 features via PCA → HMM. Institutional resea
 
 ### Wave 1 (Parallel): Diagnostics
 
-- ✅ **02.5-01:** OOS Fragmentation Diagnosis
+- **02.5-01:** OOS Fragmentation Diagnosis
   - Finding: K=3 stable, rolling PCA superior to fixed PCA
   - Decision: Continue rolling PCA (current approach confirmed)
   - Tests: 4/4 passing
 
-- ✅ **02.5-02:** Feature Selection Bias Fix
+- **02.5-02:** Feature Selection Bias Fix
   - Finding: 6 new features outperform original 7 on held-out test set
   - New Features: VRP, VIX, SPY_skew20, SPY_TLT_corr63, lev_effect20, rv_ratio_10_63
-  - Improvement: +3.5% regime accuracy, +3.2× dwell time stability
+  - Improvement: +3.5% regime accuracy, +3.2x dwell time stability
   - Tests: 21/21 passing
 
 ### Wave 2 (Dependent): Model Optimization
 
-- ✅ **02.5-03:** K Regime Count Selection
+- **02.5-03:** K Regime Count Selection
   - Finding: K=4 justified (4.9% BIC improvement >> 2% threshold)
-  - Walk-forward validation: OOS regime count, stability, multi-seed agreement
   - Decision: Enforce K=4 in production (config.py N_STATES=4)
   - Tests: 21/21 passing
 
-- ✅ **02.5-04:** VaR Backtesting Fix
+- **02.5-04:** VaR Backtesting Fix
   - Finding: Static VaR fails Christoffersen (p=0.0039), GARCH passes both tests
   - GARCH VaR: Kupiec p=0.952, Christoffersen p=0.547
-  - Deliverables: Risk model card, updated signals.py, dashboard GARCH visualization
   - Tests: 16/16 passing
 
 ### Wave 3 (Final): Validation & Documentation
 
-- ✅ **02.5-05:** Model Validation Scorecard & Production Checklist
+- **02.5-05:** Model Validation Scorecard & Production Checklist
   - Deliverables: MODEL_CARD.md, REPRODUCIBILITY.md, KNOWN_ISSUES.md, TROUBLESHOOTING.md
-  - Documentation: 8 sections, 280+ lines per file
   - Tests: 30+ validation tests, all passing
-  - Production Checklist: All items green
 
 **Total Duration:** ~9 hours (3 waves, parallelized)  
-**Test Status:** 160+ tests passing (155 existing + 30+ new)  
-**Production Readiness:** ✅ **ALL GREEN**
-
-## Next Steps
-
-1. **Immediate:** Review MODEL_CARD.md and REPRODUCIBILITY.md for deployment
-2. **Verification:** Run full test suite (`pytest tests/`)
-3. **Deploy:** Push to production with monitoring (monthly backtest, quarterly review)
-4. **Integration:** Consume signals in Algo-Trading-Bot (garch_var_95 field)
+**Test Status:** 160+ tests passing  
+**Production Readiness:** ALL GREEN
 
 ---
 
@@ -249,90 +221,5 @@ Current system naively combines 13 features via PCA → HMM. Institutional resea
 - User requested "full reset on planning and GSD structure" (tons of things happened, wasn't well organized)
 - Model accuracy/stability issues + code organization issues identified
 - Goal: Clean code + good model + live integration by 2026-04-30
-- Codebase analysis revealed 4 critical production blockers (not 10+)
-- Architecture is **fundamentally sound** (NumPyro, 28 tests, causal guarantees)
-- Reset is **unblocking + optimization**, not rewrite
-
----
-
-## Execution Progress (Session #5 - 2026-04-13)
-
-**Plan 01-01 Execution Summary:**
-
-- Work completed in prior session (commit 0b3c480)
-- Verified all success criteria met:
-  - ✅ requirements.txt: clean, no merge markers
-  - ✅ JAX 0.9.1 and NumPyro 0.20.0 pinned exactly
-  - ✅ CLAUDE.md reproducibility section documented
-  - ✅ CI/CD pin-check workflow in place
-  - ✅ 12+ JAX/NumPyro imports verified in codebase
-- Summary created and committed (82156e6)
-- Progress updated: 1/3 plans complete
-
-**Plan 01 Complete Execution Summary (Session #6 - 2026-04-13):**
-
-Executed all remaining tasks for blockers 1.2, 1.3, 1.4:
-
-**Task 1.3: Causality Tests + Documentation (commit 6a38283)**
-
-- Reviewed test_causality.py: 10 tests covering 6 guarantees ✅
-- Updated CLAUDE.md: "Causality Guarantees (No Lookahead)" section ✅
-  - Documents expanding windows, standardization, PCA, HMM filtering
-  - References all 10 tests by name
-  - Affirms CI/CD fails if any guarantee violated
-- All tests pass: 10/10 ✅
-
-**Task 1.4: Integration Test with Algo-Trading-Bot (commit ac22a78)**
-
-- Created tests/test_bot_integration.py with:
-  - Schema validator function: validate_signal_schema() ✅
-  - Mock bot handler: MockBotSignalHandler class ✅
-  - 5 test cases: schema, labels, probs, round-trip, date ✅
-- Updated CI/CD: added explicit "Run bot integration tests" step ✅
-- Execution time verified: 3.12s (<5 min requirement) ✅
-- All tests pass: 33/33 (28 existing + 5 new) ✅
-
-**Summary Created (commit 91d264c)**
-
-- Comprehensive SUMMARY.md documenting all 4 blockers
-- 427 lines with full context, decisions, and verification results
-- All success criteria verified
-
-**Final Status:**
-
-- All 4 critical blockers CLOSED ✅
-- Code ready for production handoff
-- Integration test green
-- Reproducibility and causality guaranteed
-- Progress updated: 2/3 plans complete (01 and 01-01)
-
----
-
-## Execution Progress (Session #7 - 2026-04-13)
-
-**Plan 01-02 Execution Summary:**
-
-- Work completed in prior session (commit c319b1a)
-- Verified all success criteria met:
-  - ✅ LABEL_MAPPING in config.py (Low-Vol→LOW_VOL mapping)
-  - ✅ bot_label field in compute_signals() output
-  - ✅ Inline validation in compute_signals() (KeyError if regime not in mapping)
-  - ✅ CLAUDE.md Bot Integration section documents convention
-  - ✅ Backward compatibility preserved (current_regime field still present)
-  - ✅ All 28 existing + 5 bot integration tests pass
-- Summary created and committed (d245456)
-- Progress updated: 2/3 plans complete (01-01 and 01-02)
-
-**Deviations from Plan 01-02 (all justified by CLAUDE.md):**
-
-- Used LABEL_MAPPING instead of BOT_LABEL_MAP (per CLAUDE.md specification)
-- Used bot_label field instead of bot_regime (per CLAUDE.md specification)
-- Inline validation instead of separate validate_regime_labels() function (simpler, more direct)
-
-**Final Status:**
-
-- Blocker 1.1 (JAX pinning): ✅ COMPLETE
-- Blocker 1.2 (Bot label mapping): ✅ COMPLETE
-- Blocker 1.3 (Causality tests): ✅ COMPLETE
-- Blocker 1.4 (Integration test): ✅ COMPLETE
-- Progress updated: 2/3 plans complete (01-01 and 01-02)
+- Architecture is fundamentally sound (NumPyro, 160+ tests, causal guarantees)
+- Reset is unblocking + optimization, not rewrite
