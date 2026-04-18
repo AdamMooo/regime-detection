@@ -148,14 +148,14 @@ def _print_bootstrap_cis(market, labels, name_map, spy_ret, label_source,
                 vix_boot = vix[idx]
                 boot_stats[r]['vix'].append(vix_boot[mask].mean())
 
-            # Regime duration
-            runs = np.where(np.diff(np.concatenate([[-1], boot_labels, [-1]])) != 0)[0]
+            # Regime duration — transitions marks segment boundaries
+            transitions = np.where(np.diff(np.concatenate([[-1], boot_labels, [-1]])) != 0)[0]
             durations = []
-            for i in range(0, len(runs) - 1, 2):
-                if i + 1 < len(runs):
-                    d = runs[i + 1] - runs[i]
-                    if boot_labels[runs[i]] == r:
-                        durations.append(d)
+            for j in range(len(transitions) - 1):
+                seg_start = transitions[j]
+                seg_end = transitions[j + 1]
+                if boot_labels[seg_start] == r:
+                    durations.append(seg_end - seg_start)
             if durations:
                 boot_stats[r]['duration'].append(np.mean(durations))
 
@@ -301,7 +301,13 @@ def kupiec_pof_test(n_obs, n_exc, alpha):
         Test statistic (chi-squared)
     """
     p = alpha  # Expected failure rate
-    p_hat = n_exc / n_obs if n_obs > 0 else 0
+    if n_exc == 0:
+        # Only the non-exceedance term survives when p_hat = 0
+        return -2 * n_obs * np.log(1 - alpha)
+    if n_exc == n_obs:
+        # p_hat = 1 → log((1 - p_hat) / (1 - p)) = log(0), undefined
+        return np.nan
+    p_hat = n_exc / n_obs
     lr = 2 * (n_exc * np.log(p_hat / p) + (n_obs - n_exc) * np.log((1 - p_hat) / (1 - p)))
     return lr
 
@@ -488,8 +494,26 @@ def compare_var_methods(spy_returns, labels, name_map, alpha=VAR_ALPHA):
             kupiec_stat = kupiec_pof_test(n_obs, n_exc, alpha)
             garch_kupiec_p = 1 - chi2.cdf(kupiec_stat, df=1) if not np.isnan(kupiec_stat) else np.nan
 
-            # Christoffersen test (approximate)
-            garch_christo_p = 0.547  # Known from Phase 2.5.4 analysis
+            # Christoffersen test — compute dynamically on GARCH residuals
+            indicators = (y.values / 100 < -var_dynamic).astype(int)
+            n00 = int(((indicators[:-1] == 0) & (indicators[1:] == 0)).sum())
+            n01 = int(((indicators[:-1] == 0) & (indicators[1:] == 1)).sum())
+            n10 = int(((indicators[:-1] == 1) & (indicators[1:] == 0)).sum())
+            n11 = int(((indicators[:-1] == 1) & (indicators[1:] == 1)).sum())
+            if (n01 + n11) > 0 and (n10 + n11) > 0 and (n00 + n01 + n10 + n11) > 0:
+                p01 = n01 / (n00 + n01) if (n00 + n01) > 0 else 0
+                p11 = n11 / (n10 + n11) if (n10 + n11) > 0 else 0
+                p_bar = (n01 + n11) / (n00 + n01 + n10 + n11)
+                if 0 < p_bar < 1 and p01 > 0 and p11 > 0:
+                    lr_christo = 2 * (
+                        n01 * np.log(p01 / p_bar) + n11 * np.log(p11 / p_bar) +
+                        (n00 + n10) * np.log((1 - p01) / (1 - p_bar))
+                    )
+                    garch_christo_p = 1 - chi2.cdf(lr_christo, df=1)
+                else:
+                    garch_christo_p = np.nan
+            else:
+                garch_christo_p = np.nan
         except:
             garch_kupiec_p = np.nan
             garch_christo_p = np.nan
@@ -564,11 +588,8 @@ def compute_forward_return_analysis(results, market):
         if col not in market.columns:
             continue
         price = market[col].reindex(aligned.index)
-        log_ret = np.log(price / price.shift(1))
         for h_name, h_days in horizons.items():
-            # Forward return = sum of next h_days log-returns (shift backward)
-            fwd = log_ret.shift(-h_days).rolling(h_days).sum()
-            # Actually compute as: log(price[t+h] / price[t])
+            # Forward return: log(price[t+h] / price[t]) in percent
             fwd_ret = np.log(price.shift(-h_days) / price) * 100  # percent
             aligned[f'{asset}_{h_name}'] = fwd_ret.reindex(aligned.index)
 
