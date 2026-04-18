@@ -349,12 +349,6 @@ def compute_persistence_baseline(results):
     actual = oos_regimes.reindex(baseline_preds.index)
     baseline_accuracy = (baseline_preds == actual).mean()
 
-    # Model self-consistency: how often does model maintain the same regime?
-    # (pure model-vs-persistence, no ground truth available without a second model)
-    model_preds = oos_regimes.shift(1).dropna()
-    model_actual = oos_regimes.reindex(model_preds.index)
-    model_match_rate = (model_preds == model_actual).mean()  # same as baseline by construction
-
     # For lift, we compare model regime transition count vs persistence
     n_changes = (oos_regimes != oos_regimes.shift(1)).sum()
     n_total = len(oos_regimes)
