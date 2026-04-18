@@ -40,7 +40,7 @@ christoffersen_test(spy_returns, labels, name_map, alpha)
 import logging
 import numpy as np
 import pandas as pd
-from scipy.stats import binom, chi2
+from scipy.stats import binom, chi2, kruskal
 from scipy.special import erfinv
 
 from src.config import RANDOM_SEED, VAR_ALPHA
@@ -658,6 +658,135 @@ def _get_blocks(mask):
     return blocks
 
 
+def analyze_forward_returns(results, market, horizons=None, assets=None):
+    """Compute regime-conditional forward return analysis with Kruskal-Wallis tests.
+
+    For each asset/horizon combination, computes forward log returns, groups them
+    by regime, and runs a Kruskal-Wallis test to assess whether regime labels
+    correspond to statistically different return distributions.
+
+    IMPORTANT: Forward returns are diagnostic outputs only. They are never added
+    as model features or used in training. This function is read-only with respect
+    to regime assignments.
+
+    Parameters
+    ----------
+    results : DataFrame
+        Regime results with 'regime_name' column and DatetimeIndex.
+    market : DataFrame
+        Market price data with columns like 'SPY_close', 'EEM_close', etc.
+    horizons : list of int, optional
+        Forward return horizons in days. Default: [1, 5, 21].
+    assets : list of str, optional
+        Asset tickers. Default: ['SPY', 'EEM', 'TLT', 'HYG'].
+
+    Returns
+    -------
+    dict
+        Keys are (asset, horizon) tuples. Values are dicts with:
+        - 'median_returns': {regime_name: median_forward_return}
+        - 'kw_stat': Kruskal-Wallis H statistic
+        - 'kw_pvalue': Kruskal-Wallis p-value
+        - 'n_regimes': number of regimes tested
+        Returns empty dict if data is insufficient.
+    """
+    if horizons is None:
+        horizons = [1, 5, 21]
+    if assets is None:
+        assets = ['SPY', 'EEM', 'TLT', 'HYG']
+
+    if results is None or market is None:
+        logger.warning("analyze_forward_returns: results or market is None — skipping")
+        return {}
+
+    regime_col = 'regime_name' if 'regime_name' in results.columns else results.columns[0]
+
+    results_output = {}
+
+    print("\nRegime-Conditional Forward Return Analysis (DIAG-04):")
+    print("=" * 70)
+    print("Note: p < 0.05 suggests regime separation for this asset/horizon")
+    print(f"  {'Asset':<6s} {'Horizon':>8s} {'KW stat':>10s} {'p-value':>10s}")
+    print(f"  {'-' * 40}")
+
+    for asset in assets:
+        col = f"{asset}_close"
+        if col not in market.columns:
+            logger.debug("analyze_forward_returns: column %s not found — skipping %s", col, asset)
+            continue
+
+        prices = market[col].dropna()
+
+        for horizon in horizons:
+            # Compute forward log returns (shift back so t aligns with return over [t, t+h])
+            fwd_ret = np.log(prices.shift(-horizon) / prices)
+
+            # Align with regime labels
+            common_idx = results.index.intersection(fwd_ret.index)
+            if len(common_idx) < 10:
+                continue
+
+            regimes = results.loc[common_idx, regime_col]
+            returns = fwd_ret.reindex(common_idx)
+
+            # Drop NaN forward returns (last `horizon` rows will be NaN)
+            valid = returns.notna()
+            regimes = regimes[valid]
+            returns = returns[valid]
+
+            unique_regimes = regimes.unique()
+            if len(unique_regimes) < 2:
+                continue
+
+            # Per-regime median returns
+            median_returns = {}
+            groups = []
+            for reg in sorted(unique_regimes):
+                reg_rets = returns[regimes == reg].values
+                median_returns[reg] = float(np.median(reg_rets))
+                groups.append(reg_rets)
+
+            # Kruskal-Wallis test
+            try:
+                kw_stat, kw_pvalue = kruskal(*groups)
+            except Exception:
+                kw_stat, kw_pvalue = np.nan, np.nan
+
+            results_output[(asset, horizon)] = {
+                'median_returns': median_returns,
+                'kw_stat': float(kw_stat),
+                'kw_pvalue': float(kw_pvalue),
+                'n_regimes': len(unique_regimes),
+            }
+
+            print(f"  {asset:<6s} {horizon:>5d}d     {kw_stat:>10.3f} {kw_pvalue:>10.4f}")
+
+    # Per-regime median return summary
+    if results_output:
+        print(f"\n  Per-Regime Median Forward Returns (SPY):")
+        print(f"  {'Regime':<20s}", end="")
+        for h in horizons:
+            print(f"  {h}d ret", end="")
+        print()
+        print(f"  {'-' * 50}")
+
+        if results is not None:
+            regime_col_vals = results[regime_col].dropna().unique()
+            for reg in sorted(regime_col_vals):
+                print(f"  {str(reg):<20s}", end="")
+                for h in horizons:
+                    key = ('SPY', h)
+                    if key in results_output and reg in results_output[key]['median_returns']:
+                        val = results_output[key]['median_returns'][reg] * 100
+                        print(f"  {val:>+6.2f}%", end="")
+                    else:
+                        print(f"  {'N/A':>7s}", end="")
+                print()
+
+    print()
+    return results_output
+
+
 __all__ = [
     'evaluate',
     'compute_var_backtest',
@@ -667,4 +796,5 @@ __all__ = [
     'kupiec_pof_test',
     'christoffersen_test',
     'compute_forward_return_analysis',
+    'analyze_forward_returns',
 ]
