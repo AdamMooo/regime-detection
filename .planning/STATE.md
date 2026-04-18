@@ -75,10 +75,10 @@ progress:
 ### Decision 2: 3 Regime Fixed Count
 
 **Context:** Model produces 3 latent regimes; labels map to market volatility regimes  
-**Decision:** Fix at 3 regimes (Low-Vol, Moderate-Vol, High-Vol)  
-**Rationale:** Matches economic intuition and Algo-Trading-Bot convention  
-**Trade-offs:** Less flexibility, but simpler integration  
-**Status:** Locked in hard constraints (superseded by Phase 2.5-03: K=4 justified by BIC)
+**Decision:** Fix at K=3 regimes (Low-Vol, Moderate, High-Vol)  
+**Rationale:** K=3 is academically correct. Phase 2.5 BIC justified K=4 statistically but empirically regimes 0&1 overlapped (15.3 vs 17.4 VIX avg — barely different). K=4 was a statistical artefact. config.py already has N_STATES=3.  
+**Trade-offs:** Downstream consumers (Algo-Trading-Bot, Portfolio-Manager) expect 4-label schema — both must be updated  
+**Status:** Locked — K=3 confirmed 2026-04-18, overrides Phase 2.5-03 BIC result
 
 ---
 
@@ -125,7 +125,7 @@ progress:
 ## Code Quality Baseline (v1.0 shipped)
 
 - **Test count:** 160+ tests passing
-- **Hard constraint compliance:** All 4 met (NumPyro, 13→PCA→HMM, no K-means, K=4 regimes)
+- **Hard constraint compliance:** All 4 met (NumPyro, 13→PCA→HMM, no K-means, K=3 regimes)
 - **Causal guarantees:** Verified (no lookahead in features, standardization, PCA)
 - **VaR:** GARCH-conditional (Kupiec p=0.952, Christoffersen p=0.547)
 - **Known concern:** Model not empirically validated for economic meaningfulness — v1.1 addresses this

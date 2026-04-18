@@ -57,11 +57,11 @@ Plans:
 **Plans**: TBD
 
 ### Phase 6: Model Architecture Experiments
-**Goal**: K regime count is selected on OOS evidence, the USE_HDP decision is locked with documentation, and train.py is refactored so no module exceeds 500 lines
+**Goal**: The USE_HDP decision is locked with documentation, and train.py is refactored so no module exceeds 500 lines
 **Depends on**: Phase 5
-**Requirements**: MODEL-01, MODEL-02, MODEL-03
+**Requirements**: MODEL-02, MODEL-03
 **Success Criteria** (what must be TRUE):
-  1. K=3, K=4, and K=5 are compared on OOS stability and economic validity (DIAG-04 metrics) — a winner is selected and locked in config
+  1. K=3 is locked (confirmed 2026-04-18 — academically correct, empirically K=4 regimes 0&1 overlapped). K-selection experiment dropped.
   2. A documented decision on USE_HDP exists: either NumPyro HDP-HMM is re-enabled with evidence it outperforms StudentTHMM, or the dead code is formally deprecated and removed
   3. No single module in the training pipeline exceeds 500 lines; training, evaluation, and dashboard building are separate files
 **Plans**: TBD
