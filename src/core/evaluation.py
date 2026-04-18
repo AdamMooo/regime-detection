@@ -522,6 +522,100 @@ def compare_var_methods(spy_returns, labels, name_map, alpha=VAR_ALPHA):
     return comparison
 
 
+def compute_forward_return_analysis(results, market):
+    """Compute regime-conditional forward return analysis (DIAG-04).
+
+    For each detected regime, compute 1d/5d/21d forward returns of SPY, EEM, TLT, HYG
+    and test for statistical separation across regimes using Kruskal-Wallis.
+
+    This is a VALIDATION DIAGNOSTIC ONLY. Forward returns are never used as model
+    features or in training — doing so would introduce lookahead bias.
+
+    Parameters
+    ----------
+    results : DataFrame
+        Regime results with regime_name column and DatetimeIndex
+    market : DataFrame
+        Market data with price columns (SPY_close, EEM_close, TLT_close, HYG_close)
+
+    Returns
+    -------
+    dict with keys:
+        'kruskal_wallis': dict mapping '{asset}_{horizon}' -> {'statistic', 'p_value'}
+        'mean_returns': dict mapping asset -> regime -> horizon -> mean return (%)
+        'n_obs': int total observations used
+    """
+    from scipy.stats import kruskal
+
+    if results is None or market is None:
+        return {}
+
+    regime_col = 'regime_name' if 'regime_name' in results.columns else results.columns[0]
+    regimes = results[regime_col].dropna()
+
+    assets = ['SPY', 'EEM', 'TLT', 'HYG']
+    horizons = {'1d': 1, '5d': 5, '21d': 21}
+
+    # Build aligned DataFrame: regime + forward returns for each asset/horizon
+    aligned = pd.DataFrame({'regime': regimes})
+
+    for asset in assets:
+        col = f'{asset}_close'
+        if col not in market.columns:
+            continue
+        price = market[col].reindex(aligned.index)
+        log_ret = np.log(price / price.shift(1))
+        for h_name, h_days in horizons.items():
+            # Forward return = sum of next h_days log-returns (shift backward)
+            fwd = log_ret.shift(-h_days).rolling(h_days).sum()
+            # Actually compute as: log(price[t+h] / price[t])
+            fwd_ret = np.log(price.shift(-h_days) / price) * 100  # percent
+            aligned[f'{asset}_{h_name}'] = fwd_ret.reindex(aligned.index)
+
+    aligned = aligned.dropna(subset=['regime'])
+    unique_regimes = sorted(aligned['regime'].dropna().unique())
+
+    kw_results = {}
+    mean_returns = {asset: {r: {} for r in unique_regimes} for asset in assets}
+
+    for asset in assets:
+        for h_name in horizons:
+            col = f'{asset}_{h_name}'
+            if col not in aligned.columns:
+                continue
+
+            groups = []
+            for regime in unique_regimes:
+                grp = aligned.loc[aligned['regime'] == regime, col].dropna()
+                groups.append(grp.values)
+                mean_returns[asset][regime][h_name] = float(grp.mean()) if len(grp) > 0 else None
+
+            # Kruskal-Wallis: non-parametric test for equal distributions
+            if len(groups) >= 2 and all(len(g) >= 5 for g in groups):
+                try:
+                    stat, p = kruskal(*groups)
+                    kw_results[f'{asset}_{h_name}'] = {'statistic': float(stat), 'p_value': float(p)}
+                except Exception:
+                    kw_results[f'{asset}_{h_name}'] = {'statistic': None, 'p_value': None}
+
+    print(f"\n  DIAG-04: Forward Return Analysis")
+    print(f"    Assets: {', '.join(assets)}")
+    print(f"    Horizons: {', '.join(horizons.keys())}")
+    print(f"    Regimes: {unique_regimes}")
+    print(f"\n    Kruskal-Wallis p-values (H0: equal distribution across regimes):")
+    for key, val in kw_results.items():
+        p = val.get('p_value')
+        sig = '**' if p is not None and p < 0.05 else ''
+        p_str = f"{p:.4f}" if p is not None else 'N/A'
+        print(f"      {key}: p={p_str} {sig}")
+
+    return {
+        'kruskal_wallis': kw_results,
+        'mean_returns': mean_returns,
+        'n_obs': int(len(aligned.dropna())),
+    }
+
+
 def warn_static_var_deprecated():
     """Warn user that static VaR is deprecated."""
     logger.warning(
@@ -572,4 +666,5 @@ __all__ = [
     'warn_static_var_deprecated',
     'kupiec_pof_test',
     'christoffersen_test',
+    'compute_forward_return_analysis',
 ]
