@@ -66,24 +66,23 @@ CURATED_FEATURES = [
     'rv_ratio_10_63',    # vol term structure (short/long; >1 = spike)
     'vix_ts_slope',      # VIX term structure (contango / backwardation)
     'SPY_volvol20',      # vol-of-vol (discrete-time ξ analog)
-    # Cross-asset risk
+    'SPY_skew20',        # rolling skewness (20d) — higher vol moment
+    # Cross-asset risk / financial conditions
     'SPY_TLT_corr63',   # stock-bond correlation regime
     'credit_stress',     # HY vs Treasury flow (20d rolling)
-    # Return dynamics
+    'eigen_conc',        # eigenvalue concentration — systemic co-movement
+    'SPY_dd63',          # 63d drawdown depth — financial stress indicator
+    # Microstructure
     'SPY_ret',           # daily log return
-    'SPY_skew20',        # rolling skewness (20d)
-    'SPY_ac1_20',        # rolling first-order autocorrelation (20d)
-    # Market structure
-    'eigen_conc',        # eigenvalue concentration (one-factor signal)
-    'SPY_dd63',          # 63d drawdown depth
-    # Liquidity
+    'SPY_ac1_20',        # Roll (1984) bid-ask statistic — Σ(r_t·r_{t-1})/Σ(r_t²)
     'SPY_rel_volume',    # relative volume vs 20d mean
-    'SPY_vol_adj_ret',   # volume-normalized absolute return
+    'SPY_vol_adj_ret',   # Amihud-like price impact: |r|/normalized_volume
+    'amihud_illiq20',    # Amihud (2002) illiquidity: |r|/share_volume, 20d mean
+    'roll_spread20',     # Roll (1984) effective spread: 2·√(max(0,−Cov(r_t,r_{t−1})))
+    'lev_effect20',      # leverage effect — rolling corr(return, Δvol)
     # SV-specific
     'SPY_rv10_lag5',     # lagged realized vol (5d)
     'SPY_rv10_lag10',    # lagged realized vol (10d)
-    # Leverage / fragility
-    'lev_effect20',      # return-vol correlation (leverage effect)
     # Macro (Phase 5 FRED additions)
     'HY_OAS',              # ICE BofA HY OAS — credit risk premium
     'NFCI',                # Chicago Fed National Financial Conditions Index
@@ -100,22 +99,26 @@ CURATED_FEATURES = [
 # derivation and CFNAI / NFCI analogy.
 
 SECTION_MAP = {
+    # Volatility level + dynamics (8 features → PC1)
     's_vol': ['VIX', 'VRP', 'rv_ratio_10_63', 'vix_ts_slope', 'SPY_volvol20',
-              'SPY_rv10_lag5', 'SPY_rv10_lag10', 'lev_effect20'],
-    's_fin': ['credit_stress', 'SPY_TLT_corr63', 'HY_OAS', 'NFCI'],
-    's_mac': ['yield_curve_slope', 'GLD_trend', 'SPY_ret', 'SPY_ac1_20'],
-    's_str': ['eigen_conc', 'SPY_dd63', 'SPY_rel_volume', 'SPY_vol_adj_ret',
-              'SPY_skew20'],
+              'SPY_rv10_lag5', 'SPY_rv10_lag10', 'SPY_skew20'],
+    # Financial conditions + credit + systemic stress (6 features → PC1)
+    's_fin': ['credit_stress', 'SPY_TLT_corr63', 'HY_OAS', 'NFCI',
+              'eigen_conc', 'SPY_dd63'],
+    # Macro/economic cycle — pure leading indicators (2 features → PC1)
+    's_mac': ['yield_curve_slope', 'GLD_trend'],
+    # NOTE: s_str (microstructure) removed — walk-forward MI was consistently below
+    # threshold (freq=0.26) with daily OHLCV proxies. Requires tick data to be useful.
+    # Re-add when intraday spread data is available.
 }
 
 # Canonical anchor feature per section: after fitting PCA, if the loading on
 # the anchor is negative the sign is flipped. Ensures reproducible sign across
 # folds (per 05-RESEARCH.md Pitfall 1 — PCA eigenvector sign is arbitrary).
 SECTION_ANCHORS = {
-    's_vol': 'VIX',               # positive VIX loading => signal rises with vol
+    's_vol': 'VIX',               # positive VIX loading => signal rises with vol (stress)
     's_fin': 'HY_OAS',            # positive HY_OAS loading => signal rises with credit stress
-    's_mac': 'yield_curve_slope', # positive T10Y2Y => signal rises with expansion
-    's_str': 'SPY_dd63',          # SPY_dd63 is negative by construction; anchor flips it positive
+    's_mac': 'yield_curve_slope', # positive T10Y2Y = expansion signal
 }
 
 
@@ -274,6 +277,22 @@ def build_features(market: pd.DataFrame) -> pd.DataFrame:
     if 'SPY_volume' in market.columns and spy_ret is not None:
         norm_vol = market['SPY_volume'] / market['SPY_volume'].rolling(LONG_WINDOW).mean()
         f['SPY_vol_adj_ret'] = spy_ret.abs() / norm_vol.clip(lower=0.1)
+
+    # ── Microstructure ─────────────────────────────────────────────────
+
+    # Amihud (2002) illiquidity: |r| / share_volume (per million shares), 20d mean
+    # Rises in illiquid/crisis regimes when large price moves occur on thin volume.
+    if spy_ret is not None and 'SPY_volume' in market.columns:
+        f['amihud_illiq20'] = (
+            spy_ret.abs() / (market['SPY_volume'] / 1e6).clip(lower=0.01)
+        ).rolling(MED_WINDOW).mean()
+
+    # Roll (1984) effective spread: 2·√(max(0, −Cov(r_t, r_{t−1})))
+    # Negative serial covariance is the fingerprint of bid-ask bounce;
+    # its square root recovers the half-spread estimate.
+    if spy_ret is not None:
+        cov_roll = spy_ret.rolling(MED_WINDOW).cov(spy_ret.shift(1))
+        f['roll_spread20'] = 2 * np.sqrt(np.maximum(0.0, -cov_roll))
 
     # ── SV-specific features (critical for ρ, ϕ identification) ───
 

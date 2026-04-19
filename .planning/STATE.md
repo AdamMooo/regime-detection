@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Model Quality & Regime Reliability
 status: planning
-last_updated: "2026-04-18T03:37:54.273Z"
+last_updated: "2026-04-19T20:20:51.739Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 2
-  completed_plans: 2
+  completed_plans: 5
   percent: 100
 ---
 
