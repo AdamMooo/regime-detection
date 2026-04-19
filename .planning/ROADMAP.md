@@ -47,14 +47,20 @@ Plans:
 - [x] 04-02-PLAN.md — compute_regime_forward_returns() in evaluation.py + test_regime_economic_validity.py (DIAG-04)
 
 ### Phase 5: Feature Engineering Overhaul
-**Goal**: Feature selection uses walk-forward cross-validation with an expanded candidate set, and importance is documented — no held-out split bias remains
+**Goal**: Sectioned funnel feature architecture — expanded 21-feature candidate set grouped into 4 thematic sections (Vol / FinConditions / Macro / Market Structure), reduced to per-section PC1 signals, selected via walk-forward MI with >=60% fold stability; importance documented in data/feature_importance_report.md
 **Depends on**: Phase 4
 **Requirements**: FEAT-01, FEAT-02, FEAT-03
 **Success Criteria** (what must be TRUE):
-  1. Feature candidate set contains 12+ candidates, each with a written economic rationale
+  1. Feature candidate set contains 12+ candidates, each with a written economic rationale (21 features including 3 FRED series + GLD_trend)
   2. Feature selection runs walk-forward: each fold selects features on training data only and tests OOS — no held-out split contamination
-  3. A feature importance document (OOS-measured) shows which features drive regime separation
-**Plans**: TBD
+  3. A feature importance document (OOS-measured) shows which sections drive regime separation
+**Plans**: 5 plans
+Plans:
+- [x] 05-01-PLAN.md — Wave 0 test stubs (test_section_signals, test_walk_forward, test_features::test_fred_features) (FEAT-01, FEAT-02, FEAT-03)
+- [x] 05-02-PLAN.md — FRED_API_KEY config + src/data/collect_macro.py with fredapi / pandas_datareader fallback (FEAT-01)
+- [ ] 05-03-PLAN.md — Extend build_features with FRED + GLD_trend; add build_section_signals + SECTION_MAP + SECTION_ANCHORS (FEAT-01)
+- [x] 05-04-PLAN.md — scripts/analysis/walk_forward_feature_selection.py: causal MI walk-forward + FEAT-03 report writer (FEAT-02, FEAT-03)
+- [ ] 05-05-PLAN.md — apply_feature_selection.py idempotent config update + human verification checkpoint (FEAT-02, FEAT-03)
 
 ### Phase 6: Model Architecture Experiments
 **Goal**: The USE_HDP decision is locked with documentation, and train.py is refactored so no module exceeds 500 lines
@@ -85,6 +91,6 @@ Plans:
 | 2.5 Model Diagnostics & Robustness | v1.0 | 5/5 | Complete | 2026-04-14 |
 | 3. Code Refactoring + Polish | v1.0 | 4/4 | Complete | 2026-04-15 |
 | 4. Empirical Diagnostics | v1.1 | 0/2 | Not started | - |
-| 5. Feature Engineering Overhaul | v1.1 | 0/? | Not started | - |
+| 5. Feature Engineering Overhaul | v1.1 | 3/5 | In Progress|  |
 | 6. Model Architecture Experiments | v1.1 | 0/? | Not started | - |
 | 7. Daily Pipeline & Clean Outputs | v1.1 | 0/? | Not started | - |
