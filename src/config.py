@@ -18,6 +18,12 @@ VIX_TICKER  = '^VIX'
 VIX3M_TICKER = '^VIX3M'      # 3-month VIX (term structure)
 VVIX_TICKER  = '^VVIX'       # vol-of-VIX
 
+# --- External API keys ---
+# FRED API key for macro data collection (T10Y2Y, BAMLH0A0HYM2, NFCI).
+# Get a free key at https://fred.stlouisfed.org/docs/api/api_key.html.
+# If empty, collect_macro.py falls back to pandas_datareader (rate-limited, no key needed).
+FRED_API_KEY = os.getenv('FRED_API_KEY', '')
+
 # --- Feature windows ---
 SHORT_WINDOW = 10       # ~2 weeks
 MED_WINDOW   = 20       # ~1 month
