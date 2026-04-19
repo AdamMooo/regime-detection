@@ -28,9 +28,9 @@ no UI work until regimes are economically valid.
 
 - [ ] **FEAT-01**: Feature candidate set is expanded to 12+ candidates with economic rationale
   for each (current: 6 features)
-- [ ] **FEAT-02**: Feature selection uses proper walk-forward cross-validation — no held-out
+- [x] **FEAT-02**: Feature selection uses proper walk-forward cross-validation — no held-out
   split bias. Each fold selects features on training data only, tests on OOS fold
-- [ ] **FEAT-03**: Feature importance is documented — which features drive regime separation,
+- [x] **FEAT-03**: Feature importance is documented — which features drive regime separation,
   measured on OOS data
 
 ### Model Architecture

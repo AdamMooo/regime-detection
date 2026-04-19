@@ -580,22 +580,28 @@ def build_section_signals(features: pd.DataFrame, pca_window: int = 252) -> pd.D
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> All three open questions were resolved during planning revision iteration 1.
+> Resolutions are recorded inline below and propagated into the plan set.
 
 1. **N_STATES Discrepancy**
    - What we know: config.py has N_STATES=3; CLAUDE.md architectural constraint says K=4 (Expansion, Neutral, Contraction, Crisis). Phase 2.5-03 confirmed K=4 by BIC, but a subsequent session reverted to K=3.
    - What's unclear: Which K should Phase 5 walk-forward use? Walk-forward generates regime labels for MI computation — those labels must match the intended production K.
    - Recommendation: Planner should present this to user before task 1. If K=4, update config.py N_STATES back to 4 as a prerequisite step.
+   - **RESOLVED:** K=3 is the confirmed production value. The current CLAUDE.md (Apr 2026) states "K=3 regimes — confirmed academically correct (K=4 BIC gain was statistical artefact; empirically regimes 0&1 overlapped)". config.py N_STATES=3 is CONSISTENT with the architectural lock; the Pitfall 6 entry in this document reflects an earlier state of CLAUDE.md and is superseded. Phase 5 walk-forward uses K=3.
 
 2. **FRED API Key**
    - What we know: fredapi is installed. Collect functions need a FRED API key.
    - What's unclear: Where the key is stored (env var? config.py? .env file?). current collect.py doesn't use FRED.
    - Recommendation: Add `FRED_API_KEY = os.getenv('FRED_API_KEY', '')` to config.py. User must set the env var. Free key obtainable at fred.stlouisfed.org/docs/api/api_key.html.
+   - **RESOLVED:** Stored as `FRED_API_KEY = os.getenv('FRED_API_KEY', '')` in `src/config.py` (added by Plan 02 Task 1). Empty default triggers the `pandas_datareader` fallback in `src/data/collect_macro.py` (Plan 02 Task 3), so no user action is required to run the phase. User setting the env var is optional and only lifts the FRED public rate limit.
 
 3. **Section PCA Refitting in Walk-Forward**
    - What we know: The walk-forward loop must refit section PCA on each training fold to avoid lookahead.
    - What's unclear: Whether to refit section PCA at the same granularity as the outer walk-forward step (21-day step) or at a coarser granularity (annual). Refitting every 21 days is computationally cheap and correct.
    - Recommendation: Refit section PCA every fold iteration. Computational cost is negligible (PCA on ≤8 features, ≤252 rows).
+   - **RESOLVED:** Refit per fold at the 21-day step granularity. Implemented via a new fold-aware helper `build_section_signals_for_fold(features_slice, pca_window)` (Plan 03 Task 2) that is invoked inside `walk_forward_section_selection` (Plan 04 Task 1) with `features.iloc[train_start:t]` — never on full history. This closes Pitfall 4 (Section PCA Fitted on Full Data) structurally, not just in intent.
 
 ---
 

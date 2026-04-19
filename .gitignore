@@ -12,3 +12,4 @@ figures/
 *.pyo
 *.bak
 .claude/
+.claude/settings.local.json

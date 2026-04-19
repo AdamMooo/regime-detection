@@ -26,7 +26,20 @@
       "Bash(ls -la *.py)",
       "Bash(ls:*)",
       "mcp__plugin_claude-mem_mcp-search__smart_outline",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(rm -f __TRACKED_VAR__/.claude/cache/gsd-update-check.json)",
+      "Bash([ -f \"$HOME/.claude/gsd-local-patches/backup-meta.json\" ])",
+      "Bash(npm uninstall *)",
+      "Bash(npm install *)",
+      "Bash(npx *)",
+      "Bash(npm --version)",
+      "Bash(npm list *)",
+      "Bash(npm audit *)",
+      "Bash(npm cache *)",
+      "Bash(npm config *)",
+      "Bash(awk '{print $6, $7, $8, $9, $10}')",
+      "Bash(awk '{print $6 \" \" $7 \" \" $8 \" \" $9}')",
+      "Bash(awk '{print $6 \" \" $7 \" \" $8}')"
     ]
   }
 }

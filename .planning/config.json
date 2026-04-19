@@ -11,7 +11,8 @@
     "parallelization": "wave-based",
     "code_review_required": true,
     "commit_style": "atomic",
-    "ci_cd_enabled": true
+    "ci_cd_enabled": true,
+    "_auto_chain_active": false
   },
   "execution": {
     "model_profile": "balanced",
@@ -29,7 +30,12 @@
     "min_test_coverage": 28,
     "fail_on_regression": true,
     "run_integration_tests": true,
-    "ci_cd_checks": ["linting", "type_checking", "unit_tests", "integration_tests"]
+    "ci_cd_checks": [
+      "linting",
+      "type_checking",
+      "unit_tests",
+      "integration_tests"
+    ]
   },
   "hard_constraints": {
     "hmm_library": "NumPyro only (not hmmlearn, pomegranate)",
