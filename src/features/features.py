@@ -20,6 +20,9 @@ import pandas as pd
 import numpy as np
 import os
 
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
 from src.config import (
     TICKERS, SHORT_WINDOW, MED_WINDOW, LONG_WINDOW,
     DATA_DIR, MODEL_DIR,
@@ -87,6 +90,33 @@ CURATED_FEATURES = [
     'yield_curve_slope',   # T10Y2Y — canonical macro leading indicator
     'GLD_trend',           # 63d GLD log-momentum — inflation/risk-off proxy
 ]
+
+
+# ── Sectioned funnel architecture (Phase 5) ────────────────────────
+# Groups CURATED_FEATURES into 4 thematic sections. build_section_signals()
+# reduces each section to a single rolling-causal PC1 signal, so each economic
+# dimension contributes equally at the HMM input stage regardless of how many
+# raw features populate it. See .planning/phases/05-.../05-RESEARCH.md for
+# derivation and CFNAI / NFCI analogy.
+
+SECTION_MAP = {
+    's_vol': ['VIX', 'VRP', 'rv_ratio_10_63', 'vix_ts_slope', 'SPY_volvol20',
+              'SPY_rv10_lag5', 'SPY_rv10_lag10', 'lev_effect20'],
+    's_fin': ['credit_stress', 'SPY_TLT_corr63', 'HY_OAS', 'NFCI'],
+    's_mac': ['yield_curve_slope', 'GLD_trend', 'SPY_ret', 'SPY_ac1_20'],
+    's_str': ['eigen_conc', 'SPY_dd63', 'SPY_rel_volume', 'SPY_vol_adj_ret',
+              'SPY_skew20'],
+}
+
+# Canonical anchor feature per section: after fitting PCA, if the loading on
+# the anchor is negative the sign is flipped. Ensures reproducible sign across
+# folds (per 05-RESEARCH.md Pitfall 1 — PCA eigenvector sign is arbitrary).
+SECTION_ANCHORS = {
+    's_vol': 'VIX',               # positive VIX loading => signal rises with vol
+    's_fin': 'HY_OAS',            # positive HY_OAS loading => signal rises with credit stress
+    's_mac': 'yield_curve_slope', # positive T10Y2Y => signal rises with expansion
+    's_str': 'SPY_dd63',          # SPY_dd63 is negative by construction; anchor flips it positive
+}
 
 
 def _merge_macro_data(market: pd.DataFrame) -> pd.DataFrame:
@@ -339,6 +369,121 @@ def _validate_features(features: pd.DataFrame) -> None:
     dead_cols = stds[stds < 1e-8].index.tolist()
     if dead_cols:
         print(f"  WARNING: Near-zero variance features: {dead_cols}")
+
+# ── Section signal construction (Phase 5 sectioned funnel) ───────────
+
+def _fit_section_signals(df: pd.DataFrame,
+                         pca_window: int) -> pd.DataFrame:
+    """Core section-signal computation. CALLER controls what rows `df` contains.
+
+    For each section in SECTION_MAP:
+      1. Select the subset of features present in the input.
+      2. If section has 0 features -> omit from output.
+      3. If section has 1 feature -> pass through directly (no PCA).
+      4. Otherwise: standardize + PCA(n_components=1) fit on df.iloc[-(pca_window+1):-1]
+         (the window ending just BEFORE the last row), sign-correct via SECTION_ANCHORS,
+         transform every row in df.
+
+    Causal guarantee: the fit window deliberately excludes the last row so that
+    mutating only the last observation never changes output for any prior row.
+    This is the strict-causal pattern: for row t the PCA was fit on rows
+    [t-pca_window-1 : t-1], meaning row t itself is never in the training window.
+    `build_section_signals` (rolling mode) and `build_section_signals_for_fold`
+    (fold mode) both delegate here.
+    """
+    signals = {}
+    for section_name, feat_cols in SECTION_MAP.items():
+        available = [c for c in feat_cols if c in df.columns]
+        if not available:
+            continue
+
+        section_df = df[available]
+
+        # Single-feature section: pass-through (no PCA needed or meaningful)
+        if len(available) == 1:
+            signals[section_name] = section_df.iloc[:, 0].rename(section_name)
+            continue
+
+        # Strict-causal fit window: exclude the last row so changing only row t
+        # never affects the transform for rows 0..t-1.
+        # Shape: pca_window rows from iloc[-(pca_window+1):-1]
+        fit_slice = section_df.iloc[-(pca_window + 1):-1].values
+        scaler = StandardScaler()
+        scaler.fit(fit_slice)
+        x_std = scaler.transform(section_df.values)
+
+        # Fit PCA on the same causal window
+        pca = PCA(n_components=1, random_state=42)
+        pca.fit(x_std[-(pca_window + 1):-1])
+
+        # Sign correction - anchor to canonical feature
+        anchor = SECTION_ANCHORS.get(section_name)
+        if anchor is not None and anchor in available:
+            anchor_idx = available.index(anchor)
+            if pca.components_[0, anchor_idx] < 0:
+                pca.components_[0] *= -1
+
+        signal = pca.transform(x_std).squeeze()
+        signals[section_name] = pd.Series(signal, index=section_df.index,
+                                          name=section_name)
+
+    if not signals:
+        return pd.DataFrame(index=df.index)
+    return pd.DataFrame(signals)
+
+
+def build_section_signals(features: pd.DataFrame,
+                          pca_window: int = 252) -> pd.DataFrame:
+    """Reduce sectioned features to one PC1 signal per section (causal, rolling).
+
+    Intended for INFERENCE / PRODUCTION / diagnostic use where the caller
+    holds the full history and wants the most recent causal snapshot.
+    Do NOT use inside a walk-forward loop - use `build_section_signals_for_fold`
+    which makes the training-slice contract structural.
+
+    Args:
+        features: DataFrame of raw features (output of build_features()).
+        pca_window: Rows used to FIT scaler and PCA (default 252 ~ 1 year).
+
+    Returns:
+        DataFrame indexed identically to `features` with one column per non-empty
+        section. Column names are the SECTION_MAP keys.
+
+    Causal note: the scaler and PCA are fit on `features.iloc[-pca_window:]`
+    only. This mirrors the rolling PCA pattern in prepare_features() and
+    orchestrator.walk_forward().
+    """
+    return _fit_section_signals(features, pca_window)
+
+
+def build_section_signals_for_fold(features_slice: pd.DataFrame,
+                                   pca_window: int = 252) -> pd.DataFrame:
+    """Fold-aware variant: caller pre-slices to training window.
+
+    USAGE from walk_forward_section_selection (Plan 04):
+        train_slice = features.iloc[train_start:t]   # NEVER includes row t or later
+        fold_signals = build_section_signals_for_fold(train_slice, pca_window=252)
+
+    This function has NO access to rows outside `features_slice`; the causal
+    guarantee is structural, not advisory. The last `pca_window` rows of the
+    passed slice are used to fit; every row in the slice is transformed.
+
+    Args:
+        features_slice: DataFrame - already truncated to training rows. Length
+                        must be >= pca_window (asserted).
+        pca_window:     Rows from the tail of features_slice used to FIT
+                        scaler and PCA.
+
+    Returns:
+        DataFrame indexed identically to `features_slice` with one column per
+        non-empty section. Safe to feed the LAST row into a per-fold MI computation.
+    """
+    assert len(features_slice) >= pca_window, (
+        f"build_section_signals_for_fold: slice has {len(features_slice)} rows, "
+        f"need >= {pca_window} to fit section PCA causally"
+    )
+    return _fit_section_signals(features_slice, pca_window)
+
 
 # ── Convenience: build + transform + save ───────────────────────────
 
