@@ -13,3 +13,4 @@ figures/
 *.bak
 .claude/
 .claude/settings.local.json
+CLAUDE.md
