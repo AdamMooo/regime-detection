@@ -608,10 +608,6 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
         subplot_titles=subtitles,
     )
 
-    for row_i in [1, 2]:
-        _add_shading(fig_tl, label_arr, dates, colors, ordered,
-                     row=row_i, col=1)
-
     spy_data = market.get('SPY_close')
     if spy_data is not None:
         fig_tl.add_trace(go.Scatter(
@@ -632,6 +628,11 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
         fig_tl.add_hline(y=30, line_dash='dash', line_color='#ff7b72',
                          opacity=0.4, row=2, col=1)  # type: ignore[arg-type]
 
+    # Plotly 6: add_vrect must come AFTER traces exist on the subplot row
+    for row_i in [1, 2]:
+        _add_shading(fig_tl, label_arr, dates, colors, ordered,
+                     row=row_i, col=1)
+
     oos_row_start = 3
     if has_oos:
         assert oos_name_map is not None and oos_labels is not None and oos_market is not None
@@ -640,9 +641,6 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
         oos_cols = [_get_regime_color(n) for n in oos_nm]
         oos_dt = list(oos_labels.index)
         oos_la = oos_labels.values
-        for row_i in [3, 4]:
-            _add_shading(fig_tl, oos_la, oos_dt, oos_cols, oos_ord,
-                         row=row_i, col=1)
         spy_oos = oos_market.get('SPY_close')
         if spy_oos is not None:
             fig_tl.add_trace(go.Scatter(
@@ -657,16 +655,21 @@ def build_interactive_dashboard(dates, pcs, probs, labels, name_map,
                 line=dict(color='#bc8cff', width=1), name='VIX OOS',
                 showlegend=False,
             ), row=4, col=1)
+        # Plotly 6: add_vrect must come AFTER traces exist on the subplot row
+        for row_i in [3, 4]:
+            _add_shading(fig_tl, oos_la, oos_dt, oos_cols, oos_ord,
+                         row=row_i, col=1)
         oos_row_start = 5
 
     mode_row = oos_row_start
-    _add_shading(fig_tl, label_arr, dates, colors, ordered,
-                 row=mode_row, col=1)
     fig_tl.add_trace(go.Scatter(
         x=dates, y=mode_ratio, mode='lines',
         line=dict(color='#bc8cff', width=1.2), name='Mode Ratio',
         hovertemplate='%{x}<br>%{y:.4f}<extra></extra>',
     ), row=mode_row, col=1)
+    # Plotly 6: add_vrect must come AFTER traces exist on the subplot row
+    _add_shading(fig_tl, label_arr, dates, colors, ordered,
+                 row=mode_row, col=1)
     fig_tl.update_yaxes(title_text='λ₁/Σλ', row=mode_row, col=1)
 
     fig_tl.update_layout(
@@ -1409,7 +1412,16 @@ def _build_sv_volatility(dates, sv_results, labels, name_map,
         subplot_titles=['SV Latent Vol vs VIX', 'SV Parameters by Regime'],
     )
 
-    # Regime shading on top panel
+    # VIX line
+    vix_data = market.get('VIX')
+    if vix_data is not None:
+        fig.add_trace(go.Scatter(
+            x=vix_data.index, y=vix_data.values, mode='lines',
+            line=dict(color='#bc8cff', width=0.8),
+            name='VIX', hovertemplate='%{x}<br>VIX: %{y:.1f}<extra></extra>',
+        ), row=1, col=1)
+
+    # Regime shading on top panel — Plotly 6: add_vrect after traces exist
     for r_idx, r in enumerate(ordered):
         c_hex = colors[r_idx].lstrip('#')
         rv, gv, bv = int(c_hex[:2], 16), int(c_hex[2:4], 16), int(c_hex[4:6], 16)
@@ -1421,15 +1433,6 @@ def _build_sv_volatility(dates, sv_results, labels, name_map,
                 fillcolor=rgba, opacity=1.0, line_width=0,
                 layer='below', row=1, col=1,  # type: ignore[arg-type]
             )
-
-    # VIX line
-    vix_data = market.get('VIX')
-    if vix_data is not None:
-        fig.add_trace(go.Scatter(
-            x=vix_data.index, y=vix_data.values, mode='lines',
-            line=dict(color='#bc8cff', width=0.8),
-            name='VIX', hovertemplate='%{x}<br>VIX: %{y:.1f}<extra></extra>',
-        ), row=1, col=1)
 
     # SV latent vol
     full_sv = sv_results.get('full', {})
