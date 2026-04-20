@@ -6,25 +6,25 @@ Milestone: Model Quality & Regime Reliability (Phases 4–7)
 Branch: main
 
 ## Last Session Work
-Phase 4: Empirical Diagnostics — COMPLETE (4/4 must-haves verified)
+Phase 5 test suite audit + import path fixes (2026-04-19)
 
-- Extended `scripts/analysis/analyze_regime_characterization.py`:
-  - DIAG-01: vol boxplot, dwell histogram, transition heatmap saved to `figures/`
-  - DIAG-02: `compute_persistence_baseline()` — OOS accuracy vs persist-yesterday (2021–2026 split)
-  - DIAG-03: `analyze_failure_modes()` — short spells, flip-flop patterns, crisis alignment
-  - `write_diagnostics_report()` → `reports/diagnostics_report.md` (run with live data)
-- Extended `src/core/evaluation.py`:
-  - DIAG-04: `compute_forward_return_analysis()` — Kruskal-Wallis p-values for SPY/EEM/TLT/HYG at 1d/5d/21d
-- Added `tests/test_regime_economic_validity.py` — 24 tests, all passing
-
-## Code Review Findings (5 warnings, 0 critical — 04-REVIEW.md)
-- WR-01: `compute_persistence_baseline` — model_preds duplicates baseline_preds (dead var bug)
-- WR-03: `compare_var_methods` — Christoffersen p-value hardcoded to 0.547 (stale)
-- WR-02, WR-04, WR-05: minor correctness issues in evaluation.py
+- Phase 4 code review fixes: all 5 warnings resolved (458a47a docstring fix)
+- Phase 5 test suite audit: 59 failures → 190 passing, 36 remaining
+  - Fixed: stale module paths (train→src.core.inference, signal_combination→scripts.analysis, etc.)
+  - Fixed: walk_forward n_jobs=-1 → n_jobs=1 (Windows joblib _posixsubprocess)
+  - Skipped: test_dashboard_hardening.py (functions removed in Phase 3, needs rewrite)
+  - Remaining 36: test_model_card_validation (Windows subprocess path issue) + test_regime_count_selection (live data dependency)
+- Phase 5 plan state: Plans 01–04 DONE, Plan 05 NOT YET EXECUTED
 
 ## Next Action
-Option A (recommended): `/gsd-code-review-fix 4` — fix 5 warnings first
-Option B: `/gsd-discuss-phase 5` — start Phase 5: Feature Engineering Overhaul
+**NEXT SESSION:** Execute Phase 5 Plan 05
+1. Fix remaining 36 test failures (test_model_card_validation Windows subprocess + test_regime_count_selection)
+   OR accept as known issues and proceed
+2. Run `python -m scripts.analysis.walk_forward_feature_selection` on live data
+3. Review `data/feature_importance_report.md`
+4. Run `python -m scripts.analysis.apply_feature_selection --dry-run` then live
+5. Human verify checkpoint (Task 3 of Plan 05)
+6. Update ROADMAP.md: mark Plan 03 as [x] (done 2026-04-19)
 
 ## Phase Backlog (v1.1)
 - Phase 5: Feature Engineering Overhaul (FEAT-01, FEAT-02, FEAT-03)
