@@ -41,17 +41,37 @@ VIX_BYPASS         = False  # VIX is now a direct curated feature; no need to ap
 # Updated per Phase 2.5.2: Feature selection on held-out train set (2010-2020)
 # improved OOS regime accuracy from 72.7% to 76.2% and dwell time from 5.6 to 17.7 days.
 # See data/feature_selection_report.txt for full analysis.
+# Phase 5 replaced: FEATURE_SUBSET = [
+#     # Vol state
+#     'VRP', 'VIX',
+#     # Return dynamics
+#     'SPY_skew20',
+#     # Cross-asset
+#     'SPY_TLT_corr63',
+#     # Leverage / fragility
+#     'lev_effect20',
+#     # Vol dynamics
+#     'rv_ratio_10_63',
+# ]
+# Phase 5 selected on 2026-04-19: walk-forward section selection
+# Source: data/walk_forward_selection_result.json
+# Selected sections (>=60% fold stability): s_mac, s_fin, s_vol
 FEATURE_SUBSET = [
-    # Vol state
-    'VRP', 'VIX',
-    # Return dynamics
-    'SPY_skew20',
-    # Cross-asset
+    'yield_curve_slope',
+    'GLD_trend',
+    'credit_stress',
     'SPY_TLT_corr63',
-    # Leverage / fragility
-    'lev_effect20',
-    # Vol dynamics
+    'NFCI',
+    'eigen_conc',
+    'SPY_dd63',
+    'VIX',
+    'VRP',
     'rv_ratio_10_63',
+    'vix_ts_slope',
+    'SPY_volvol20',
+    'SPY_rv10_lag5',
+    'SPY_rv10_lag10',
+    'SPY_skew20',
 ]
 
 # --- HMM (classic) ---

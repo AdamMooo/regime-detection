@@ -41,7 +41,8 @@ def test_fred_features():
         'yield_curve_slope': rng.normal(1.0, 0.5, n),
     }, index=idx)
     features = build_features(market)
-    required = {'HY_OAS', 'NFCI', 'yield_curve_slope', 'GLD_trend'}
+    # HY_OAS removed from build_features output (ICE FRED data only goes back to 2023)
+    required = {'NFCI', 'yield_curve_slope', 'GLD_trend'}
     missing = required - set(features.columns)
     assert not missing, f"build_features missing FRED features: {missing}"
 

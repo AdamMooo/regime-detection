@@ -6,7 +6,7 @@ Milestone: Model Quality & Regime Reliability (Phases 4–7)
 Branch: main
 
 ## Last Session Work
-Phase 5 test suite audit + import path fixes (2026-04-19)
+Phase 5 Plan 05 complete (2026-04-19)
 
 - Phase 4 code review fixes: all 5 warnings resolved (458a47a docstring fix)
 - Phase 5 test suite audit: 59 failures → 190 passing, 36 remaining
@@ -17,14 +17,11 @@ Phase 5 test suite audit + import path fixes (2026-04-19)
 - Phase 5 plan state: Plans 01–04 DONE, Plan 05 NOT YET EXECUTED
 
 ## Next Action
-**NEXT SESSION:** Execute Phase 5 Plan 05
-1. Fix remaining 36 test failures (test_model_card_validation Windows subprocess + test_regime_count_selection)
-   OR accept as known issues and proceed
-2. Run `python -m scripts.analysis.walk_forward_feature_selection` on live data
-3. Review `data/feature_importance_report.md`
-4. Run `python -m scripts.analysis.apply_feature_selection --dry-run` then live
-5. Human verify checkpoint (Task 3 of Plan 05)
-6. Update ROADMAP.md: mark Plan 03 as [x] (done 2026-04-19)
+**NEXT SESSION:** Begin Phase 6 — Model Architecture Experiments
+- MODEL-01: K regime count validation (K=3 confirmed, test formally)
+- MODEL-02: HDP-HMM vs StudentTHMM evaluation (USE_HDP decision)
+- MODEL-03: Refactor train.py (1452 lines → modular)
+- Start with `/gsd-plan-phase` for Phase 6
 
 ## Phase Backlog (v1.1)
 - Phase 5: Feature Engineering Overhaul (FEAT-01, FEAT-02, FEAT-03)

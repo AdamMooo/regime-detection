@@ -102,9 +102,9 @@ SECTION_MAP = {
     # Volatility level + dynamics (8 features → PC1)
     's_vol': ['VIX', 'VRP', 'rv_ratio_10_63', 'vix_ts_slope', 'SPY_volvol20',
               'SPY_rv10_lag5', 'SPY_rv10_lag10', 'SPY_skew20'],
-    # Financial conditions + credit + systemic stress (6 features → PC1)
-    's_fin': ['credit_stress', 'SPY_TLT_corr63', 'HY_OAS', 'NFCI',
-              'eigen_conc', 'SPY_dd63'],
+    # Financial conditions + credit + systemic stress (5 features → PC1)
+    # HY_OAS removed: ICE licensing restricted BAMLH0A0HYM2 on FRED to post-2023 only.
+    's_fin': ['credit_stress', 'SPY_TLT_corr63', 'NFCI', 'eigen_conc', 'SPY_dd63'],
     # Macro/economic cycle — pure leading indicators (2 features → PC1)
     's_mac': ['yield_curve_slope', 'GLD_trend'],
     # NOTE: s_str (microstructure) removed — walk-forward MI was consistently below
@@ -117,7 +117,7 @@ SECTION_MAP = {
 # folds (per 05-RESEARCH.md Pitfall 1 — PCA eigenvector sign is arbitrary).
 SECTION_ANCHORS = {
     's_vol': 'VIX',               # positive VIX loading => signal rises with vol (stress)
-    's_fin': 'HY_OAS',            # positive HY_OAS loading => signal rises with credit stress
+    's_fin': 'NFCI',              # positive NFCI loading => signal rises with financial stress
     's_mac': 'yield_curve_slope', # positive T10Y2Y = expansion signal
 }
 
@@ -212,8 +212,9 @@ def build_features(market: pd.DataFrame) -> pd.DataFrame:
         f['credit_stress'] = (hyg_ret - tlt_ret).rolling(MED_WINDOW).mean()
 
     # ── Macro: FRED pass-through (Phase 5 FEAT-01) ────────────────
-    if 'HY_OAS' in market.columns:
-        f['HY_OAS'] = market['HY_OAS']
+    # HY_OAS excluded: ICE licensing restricted BAMLH0A0HYM2 on FRED to post-2023;
+    # including it truncates the feature matrix to ~3 years via dropna. Re-enable
+    # when a full-history source is available.
     if 'NFCI' in market.columns:
         f['NFCI'] = market['NFCI']
     if 'yield_curve_slope' in market.columns:

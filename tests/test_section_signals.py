@@ -112,10 +112,11 @@ def test_build_section_signals_single_feature_section_passthrough():
     idx = pd.date_range('2020-01-01', periods=n, freq='B')
 
     # For each active section, keep only the anchor column — exercises single-feature passthrough
-    # s_vol: VIX, s_fin: HY_OAS, s_mac: yield_curve_slope
+    # s_vol: VIX, s_fin: NFCI (HY_OAS removed — ICE FRED data only goes back to 2023),
+    # s_mac: yield_curve_slope
     single_cols = {
         'VIX': 's_vol',
-        'HY_OAS': 's_fin',
+        'NFCI': 's_fin',
         'yield_curve_slope': 's_mac',
     }
     data = rng.standard_normal((n, len(single_cols)))
