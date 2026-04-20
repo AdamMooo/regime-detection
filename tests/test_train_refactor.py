@@ -50,7 +50,7 @@ def test_orchestrator_imports():
 
 def test_train_signature():
     """Verify train() signature is unchanged."""
-    from train import train
+    from scripts.pipelines.train import train
     sig = inspect.signature(train)
     assert 'reload_pca_checkpoint_path' in sig.parameters
     # Check default value is None
@@ -59,7 +59,7 @@ def test_train_signature():
 
 def test_rebuild_dashboard_signature():
     """Verify rebuild_dashboard() signature is unchanged."""
-    from train import rebuild_dashboard
+    from scripts.pipelines.train import rebuild_dashboard
     sig = inspect.signature(rebuild_dashboard)
     # Should have no required parameters
     assert len([p for p in sig.parameters.values()
@@ -206,7 +206,7 @@ def test_walk_forward_basic():
 
 def test_train_still_callable():
     """Verify train() is still callable and has correct signature."""
-    from train import train
+    from scripts.pipelines.train import train
     sig = inspect.signature(train)
     params = list(sig.parameters.keys())
     assert params == ['reload_pca_checkpoint_path']
@@ -214,7 +214,7 @@ def test_train_still_callable():
 
 def test_rebuild_dashboard_still_callable():
     """Verify rebuild_dashboard() is still callable."""
-    from train import rebuild_dashboard
+    from scripts.pipelines.train import rebuild_dashboard
     # Just verify it's callable
     assert callable(rebuild_dashboard)
 
@@ -226,6 +226,6 @@ def test_no_circular_imports():
     import src.core.hmm_training
     import src.core.evaluation
     import src.core.orchestrator
-    import train
+    import scripts.pipelines.train as train
     # If we got here, no circular imports
     assert True

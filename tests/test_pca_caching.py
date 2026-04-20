@@ -79,7 +79,7 @@ class TestPCAComputeAndTransform:
     def test_prepare_features_computes_pca(self, sample_market_df, tmp_path, monkeypatch):
         """Verify prepare_features computes PCA when reload_pca is None."""
         # Temporarily set DATA_DIR to tmp_path
-        monkeypatch.setattr('features.DATA_DIR', str(tmp_path))
+        monkeypatch.setattr('src.features.features.DATA_DIR', str(tmp_path))
 
         features_df, pca_obj = prepare_features(
             market=sample_market_df, reload_pca=None, pca_window=CACHE_WINDOW
@@ -95,7 +95,7 @@ class TestPCAComputeAndTransform:
 
     def test_prepare_features_returns_tuple(self, sample_market_df, tmp_path, monkeypatch):
         """Verify prepare_features returns (features_df, pca_object) tuple."""
-        monkeypatch.setattr('features.DATA_DIR', str(tmp_path))
+        monkeypatch.setattr('src.features.features.DATA_DIR', str(tmp_path))
 
         result = prepare_features(
             market=sample_market_df, reload_pca=None, pca_window=CACHE_WINDOW
@@ -109,7 +109,7 @@ class TestPCAComputeAndTransform:
 
     def test_prepare_features_uses_reload_pca(self, sample_market_df, tmp_path, monkeypatch):
         """Verify prepare_features uses provided reload_pca object."""
-        monkeypatch.setattr('features.DATA_DIR', str(tmp_path))
+        monkeypatch.setattr('src.features.features.DATA_DIR', str(tmp_path))
 
         # First call: compute PCA
         features_df_orig, pca_original = prepare_features(
@@ -133,7 +133,7 @@ class TestPCAWindowSize:
 
     def test_pca_fitted_on_latest_window(self, sample_market_df, tmp_path, monkeypatch):
         """Verify PCA is fitted on latest pca_window rows."""
-        monkeypatch.setattr('features.DATA_DIR', str(tmp_path))
+        monkeypatch.setattr('src.features.features.DATA_DIR', str(tmp_path))
 
         pca_window = 100
         _, pca_obj = prepare_features(
@@ -147,7 +147,7 @@ class TestPCAWindowSize:
 
     def test_pca_window_parameter_affects_fit(self, sample_market_df, tmp_path, monkeypatch):
         """Verify different pca_window values produce different PCA components."""
-        monkeypatch.setattr('features.DATA_DIR', str(tmp_path))
+        monkeypatch.setattr('src.features.features.DATA_DIR', str(tmp_path))
 
         _, pca_100 = prepare_features(
             market=sample_market_df, reload_pca=None, pca_window=100
@@ -168,7 +168,7 @@ class TestCausalityGuarantees:
 
     def test_no_future_data_in_pca(self, sample_market_df, tmp_path, monkeypatch):
         """Verify PCA fitting does not use future data (causal guarantee)."""
-        monkeypatch.setattr('features.DATA_DIR', str(tmp_path))
+        monkeypatch.setattr('src.features.features.DATA_DIR', str(tmp_path))
 
         # Fit PCA on full data
         _, pca_obj = prepare_features(
@@ -186,7 +186,7 @@ class TestCausalityGuarantees:
         """Verify standardization still uses expanding window."""
         # Note: This test verifies that prepare_features doesn't break existing standardization
         # Actual expanding-window verification is in test_causality.py
-        monkeypatch.setattr('features.DATA_DIR', str(tmp_path))
+        monkeypatch.setattr('src.features.features.DATA_DIR', str(tmp_path))
 
         features_df, _ = prepare_features(
             market=sample_market_df, reload_pca=None, pca_window=CACHE_WINDOW
@@ -229,7 +229,7 @@ class TestCheckpointIntegration:
 
     def test_pca_checkpoint_reload_in_prepare_features(self, sample_market_df, temp_model_dir, tmp_path, monkeypatch):
         """Verify PCA checkpoint reload works in prepare_features flow."""
-        monkeypatch.setattr('features.DATA_DIR', str(tmp_path))
+        monkeypatch.setattr('src.features.features.DATA_DIR', str(tmp_path))
 
         # Step 1: First run - compute PCA
         features_df_1, pca_original = prepare_features(
@@ -265,7 +265,7 @@ class TestRegressionAndIntegration:
 
     def test_prepare_features_backward_compatible(self, sample_market_df, tmp_path, monkeypatch):
         """Verify prepare_features is backward compatible (can still call without new params)."""
-        monkeypatch.setattr('features.DATA_DIR', str(tmp_path))
+        monkeypatch.setattr('src.features.features.DATA_DIR', str(tmp_path))
 
         # Old code path: call with just market argument (using defaults)
         result = prepare_features(market=sample_market_df)

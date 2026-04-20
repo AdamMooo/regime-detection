@@ -12,7 +12,7 @@ from hmmlearn import hmm
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from train import expanding_standardize, filtered_probs, filtered_labels, StudentTHMM
+from src.core.inference import expanding_standardize, filtered_probs, filtered_labels, StudentTHMM
 from src.features.features import _winsorize
 
 

@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from signal_combination import SignalCombination, compare_signals_cv
+from scripts.analysis.signal_combination import SignalCombination, compare_signals_cv
 
 
 class TestSignalPreparation:

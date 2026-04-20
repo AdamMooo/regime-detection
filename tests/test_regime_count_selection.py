@@ -357,7 +357,7 @@ def test_full_k_selection_flow(market_data, feature_data, pcs_train):
     without errors and produces a decision.
     """
     # Import and run the diagnostic script
-    import select_k_via_crossval
+    import scripts.analysis.select_k_via_crossval as select_k_via_crossval
 
     # Main execution
     recommended_k = select_k_via_crossval.main()

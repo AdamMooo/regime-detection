@@ -169,7 +169,7 @@ def walk_forward_section_selection(
             x_train, y_train,
             discrete_features=False,
             random_state=random_state,
-            n_jobs=-1,
+            n_jobs=1,  # n_jobs=-1 breaks on Windows (joblib _posixsubprocess)
         )
         mi_dict = dict(zip(section_names_fold, mi_scores))
         fold_scores.append(mi_dict)

@@ -10,7 +10,7 @@ import os
 import numpy as np
 import pandas as pd
 import pytest
-from signal_combination import compare_signals_cv
+from scripts.analysis.signal_combination import compare_signals_cv
 
 
 def test_signal_combination_cv_performance():
