@@ -329,7 +329,7 @@ def compute_persistence_baseline(results):
 
     Returns
     -------
-    dict with keys: model_accuracy, baseline_accuracy, lift, oos_days, oos_start
+    dict with keys: baseline_accuracy, change_rate, n_regime_changes, oos_days, oos_start
     """
     if results is None:
         return {}
