@@ -33,7 +33,7 @@ LONG_WINDOW  = 63       # ~1 quarter
 PCA_MAX_COMPONENTS = 5
 PCA_VAR_THRESHOLD  = 0.90   # cumulative variance for auto-selection
 PCA_ROLLING_WINDOW = 63     # rolling window for PCA (~3 months)
-VIX_BYPASS         = False  # VIX is now a direct curated feature; no need to append separately
+VIX_BYPASS         = True   # Phase 6: append scaled VIX directly to PCA dims — forces HMM to cluster on implied vol level
 
 # Representative feature subset for PCA (reduces collinearity).
 # Set to None to use all features. Using a curated subset prevents
@@ -53,12 +53,15 @@ VIX_BYPASS         = False  # VIX is now a direct curated feature; no need to ap
 #     # Vol dynamics
 #     'rv_ratio_10_63',
 # ]
+# Phase 6 fix (2026-04-19): removed GLD_trend — dominated PC1 (loading 0.661) but PC1 barely
+# separated regimes (F=29 vs PC2/PC3 F=699/859). GLD trend is a macro/sentiment signal that
+# can move opposite to VIX (safe-haven flows), causing VIX=25+ days to be labeled Low-Vol.
+# VIX_BYPASS=True added to force HMM to cluster on implied vol level directly.
 # Phase 5 selected on 2026-04-19: walk-forward section selection
 # Source: data/walk_forward_selection_result.json
 # Selected sections (>=60% fold stability): s_mac, s_fin, s_vol
 FEATURE_SUBSET = [
     'yield_curve_slope',
-    'GLD_trend',
     'credit_stress',
     'SPY_TLT_corr63',
     'NFCI',
