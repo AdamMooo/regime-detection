@@ -70,7 +70,10 @@ Plans:
   1. K=3 is locked (confirmed 2026-04-18 — academically correct, empirically K=4 regimes 0&1 overlapped). K-selection experiment dropped.
   2. A documented decision on USE_HDP exists: either NumPyro HDP-HMM is re-enabled with evidence it outperforms StudentTHMM, or the dead code is formally deprecated and removed
   3. No single module in the training pipeline exceeds 500 lines; training, evaluation, and dashboard building are separate files
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [x] 06-01-PLAN.md — HDP-HMM vs StudentTHMM comparison, MODEL_CARD decision section, verdict applied (MODEL-02)
+- [x] 06-02-PLAN.md — Split evaluation.py/hmm_training.py by concern (pca_utils, var_backtesting, forward_returns), update all imports, test_module_size gate (MODEL-03)
 
 ### Phase 7: Daily Pipeline & Clean Outputs
 **Goal**: A single command runs the full daily pipeline end-to-end in under 10 minutes, exactly 2 HTML outputs exist, and regime results are written in a format suitable for nightly cron
@@ -94,3 +97,13 @@ Plans:
 | 5. Feature Engineering Overhaul | v1.1 | 3/5 | In Progress|  |
 | 6. Model Architecture Experiments | v1.1 | 0/? | Not started | - |
 | 7. Daily Pipeline & Clean Outputs | v1.1 | 0/? | Not started | - |
+
+### Phase 8: HDP-HMM Inference Optimization — Parallelize the 133-fold walk-forward loop (joblib multiprocessing), add JAX XLA CPU flag for all-core utilization, implement ELBO early stopping when plateau detected, and optionally expose a NUTS path for overnight-viable full posterior sampling. Goal: cut overnight run from ~4 hours to under 90 minutes on a 6-core machine.
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 7
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 8 to break down)

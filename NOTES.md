@@ -1,64 +1,61 @@
 # Regime-Detection — Session Resume
 
 ## Status
-Phase: v1.1 — Phase 6 diagnosis complete (2026-04-19)
+Phase: v1.1 — Phase 6 complete (2026-04-21)
 Milestone: Model Quality & Regime Reliability (Phases 4–7)
 Branch: main
 
 ## Last Session Work
-Phase 6 model quality fix (2026-04-19)
+Phase 6 fully executed (2026-04-21) — both plans complete.
 
-**Root cause diagnosed and fixed:**
+**Plan 06-01: HDP-HMM vs StudentTHMM Comparison (MODEL-02)**
+- Ran formal OOS comparison: 133 walk-forward folds, all SVI-converged
+- Results: HDP +1.7pp accuracy (36.6% vs 34.9%), +19% dwell time
+- Machine verdict: studenthmm_wins (0.3pp short of +2pp threshold)
+- **Human override: HDP-HMM enabled as default** — better long-term headroom, fewer whipsaw transitions
+- USE_HDP = True in config.py; StudentTHMM branch removed from train.py
+- hdp_hmm.py retained; MODEL_CARD.md updated with decision record
+- tests/_hdp_verdict.txt = "enabled"; all 4 test_hdp_decision tests green
 
-1. **GLD_trend** was the #1 PC1 loading (0.661) but PC1 barely separated regimes (F=29). GLD can rise as safe-haven while VIX spikes (tariff shock), causing VIX=25+ to map to wrong regime cluster. → **Removed from FEATURE_SUBSET**.
+**Plan 06-02: src/core/ Module Refactor (MODEL-03)**
+- evaluation.py: 821 → 186 lines (evaluate + bootstrap helpers only)
+- hmm_training.py: 606 → 458 lines (BIC/stability/labeling/SV/GARCH only)
+- 3 new focused modules: pca_utils.py (181), var_backtesting.py (403), forward_returns.py (275)
+- 10+ import sites updated to direct module paths — zero re-export indirection
+- test_module_size gate live (excludes hdp_hmm.py as documented exception)
+- Full test suite green (test_dashboard_refactor failure is pre-existing, unrelated)
 
-2. **VIX_BYPASS = True** — appends scaled VIX directly to PCA dims as 6th HMM feature (now PC5). This is now the dominant separator (F=2858 vs next-best F=222). Forces HMM to cluster on implied vol level.
-
-**Before/After validation:**
-- VIX spread (max−min regime mean): 4 pts → **16 pts**
-- Apr 7 2026 (VIX=25.78): Low-Vol → **High-Vol** ✓
-- High-Vol VIX mean: 19.8 → **30.1**
-- Low-Vol VIX mean: 17.0 → **14.3**
-- Ann. vol spread: 13.6/17.7/21.7% → **9.0/14.7/27.6%**
-- GARCH-VaR Christoffersen: REJECT → **PASS**
+**Phase 8 added to roadmap:** HDP-HMM Inference Optimization — parallelize fold loop (joblib), JAX XLA CPU flag, ELBO early stopping, optional NUTS path. Goal: cut ~4hr run to <90min.
 
 ## Next Action
-**NEXT SESSION: Plan and execute Phase 6 formally**
+**NEXT SESSION: Phase 7 — Daily Pipeline & Clean Outputs**
 
-Phase 6 work done so far (unplanned diagnostic fix):
-- Config changes: GLD_trend removed, VIX_BYPASS=True
-- Retrained pipeline, validated regime separation
-- Committed as Phase 6 diagnostic fix
+Goal: Single command runs full daily pipeline end-to-end in under 10 minutes, exactly 2 HTML outputs, cron-ready.
 
-Remaining Phase 6 work to plan:
-1. Fix OOS regime proliferation (9+ name variants in walk-forward OOS)
-2. Fix GARCH DataScaleWarning (returns need ×10 rescaling)
-3. Run full economic validity test suite and check pass/fail
-4. Consider whether yield_curve_slope should also be dropped (0.015 PC1 loading, near-zero signal)
-5. Update downstream consumers if regime label schema changed (it hasn't — still 3 regimes)
-6. Plan Phase 7 (dashboard refresh / consumer sync)
+Run: `/gsd-plan-phase 7`
 
-Run: `/gsd-plan-phase` to plan Phase 6 formally before continuing
+Or if performance is priority first: `/gsd-plan-phase 8` (HDP inference optimization)
 
 ## Known Issues (pre-existing, not blocking)
+- test_dashboard_refactor.py::test_dashboard_loads_regime_results — ModuleNotFoundError: No module named 'dashboard' (zombie test for deleted dashboard.py)
 - test_model_card_validation: Windows subprocess path issue
-- test_regime_count_selection: requires live data + K=4 logic
-- test_dashboard_hardening, test_dashboard_refactor: zombie tests for deleted dashboard.py
-- Unicode render error on Windows terminal for regime awareness printout (cp1252)
+- Unicode render error on Windows terminal (cp1252)
 
 ## Architecture Constraints
-- HDP-HMM via NumPyro (variational inference + NUTS) — currently using classic StudentT HMM
-- 14 curated features post-Phase-6 (GLD_trend removed)
-- VIX_BYPASS = True (raw VIX appended as 6th HMM dim)
+- HDP-HMM via NumPyro (SVI) — USE_HDP=True, StudentTHMM removed from train.py
+- inference.py still contains StudentTHMM (full removal deferred to Plan 06-02 scope — do in Phase 8 or standalone cleanup)
 - Rolling PCA with Procrustes alignment for label consistency
 - Student-t emissions for fat-tailed returns
-- K=3 regimes confirmed
+- K=3 regimes confirmed (locked)
 - Downstream consumers: Algo-Trading-Bot, Portfolio-Manager
 
 ## Key Files
-- `src/config.py` — FEATURE_SUBSET (14 features), VIX_BYPASS=True
-- `scripts/analysis/walk_forward_feature_selection.py` — Phase 5 FEAT-02/03
-- `src/core/evaluation.py` — forward return analysis + VaR backtesting
-- `tests/test_regime_economic_validity.py` — DIAG-04 tests (24)
-- `src/`: Main pipeline source (collect, features, train, evaluate)
-- `scripts/`: CLI entry points
+- `src/config.py` — USE_HDP=True, FEATURE_SUBSET, VIX_BYPASS=True
+- `src/core/hdp_hmm.py` — primary model (844 lines, retained)
+- `src/core/evaluation.py` — regime evaluate + bootstrap helpers only (186 lines)
+- `src/core/var_backtesting.py` — VaR/GARCH backtest functions (403 lines, new)
+- `src/core/forward_returns.py` — forward return analysis (275 lines, new)
+- `src/core/pca_utils.py` — fit_rolling_pca + LinearizedSV (181 lines, new)
+- `docs/MODEL_CARD.md` — includes Model Architecture Decision (Phase 6) section
+- `data/hdp_comparison_results.json` — Phase 6 comparison numbers
+- `tests/_hdp_verdict.txt` — "enabled"

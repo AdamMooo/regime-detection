@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Model Quality & Regime Reliability
 status: planning
-last_updated: "2026-04-19T20:20:51.739Z"
-last_activity: 2026-04-18
+last_updated: "2026-04-21T03:21:18.264Z"
+last_activity: 2026-04-21
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 5
+  completed_phases: 3
+  total_plans: 9
+  completed_plans: 9
   percent: 100
 ---
 
@@ -18,10 +18,10 @@ progress:
 ## Latest Status
 
 **As of:** 2026-04-15  
-**Phase:** 5
+**Phase:** 7
 **Plan:** Not started
 **Status:** Ready to plan
-**Last activity:** 2026-04-18
+**Last activity:** 2026-04-21
 
 ---
 
@@ -112,13 +112,21 @@ progress:
 
 ---
 
-### Decision 6: USE_HDP Decision Deferred to Phase 6 (v1.1)
+### Decision 6: HDP-HMM Enabled as Primary Model (Phase 6 complete)
 
-**Context:** StudentTHMM in production (USE_HDP=False); NumPyro HDP-HMM code present but disabled  
-**Decision:** Formal evaluation of HDP-HMM vs StudentTHMM scheduled for Phase 6  
-**Rationale:** Need Phase 4 diagnostics and Phase 5 features before a fair comparison is possible  
-**Trade-offs:** Dead code remains until Phase 6 resolves the question  
-**Status:** Scheduled — MODEL-02 in Phase 6
+**Context:** Phase 6 OOS comparison: HDP +1.7pp accuracy (36.6% vs 34.9%), +19% dwell time. Machine verdict was studenthmm_wins (0.3pp short of +2pp D-03 threshold).  
+**Decision:** Human override — HDP-HMM enabled as default (USE_HDP=True). StudentTHMM branch removed from train.py.  
+**Rationale:** HDP's nonparametric architecture has better long-term headroom as data grows; +19% dwell improvement reduces whipsaw transitions in trading bot. Full StudentTHMM removal from inference.py/orchestrator.py deferred to Plan 02 refactor.  
+**Trade-offs:** Adds NumPyro/SVI dependency; overnight runs ~4 hours (Phase 8 optimizes this)  
+**Status:** Locked — USE_HDP=True in config.py; hdp_hmm.py retained; tests/_hdp_verdict.txt = "enabled"
+
+---
+
+## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 8 added (2026-04-21): HDP-HMM Inference Optimization — parallelize fold loop (joblib), JAX XLA CPU flag, ELBO early stopping, optional NUTS path. Goal: cut ~4hr overnight run to <90min on 6-core machine.
 
 ---
 
