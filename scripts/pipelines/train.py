@@ -43,8 +43,10 @@ from src.config import (
 from src.features.features import build_features
 from src.signals.signals import compute_signals
 from src.core.inference import expanding_standardize, _fit_hmm, filtered_probs, filtered_labels
-from src.core.hmm_training import fit_rolling_pca, select_states_bic, check_stability, label_regimes, fit_regime_sv, fit_regime_garch
-from src.core.evaluation import evaluate, compute_var_backtest, compute_var_backtest_garch, kupiec_pof_test, christoffersen_test
+from src.core.hmm_training import select_states_bic, check_stability, label_regimes, fit_regime_sv, fit_regime_garch
+from src.core.pca_utils import fit_rolling_pca
+from src.core.evaluation import evaluate
+from src.core.var_backtesting import compute_var_backtest, compute_var_backtest_garch, kupiec_pof_test, christoffersen_test
 from src.core.orchestrator import walk_forward
 
 # Suppress noisy warnings

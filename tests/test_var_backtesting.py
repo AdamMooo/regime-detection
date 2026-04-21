@@ -14,7 +14,7 @@ import pandas as pd
 from scipy.special import erfinv
 from scipy.stats import chi2
 
-from src.core.evaluation import (
+from src.core.var_backtesting import (
     compute_var_backtest,
     compute_var_backtest_garch,
     compare_var_methods,

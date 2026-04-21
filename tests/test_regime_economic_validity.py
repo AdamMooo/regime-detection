@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.core.evaluation import compute_forward_return_analysis
+from src.core.forward_returns import compute_forward_return_analysis
 
 
 # ===================================================================

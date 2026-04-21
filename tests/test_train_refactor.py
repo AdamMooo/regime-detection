@@ -21,8 +21,9 @@ def test_inference_imports():
 
 def test_hmmlearn_imports():
     """Verify all hmm_training functions can be imported."""
-    from src.core.hmm_training import (fit_rolling_pca, select_states_bic, check_stability,
+    from src.core.hmm_training import (select_states_bic, check_stability,
                               label_regimes, fit_regime_sv, fit_regime_garch)
+    from src.core.pca_utils import fit_rolling_pca
     assert callable(fit_rolling_pca)
     assert callable(select_states_bic)
     assert callable(check_stability)
@@ -33,7 +34,8 @@ def test_hmmlearn_imports():
 
 def test_evaluation_imports():
     """Verify all evaluation functions can be imported."""
-    from src.core.evaluation import (evaluate, compute_var_backtest, compute_var_backtest_garch,
+    from src.core.evaluation import evaluate
+    from src.core.var_backtesting import (compute_var_backtest, compute_var_backtest_garch,
                             kupiec_pof_test, christoffersen_test)
     assert callable(evaluate)
     assert callable(compute_var_backtest)
@@ -120,7 +122,7 @@ def test_filtered_labels_basic():
 
 def test_fit_rolling_pca_output():
     """Verify fit_rolling_pca returns expected structure."""
-    from src.core.hmm_training import fit_rolling_pca
+    from src.core.pca_utils import fit_rolling_pca
     X_scaled = np.random.randn(300, 5)
     pcs, mr, valid_mask, n_selected, pca = fit_rolling_pca(X_scaled, window=50)
 
@@ -167,14 +169,14 @@ def test_evaluate_runs_without_error():
 
 def test_kupiec_pof_test_returns_float():
     """Verify kupiec_pof_test returns numeric result."""
-    from src.core.evaluation import kupiec_pof_test
+    from src.core.var_backtesting import kupiec_pof_test
     stat = kupiec_pof_test(n_obs=100, n_exc=5, alpha=0.05)
     assert isinstance(stat, (float, np.floating))
 
 
 def test_christoffersen_test_returns_float():
     """Verify christoffersen_test returns numeric result."""
-    from src.core.evaluation import christoffersen_test
+    from src.core.var_backtesting import christoffersen_test
     import pandas as pd
 
     dates = pd.date_range('2020-01-01', periods=100)

@@ -666,7 +666,7 @@ def main():
     print("\n--- DIAG-04: Forward Return Analysis ---")
     forward_return_info = {}
     try:
-        from src.core.evaluation import compute_forward_return_analysis
+        from src.core.forward_returns import compute_forward_return_analysis
         if market is not None:
             forward_return_info = compute_forward_return_analysis(results, market)
         else:

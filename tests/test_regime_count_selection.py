@@ -22,8 +22,9 @@ from src.config import (
 )
 from src.core.inference import expanding_standardize, _fit_hmm, filtered_labels
 from src.core.hmm_training import (
-    fit_rolling_pca, _hmm_bic, check_stability,
+    _hmm_bic, check_stability,
 )
+from src.core.pca_utils import fit_rolling_pca
 from src.core.orchestrator import walk_forward
 
 

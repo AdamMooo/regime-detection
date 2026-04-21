@@ -24,8 +24,10 @@ from src.config import (
 )
 from src.features.features import build_features
 from src.core.inference import expanding_standardize, filtered_labels, StudentTHMM
-from src.core.hmm_training import fit_rolling_pca, label_regimes, check_stability
-from src.core.evaluation import evaluate, compute_var_backtest
+from src.core.hmm_training import label_regimes, check_stability
+from src.core.pca_utils import fit_rolling_pca
+from src.core.evaluation import evaluate
+from src.core.var_backtesting import compute_var_backtest
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

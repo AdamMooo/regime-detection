@@ -22,8 +22,8 @@ from src.config import (
     PCA_MAX_COMPONENTS, PCA_VAR_THRESHOLD, PCA_ROLLING_WINDOW
 )
 from src.core.inference import expanding_standardize, filtered_labels, StudentTHMM
-from src.core.hmm_training import fit_rolling_pca
-from src.core.evaluation import compute_var_backtest
+from src.core.pca_utils import fit_rolling_pca
+from src.core.var_backtesting import compute_var_backtest
 from src.features.features import build_features
 
 
