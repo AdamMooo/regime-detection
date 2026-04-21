@@ -415,3 +415,22 @@ For questions about this model card:
 **Date:** 2026-04-14  
 **Status:** ✅ Production Ready  
 **Last Validated:** 2026-04-14 (All test suites passing)
+
+---
+
+## Model Architecture Decision (Phase 6)
+
+**Comparison date:** 2026-04-20
+**OOS split:** Same as Phase 4/5 diagnostics (Phase 5 FEATURE_SUBSET, walk-forward rolling mode, 133 folds)
+**Inference mode:** SVI (`HDP_INFERENCE='svi'`, `SVI_NUM_STEPS=3000`)
+**Win threshold (D-03):** HDP-HMM must show +2 percentage points OOS accuracy AND meaningfully longer mean dwell time (>=10% gain)
+
+| Metric | StudentTHMM | HDP-HMM (SVI) | Win threshold | Winner |
+|--------|------------|---------------|---------------|--------|
+| OOS accuracy | 34.9% | 36.6% | HDP needs +2pp | StudentTHMM |
+| Mean dwell time (days) | 12.6 | 15.0 | HDP needs >10% gain | HDP |
+| SVI converged | — | Yes (133/133 folds) | — | — |
+
+**Verdict:** StudentTHMM stays
+**Rationale:** HDP-HMM (SVI) achieved only +1.7pp OOS accuracy improvement over StudentTHMM (36.6% vs 34.9%), falling short of the +2pp D-03 threshold. This confirms the D-05 prior: OOS regime shading on the HTML dashboard was already poor under the HDP path, and the formal walk-forward comparison substantiates that HDP's Bayesian nonparametric complexity does not translate to meaningful OOS predictive improvement over the simpler Student-t HMM. Dwell time improved by +2.4 days (+19%) — HDP does produce more stable regimes, but stability alone cannot compensate for the accuracy shortfall. All 133 walk-forward folds converged (ELBO decreasing, late avg < early avg), so the result is not inconclusive.
+**Action taken:** hdp_hmm.py scheduled for deletion in Task 4
