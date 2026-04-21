@@ -88,7 +88,7 @@ N_SEEDS        = 20              # multi-seed stability check
 HMM_ITER       = 300
 
 # --- Bayesian HDP-HMM (NumPyro) ---
-USE_HDP            = False       # Simplified: Use classic StudentTHMM instead of full Bayesian HDP-HMM
+USE_HDP = True                   # Phase 6 human override: HDP-HMM enabled as default
 HDP_TRUNCATION     = 20          # max states for stick-breaking (must exceed expected K)
 HDP_ALPHA          = 1.0         # DP concentration (global)
 HDP_KAPPA          = 10.0        # sticky self-transition weight

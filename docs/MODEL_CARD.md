@@ -431,6 +431,6 @@ For questions about this model card:
 | Mean dwell time (days) | 12.6 | 15.0 | HDP needs >10% gain | HDP |
 | SVI converged | — | Yes (133/133 folds) | — | — |
 
-**Verdict:** StudentTHMM stays
-**Rationale:** HDP-HMM (SVI) achieved only +1.7pp OOS accuracy improvement over StudentTHMM (36.6% vs 34.9%), falling short of the +2pp D-03 threshold. This confirms the D-05 prior: OOS regime shading on the HTML dashboard was already poor under the HDP path, and the formal walk-forward comparison substantiates that HDP's Bayesian nonparametric complexity does not translate to meaningful OOS predictive improvement over the simpler Student-t HMM. Dwell time improved by +2.4 days (+19%) — HDP does produce more stable regimes, but stability alone cannot compensate for the accuracy shortfall. All 133 walk-forward folds converged (ELBO decreasing, late avg < early avg), so the result is not inconclusive.
-**Action taken:** hdp_hmm.py scheduled for deletion in Task 4
+**Verdict:** HDP-HMM enabled as default (human override)
+**Rationale:** Machine verdict was studenthmm_wins (+1.7pp accuracy, 0.3pp short of D-03 threshold). Human override: HDP-HMM's nonparametric architecture provides better long-term headroom as data volume grows and avoids re-specifying K as regimes evolve. The +19% dwell improvement reduces whipsaw regime transitions for the downstream trading bot. StudentTHMM removed from train.py; full inference.py cleanup deferred to Plan 02.
+**Action taken:** USE_HDP = True set in config.py. StudentTHMM branch removed from train.py. src/core/hdp_hmm.py retained.

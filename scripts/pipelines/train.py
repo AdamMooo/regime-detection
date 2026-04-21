@@ -1,9 +1,8 @@
 """
 PCA -> HMM -> Regime-Dependent SV Pipeline
 ==========================================
-Supports two HMM backends:
-  A) Classic Student-t HMM  (USE_HDP=False)  — fast EM-based via hmmlearn
-  B) Bayesian HDP-HMM       (USE_HDP=True)   — auto-K via NumPyro MCMC
+HMM backend: Bayesian HDP-HMM (NumPyro, SVI inference) — auto-K, sticky transitions.
+StudentTHMM branch removed in Phase 6 Plan 01 (human override: HDP enabled as default).
 
 Pipeline:
 1. Rolling PCA (Procrustes-aligned)  -> principal components + market-mode ratio
@@ -34,7 +33,7 @@ from statsmodels.tsa.statespace.mlemodel import MLEModel
 from src.config import (
     RANDOM_SEED, N_STATES, N_STATES_RANGE, COV_TYPE, T_DF,
     N_SEEDS, HMM_ITER, PCA_MAX_COMPONENTS, PCA_VAR_THRESHOLD,
-    PCA_ROLLING_WINDOW, VIX_BYPASS, USE_HDP, HDP_INFERENCE, HDP_MAX_REGIMES,
+    PCA_ROLLING_WINDOW, VIX_BYPASS, HDP_INFERENCE, HDP_MAX_REGIMES,
     GARCH_P, GARCH_Q, GARCH_DIST, MIN_REGIME_OBS, REGIME_HOLD_DAYS,
     WALK_FORWARD_TRAIN_YEARS, WALK_FORWARD_STEP_DAYS,
     WALK_FORWARD_MODE, VAR_ALPHA, FEATURE_SUBSET,
@@ -43,7 +42,7 @@ from src.config import (
 )
 from src.features.features import build_features
 from src.signals.signals import compute_signals
-from src.core.inference import expanding_standardize, StudentTHMM, _fit_hmm, filtered_probs, filtered_labels
+from src.core.inference import expanding_standardize, _fit_hmm, filtered_probs, filtered_labels
 from src.core.hmm_training import fit_rolling_pca, select_states_bic, check_stability, label_regimes, fit_regime_sv, fit_regime_garch
 from src.core.evaluation import evaluate, compute_var_backtest, compute_var_backtest_garch, kupiec_pof_test, christoffersen_test
 from src.core.orchestrator import walk_forward
@@ -2183,79 +2182,68 @@ def train(reload_pca_checkpoint_path=None):
     bic_df = None
     agreement = None
 
-    if USE_HDP:
-        # ── Bayesian HDP-HMM (auto-K, sticky transitions, Student-t) ──
-        from src.core.hdp_hmm import (
-            fit_hdp_hmm, effective_K, posterior_mean_params,
-            get_labels_and_probs, label_regimes_hdp,
-            mcmc_diagnostics, save_hdp_results,
-            HDPModelAdapter, merge_similar_states,
-            hdp_stability_check,
+    # ── Bayesian HDP-HMM (auto-K, sticky transitions, Student-t) ──
+    from src.core.hdp_hmm import (
+        fit_hdp_hmm, effective_K, posterior_mean_params,
+        get_labels_and_probs, label_regimes_hdp,
+        mcmc_diagnostics, save_hdp_results,
+        HDPModelAdapter, merge_similar_states,
+        hdp_stability_check,
+    )
+
+    mcmc, samples = fit_hdp_hmm(pcs)
+    diagnostics = mcmc_diagnostics(mcmc, samples)
+    k_mean, k_std, k_mode = effective_K(samples)
+    print(f"\n  Effective K: {k_mean:.1f} +/- {k_std:.1f} (mode={k_mode})")
+
+    params = posterior_mean_params(samples)
+    labels, filt_probs, smooth_probs, active_states = \
+        get_labels_and_probs(pcs, params, hold_days=REGIME_HOLD_DAYS)
+
+    # Merge excessive states down to interpretable count
+    if len(active_states) > HDP_MAX_REGIMES:
+        print(f"  Merging {len(active_states)} states -> {HDP_MAX_REGIMES}")
+        labels, n_merged, active_states = merge_similar_states(
+            labels, filt_probs, params, active_states,
         )
+        # Rebuild probs for merged states
+        filt_probs_new = np.zeros((len(labels), n_merged))
+        for i in range(n_merged):
+            filt_probs_new[:, i] = (labels == i).astype(float)
+        # Smooth with small window
+        from scipy.ndimage import uniform_filter1d
+        filt_probs = uniform_filter1d(filt_probs_new.astype(float), size=5, axis=0)
+        filt_probs /= filt_probs.sum(axis=1, keepdims=True)
+        smooth_probs = filt_probs
 
-        mcmc, samples = fit_hdp_hmm(pcs)
-        diagnostics = mcmc_diagnostics(mcmc, samples)
-        k_mean, k_std, k_mode = effective_K(samples)
-        print(f"\n  Effective K: {k_mean:.1f} +/- {k_std:.1f} (mode={k_mode})")
+    n_states = max(len(active_states), 2)
 
-        params = posterior_mean_params(samples)
-        labels, filt_probs, smooth_probs, active_states = \
-            get_labels_and_probs(pcs, params, hold_days=REGIME_HOLD_DAYS)
+    name_map = label_regimes_hdp(
+        labels, active_states, spy_daily_ret_v.values,
+    )
+    print(f"  Final regimes: {list(name_map.values())}")
 
-        # Merge excessive states down to interpretable count
-        if len(active_states) > HDP_MAX_REGIMES:
-            print(f"  Merging {len(active_states)} states -> {HDP_MAX_REGIMES}")
-            labels, n_merged, active_states = merge_similar_states(
-                labels, filt_probs, params, active_states,
-            )
-            # Rebuild probs for merged states
-            filt_probs_new = np.zeros((len(labels), n_merged))
-            for i in range(n_merged):
-                filt_probs_new[:, i] = (labels == i).astype(float)
-            # Smooth with small window
-            from scipy.ndimage import uniform_filter1d
-            filt_probs = uniform_filter1d(filt_probs_new.astype(float), size=5, axis=0)
-            filt_probs /= filt_probs.sum(axis=1, keepdims=True)
-            smooth_probs = filt_probs
+    # Stability check: label agreement across posterior samples
+    stability = hdp_stability_check(samples, pcs, n_draws=10)
+    print(f"  HDP Stability: {stability['mean_agreement']:.1%} label agreement "
+          f"across {stability['n_draws']} posterior draws "
+          f"(mean K={stability['mean_effective_k']:.1f})")
 
-        n_states = max(len(active_states), 2)
+    # Build adapter for compatibility with existing plotting/eval code
+    model = HDPModelAdapter(params, active_states, labels, filt_probs)
+    probs = filt_probs
 
-        name_map = label_regimes_hdp(
-            labels, active_states, spy_daily_ret_v.values,
-        )
-        print(f"  Final regimes: {list(name_map.values())}")
-
-        # Stability check: label agreement across posterior samples
-        stability = hdp_stability_check(samples, pcs, n_draws=10)
-        print(f"  HDP Stability: {stability['mean_agreement']:.1%} label agreement "
-              f"across {stability['n_draws']} posterior draws "
-              f"(mean K={stability['mean_effective_k']:.1f})")
-
-        # Build adapter for compatibility with existing plotting/eval code
-        model = HDPModelAdapter(params, active_states, labels, filt_probs)
-        probs = filt_probs
-
-        # Save HDP results with metadata
-        data_info = {
-            'date_start': str(valid_dates[0].date()),
-            'date_end': str(valid_dates[-1].date()),
-            'n_obs': len(pcs),
-            'n_features': pcs.shape[1],
-        }
-        save_hdp_results(
-            MODEL_DIR, mcmc, samples, params, diagnostics,
-            (k_mean, k_std, k_mode), data_info,
-        )
-
-    else:
-        # ── Classic Student-t HMM (BIC state selection, EM) ────────
-        best_k, bic_model, bic_df = select_states_bic(pcs)
-        n_states = best_k
-
-        model, agreement = check_stability(pcs, n_states)
-        labels, name_map = label_regimes(model, pcs, market_v)
-        probs = filtered_probs(model, pcs)
-        smooth_probs = model.predict_proba(pcs)
+    # Save HDP results with metadata
+    data_info = {
+        'date_start': str(valid_dates[0].date()),
+        'date_end': str(valid_dates[-1].date()),
+        'n_obs': len(pcs),
+        'n_features': pcs.shape[1],
+    }
+    save_hdp_results(
+        MODEL_DIR, mcmc, samples, params, diagnostics,
+        (k_mean, k_std, k_mode), data_info,
+    )
 
     # ── Evaluate in-sample ────────────────────────────────────────
     evaluate(market_v, pd.Series(labels, index=valid_dates),
@@ -2399,7 +2387,7 @@ def train(reload_pca_checkpoint_path=None):
 
     # ── Summary ───────────────────────────────────────────────────
     current = results.iloc[-1]
-    model_type = f'HDP-HMM (Bayesian, {HDP_INFERENCE.upper()})' if USE_HDP else 'Student-t HMM (BIC)'
+    model_type = f'HDP-HMM (Bayesian, {HDP_INFERENCE.upper()})'
     print(f"\n{'=' * 60}")
     print(f"Current State ({valid_dates[-1].date()}):")
     print(f"  Model           : {model_type}")
@@ -2407,8 +2395,7 @@ def train(reload_pca_checkpoint_path=None):
     print(f"  VIX             : {current['VIX']:.1f}")
     print(f"  Market-Mode     : {current['market_mode_ratio']:.1%}")
     print(f"  PCA dims        : {n_pca}")
-    print(f"  HMM states      : {n_states}"
-          f"{' (auto-discovered)' if USE_HDP else ' (by BIC)'}")
+    print(f"  HMM states      : {n_states} (auto-discovered)")
     if agreement is not None:
         print(f"  Stability       : {agreement:.1%}")
     print(f"{'=' * 60}")
