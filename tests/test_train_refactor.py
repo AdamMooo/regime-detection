@@ -229,3 +229,97 @@ def test_no_circular_imports():
     import scripts.pipelines.train as train
     # If we got here, no circular imports
     assert True
+
+
+# ===================================================================
+# Phase 6 MODEL-03: Module size gate + new module smoke-checks
+# ===================================================================
+
+from pathlib import Path
+
+
+def test_module_size():
+    """Assert every src/core/*.py file is <= 500 lines (MODEL-03 gate).
+
+    hdp_hmm.py is excluded — it is production inference code retained by
+    human override in Plan 01 and accepted as a documented exception per
+    docs/MODEL_CARD.md.
+    """
+    core = Path(__file__).parent.parent / 'src' / 'core'
+    # hdp_hmm.py is accepted as >500-line exception (Plan 01 human override)
+    ACCEPTED_EXCEPTIONS = {'hdp_hmm.py'}
+    oversized = []
+    for py in sorted(core.glob('*.py')):
+        if py.name == '__init__.py':
+            continue
+        if py.name in ACCEPTED_EXCEPTIONS:
+            continue
+        n = len(py.read_text(encoding='utf-8').splitlines())
+        if n > 500:
+            oversized.append(f"{py.name}: {n} lines")
+    assert not oversized, f"Modules exceed 500 lines: {oversized}"
+
+
+def test_pca_utils_exposes_fit_rolling_pca():
+    """pca_utils.py must export fit_rolling_pca as a callable."""
+    from src.core.pca_utils import fit_rolling_pca
+    assert callable(fit_rolling_pca)
+
+
+def test_pca_utils_exposes_linearized_sv():
+    """pca_utils.py must export LinearizedSV as a class."""
+    from src.core.pca_utils import LinearizedSV
+    assert isinstance(LinearizedSV, type)
+
+
+def test_var_backtesting_exposes_symbols():
+    """var_backtesting.py must export all six VaR symbols."""
+    from src.core.var_backtesting import (
+        compute_var_backtest,
+        compute_var_backtest_garch,
+        compare_var_methods,
+        kupiec_pof_test,
+        christoffersen_test,
+        warn_static_var_deprecated,
+    )
+    assert callable(compute_var_backtest)
+    assert callable(compute_var_backtest_garch)
+    assert callable(compare_var_methods)
+    assert callable(kupiec_pof_test)
+    assert callable(christoffersen_test)
+    assert callable(warn_static_var_deprecated)
+
+
+def test_forward_returns_exposes_symbols():
+    """forward_returns.py must export both forward-return analysis functions."""
+    from src.core.forward_returns import (
+        compute_forward_return_analysis,
+        analyze_forward_returns,
+    )
+    assert callable(compute_forward_return_analysis)
+    assert callable(analyze_forward_returns)
+
+
+def test_no_var_or_forward_in_evaluation_all():
+    """evaluation.__all__ must contain only 'evaluate' — no moved symbols."""
+    import src.core.evaluation as e
+    moved_symbols = {
+        'compute_var_backtest', 'compute_var_backtest_garch',
+        'compare_var_methods', 'kupiec_pof_test', 'christoffersen_test',
+        'warn_static_var_deprecated', 'compute_forward_return_analysis',
+        'analyze_forward_returns',
+    }
+    eval_all = set(e.__all__ or [])
+    leaked = eval_all & moved_symbols
+    assert not leaked, f"evaluation.__all__ still contains moved symbols: {leaked}"
+    assert 'evaluate' in eval_all, "evaluation.__all__ must still contain 'evaluate'"
+
+
+def test_hmm_training_imports_pca_from_pca_utils():
+    """hmm_training.py must import fit_rolling_pca directly from pca_utils (D-12)."""
+    core = Path(__file__).parent.parent / 'src' / 'core'
+    text = (core / 'hmm_training.py').read_text(encoding='utf-8')
+    assert 'from src.core.pca_utils import fit_rolling_pca' in text, (
+        "hmm_training.py must contain 'from src.core.pca_utils import fit_rolling_pca' "
+        "(D-12: direct import, no re-export indirection)"
+    )
