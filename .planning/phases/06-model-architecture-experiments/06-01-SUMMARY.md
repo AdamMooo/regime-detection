@@ -2,8 +2,8 @@
 phase: 06-model-architecture-experiments
 plan: 01
 subsystem: model-selection
-status: partial (checkpoint after Task 3)
-tags: [hdp, hmm, model-selection, comparison, studenthmm]
+status: complete
+tags: [hdp, hmm, model-selection, comparison, studenthmm, human-override]
 dependency_graph:
   requires: []
   provides: [MODEL-02-evidence, hdp-comparison-results, model-card-decision-section]
@@ -15,27 +15,31 @@ key_files:
   created:
     - scripts/analysis/compare_hdp_vs_student.py
     - data/hdp_comparison_results.json (gitignored — metrics only)
+    - tests/_hdp_verdict.txt
   modified:
-    - docs/MODEL_CARD.md (appended Model Architecture Decision section)
+    - docs/MODEL_CARD.md (appended Model Architecture Decision section; updated to human override)
+    - src/config.py (USE_HDP = True)
+    - scripts/pipelines/train.py (StudentTHMM branch removed; HDP unconditional)
 decisions:
-  - "studenthmm_wins: HDP accuracy delta +1.7pp falls below +2pp D-03 threshold"
-  - "All 133 folds converged — result is not inconclusive"
-  - "Dwell time improved +19% but insufficient without accuracy meeting threshold"
+  - "Machine verdict: studenthmm_wins (+1.7pp accuracy, below +2pp D-03 threshold)"
+  - "Human override: HDP-HMM enabled — nonparametric headroom + +19% dwell improvement"
+  - "StudentTHMM branch removed from train.py; inference.py cleanup deferred to Plan 02"
+  - "src/core/hdp_hmm.py retained"
 metrics:
   completed_date: 2026-04-20
-  tasks_completed: 3 of 4 (stopped at checkpoint before Task 4)
-  commits: 3 (Wave 0 prior + Task 2 + Task 3)
+  tasks_completed: 4 of 4
+  commits: 4 (Wave 0 prior + Task 2 + Task 3 + Task 4)
 ---
 
-# Phase 06 Plan 01 Summary (Partial — Checkpoint After Task 3)
+# Phase 06 Plan 01 Summary
 
-**One-liner:** HDP-HMM SVI walk-forward comparison confirms StudentTHMM wins: +1.7pp accuracy (below +2pp threshold), verdict=studenthmm_wins across 133 converged folds
+**One-liner:** HDP-HMM enabled as default via human override — machine verdict was studenthmm_wins (+1.7pp accuracy delta) but nonparametric headroom and +19% dwell improvement justified the override; StudentTHMM branch removed from train.py
 
 ---
 
 ## Status
 
-**Stopped at:** Task 3 checkpoint — awaiting human review before Task 4 applies the verdict (deletion of hdp_hmm.py).
+**Complete.** All 4 tasks executed. Human override applied: HDP-HMM enabled as default.
 
 ---
 
@@ -46,6 +50,7 @@ metrics:
 | 1 | Wave 0 stubs — test_hdp_decision.py + compare_hdp_vs_student.py skeleton | 2aef262 | tests/test_hdp_decision.py, scripts/analysis/compare_hdp_vs_student.py |
 | 2 | Implement compare_hdp_vs_student.py — run both models on OOS split | 25c2c09 | scripts/analysis/compare_hdp_vs_student.py |
 | 3 | Append MODEL_CARD.md "Model Architecture Decision (Phase 6)" section | 07a28ce | docs/MODEL_CARD.md |
+| 4 | Apply Branch B (human override): USE_HDP=True, remove StudentTHMM branch | 7f0dfb0 | tests/_hdp_verdict.txt, src/config.py, scripts/pipelines/train.py, docs/MODEL_CARD.md |
 
 ---
 
@@ -69,20 +74,20 @@ metrics:
 
 ---
 
-## Checkpoint State
+## Task 4 Outcome (Human Override — Branch B)
 
-**Current checkpoint:** Task 3 complete — human review required before Task 4 executes.
+**Verdict applied:** `enabled` (human override of machine verdict `studenthmm_wins`)
 
-**Task 4 will execute Branch A (studenthmm_wins):**
-1. Write `tests/_hdp_verdict.txt` with content `deleted`
-2. Delete `src/core/hdp_hmm.py` (844 lines)
-3. Remove `USE_HDP`, `HDP_INFERENCE`, `HDP_TRUNCATION`, `HDP_ALPHA`, `HDP_KAPPA`, `HDP_MAX_REGIMES`, `HDP_*` from `src/config.py`
-4. Remove the `if USE_HDP:` block from `scripts/pipelines/train.py` (~line 2186)
-5. Remove the lazy HDP import from `train.py` (~line 2188)
-6. Grep entire repo for remaining HDP references and clean up
-7. Run full test suite `pytest tests/ -x -q`
+**Changes made:**
+1. `tests/_hdp_verdict.txt` written with content `enabled`
+2. `src/config.py`: `USE_HDP = True` (single-space format required for test string match)
+3. `scripts/pipelines/train.py`: `if USE_HDP:` / `else:` conditional removed; HDP code path promoted to unconditional. `StudentTHMM` removed from inference import. `USE_HDP` removed from config import. Module docstring updated.
+4. `docs/MODEL_CARD.md`: Verdict line updated to "HDP-HMM enabled as default (human override)"; rationale and action updated to reflect override reasoning.
+5. `src/core/hdp_hmm.py`: **retained** (not deleted).
 
-**Impact on Plan 02 (refactor):** hdp_hmm.py deletion removes 844 lines, reducing MODEL-03 refactor scope. After deletion, only evaluation.py (821 lines) and hmm_training.py (606 lines) need active splitting.
+**Tests:** All 4 `tests/test_hdp_decision.py` tests pass. Full suite pre-existing failures unchanged (22→21 failed; one test newly passing from Task 4 verdict file creation).
+
+**Deferred to Plan 02:** Full `inference.py` cleanup (StudentTHMM class removal, HDP-only inference path consolidation).
 
 ---
 
@@ -114,9 +119,13 @@ None — all functions fully implemented; MODEL_CARD.md section contains real nu
 
 - [x] `scripts/analysis/compare_hdp_vs_student.py` exists and is implemented (543 lines including stubs replaced)
 - [x] `data/hdp_comparison_results.json` written with all required keys (gitignored, confirmed present locally)
-- [x] `docs/MODEL_CARD.md` contains `## Model Architecture Decision (Phase 6)` at line 421
-- [x] `pytest tests/test_hdp_decision.py::test_comparison_script_imports_svi_only` passes
-- [x] `pytest tests/test_hdp_decision.py::test_model_card_has_architecture_decision_section` passes
-- [x] Task 2 commit: 25c2c09 — `git log --oneline --all | grep 25c2c09` confirmed
-- [x] Task 3 commit: 07a28ce — `git log --oneline --all | grep 07a28ce` confirmed
-- [x] Task 4 NOT executed — stopped at checkpoint as instructed
+- [x] `docs/MODEL_CARD.md` contains `## Model Architecture Decision (Phase 6)` — verdict updated to human override
+- [x] `tests/_hdp_verdict.txt` contains `enabled`
+- [x] `src/config.py` has `USE_HDP = True`
+- [x] `src/core/hdp_hmm.py` exists (retained)
+- [x] `scripts/pipelines/train.py` has no StudentTHMM else-branch; HDP path is unconditional
+- [x] `pytest tests/test_hdp_decision.py -x -q` — 4/4 passed
+- [x] Full suite: 21 pre-existing failures, 0 new failures introduced by Task 4
+- [x] Task 2 commit: 25c2c09 confirmed
+- [x] Task 3 commit: 07a28ce confirmed
+- [x] Task 4 commit: 7f0dfb0 confirmed
