@@ -32,5 +32,3 @@ Geometric Arbitrage Theory (GAT) redefines arbitrage not as a simple price discr
     Estimate Curvature: In each regime, estimate the Gauge Connection (the relationship between price changes and interest rates). If the connection does not satisfy the "zero curvature" condition (
     ), you have found an arbitrage window.
     Execute: Trade the path-dependent spread. According to Geometric Arbitrage Framework, you should move your portfolio along the path that minimizes this curvature. 
-
-Would you like a Python snippet for calculating the regime-conditioned expected returns, or more depth on the Differential Geometry of market connections?
