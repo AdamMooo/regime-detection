@@ -30,11 +30,21 @@ Phase 6 fully executed (2026-04-21) — both plans complete.
 ## Next Action
 **NEXT SESSION: Phase 7 — Daily Pipeline & Clean Outputs**
 
-Goal: Single command runs full daily pipeline end-to-end in under 10 minutes, exactly 2 HTML outputs, cron-ready.
+Goal: Single command runs full daily pipeline end-to-end in under 10 minutes, exactly 2 HTML outputs, cron-ready.  
+**Critical addition:** Phase 7 must be designed with research extension points — see `.planning/COMPLETION-PLAN.md`
 
 Run: `/gsd-plan-phase 7`
 
-Or if performance is priority first: `/gsd-plan-phase 8` (HDP inference optimization)
+Key Phase 7 design constraint: train.py splits into pipeline stages (Plan 07-01), regime_results.csv schema extended with placeholder columns for Phases 9–12 (Plan 07-03), garch_params.json and oos_regime_labels.csv written as extension artifacts.
+
+Research sequence after Phase 7:
+- Phase 8: HDP inference optimization (4hr → <90min)
+- Phase 9: Regime-weighted GARCH vol forecast (Research Path 1)
+- Phase 10: Strategy backtester + tactical allocation (Research Path 2, CRITICAL gate)
+- Phase 11: Transition early-warning model (conditional on Phase 10 result)
+
+Full research rationale: `.planning/RESEARCH-STRATEGY.md`
+Full completion plan: `.planning/COMPLETION-PLAN.md`
 
 ## Known Issues (pre-existing, not blocking)
 - test_dashboard_refactor.py::test_dashboard_loads_regime_results — ModuleNotFoundError: No module named 'dashboard' (zombie test for deleted dashboard.py)

@@ -83,7 +83,11 @@ Plans:
   1. `python scripts/run.py` executes collect → features → train → signals in under 10 minutes on new data
   2. Exactly 2 HTML files exist after a run: figures/dashboard.html and figures/feature_analysis.html — no others are created or left over
   3. regime_results.csv is written on every run containing today's regime, probabilities, and GARCH VaR — verified by running the script twice and checking the file updates
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 07-01-PLAN.md — Pipeline Modularization + Timing Gate (src/pipeline/ package, 8 stages, Wave 0 test stubs, walk_forward gate) (PIPE-01)
+- [ ] 07-02-PLAN.md — Clean Output Enforcement + Cron Readiness (figures/ cleanup, rotating log, cron_run.sh, health_check.py) (PIPE-02)
+- [ ] 07-03-PLAN.md — regime_results.csv Schema Hardening (enrich_results in signals.py, 3 computed + 3 placeholder columns) (PIPE-03)
 
 ## Progress
 
