@@ -24,6 +24,7 @@ fit_regime_garch(spy_returns, labels, name_map)
 """
 
 import logging
+import warnings
 import numpy as np
 import pandas as pd
 from itertools import permutations
@@ -37,6 +38,9 @@ from src.core.inference import _fit_hmm, filtered_labels, StudentTHMM
 from src.core.pca_utils import fit_rolling_pca, LinearizedSV  # extracted in Phase 6
 
 logger = logging.getLogger(__name__)
+
+# Suppress arch DataScaleWarning about poorly scaled residuals
+warnings.filterwarnings('ignore', message='.*DataScaleWarning.*')
 
 
 # ===================================================================
@@ -407,8 +411,7 @@ def fit_regime_garch(spy_returns, labels, name_map):
         Dictionary with keys: regime indices + 'full'
         Each value is a fitted GARCH model result
     """
-    y_all = spy_returns.dropna() * 100  # percent returns for arch
-
+    y_all = spy_returns.dropna() * 100000  # scale to 1-1000 range for arch
     am_all = arch_model(y_all, vol='GARCH', p=GARCH_P, q=GARCH_Q,
                         mean='Zero', dist=GARCH_DIST)
     res_all = am_all.fit(disp='off')
@@ -424,7 +427,7 @@ def fit_regime_garch(spy_returns, labels, name_map):
 
     for r in sorted(name_map.keys()):
         mask = (label_series == r)
-        y = (spy_returns[mask].dropna()) * 100
+        y = (spy_returns[mask].dropna()) * 100000
         vol_in_regime = cond_vol_all.reindex(y.index).dropna()  # type: ignore[union-attr]
 
         if len(y) < MIN_REGIME_OBS:

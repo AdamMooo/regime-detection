@@ -521,12 +521,11 @@ def merge_similar_states(labels, filt_probs, params, active_states,
 
 
 def label_regimes_hdp(labels, active_states, spy_returns, vol_brackets=None):
-    """Assign regime names based on absolute realized volatility brackets.
+    """Assign regime names based on rank-ordered VIX/vol levels.
 
-    Each state is named by its actual annualized realized vol, not by its
-    rank relative to other states.  This makes IS and OOS labels directly
-    comparable — a 14% vol state is always "Moderate-Vol" whether the
-    model discovers 2 states or 5.
+    Sorts discovered states by annualized realized vol and assigns names
+    from REGIME_NAMES[K] where K is the number of active states.
+    This ensures exactly K clean names with no letter suffixes.
 
     Parameters
     ----------
@@ -537,11 +536,8 @@ def label_regimes_hdp(labels, active_states, spy_returns, vol_brackets=None):
     spy_returns : ndarray, shape (T,)
         Daily SPY log returns (used to compute realized vol per regime).
     vol_brackets : list[tuple] or None
-        Each tuple is (lo, hi, name).  Falls back to config.VOL_BRACKETS.
+        Unused; kept for API compatibility.
     """
-    if vol_brackets is None:
-        vol_brackets = VOL_BRACKETS
-
     K_eff = len(active_states)
 
     # Compute annualized realized vol (%) for each discovered state
@@ -553,21 +549,19 @@ def label_regimes_hdp(labels, active_states, spy_returns, vol_brackets=None):
         else:
             regime_vol[i] = 0.0
 
-    # Assign bracket name by actual vol level (sorted low-to-high for consistency)
+    # Sort states by vol (low to high) and assign names from REGIME_NAMES[K]
+    sorted_indices = sorted(regime_vol, key=lambda k: regime_vol[k])
+
+    # Get canonical names for this K
+    if K_eff in REGIME_NAMES:
+        regime_name_list = REGIME_NAMES[K_eff]
+    else:
+        # Fallback: generate generic names
+        regime_name_list = [f'Regime-{i}' for i in range(K_eff)]
+
     name_map = {}
-    name_counts = {}
-    for i in sorted(regime_vol, key=lambda k: regime_vol[k]):
-        vol = regime_vol[i]
-        bracket_name = f'Regime-{i}'  # fallback
-        for lo, hi, bname in vol_brackets:
-            if lo <= vol < hi:
-                bracket_name = bname
-                break
-        # Disambiguate if two states fall in the same bracket
-        name_counts[bracket_name] = name_counts.get(bracket_name, 0) + 1
-        if name_counts[bracket_name] > 1:
-            bracket_name = f"{bracket_name}-{chr(64 + name_counts[bracket_name])}"
-        name_map[i] = bracket_name
+    for rank, i in enumerate(sorted_indices):
+        name_map[i] = regime_name_list[rank]
 
     return name_map
 
