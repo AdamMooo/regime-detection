@@ -173,25 +173,32 @@ def main():
                                  'regime', 'trust'])
     parser.add_argument('--validate', action='store_true',
                         help='Include walk_forward stage (slow, ~4h)')
-    args = parser.parse_args()
+    try:
+        args = parser.parse_args()
 
-    # Non-pipeline commands
-    if args.command == 'regime':
-        print_regime()
-        sys.exit(0)
+        # Non-pipeline commands
+        if args.command == 'regime':
+            print_regime()
+            sys.exit(0)
 
-    if args.command == 'trust':
-        print_trust()
-        sys.exit(0)
+        if args.command == 'trust':
+            print_trust()
+            sys.exit(0)
 
-    pipe = Pipeline()
-    if args.command == 'all':
-        pipe.run_all(validate=args.validate)
-    else:
-        # Back-compat aliases
-        alias = {'analyze': 'feature_analysis', 'train': 'train_hmm'}
-        stage = alias.get(args.command, args.command)
-        pipe.run_stage(stage)
+        pipe = Pipeline()
+        if args.command == 'all':
+            pipe.run_all(validate=args.validate)
+        else:
+            # Back-compat aliases
+            alias = {'analyze': 'feature_analysis', 'train': 'train_hmm'}
+            stage = alias.get(args.command, args.command)
+            pipe.run_stage(stage)
+    except SystemExit:
+        raise  # pipeline already called sys.exit(...) — propagate as-is
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 
     sys.exit(0)
 
