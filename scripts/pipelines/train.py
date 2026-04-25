@@ -46,7 +46,7 @@ from src.config import (
     MAX_DATA_STALENESS_DAYS,
 )
 from src.features.features import build_features
-from src.signals.signals import compute_signals
+from src.signals.signals import compute_signals, enrich_results
 from src.core.inference import expanding_standardize, _fit_hmm, filtered_probs, filtered_labels
 from src.core.hmm_training import select_states_bic, check_stability, label_regimes, fit_regime_sv, fit_regime_garch
 from src.core.pca_utils import fit_rolling_pca
@@ -2225,6 +2225,7 @@ def train(reload_pca_checkpoint_path=None):
         garch_var_95.append(var_95)
     results['garch_var_95'] = garch_var_95
 
+    results = enrich_results(results, garch_results)
     results.to_csv(os.path.join(DATA_DIR, 'regime_results.csv'))
 
     # Save unified model checkpoint (includes PCA for incremental mode)
