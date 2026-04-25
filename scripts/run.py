@@ -2,31 +2,33 @@
 Run the PCA -> HMM -> Regime-Dependent SV pipeline.
 
 Usage:
-    python run.py              # full pipeline
+    python run.py              # full pipeline (8 stages)
+    python run.py --validate   # full pipeline + walk-forward validation
     python run.py collect      # data download only
     python run.py features     # feature engineering only
-    python run.py analyze      # feature analysis / diagnostics
-    python run.py train        # PCA + HMM + GARCH training
+    python run.py feature_analysis  # feature analysis / diagnostics
+    python run.py analyze      # alias for feature_analysis
+    python run.py train        # alias for train_hmm
+    python run.py train_hmm    # PCA + HMM + GARCH training
+    python run.py garch        # GARCH fitting only
+    python run.py signals      # signal assembly only
+    python run.py dashboard    # rebuild dashboard from saved model
     python run.py regime       # print current regime awareness
     python run.py trust        # print trust scorecard only
-    python run.py dashboard    # rebuild dashboard from saved model
 """
 
+import argparse
 import sys
 import os
 
 # Add parent directory to path so we can import src/ modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.features.collect import collect
-from src.features.features import prepare_features
-from scripts.pipelines.analyze import analyze
-from scripts.pipelines.train import train, rebuild_dashboard
+from src.pipeline import Pipeline
 
 
 def print_regime():
     """Print current regime awareness from saved results (no retraining)."""
-    import os
     import numpy as np
     import pandas as pd
     from src.config import DATA_DIR
@@ -146,7 +148,6 @@ def print_regime():
 
 def print_trust():
     """Print trust scorecard only (no full regime awareness)."""
-    import os
     import pandas as pd
     from src.config import DATA_DIR
     from src.signals.signals import compute_signals
@@ -164,58 +165,36 @@ def print_trust():
 
 
 def main():
-    step = sys.argv[1] if len(sys.argv) > 1 else 'all'
+    parser = argparse.ArgumentParser(description='Regime detection daily pipeline')
+    parser.add_argument('command', nargs='?', default='all',
+                        choices=['all', 'collect', 'features', 'analyze', 'train',
+                                 'feature_analysis', 'pca', 'train_hmm', 'garch',
+                                 'signals', 'dashboard', 'walk_forward',
+                                 'regime', 'trust'])
+    parser.add_argument('--validate', action='store_true',
+                        help='Include walk_forward stage (slow, ~4h)')
+    args = parser.parse_args()
 
-    try:
-        if step in ('all', 'collect'):
-            market = collect()
-    except Exception as e:
-        print(f"[ERROR] collect failed: {e}")
-        if step != 'all':
-            sys.exit(1)
-        return
-
-    try:
-        if step in ('all', 'features'):
-            prepare_features()
-    except Exception as e:
-        print(f"[ERROR] features failed: {e}")
-        if step != 'all':
-            sys.exit(1)
-        return
-
-    try:
-        if step in ('all', 'analyze'):
-            analyze()
-    except Exception as e:
-        print(f"[ERROR] analyze failed: {e}")
-        if step != 'all':
-            sys.exit(1)
-        return
-
-    try:
-        if step in ('all', 'train'):
-            train()
-    except Exception as e:
-        print(f"[ERROR] train failed: {e}")
-        sys.exit(1)
-
-    if step == 'regime':
+    # Non-pipeline commands
+    if args.command == 'regime':
         print_regime()
+        sys.exit(0)
 
-    if step == 'trust':
+    if args.command == 'trust':
         print_trust()
+        sys.exit(0)
 
-    if step == 'dashboard':
-        rebuild_dashboard()
+    pipe = Pipeline()
+    if args.command == 'all':
+        pipe.run_all(validate=args.validate)
+    else:
+        # Back-compat aliases
+        alias = {'analyze': 'feature_analysis', 'train': 'train_hmm'}
+        stage = alias.get(args.command, args.command)
+        pipe.run_stage(stage)
 
-    known = {'all', 'collect', 'features', 'analyze', 'train', 'regime', 'trust', 'dashboard'}
-    if step not in known:
-        print(f"Unknown step: '{step}'")
-        print(f"Valid steps: {', '.join(sorted(known))}")
-        sys.exit(1)
+    sys.exit(0)
 
 
 if __name__ == '__main__':
     main()
-    sys.exit(0)
