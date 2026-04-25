@@ -1,5 +1,6 @@
 """PIPE-03: after a run, last row date is today (or most recent business day)."""
 import subprocess
+import sys
 import os
 import pytest
 from datetime import date, timedelta
@@ -9,7 +10,7 @@ from src.config import DATA_DIR
 
 @pytest.mark.slow
 def test_last_row_is_recent_business_day():
-    subprocess.run(['python', 'scripts/run.py'], check=True)
+    subprocess.run([sys.executable, 'scripts/run.py'], check=True)
     df = pd.read_csv(os.path.join(DATA_DIR, 'regime_results.csv'),
                      index_col=0, parse_dates=True)
     last = df.index[-1].date()

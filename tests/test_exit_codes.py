@@ -1,5 +1,6 @@
 """PIPE-01: forcing a stage failure produces exit code 1 (no silent swallow)."""
 import subprocess
+import sys
 import pytest
 import os
 
@@ -10,7 +11,7 @@ def test_stage_failure_returns_exit_1(tmp_path, monkeypatch):
     env = os.environ.copy()
     env['GSD_FORCE_STAGE_FAIL'] = 'features'  # runner honors this test hook
     result = subprocess.run(
-        ['python', 'scripts/run.py'],
+        [sys.executable, 'scripts/run.py'],
         capture_output=True, env=env,
     )
     assert result.returncode == 1, (

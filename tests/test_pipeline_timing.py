@@ -1,5 +1,6 @@
 """PIPE-01: full daily pipeline (no walk-forward) completes in <600s."""
 import subprocess
+import sys
 import time
 import pytest
 import os
@@ -9,7 +10,7 @@ import os
 def test_pipeline_under_600s():
     t0 = time.perf_counter()
     result = subprocess.run(
-        ['python', 'scripts/run.py'],
+        [sys.executable, 'scripts/run.py'],
         capture_output=True,
         cwd=os.getcwd(),
     )
