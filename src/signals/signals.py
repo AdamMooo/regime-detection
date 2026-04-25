@@ -730,3 +730,88 @@ def compute_signals(results: pd.DataFrame, model: Any = None,
     validate_signal_schema(signal)
 
     return signal
+
+
+# ── Phase 7 schema enrichment ─────────────────────────────────────
+
+def compute_days_in_regime(regime_names: pd.Series) -> pd.Series:
+    """Cumulative run-length on regime_name. Resets to 1 on each change.
+
+    Example: ['A','A','A','B','B','A'] -> [1,2,3,1,2,1]
+    """
+    days = pd.Series(0, index=regime_names.index, dtype=int)
+    count = 0
+    prev = None
+    for i, name in enumerate(regime_names):
+        if name == prev:
+            count += 1
+        else:
+            count = 1
+        days.iloc[i] = count
+        prev = name
+    return days
+
+
+def enrich_results(results: pd.DataFrame, garch_results: dict | None) -> pd.DataFrame:
+    """Add Phase 7 schema columns to regime_results DataFrame.
+
+    Adds 3 computed columns: days_in_regime, regime_entropy, garch_vol_forecast.
+    Adds 3 placeholder NaN columns: blended_vol_forecast (Phase 9),
+    transition_score (Phase 11), structural_anomaly (Phase 12).
+
+    Canonical existing columns are NOT modified.
+
+    Parameters
+    ----------
+    results : pd.DataFrame
+        regime_results DataFrame as produced by train().
+    garch_results : dict or None
+        Mapping of regime_name (str) or regime int -> arch ModelResult.
+        May be None — in that case garch_vol_forecast is all-NaN.
+    """
+    out = results.copy()
+
+    # days_in_regime — cumulative run-length on regime_name
+    out['days_in_regime'] = compute_days_in_regime(out['regime_name'])
+
+    # regime_entropy — Shannon entropy over prob_<regime_name> columns
+    prob_cols = [
+        c for c in out.columns
+        if c.startswith('prob_') and 'smooth' not in c
+    ]
+    if prob_cols:
+        probs = out[prob_cols].to_numpy(dtype=float)
+        probs = np.clip(probs, 1e-12, 1.0)
+        out['regime_entropy'] = -(probs * np.log(probs)).sum(axis=1)
+    else:
+        out['regime_entropy'] = np.nan
+
+    # garch_vol_forecast — per-regime conditional_volatility masked by active regime
+    # Use .conditional_volatility (fitted once — deterministic, not per-row refit)
+    # .conditional_volatility is in % scale — divide by 100 for decimal daily vol.
+    vol = pd.Series(np.nan, index=out.index, dtype=float)
+    if garch_results:
+        regime_names_in_data = out['regime_name'].unique().tolist()
+        for key, res in garch_results.items():
+            # Normalize key to string regime name
+            key_str = str(key)
+            # If key is an integer string ("0","1","2"), map to regime name by position
+            if key_str.isdigit() and int(key_str) < len(regime_names_in_data):
+                regime_name = regime_names_in_data[int(key_str)]
+            else:
+                regime_name = key_str
+            cond_vol_attr = getattr(res, 'conditional_volatility', None)
+            if cond_vol_attr is None:
+                continue
+            cond_vol = pd.Series(cond_vol_attr).reindex(out.index) / 100.0
+            mask = out['regime_name'] == regime_name
+            vol.loc[mask] = cond_vol.loc[mask]
+    out['garch_vol_forecast'] = vol
+
+    # Placeholder columns — phases 9/11/12 will fill these
+    # T-07-09: downstream consumers must .fillna() or isna()-guard these columns
+    out['blended_vol_forecast'] = np.nan   # Phase 9: vol forecast ensemble
+    out['transition_score'] = np.nan       # Phase 11: transition predictor
+    out['structural_anomaly'] = np.nan     # Phase 12: anomaly detection
+
+    return out
