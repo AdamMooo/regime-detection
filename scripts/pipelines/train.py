@@ -1,4 +1,9 @@
-"""
+"""Legacy training module. Pipeline orchestration lives in src/pipeline/.
+This file retains stage-implementation helpers (build_interactive_dashboard,
+train(), fit_regime_garch callers) that the pipeline stages delegate to.
+The local walk_forward() was removed in Phase 7 — use src.core.orchestrator.walk_forward.
+
+Originally:
 PCA -> HMM -> Regime-Dependent SV Pipeline
 ==========================================
 HMM backend: Bayesian HDP-HMM (NumPyro, SVI inference) — auto-K, sticky transitions.
@@ -85,135 +90,6 @@ def _get_regime_color(regime_name):
     # Strip suffix (-B, -C, etc.) and try base name
     base_name = regime_name.rsplit('-', 1)[0] if '-' in regime_name else regime_name
     return _REGIME_COLORS_HEX.get(base_name, '#888888')
-
-
-# ===================================================================
-# 7. Walk-Forward Validation
-# ===================================================================
-
-def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE,
-                 mode=WALK_FORWARD_MODE):
-    """
-    Walk-forward validation with expanding or rolling window.
-
-    mode='expanding': training window grows over time (all past data).
-    mode='rolling':   fixed-length training window (most recent N years).
-
-    Each fold:  standardize on train -> PCA on last ROLLING_WINDOW days
-    -> project full train -> HMM -> predict test
-    """
-    # Note: features are already subset-filtered by train() before this call
-
-    min_train = WALK_FORWARD_TRAIN_YEARS * 252
-    step      = WALK_FORWARD_STEP_DAYS
-
-    oos_name_labels = pd.Series(index=features.index, dtype=object)
-    oos_name_labels[:] = np.nan
-
-    t = min_train
-    step_num = 0
-    while t < len(features):
-        end = min(t + step, len(features))
-
-        if mode == 'rolling':
-            # Fixed-length rolling window
-            train_start = max(0, t - min_train)
-            train_feats = features.iloc[train_start:t]
-        else:
-            # Expanding window (all past data)
-            train_feats = features.iloc[:t]
-        test_feats  = features.iloc[t:end]
-
-        if len(test_feats) == 0:
-            t = end
-            continue
-
-        # Expanding-window standardize (match train() pipeline exactly)
-        X_combined = np.vstack([train_feats.values, test_feats.values])
-        wf_warmup = min(252, max(50, len(train_feats) // 4))
-        X_all_scaled, _, _ = expanding_standardize(X_combined, min_warmup=wf_warmup)
-        X_train = X_all_scaled[:len(train_feats)]
-        X_test = X_all_scaled[len(train_feats):]
-
-        # Drop warm-up NaN rows from training data
-        valid_train = ~np.isnan(X_train[:, 0])
-        X_train = X_train[valid_train]
-        train_feats_valid = train_feats[valid_train]
-
-        # PCA: fit on last ROLLING_WINDOW days of train, project all
-        pca_window = min(PCA_ROLLING_WINDOW, len(X_train))
-        n_comp = min(n_pca, X_train.shape[1])
-        pca_wf = PCA(n_components=n_comp, random_state=RANDOM_SEED)
-        pca_wf.fit(X_train[-pca_window:])
-        pc_train = pca_wf.transform(X_train)
-        pc_test  = pca_wf.transform(X_test)
-
-        # VIX bypass: append scaled VIX directly to PCs
-        if VIX_BYPASS:
-            vix_train = market['VIX'].reindex(train_feats_valid.index).values
-            vix_test  = market['VIX'].reindex(test_feats.index).values
-            v_mean, v_std = vix_train.mean(), vix_train.std()
-            pc_train = np.hstack([pc_train, ((vix_train - v_mean) / v_std).reshape(-1, 1)])
-            pc_test  = np.hstack([pc_test,  ((vix_test  - v_mean) / v_std).reshape(-1, 1)])
-
-        # HMM (fit on train PCs, pick best seed)
-        best_m, best_ll = None, -np.inf
-        for seed in range(5):
-            m = _fit_hmm(pc_train, n_states, cov_type, seed)
-            ll = m.score(pc_train)
-            if ll > best_ll:
-                best_m, best_ll = m, ll
-
-        assert best_m is not None
-        raw_preds = filtered_labels(best_m, pc_test, hold_days=REGIME_HOLD_DAYS)
-
-        # Assign vol-bracket names using training-window SPY returns
-        train_labels = filtered_labels(best_m, pc_train, hold_days=REGIME_HOLD_DAYS)
-        spy_col = 'SPY_close' if 'SPY_close' in market.columns else 'SPY_Close'
-        spy_train = market[spy_col].reindex(train_feats_valid.index)
-        spy_ret_train = np.log(spy_train / spy_train.shift(1)).dropna().values
-
-        # Build per-state vol-bracket name map for this fold
-        # (align train_labels with available returns — drop first row for diff)
-        tl_aligned = train_labels[1:len(spy_ret_train) + 1]
-        fold_vol = {}
-        for r in range(n_states):
-            mask = (tl_aligned == r)
-            if mask.sum() > 5:
-                fold_vol[r] = float(np.std(spy_ret_train[mask]) * np.sqrt(252) * 100)
-            else:
-                fold_vol[r] = 0.0
-
-        # Map each state to its vol-bracket name
-        fold_name_map = {}
-        name_counts = {}
-        for r in sorted(fold_vol, key=lambda k: fold_vol[k]):
-            vol = fold_vol[r]
-            bracket_name = f'Regime-{r}'
-            for lo, hi, bname in VOL_BRACKETS:
-                if lo <= vol < hi:
-                    bracket_name = bname
-                    break
-            name_counts[bracket_name] = name_counts.get(bracket_name, 0) + 1
-            if name_counts[bracket_name] > 1:
-                bracket_name = f"{bracket_name}-{chr(64 + name_counts[bracket_name])}"
-            fold_name_map[r] = bracket_name
-
-        # Store OOS labels as vol-bracket names for direct IS-OOS comparison
-        oos_name_labels.iloc[t:end] = [fold_name_map.get(r, f'Regime-{r}') for r in raw_preds]
-
-        step_num += 1
-        if step_num % 10 == 0:
-            print(f"    step {step_num}")
-        t = end
-
-    valid_names = oos_name_labels.dropna()
-    # Convert string names to integer labels with a unified name_map
-    unique_names = sorted(valid_names.unique())
-    name_to_int = {name: i for i, name in enumerate(unique_names)}
-    name_map = {i: name for i, name in enumerate(unique_names)}
-    valid = valid_names.map(name_to_int).astype(int)
-    return valid, name_map
 
 
 
