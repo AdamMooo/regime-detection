@@ -2328,6 +2328,7 @@ def rebuild_dashboard():
     mode_ratio = results['market_mode_ratio'].values
 
     # ── Re-run rolling PCA (needed for KDE surface tab) ───────────
+    feat_scaled = feat_scaled.dropna()  # warm-up NaN rows crash sklearn PCA
     X_scaled = feat_scaled.loc[valid_dates].values if valid_dates[0] in feat_scaled.index else feat_scaled.values
     market_aligned = market.loc[feat_scaled.index]
     pcs, mr, valid_mask, n_pca, last_pca = fit_rolling_pca(feat_scaled.values)
