@@ -28,7 +28,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [ ] **Phase 4: Empirical Diagnostics** - Measure regime quality before any changes
 - [ ] **Phase 5: Feature Engineering Overhaul** - Expand and properly validate feature set
 - [ ] **Phase 6: Model Architecture Experiments** - K selection, HDP-HMM decision, train.py refactor
-- [ ] **Phase 7: Daily Pipeline & Clean Outputs** - Single entry point, 2 HTML outputs, cron-ready
+- [x] **Phase 7: Daily Pipeline & Clean Outputs** - Single entry point, 2 HTML outputs, cron-ready
 
 ## Phase Details
 
@@ -85,9 +85,9 @@ Plans:
   3. regime_results.csv is written on every run containing today's regime, probabilities, and GARCH VaR — verified by running the script twice and checking the file updates
 **Plans:** 3 plans
 Plans:
-- [ ] 07-01-PLAN.md — Pipeline Modularization + Timing Gate (src/pipeline/ package, 8 stages, Wave 0 test stubs, walk_forward gate) (PIPE-01)
-- [ ] 07-02-PLAN.md — Clean Output Enforcement + Cron Readiness (figures/ cleanup, rotating log, cron_run.sh, health_check.py) (PIPE-02)
-- [ ] 07-03-PLAN.md — regime_results.csv Schema Hardening (enrich_results in signals.py, 3 computed + 3 placeholder columns) (PIPE-03)
+- [x] 07-01-PLAN.md — Pipeline Modularization + Timing Gate (src/pipeline/ package, 8 stages, Wave 0 test stubs, walk_forward gate) (PIPE-01)
+- [x] 07-02-PLAN.md — Clean Output Enforcement + Cron Readiness (figures/ cleanup, rotating log, cron_run.sh, health_check.py) (PIPE-02)
+- [x] 07-03-PLAN.md — regime_results.csv Schema Hardening (enrich_results in signals.py, 3 computed + 3 placeholder columns) (PIPE-03)
 
 ## Progress
 
@@ -100,7 +100,21 @@ Plans:
 | 4. Empirical Diagnostics | v1.1 | 0/2 | Not started | - |
 | 5. Feature Engineering Overhaul | v1.1 | 3/5 | In Progress|  |
 | 6. Model Architecture Experiments | v1.1 | 0/? | Not started | - |
-| 7. Daily Pipeline & Clean Outputs | v1.1 | 0/? | Not started | - |
+| 7. Daily Pipeline & Clean Outputs | v1.1 | 3/3 | Complete | 2026-04-27 |
+
+### Phase 9: Regime Calibration (BACKLOG)
+**Goal:** Fix the three model quality failures observed in the first live pipeline run (2026-04-27): High-Vol dominates at 61% of days (regime boundaries are not well-calibrated), OOS walk-forward produces 8 label variants instead of 3 stable regimes (fold-level label instability), and GARCH conditional VaR outputs nonsensical values (mean_vol=700%+, VaR=-546%).
+**Depends on:** Phase 7
+**Requirements:** TBD
+**Deferred at:** 2026-04-27 — observed during Phase 7 UAT full pipeline run
+**Problems to solve:**
+  1. High-Vol at 61% — threshold/prior calibration causing one regime to absorb too much of the distribution
+  2. OOS label proliferation — walk-forward fold labels not aligned to in-sample regime names; need Procrustes or Hungarian matching across folds
+  3. GARCH VaR scaling bug — mean_vol=700% suggests returns are in basis points not decimals somewhere in the GARCH path
+**Plans:** 0 plans (run /gsd-plan-phase 9 to break down)
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 9 to break down)
 
 ### Phase 8: HDP-HMM Inference Optimization — Parallelize the 133-fold walk-forward loop (joblib multiprocessing), add JAX XLA CPU flag for all-core utilization, implement ELBO early stopping when plateau detected, and optionally expose a NUTS path for overnight-viable full posterior sampling. Goal: cut overnight run from ~4 hours to under 90 minutes on a 6-core machine.
 
