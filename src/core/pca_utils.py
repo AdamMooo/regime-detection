@@ -18,6 +18,7 @@ LinearizedSV
 
 import logging
 import numpy as np
+import pandas as pd
 from scipy.linalg import orthogonal_procrustes
 from sklearn.decomposition import PCA
 from statsmodels.tsa.statespace.mlemodel import MLEModel
@@ -72,6 +73,12 @@ def fit_rolling_pca(X_scaled, window=PCA_ROLLING_WINDOW,
         Final PCA model (fitted on last window)
     """
     T, D = X_scaled.shape
+
+    if np.isnan(X_scaled).any():
+        n_nan = int(np.isnan(X_scaled).sum())
+        logger.warning("fit_rolling_pca: %d NaN values in input — forward-filling", n_nan)
+        X_scaled = pd.DataFrame(X_scaled).ffill().bfill().values
+
     n_comp = min(max_components, D)
 
     all_scores = np.full((T, n_comp), np.nan)

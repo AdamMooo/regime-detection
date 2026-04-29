@@ -32,7 +32,9 @@ def stage_collect(config):
         raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for collect")
 
     from src.features.collect import collect
+    from src.data.collect_macro import collect as collect_macro
     collect()
+    collect_macro()
     return None
 
 

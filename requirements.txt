@@ -15,3 +15,6 @@ jaxlib==0.9.1
 plotly==6.6.0
 pytest==9.0.2
 matplotlib==3.9.2
+python-dotenv>=1.0
+fredapi>=0.5
+pandas_datareader>=0.10

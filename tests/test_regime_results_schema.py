@@ -28,7 +28,7 @@ def test_prob_columns_named_by_regime():
     df = _load()
     prob_cols = [c for c in df.columns if c.startswith('prob_') and not c.startswith('prob_Low-Vol_smooth')]
     assert 'prob_Low-Vol' in prob_cols
-    assert 'prob_Moderate-Vol' in prob_cols
+    assert 'prob_Medium-Vol' in prob_cols
     assert 'prob_High-Vol' in prob_cols
 
 

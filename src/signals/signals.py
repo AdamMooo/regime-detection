@@ -542,12 +542,12 @@ def compute_garch_var(regime_name: str, recent_returns: np.ndarray,
         # Insufficient data; return conservative estimate
         return -1.645 * np.std(recent_returns) if len(recent_returns) > 0 else -0.02
 
-    # Fit GARCH(1,1) on recent returns
+    # Fit GARCH(1,1) on recent returns — scale to 1-1000 range for optimizer
     try:
-        y = pd.Series(recent_returns) * 100  # Convert to percent
+        y = pd.Series(recent_returns) * 10000
         am = arch_model(y, vol='GARCH', p=1, q=1, mean='Zero', dist='normal')
         res = am.fit(disp='off')
-        sigma_t = res.conditional_volatility.iloc[-1] / 100  # Current volatility (decimal)
+        sigma_t = res.conditional_volatility.iloc[-1] / 10000  # back to decimal
     except:
         # Fallback to simple volatility estimate
         sigma_t = np.std(recent_returns)

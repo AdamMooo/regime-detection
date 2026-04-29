@@ -2329,9 +2329,16 @@ def rebuild_dashboard():
 
     # ── Re-run rolling PCA (needed for KDE surface tab) ───────────
     feat_scaled = feat_scaled.dropna()  # warm-up NaN rows crash sklearn PCA
-    X_scaled = feat_scaled.loc[valid_dates].values if valid_dates[0] in feat_scaled.index else feat_scaled.values
+    
+    # Align to valid dates and ensure absolutely no NaN before PCA (defensive)
+    if valid_dates[0] in feat_scaled.index:
+        feat_for_pca = feat_scaled.loc[valid_dates].dropna()
+    else:
+        feat_for_pca = feat_scaled.dropna()
+    
+    X_scaled = feat_for_pca.values
     market_aligned = market.loc[feat_scaled.index]
-    pcs, mr, valid_mask, n_pca, last_pca = fit_rolling_pca(feat_scaled.values)
+    pcs, mr, valid_mask, n_pca, last_pca = fit_rolling_pca(X_scaled)
 
     # Trim to valid dates (same alignment as train)
     pca_valid_dates = feat_scaled.index[valid_mask]

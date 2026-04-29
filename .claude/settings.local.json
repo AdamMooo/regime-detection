@@ -39,7 +39,20 @@
       "Bash(npm config *)",
       "Bash(awk '{print $6, $7, $8, $9, $10}')",
       "Bash(awk '{print $6 \" \" $7 \" \" $8 \" \" $9}')",
-      "Bash(awk '{print $6 \" \" $7 \" \" $8}')"
+      "Bash(awk '{print $6 \" \" $7 \" \" $8}')",
+      "Bash(python3 *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(.venv/bin/pytest tests/test_regime_results_schema.py -v)",
+      "Skill(gsd-verify-work)",
+      "Bash(jobs)",
+      "Bash(nvidia-smi)",
+      "Bash(.venv/bin/python -c \"import jax; print\\('JAX devices:', jax.devices\\(\\)\\); print\\('JAX version:', jax.__version__\\)\")",
+      "Bash(.venv/bin/python *)",
+      "Bash(kill 16892)",
+      "Skill(gsd-note)"
     ]
-  }
+  },
+  "outputStyle": "Learning",
+  "prefersReducedMotion": true
 }

@@ -17,9 +17,22 @@ Usage:
     python run.py trust        # print trust scorecard only
 """
 
-import argparse
-import sys
 import os
+import sys
+from pathlib import Path
+
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent.parent / ".env")
+
+# Set CPU thread counts before numpy/JAX import so Eigen/BLAS/XLA pick them up.
+# setdefault means shell overrides still work: OMP_NUM_THREADS=2 python run.py
+_ncpu = str(os.cpu_count() or 4)
+os.environ.setdefault("OMP_NUM_THREADS", _ncpu)
+os.environ.setdefault("MKL_NUM_THREADS", _ncpu)
+os.environ.setdefault("OPENBLAS_NUM_THREADS", _ncpu)
+os.environ.setdefault("XLA_FLAGS", "--xla_cpu_multi_thread_eigen=true")
+
+import argparse
 
 # Add parent directory to path so we can import src/ modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

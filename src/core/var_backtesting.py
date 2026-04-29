@@ -244,13 +244,14 @@ def compute_var_backtest_garch(spy_returns, regime_probs, labels, name_map,
     except ImportError:
         return pd.DataFrame()
 
-    y = spy_returns.dropna() * 100  # percent returns
+    y = spy_returns.dropna() * 10000  # scale to 1-1000 range for GARCH optimizer
     am = arch_model(y, vol='GARCH', p=1, q=1, mean='Zero', dist='normal')
     res = am.fit(disp='off')
-    cond_vol = res.conditional_volatility.values / 100  # back to decimal
+    cond_vol_scaled = res.conditional_volatility.values
+    cond_vol = cond_vol_scaled / 10000  # back to decimal for output
 
     z_crit = np.sqrt(2) * erfinv(2 * (1 - alpha) - 1)
-    var_dynamic = z_crit * cond_vol
+    var_dynamic = z_crit * cond_vol_scaled  # keep in scaled units to match y
     n_exc = (y.values < -var_dynamic).sum()
     n_obs = len(y)
 
@@ -315,14 +316,15 @@ def compare_var_methods(spy_returns, labels, name_map, alpha=VAR_ALPHA):
     # For GARCH, compute actual Kupiec/Christoffersen tests
     if not garch_results.empty:
         try:
-            y = spy_returns.dropna() * 100
+            y = spy_returns.dropna() * 10000
             from arch import arch_model
             am = arch_model(y, vol='GARCH', p=1, q=1, mean='Zero', dist='normal')
             res = am.fit(disp='off')
-            cond_vol = res.conditional_volatility.values / 100
+            cond_vol_scaled = res.conditional_volatility.values
+            cond_vol = cond_vol_scaled / 10000  # noqa: F841  decimal, unused here
 
             z_crit = np.sqrt(2) * erfinv(2 * (1 - alpha) - 1)
-            var_dynamic = z_crit * cond_vol
+            var_dynamic = z_crit * cond_vol_scaled  # scaled units match y
             n_exc = (y.values < -var_dynamic).sum()
             n_obs = len(y)
 
@@ -331,7 +333,7 @@ def compare_var_methods(spy_returns, labels, name_map, alpha=VAR_ALPHA):
             garch_kupiec_p = 1 - chi2.cdf(kupiec_stat, df=1) if not np.isnan(kupiec_stat) else np.nan
 
             # Christoffersen test — compute dynamically on GARCH residuals
-            indicators = (y.values / 100 < -var_dynamic).astype(int)
+            indicators = (y.values < -var_dynamic).astype(int)
             n00 = int(((indicators[:-1] == 0) & (indicators[1:] == 0)).sum())
             n01 = int(((indicators[:-1] == 0) & (indicators[1:] == 1)).sum())
             n10 = int(((indicators[:-1] == 1) & (indicators[1:] == 0)).sum())

@@ -2,11 +2,11 @@
 phase: 07-daily-pipeline-clean-outputs
 verified: 2026-04-24T00:00:00Z
 status: gaps_found
-score: 11/13 must-haves verified
+score: 12/13 must-haves verified
 gaps:
   - truth: "test_prob_columns_named_by_regime asserts prob_Moderate-Vol — but config.py REGIME_NAMES[3] is 'Medium-Vol', so the assertion is permanently wrong"
-    status: failed
-    reason: "test_regime_results_schema.py line 31 asserts 'prob_Moderate-Vol' in prob_cols, but the model produces 'prob_Medium-Vol' (K=3 config uses Medium-Vol). The test was authored with the wrong name from the plan spec. The test will always fail against a real run."
+    status: fixed
+    reason: "Fixed 2026-04-25: tests/test_regime_results_schema.py line 31 changed from 'prob_Moderate-Vol' to 'prob_Medium-Vol'. Test now passes."
     artifacts:
       - path: "tests/test_regime_results_schema.py"
         issue: "Line 31: assert 'prob_Moderate-Vol' in prob_cols — wrong column name for K=3; should be 'prob_Medium-Vol'"
@@ -49,7 +49,7 @@ gaps:
 | 9 | RotatingFileHandler 10MB/3-backup configured | VERIFIED | runner.py: maxBytes=10*1024*1024, backupCount=3; _setup_logging() called from run_all/run_stage/run_from |
 | 10 | cron_run.sh activates venv and logs exit code | VERIFIED | Shell syntax valid; Windows+Unix venv detection; exit code logged to cron_run.log; `exit $RC` propagates |
 | 11 | health_check.py exits 0/1 on PASS/FAIL | VERIFIED | PASS/FAIL branches verified; imports DATA_DIR from src.config; MAX_STALENESS_DAYS=5 |
-| 12 | test_prob_columns_named_by_regime asserts correct column names | FAILED | Test asserts 'prob_Moderate-Vol' but config.py REGIME_NAMES[3] = 'Medium-Vol'; real CSV has 'prob_Medium-Vol' |
+| 12 | test_prob_columns_named_by_regime asserts correct column names | VERIFIED | Fixed 2026-04-25: changed assertion to 'prob_Medium-Vol'; test passes |
 | 13 | regime_results.csv contains all 6 new columns after a run | PARTIAL | Code wiring is correct (enrich_results at train.py:2228 before to_csv at :2229); stale CSV on disk lacks columns until next run |
 
 **Score:** 11/13 truths verified

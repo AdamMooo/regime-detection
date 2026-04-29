@@ -39,8 +39,9 @@ from src.core.pca_utils import fit_rolling_pca, LinearizedSV  # extracted in Pha
 
 logger = logging.getLogger(__name__)
 
-# Suppress arch DataScaleWarning about poorly scaled residuals
-warnings.filterwarnings('ignore', message='.*DataScaleWarning.*')
+# Suppress arch DataScaleWarning — filter by category, not message
+from arch.univariate.base import DataScaleWarning
+warnings.filterwarnings('ignore', category=DataScaleWarning)
 
 
 # ===================================================================
@@ -390,6 +391,27 @@ def fit_regime_sv(spy_returns, labels, name_map):
 # Regime-Dependent GARCH (comparison benchmark)
 # ===================================================================
 
+def _fit_one_regime(r, spy_returns, labels, label_series, name_map, cond_vol_all):
+    """Fit GARCH for a single regime — called in parallel by fit_regime_garch."""
+    mask = (label_series == r)
+    y = (spy_returns[mask].dropna()) * 100000
+    if len(y) < MIN_REGIME_OBS:
+        return r, None, f"  {name_map[r]:12s}: skipped ({len(y)} obs < {MIN_REGIME_OBS})"
+    vol_in_regime = cond_vol_all.reindex(y.index).dropna()
+    am = arch_model(y, vol='GARCH', p=GARCH_P, q=GARCH_Q, mean='Zero', dist=GARCH_DIST)
+    try:
+        res = am.fit(disp='off')
+        omega = res.params.get('omega', np.nan)
+        alpha = res.params.get('alpha[1]', np.nan)
+        beta = res.params.get('beta[1]', np.nan)
+        msg = (f"  {name_map[r]:12s}: w={omega:.4f}  a={alpha:.4f}  "
+               f"b={beta:.4f}  persist={alpha + beta:.4f}  "
+               f"mean_vol={vol_in_regime.mean():.2f}  (n={len(y)})")
+        return r, res, msg
+    except Exception:
+        return r, None, f"  {name_map[r]:12s}: GARCH fit failed (n={len(y)})"
+
+
 def fit_regime_garch(spy_returns, labels, name_map):
     """Fit GARCH(1,1) per regime on SPY daily log-returns.
 
@@ -425,29 +447,15 @@ def fit_regime_garch(spy_returns, labels, name_map):
     results = {'full': res_all}
     label_series = pd.Series(labels, index=spy_returns.index[:len(labels)])
 
-    for r in sorted(name_map.keys()):
-        mask = (label_series == r)
-        y = (spy_returns[mask].dropna()) * 100000
-        vol_in_regime = cond_vol_all.reindex(y.index).dropna()  # type: ignore[union-attr]
-
-        if len(y) < MIN_REGIME_OBS:
-            print(f"  {name_map[r]:12s}: skipped ({len(y)} obs < {MIN_REGIME_OBS})")
-            continue
-
-        am = arch_model(y, vol='GARCH', p=GARCH_P, q=GARCH_Q,
-                        mean='Zero', dist=GARCH_DIST)
-        try:
-            res = am.fit(disp='off')
-            omega = res.params.get('omega', np.nan)
-            alpha = res.params.get('alpha[1]', np.nan)
-            beta = res.params.get('beta[1]', np.nan)
+    from joblib import Parallel, delayed
+    regime_fits = Parallel(n_jobs=-1, backend='loky')(
+        delayed(_fit_one_regime)(r, spy_returns, labels, label_series, name_map, cond_vol_all)
+        for r in sorted(name_map.keys())
+    )
+    for r, res, msg in regime_fits:
+        print(msg)
+        if res is not None:
             results[r] = res
-            persist = alpha + beta
-            print(f"  {name_map[r]:12s}: w={omega:.4f}  a={alpha:.4f}  "
-                  f"b={beta:.4f}  persist={persist:.4f}  "
-                  f"mean_vol={vol_in_regime.mean():.2f}  (n={len(y)})")
-        except Exception:
-            print(f"  {name_map[r]:12s}: GARCH fit failed (n={len(y)})")
 
     return results
 
