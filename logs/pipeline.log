@@ -1,0 +1,175 @@
+2026-04-25 17:17:05,826 INFO pipeline [DONE] train_hmm - 3137.5s
+2026-04-25 17:17:05,827 INFO pipeline [START] garch
+2026-04-25 17:17:08,062 INFO pipeline.stages garch: wrote data/garch_params.json with 4 entries
+2026-04-25 17:17:08,063 INFO pipeline [DONE] garch - 2.2s
+2026-04-25 17:17:08,063 INFO pipeline [START] signals
+2026-04-25 17:17:08,095 INFO pipeline [DONE] signals - 0.0s
+2026-04-25 17:17:08,095 INFO pipeline [START] dashboard
+2026-04-25 17:17:08,199 ERROR pipeline [FAIL] dashboard: Input X contains NaN.
+PCA does not accept missing values encoded as NaN natively. For supervised learning, you might want to consider sklearn.ensemble.HistGradientBoostingClassifier and Regressor which accept missing values encoded as NaNs natively. Alternatively, it is possible to preprocess the data, for instance by using an imputer transformer in a pipeline or drop samples with missing values. See https://scikit-learn.org/stable/modules/impute.html You can find a list of all estimators that handle NaN values at the following page: https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 77, in run_all
+    result = fn(self.config, prev=prev)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 204, in stage_dashboard
+  File "/home/adam/projects/regime-detection/scripts/pipelines/train.py", line 2333, in rebuild_dashboard
+    pcs, mr, valid_mask, n_pca, last_pca = fit_rolling_pca(feat_scaled.values)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/core/pca_utils.py", line 85, in fit_rolling_pca
+    scores = pca.fit_transform(chunk)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/_set_output.py", line 316, in wrapped
+    data_to_wrap = f(self, X, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/base.py", line 1336, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/decomposition/_pca.py", line 466, in fit_transform
+    U, S, _, X, x_is_centered, xp = self._fit(X)
+                                    ^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/decomposition/_pca.py", line 503, in _fit
+    X = validate_data(
+        ^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 2902, in validate_data
+    out = check_array(X, input_name="X", **check_params)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 1074, in check_array
+    _assert_all_finite(
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 133, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 182, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input X contains NaN.
+PCA does not accept missing values encoded as NaN natively. For supervised learning, you might want to consider sklearn.ensemble.HistGradientBoostingClassifier and Regressor which accept missing values encoded as NaNs natively. Alternatively, it is possible to preprocess the data, for instance by using an imputer transformer in a pipeline or drop samples with missing values. See https://scikit-learn.org/stable/modules/impute.html You can find a list of all estimators that handle NaN values at the following page: https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values
+2026-04-26 19:48:25,041 INFO pipeline [CLEANUP] removed 1 stale HTML file(s) from figures/
+2026-04-26 19:48:25,041 INFO pipeline [START] collect
+2026-04-26 19:48:26,894 INFO pipeline [DONE] collect - 1.9s
+2026-04-26 19:48:26,894 INFO pipeline [START] features
+2026-04-26 19:48:27,497 INFO pipeline [DONE] features - 0.6s
+2026-04-26 19:48:27,497 INFO pipeline [START] feature_analysis
+2026-04-26 19:48:28,431 INFO pipeline [DONE] feature_analysis - 0.9s
+2026-04-26 19:48:28,431 INFO pipeline [START] pca
+2026-04-26 19:48:28,432 INFO pipeline.stages pca: embedded in train_hmm stage when run via run_all()
+2026-04-26 19:48:28,432 INFO pipeline [DONE] pca - 0.0s
+2026-04-26 19:48:28,432 INFO pipeline [START] train_hmm
+2026-04-26 20:09:42,520 INFO pipeline [DONE] train_hmm - 1224.6s
+2026-04-26 20:09:42,521 INFO pipeline [START] garch
+2026-04-26 20:09:44,563 INFO pipeline.stages garch: wrote data/garch_params.json with 4 entries
+2026-04-26 20:09:44,563 INFO pipeline [DONE] garch - 2.0s
+2026-04-26 20:09:44,563 INFO pipeline [START] signals
+2026-04-26 20:09:44,593 INFO pipeline [DONE] signals - 0.0s
+2026-04-26 20:09:44,593 INFO pipeline [START] dashboard
+2026-04-26 20:09:44,660 ERROR pipeline [FAIL] dashboard: Input X contains NaN.
+PCA does not accept missing values encoded as NaN natively. For supervised learning, you might want to consider sklearn.ensemble.HistGradientBoostingClassifier and Regressor which accept missing values encoded as NaNs natively. Alternatively, it is possible to preprocess the data, for instance by using an imputer transformer in a pipeline or drop samples with missing values. See https://scikit-learn.org/stable/modules/impute.html You can find a list of all estimators that handle NaN values at the following page: https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 77, in run_all
+    result = fn(self.config, prev=prev)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 206, in stage_dashboard
+    rebuild_dashboard()
+  File "/home/adam/projects/regime-detection/scripts/pipelines/train.py", line 2333, in rebuild_dashboard
+    pcs, mr, valid_mask, n_pca, last_pca = fit_rolling_pca(feat_scaled.values)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/core/pca_utils.py", line 85, in fit_rolling_pca
+    scores = pca.fit_transform(chunk)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/_set_output.py", line 316, in wrapped
+    data_to_wrap = f(self, X, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/base.py", line 1336, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/decomposition/_pca.py", line 466, in fit_transform
+    U, S, _, X, x_is_centered, xp = self._fit(X)
+                                    ^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/decomposition/_pca.py", line 503, in _fit
+    X = validate_data(
+        ^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 2902, in validate_data
+    out = check_array(X, input_name="X", **check_params)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 1074, in check_array
+    _assert_all_finite(
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 133, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 182, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input X contains NaN.
+PCA does not accept missing values encoded as NaN natively. For supervised learning, you might want to consider sklearn.ensemble.HistGradientBoostingClassifier and Regressor which accept missing values encoded as NaNs natively. Alternatively, it is possible to preprocess the data, for instance by using an imputer transformer in a pipeline or drop samples with missing values. See https://scikit-learn.org/stable/modules/impute.html You can find a list of all estimators that handle NaN values at the following page: https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values
+2026-04-26 21:19:46,792 INFO pipeline [CLEANUP] removed 2 stale HTML file(s) from figures/
+2026-04-26 21:19:46,792 INFO pipeline [START] collect
+2026-04-26 21:19:48,507 INFO pipeline [DONE] collect - 1.7s
+2026-04-26 21:19:48,508 INFO pipeline [START] features
+2026-04-26 21:19:49,093 INFO pipeline [DONE] features - 0.6s
+2026-04-26 21:19:49,093 INFO pipeline [START] feature_analysis
+2026-04-26 21:19:50,011 INFO pipeline [DONE] feature_analysis - 0.9s
+2026-04-26 21:19:50,011 INFO pipeline [START] pca
+2026-04-26 21:19:50,011 INFO pipeline.stages pca: embedded in train_hmm stage when run via run_all()
+2026-04-26 21:19:50,011 INFO pipeline [DONE] pca - 0.0s
+2026-04-26 21:19:50,011 INFO pipeline [START] train_hmm
+2026-04-26 21:21:13,876 INFO pipeline [CLEANUP] removed 1 stale HTML file(s) from figures/
+2026-04-26 21:21:13,876 INFO pipeline [START] collect
+2026-04-26 21:21:15,493 INFO pipeline [DONE] collect - 1.6s
+2026-04-26 21:21:15,493 INFO pipeline [START] features
+2026-04-26 21:21:16,065 INFO pipeline [DONE] features - 0.6s
+2026-04-26 21:21:16,065 INFO pipeline [START] feature_analysis
+2026-04-26 21:21:16,836 INFO pipeline [DONE] feature_analysis - 0.8s
+2026-04-26 21:21:16,836 INFO pipeline [START] pca
+2026-04-26 21:21:16,836 INFO pipeline.stages pca: embedded in train_hmm stage when run via run_all()
+2026-04-26 21:21:16,836 INFO pipeline [DONE] pca - 0.0s
+2026-04-26 21:21:16,836 INFO pipeline [START] train_hmm
+2026-04-26 21:42:37,737 INFO pipeline [DONE] train_hmm - 1217.5s
+2026-04-26 21:42:37,738 INFO pipeline [START] garch
+2026-04-26 21:42:40,280 INFO pipeline.stages garch: wrote data/garch_params.json with 4 entries
+2026-04-26 21:42:40,280 INFO pipeline [DONE] garch - 2.5s
+2026-04-26 21:42:40,281 INFO pipeline [START] signals
+2026-04-26 21:42:40,321 INFO pipeline [DONE] signals - 0.0s
+2026-04-26 21:42:40,321 INFO pipeline [START] dashboard
+2026-04-26 21:42:40,389 ERROR pipeline [FAIL] dashboard: Input X contains NaN.
+PCA does not accept missing values encoded as NaN natively. For supervised learning, you might want to consider sklearn.ensemble.HistGradientBoostingClassifier and Regressor which accept missing values encoded as NaNs natively. Alternatively, it is possible to preprocess the data, for instance by using an imputer transformer in a pipeline or drop samples with missing values. See https://scikit-learn.org/stable/modules/impute.html You can find a list of all estimators that handle NaN values at the following page: https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 77, in run_all
+    result = fn(self.config, prev=prev)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 206, in stage_dashboard
+    rebuild_dashboard()
+  File "/home/adam/projects/regime-detection/scripts/pipelines/train.py", line 2333, in rebuild_dashboard
+    pcs, mr, valid_mask, n_pca, last_pca = fit_rolling_pca(feat_scaled.values)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/core/pca_utils.py", line 85, in fit_rolling_pca
+    scores = pca.fit_transform(chunk)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/_set_output.py", line 316, in wrapped
+    data_to_wrap = f(self, X, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/base.py", line 1336, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/decomposition/_pca.py", line 466, in fit_transform
+    U, S, _, X, x_is_centered, xp = self._fit(X)
+                                    ^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/decomposition/_pca.py", line 503, in _fit
+    X = validate_data(
+        ^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 2902, in validate_data
+    out = check_array(X, input_name="X", **check_params)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 1074, in check_array
+    _assert_all_finite(
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 133, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 182, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input X contains NaN.
+PCA does not accept missing values encoded as NaN natively. For supervised learning, you might want to consider sklearn.ensemble.HistGradientBoostingClassifier and Regressor which accept missing values encoded as NaNs natively. Alternatively, it is possible to preprocess the data, for instance by using an imputer transformer in a pipeline or drop samples with missing values. See https://scikit-learn.org/stable/modules/impute.html You can find a list of all estimators that handle NaN values at the following page: https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values
+2026-04-28 00:16:57,640 INFO pipeline [CLEANUP] removed 2 stale HTML file(s) from figures/
+2026-04-28 00:16:57,641 INFO pipeline [START] collect
+2026-04-28 00:16:59,866 INFO pipeline [DONE] collect - 2.2s
+2026-04-28 00:16:59,866 INFO pipeline [START] features
+2026-04-28 00:17:00,479 INFO pipeline [DONE] features - 0.6s
+2026-04-28 00:17:00,479 INFO pipeline [START] feature_analysis
+2026-04-28 00:17:01,429 INFO pipeline [DONE] feature_analysis - 1.0s
+2026-04-28 00:17:01,429 INFO pipeline [START] pca
+2026-04-28 00:17:01,429 INFO pipeline.stages pca: embedded in train_hmm stage when run via run_all()
+2026-04-28 00:17:01,430 INFO pipeline [DONE] pca - 0.0s
+2026-04-28 00:17:01,430 INFO pipeline [START] train_hmm
