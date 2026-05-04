@@ -1,8 +1,9 @@
 ---
 phase: 07-daily-pipeline-clean-outputs
 verified: 2026-04-24T00:00:00Z
-status: gaps_found
-score: 12/13 must-haves verified
+status: complete
+score: 13/13 must-haves verified
+re_verified: 2026-05-01T00:00:00Z
 gaps:
   - truth: "test_prob_columns_named_by_regime asserts prob_Moderate-Vol — but config.py REGIME_NAMES[3] is 'Medium-Vol', so the assertion is permanently wrong"
     status: fixed
