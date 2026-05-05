@@ -2,26 +2,26 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Model Quality & Regime Reliability
-status: executing
-last_updated: "2026-04-25T03:00:53.795Z"
-last_activity: 2026-04-25
+status: calibration
+last_updated: "2026-05-04T00:00:00.000Z"
+last_activity: 2026-05-04
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 5
   total_plans: 12
-  completed_plans: 9
-  percent: 75
+  completed_plans: 12
+  percent: 100
 ---
 
 # STATE — Regime-Detection Project Memory
 
 ## Latest Status
 
-**As of:** 2026-04-15  
-**Phase:** 7
-**Plan:** Not started
-**Status:** Executing Phase --phase
-**Last activity:** 2026-04-25
+**As of:** 2026-05-04
+**Phase:** 9 (Regime Calibration — fixing 3 critical UAT failures from Phase 7)
+**Plan:** In progress
+**Status:** v1.1 milestone phases complete; Phase 9 calibration work active
+**Last activity:** 2026-05-04
 
 ---
 
@@ -29,10 +29,11 @@ progress:
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
-| 4. Empirical Diagnostics | Measure regime quality before any changes | DIAG-01, DIAG-02, DIAG-03, DIAG-04 | Not started |
-| 5. Feature Engineering Overhaul | Expand and walk-forward validate features | FEAT-01, FEAT-02, FEAT-03 | Not started |
-| 6. Model Architecture Experiments | K selection, HDP-HMM decision, refactor | MODEL-01, MODEL-02, MODEL-03 | Not started |
-| 7. Daily Pipeline & Clean Outputs | Single entry point, 2 HTML outputs, cron-ready | PIPE-01, PIPE-02, PIPE-03 | Not started |
+| 4. Empirical Diagnostics | Measure regime quality before any changes | DIAG-01, DIAG-02, DIAG-03, DIAG-04 | ✅ Complete 2026-04-20 |
+| 5. Feature Engineering Overhaul | Expand and walk-forward validate features | FEAT-01, FEAT-02, FEAT-03 | ✅ Complete 2026-04-19 (5/5 plans) |
+| 6. Model Architecture Experiments | K selection, HDP-HMM decision, refactor | MODEL-01, MODEL-02, MODEL-03 | ✅ Complete 2026-04-21 |
+| 7. Daily Pipeline & Clean Outputs | Single entry point, 2 HTML outputs, cron-ready | PIPE-01, PIPE-02, PIPE-03 | ✅ Complete 2026-04-27 |
+| 9. Regime Calibration | Fix 3 critical UAT failures from Phase 7 | TBD | 🔄 In Progress |
 
 ---
 

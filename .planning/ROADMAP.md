@@ -97,9 +97,9 @@ Plans:
 | 2. Incremental Data Updates | v1.0 | 1/1 | Complete | 2026-04-13 |
 | 2.5 Model Diagnostics & Robustness | v1.0 | 5/5 | Complete | 2026-04-14 |
 | 3. Code Refactoring + Polish | v1.0 | 4/4 | Complete | 2026-04-15 |
-| 4. Empirical Diagnostics | v1.1 | 0/2 | Not started | - |
-| 5. Feature Engineering Overhaul | v1.1 | 3/5 | In Progress|  |
-| 6. Model Architecture Experiments | v1.1 | 0/? | Not started | - |
+| 4. Empirical Diagnostics | v1.1 | 2/2 | Complete | 2026-04-20 |
+| 5. Feature Engineering Overhaul | v1.1 | 5/5 | Complete | 2026-04-19 |
+| 6. Model Architecture Experiments | v1.1 | 2/2 | Complete | 2026-04-21 |
 | 7. Daily Pipeline & Clean Outputs | v1.1 | 3/3 | Complete | 2026-04-27 |
 
 ### Phase 9: Regime Calibration (BACKLOG)
