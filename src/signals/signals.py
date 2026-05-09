@@ -788,7 +788,8 @@ def enrich_results(results: pd.DataFrame, garch_results: dict | None) -> pd.Data
 
     # garch_vol_forecast — per-regime conditional_volatility masked by active regime
     # Use .conditional_volatility (fitted once — deterministic, not per-row refit)
-    # .conditional_volatility is in % scale — divide by 100 for decimal daily vol.
+    # fit_regime_garch scales returns by 100000 for GARCH optimizer stability,
+    # so conditional_volatility is in the 100000x scale. Divide by 100000 for decimal daily vol.
     vol = pd.Series(np.nan, index=out.index, dtype=float)
     if garch_results:
         regime_names_in_data = out['regime_name'].unique().tolist()
@@ -803,7 +804,7 @@ def enrich_results(results: pd.DataFrame, garch_results: dict | None) -> pd.Data
             cond_vol_attr = getattr(res, 'conditional_volatility', None)
             if cond_vol_attr is None:
                 continue
-            cond_vol = pd.Series(cond_vol_attr).reindex(out.index) / 100.0
+            cond_vol = pd.Series(cond_vol_attr).reindex(out.index) / 100000.0
             mask = out['regime_name'] == regime_name
             vol.loc[mask] = cond_vol.loc[mask]
     out['garch_vol_forecast'] = vol

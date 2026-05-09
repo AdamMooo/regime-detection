@@ -404,9 +404,10 @@ def _fit_one_regime(r, spy_returns, labels, label_series, name_map, cond_vol_all
         omega = res.params.get('omega', np.nan)
         alpha = res.params.get('alpha[1]', np.nan)
         beta = res.params.get('beta[1]', np.nan)
+        mean_vol_ann = vol_in_regime.mean() / 100000 * np.sqrt(252) * 100
         msg = (f"  {name_map[r]:12s}: w={omega:.4f}  a={alpha:.4f}  "
                f"b={beta:.4f}  persist={alpha + beta:.4f}  "
-               f"mean_vol={vol_in_regime.mean():.2f}  (n={len(y)})")
+               f"mean_vol={mean_vol_ann:.1f}%ann  (n={len(y)})")
         return r, res, msg
     except Exception:
         return r, None, f"  {name_map[r]:12s}: GARCH fit failed (n={len(y)})"

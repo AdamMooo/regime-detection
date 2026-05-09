@@ -173,3 +173,224 @@ PCA does not accept missing values encoded as NaN natively. For supervised learn
 2026-04-28 00:17:01,429 INFO pipeline.stages pca: embedded in train_hmm stage when run via run_all()
 2026-04-28 00:17:01,430 INFO pipeline [DONE] pca - 0.0s
 2026-04-28 00:17:01,430 INFO pipeline [START] train_hmm
+2026-04-30 23:55:24,389 INFO pipeline [CLEANUP] removed 1 stale HTML file(s) from figures/
+2026-04-30 23:55:24,390 INFO pipeline [START] collect
+2026-04-30 23:55:26,834 INFO pipeline [DONE] collect - 2.4s
+2026-04-30 23:55:26,834 INFO pipeline [START] features
+2026-04-30 23:55:27,447 INFO pipeline [DONE] features - 0.6s
+2026-04-30 23:55:27,447 INFO pipeline [START] feature_analysis
+2026-04-30 23:55:28,467 INFO pipeline [DONE] feature_analysis - 1.0s
+2026-04-30 23:55:28,468 INFO pipeline [START] pca
+2026-04-30 23:55:28,468 INFO pipeline.stages pca: embedded in train_hmm stage when run via run_all()
+2026-04-30 23:55:28,468 INFO pipeline [DONE] pca - 0.0s
+2026-04-30 23:55:28,468 INFO pipeline [START] train_hmm
+2026-05-01 00:06:14,716 INFO pipeline [CLEANUP] removed 1 stale HTML file(s) from figures/
+2026-05-01 00:06:14,717 INFO pipeline [START] collect
+2026-05-01 00:06:16,389 INFO pipeline [DONE] collect - 1.7s
+2026-05-01 00:06:16,389 INFO pipeline [START] features
+2026-05-01 00:06:16,996 INFO pipeline [DONE] features - 0.6s
+2026-05-01 00:06:16,996 INFO pipeline [START] feature_analysis
+2026-05-01 00:06:17,851 INFO pipeline [DONE] feature_analysis - 0.9s
+2026-05-01 00:06:17,851 INFO pipeline [START] pca
+2026-05-01 00:06:17,851 INFO pipeline.stages pca: embedded in train_hmm stage when run via run_all()
+2026-05-01 00:06:17,851 INFO pipeline [DONE] pca - 0.0s
+2026-05-01 00:06:17,851 INFO pipeline [START] train_hmm
+2026-05-01 00:16:59,704 INFO pipeline [CLEANUP] removed 1 stale HTML file(s) from figures/
+2026-05-01 00:16:59,704 INFO pipeline [START] collect
+2026-05-01 00:17:01,481 INFO pipeline [DONE] collect - 1.8s
+2026-05-01 00:17:01,482 INFO pipeline [START] features
+2026-05-01 00:17:02,095 INFO pipeline [DONE] features - 0.6s
+2026-05-01 00:17:02,096 INFO pipeline [START] feature_analysis
+2026-05-01 00:17:03,071 INFO pipeline [DONE] feature_analysis - 1.0s
+2026-05-01 00:17:03,071 INFO pipeline [START] pca
+2026-05-01 00:17:03,071 INFO pipeline.stages pca: embedded in train_hmm stage when run via run_all()
+2026-05-01 00:17:03,071 INFO pipeline [DONE] pca - 0.0s
+2026-05-01 00:17:03,071 INFO pipeline [START] train_hmm
+2026-05-01 00:24:48,228 INFO pipeline [DONE] train_hmm - 1759.8s
+2026-05-01 00:24:48,229 INFO pipeline [START] garch
+2026-05-01 00:24:50,610 INFO pipeline.stages garch: wrote data/garch_params.json with 4 entries
+2026-05-01 00:24:50,610 INFO pipeline [DONE] garch - 2.4s
+2026-05-01 00:24:50,610 INFO pipeline [START] signals
+2026-05-01 00:24:50,648 INFO pipeline [DONE] signals - 0.0s
+2026-05-01 00:24:50,648 INFO pipeline [START] dashboard
+2026-05-01 00:24:52,774 ERROR pipeline [FAIL] dashboard: Boolean index has wrong length: 3723 instead of 3785
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 77, in run_all
+    result = fn(self.config, prev=prev)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 206, in stage_dashboard
+    rebuild_dashboard()
+  File "/home/adam/projects/regime-detection/scripts/pipelines/train.py", line 2344, in rebuild_dashboard
+    pca_valid_dates = feat_scaled.index[valid_mask]
+                      ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 5425, in __getitem__
+    result = getitem(key)
+             ^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/pandas/core/arrays/datetimelike.py", line 393, in __getitem__
+    result = cast(Union[Self, DTScalarOrNaT], super().__getitem__(key))
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/pandas/core/arrays/_mixins.py", line 304, in __getitem__
+    key = check_array_indexer(self, key)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/pandas/core/indexers/utils.py", line 570, in check_array_indexer
+    raise IndexError(
+IndexError: Boolean index has wrong length: 3723 instead of 3785
+2026-05-01 00:27:27,227 INFO pipeline [CLEANUP] removed 2 stale HTML file(s) from figures/
+2026-05-01 00:27:27,227 INFO pipeline [START] collect
+2026-05-01 00:27:28,821 INFO pipeline [DONE] collect - 1.6s
+2026-05-01 00:27:28,821 INFO pipeline [START] features
+2026-05-01 00:27:28,821 ERROR pipeline [FAIL] features: GSD_FORCE_STAGE_FAIL triggered for features
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 77, in run_all
+    result = fn(self.config, prev=prev)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: stage_features() got an unexpected keyword argument 'prev'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 79, in run_all
+    result = fn(self.config)
+             ^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 44, in stage_features
+    raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for features")
+RuntimeError: GSD_FORCE_STAGE_FAIL triggered for features
+2026-05-01 00:27:43,059 INFO pipeline [CLEANUP] removed 0 stale HTML file(s) from figures/
+2026-05-01 00:27:43,060 INFO pipeline [START] collect
+2026-05-01 00:27:44,713 INFO pipeline [DONE] collect - 1.7s
+2026-05-01 00:27:44,713 INFO pipeline [START] features
+2026-05-01 00:27:45,319 INFO pipeline [DONE] features - 0.6s
+2026-05-01 00:27:45,319 INFO pipeline [START] feature_analysis
+2026-05-01 00:27:46,247 INFO pipeline [DONE] feature_analysis - 0.9s
+2026-05-01 00:27:46,247 INFO pipeline [START] pca
+2026-05-01 00:27:46,248 INFO pipeline.stages pca: embedded in train_hmm stage when run via run_all()
+2026-05-01 00:27:46,248 INFO pipeline [DONE] pca - 0.0s
+2026-05-01 00:27:46,248 INFO pipeline [START] train_hmm
+2026-05-01 00:30:20,266 INFO pipeline [CLEANUP] removed 1 stale HTML file(s) from figures/
+2026-05-01 00:30:20,268 INFO pipeline [START] collect
+2026-05-01 00:30:22,146 ERROR pipeline [FAIL] collect: Internal Server Error
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 77, in run_all
+    result = fn(self.config, prev=prev)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: stage_collect() got an unexpected keyword argument 'prev'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/fredapi/fred.py", line 84, in __fetch_data
+    response = urlopen(url)
+               ^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 215, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 521, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 630, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 559, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 492, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "/usr/lib/python3.12/urllib/request.py", line 639, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 500: Internal Server Error
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 79, in run_all
+    result = fn(self.config)
+             ^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 37, in stage_collect
+    collect_macro()
+  File "/home/adam/projects/regime-detection/src/data/collect_macro.py", line 103, in collect
+    macro = collect_macro_features()
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/data/collect_macro.py", line 78, in collect_macro_features
+    raw = _fetch_via_fredapi(key, start)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/data/collect_macro.py", line 33, in _fetch_via_fredapi
+    s = fred.get_series(code, observation_start=start_date)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/fredapi/fred.py", line 151, in get_series
+    root = self.__fetch_data(url)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/fredapi/fred.py", line 88, in __fetch_data
+    raise ValueError(root.get('message'))
+ValueError: Internal Server Error
+2026-05-01 00:30:43,203 INFO pipeline [CLEANUP] removed 0 stale HTML file(s) from figures/
+2026-05-01 00:30:43,203 INFO pipeline [START] collect
+2026-05-01 00:30:48,503 INFO pipeline [DONE] collect - 5.3s
+2026-05-01 00:30:48,503 INFO pipeline [START] features
+2026-05-01 00:30:49,128 INFO pipeline [DONE] features - 0.6s
+2026-05-01 00:30:49,129 INFO pipeline [START] feature_analysis
+2026-05-01 00:30:50,317 INFO pipeline [DONE] feature_analysis - 1.2s
+2026-05-01 00:30:50,318 INFO pipeline [START] pca
+2026-05-01 00:30:50,318 INFO pipeline.stages pca: embedded in train_hmm stage when run via run_all()
+2026-05-01 00:30:50,318 INFO pipeline [DONE] pca - 0.0s
+2026-05-01 00:30:50,318 INFO pipeline [START] train_hmm
+2026-05-04 22:14:22,965 INFO pipeline [CLEANUP] removed 1 stale HTML file(s) from figures/
+2026-05-04 22:14:22,966 INFO pipeline [START] collect
+2026-05-04 22:14:24,786 INFO pipeline [DONE] collect - 1.8s
+2026-05-04 22:14:24,786 INFO pipeline [START] features
+2026-05-04 22:14:24,786 ERROR pipeline [FAIL] features: GSD_FORCE_STAGE_FAIL triggered for features
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 77, in run_all
+    result = fn(self.config, prev=prev)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: stage_features() got an unexpected keyword argument 'prev'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 79, in run_all
+    result = fn(self.config)
+             ^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 44, in stage_features
+    raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for features")
+RuntimeError: GSD_FORCE_STAGE_FAIL triggered for features
+2026-05-05 23:52:31,023 INFO pipeline [CLEANUP] removed 0 stale HTML file(s) from figures/
+2026-05-05 23:52:31,032 INFO pipeline [START] collect
+2026-05-05 23:52:32,610 INFO pipeline [DONE] collect - 1.6s
+2026-05-05 23:52:32,611 INFO pipeline [START] features
+2026-05-05 23:52:32,611 ERROR pipeline [FAIL] features: GSD_FORCE_STAGE_FAIL triggered for features
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 77, in run_all
+    result = fn(self.config, prev=prev)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: stage_features() got an unexpected keyword argument 'prev'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 79, in run_all
+    result = fn(self.config)
+             ^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 44, in stage_features
+    raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for features")
+RuntimeError: GSD_FORCE_STAGE_FAIL triggered for features
+2026-05-05 23:54:35,649 INFO pipeline [CLEANUP] removed 0 stale HTML file(s) from figures/
+2026-05-05 23:54:35,651 INFO pipeline [START] collect
+2026-05-05 23:54:37,825 INFO pipeline [DONE] collect - 2.2s
+2026-05-05 23:54:37,825 INFO pipeline [START] features
+2026-05-05 23:54:37,825 ERROR pipeline [FAIL] features: GSD_FORCE_STAGE_FAIL triggered for features
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 77, in run_all
+    result = fn(self.config, prev=prev)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: stage_features() got an unexpected keyword argument 'prev'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 79, in run_all
+    result = fn(self.config)
+             ^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 44, in stage_features
+    raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for features")
+RuntimeError: GSD_FORCE_STAGE_FAIL triggered for features

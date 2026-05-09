@@ -15,7 +15,7 @@ from sklearn.decomposition import PCA
 from src.config import (
     RANDOM_SEED, PCA_ROLLING_WINDOW, REGIME_HOLD_DAYS, VIX_BYPASS,
     WALK_FORWARD_TRAIN_YEARS, WALK_FORWARD_STEP_DAYS, WALK_FORWARD_MODE,
-    COV_TYPE, VOL_BRACKETS,
+    COV_TYPE, REGIME_NAMES,
 )
 from src.core.inference import expanding_standardize, _fit_hmm, filtered_labels
 
@@ -115,37 +115,19 @@ def walk_forward(market, features, n_states, n_pca, cov_type=COV_TYPE,
         assert best_m is not None
         raw_preds = filtered_labels(best_m, pc_test, hold_days=REGIME_HOLD_DAYS)
 
-        # Assign vol-bracket names using training-window SPY returns
+        # Assign names using VIX-rank order — same logic as label_regimes() in hmm_training.
+        # This ensures OOS labels use the same names as IS labels (from REGIME_NAMES[n_states])
+        # and guarantees exactly n_states unique names across all folds.
         train_labels = filtered_labels(best_m, pc_train, hold_days=REGIME_HOLD_DAYS)
-        spy_col = 'SPY_close' if 'SPY_close' in market.columns else 'SPY_Close'
-        spy_train = market[spy_col].reindex(train_feats_valid.index)
-        spy_ret_train = np.log(spy_train / spy_train.shift(1)).dropna().values
-
-        # Build per-state vol-bracket name map for this fold
-        # (align train_labels with available returns — drop first row for diff)
-        tl_aligned = train_labels[1:len(spy_ret_train) + 1]
-        fold_vol = {}
+        vix_train = market['VIX'].reindex(train_feats_valid.index).values
+        tl = train_labels[:len(vix_train)]
+        regime_vix = {}
         for r in range(n_states):
-            mask = (tl_aligned == r)
-            if mask.sum() > 5:
-                fold_vol[r] = float(np.std(spy_ret_train[mask]) * np.sqrt(252) * 100)
-            else:
-                fold_vol[r] = 0.0
-
-        # Map each state to its vol-bracket name
-        fold_name_map = {}
-        name_counts = {}
-        for r in sorted(fold_vol, key=lambda k: fold_vol[k]):
-            vol = fold_vol[r]
-            bracket_name = f'Regime-{r}'
-            for lo, hi, bname in VOL_BRACKETS:
-                if lo <= vol < hi:
-                    bracket_name = bname
-                    break
-            name_counts[bracket_name] = name_counts.get(bracket_name, 0) + 1
-            if name_counts[bracket_name] > 1:
-                bracket_name = f"{bracket_name}-{chr(64 + name_counts[bracket_name])}"
-            fold_name_map[r] = bracket_name
+            mask = (tl == r)
+            regime_vix[r] = float(np.nanmean(vix_train[mask])) if mask.sum() > 0 else 0.0
+        sorted_by_vix = sorted(regime_vix, key=lambda k: regime_vix[k])
+        names = REGIME_NAMES.get(n_states, [f'Regime-{i}' for i in range(n_states)])
+        fold_name_map = {sorted_by_vix[i]: names[i] for i in range(n_states)}
 
         # Store OOS labels as vol-bracket names for direct IS-OOS comparison
         oos_name_labels.iloc[t:end] = [fold_name_map.get(r, f'Regime-{r}') for r in raw_preds]

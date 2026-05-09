@@ -5,14 +5,8 @@
       "Bash(.venv/bin/pip install *)",
       "Bash(python -m pytest tests/ *)",
       "Bash(pytest tests/test_causality.py -v)",
-      "Bash(nvidia-smi)",
-      "Bash(gsd-sdk query *)",
-      "Bash(git worktree *)",
-      "Skill(gsd-execute-phase)",
-      "Skill(gsd-plan-phase)",
-      "Skill(gsd-discuss-phase)",
-      "Skill(gsd-verify-work)",
-      "Skill(gsd-new-milestone)"
+      "Bash(.venv/bin/python -m pytest tests/test_pipeline_stages.py tests/test_regime_results_schema.py tests/test_exit_codes.py -q --tb=short -m \"not slow\")",
+      "Bash(truncate -s 0 /home/adam/projects/regime-detection/logs/pipeline.log /home/adam/projects/regime-detection/logs/pipeline_run.log)"
     ]
   },
   "prefersReducedMotion": false
