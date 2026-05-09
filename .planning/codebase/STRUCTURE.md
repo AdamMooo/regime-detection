@@ -1,261 +1,264 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-04-18
+**Analysis Date:** 2026-05-09
 
 ## Directory Layout
 
 ```
-Regime-Detection/
-├── src/                        # Core library modules
-│   ├── config.py               # All hyperparameters, paths, feature config (single source of truth)
-│   ├── __init__.py
-│   ├── core/                   # HMM inference, training, evaluation, orchestration
-│   │   ├── inference.py        # Causal regime inference (StudentTHMM, filtered_probs, expanding_standardize)
-│   │   ├── hmm_training.py     # Rolling PCA, BIC selection, regime naming, SV/GARCH fitting
-│   │   ├── evaluation.py       # VaR backtesting, Kupiec/Christoffersen tests, bootstrap CIs
-│   │   ├── orchestrator.py     # Walk-forward OOS validation
-│   │   ├── hdp_hmm.py          # Bayesian HDP-HMM (NumPyro, inactive: USE_HDP=False)
-│   │   └── __init__.py
-│   ├── features/               # Data collection and feature engineering
-│   │   ├── collect.py          # yfinance download, incremental cache, validation
-│   │   ├── features.py         # 17-feature build, log1p skew fix, expanding winsorization
-│   │   └── __init__.py
-│   └── signals/                # Output layer for downstream consumers
-│       ├── signals.py          # compute_signals() — regime awareness dict, bot_label
-│       ├── trust.py            # Trust scorecard (PASS/WARN/FAIL aggregation)
-│       └── __init__.py
-├── scripts/                    # CLI entry points and orchestration
-│   ├── run.py                  # Top-level pipeline: collect → features → analyze → train → signals
-│   ├── __init__.py
+regime-detection/
+├── scripts/
+│   ├── run.py                        # Top-level CLI entry point (all commands)
+│   ├── cron_run.sh                   # Cron wrapper for daily pipeline
+│   ├── health_check.py               # Standalone health probe
 │   ├── pipelines/
-│   │   ├── train.py            # Heavy training orchestrator (PCA→HMM→GARCH→OOS→dashboard)
-│   │   ├── analyze.py          # Feature diagnostics (interactive HTML via Plotly)
-│   │   └── __init__.py
-│   └── analysis/               # Standalone diagnostic scripts (Phase 4 empirical diagnostics)
-│       ├── analyze_regime_characterization.py
+│   │   ├── train.py                  # Training orchestrator + dashboard builder
+│   │   └── analyze.py                # Feature analysis HTML report builder
+│   └── analysis/                     # One-off research scripts (not in pipeline)
 │       ├── analyze_feature_importance.py
 │       ├── analyze_feature_selection.py
 │       ├── analyze_oos_fragmentation.py
+│       ├── analyze_regime_characterization.py
 │       ├── analyze_signal_quality.py
+│       ├── apply_feature_selection.py
+│       ├── compare_hdp_vs_student.py
 │       ├── select_k_via_crossval.py
-│       └── signal_combination.py
-├── tests/                      # Pytest test suite (~20 files, 160+ tests)
-│   ├── conftest.py             # Shared fixtures
-│   ├── test_causality.py       # Causal guarantees (no lookahead) — 10 tests
-│   ├── test_bot_integration.py # Signal schema validation for Algo-Trading-Bot
-│   ├── test_var_backtesting.py # VaR tests (Kupiec, Christoffersen)
-│   ├── test_regime_economic_validity.py  # 24 economic validity checks
-│   ├── test_oos_validation.py  # Walk-forward OOS metrics
-│   ├── test_pca_caching.py     # PCA checkpoint persistence
-│   ├── test_incremental_collection.py    # Cache delta detection
-│   ├── test_calibration.py     # Regime probability calibration (ECE)
-│   ├── test_train_refactor.py  # Regression tests for Phase 3.1 refactor
-│   ├── test_dashboard_refactor.py
-│   ├── test_dashboard_hardening.py
-│   ├── test_trust_scorecard.py
-│   ├── test_signal_combination.py
+│       ├── signal_combination.py
+│       └── walk_forward_feature_selection.py
+├── src/
+│   ├── config.py                     # All model params, paths, label mapping (source of truth)
+│   ├── pipeline/
+│   │   ├── runner.py                 # Pipeline class: timing, logging, exit-code contract
+│   │   └── stages.py                 # STAGES registry (8 daily + 1 validate-gated)
+│   ├── features/
+│   │   ├── collect.py                # OHLCV + VIX from yfinance; incremental cache
+│   │   └── features.py               # 21-feature engineering; FEATURE_SUBSET selection
+│   ├── data/
+│   │   └── collect_macro.py          # FRED macro series (yield curve, HY OAS, NFCI)
+│   ├── core/
+│   │   ├── hdp_hmm.py                # Bayesian HDP-HMM (NumPyro, SVI/NUTS)
+│   │   ├── inference.py              # Forward filter, hysteresis labels, expanding standardize
+│   │   ├── hmm_training.py           # BIC selection, regime naming, per-regime SV/GARCH
+│   │   ├── pca_utils.py              # Rolling PCA (Procrustes-aligned), LinearizedSV
+│   │   ├── evaluation.py             # Regime diagnostics, bootstrap CI
+│   │   ├── var_backtesting.py        # GARCH VaR (Kupiec + Christoffersen) — production standard
+│   │   ├── forward_returns.py        # Regime-conditional forward return analysis (validation only)
+│   │   └── orchestrator.py           # Walk-forward OOS validation
+│   └── signals/
+│       ├── signals.py                # Regime awareness engine; bot_label mapping; GARCH VaR
+│       └── trust.py                  # Trust scorecard (data freshness, separation, calibration)
+├── data/
+│   ├── market_data.csv               # Raw OHLCV + VIX (written by collect)
+│   ├── macro_data.csv                # FRED macro series (written by collect_macro)
+│   ├── features_transformed.csv      # 14-feature engineered matrix (written by features)
+│   ├── features_scaled.csv           # Intermediate scaled features
+│   ├── pca_components.csv            # Rolling PCA projections (written by train_hmm)
+│   ├── regime_results.csv            # Final output: regime labels + bot_label + GARCH VaR
+│   ├── garch_params.json             # Per-regime GARCH(1,1) params (written by garch stage)
+│   ├── oos_regime_labels.csv         # Walk-forward OOS labels (written by walk_forward)
+│   └── cache/
+│       ├── .cache_manifest.json      # Incremental cache metadata (SHA256 hashes, timestamps)
+│       ├── {TICKER}_incremental.csv  # Per-ticker delta rows
+│       └── {TICKER}_index.feather    # Per-ticker Feather index for fast lookup
+├── models/
+│   ├── hdp_params.pkl                # HDP-HMM variational parameters (SVI posterior)
+│   ├── hdp_samples.pkl               # Posterior samples from trained guide
+│   ├── hdp_metadata.json             # HDP metadata (K found, inference mode, timing)
+│   ├── hmm_model.pkl                 # Classic StudentTHMM checkpoint (fallback)
+│   ├── pca_model.pkl                 # PCA model checkpoint (sklearn PCA object)
+│   └── regime_model.pkl              # Full regime model checkpoint (dict with model + results_df)
+├── tests/
+│   ├── conftest.py                   # Shared fixtures (synthetic regime DataFrames)
+│   ├── test_causality.py             # Causality guarantees (10 tests; CI-enforced)
+│   ├── test_bot_integration.py       # bot_label schema validation
+│   ├── test_train_refactor.py        # Phase 3.1 refactoring regression tests
+│   ├── test_features.py              # Feature engineering correctness
+│   ├── test_calibration.py           # Regime confidence calibration
+│   ├── test_oos_validation.py        # OOS validation metrics
+│   ├── test_oos_fragmentation.py     # OOS regime fragmentation checks
+│   ├── test_walk_forward.py          # Walk-forward validation
+│   ├── test_pipeline_stages.py       # Stage registry and execution
+│   ├── test_pipeline_idempotent.py   # Pipeline idempotency
+│   ├── test_pipeline_timing.py       # Stage timing contract
+│   ├── test_exit_codes.py            # Exit-code contract (uses GSD_FORCE_STAGE_FAIL)
+│   ├── test_pca_caching.py           # PCA model persistence
+│   ├── test_incremental_collection.py # Incremental cache correctness
+│   ├── test_regime_results_schema.py  # regime_results.csv column schema
+│   ├── test_regime_results_freshness.py # Data staleness checks
+│   ├── test_regime_economic_validity.py # Regime economic plausibility
+│   ├── test_regime_count_selection.py   # K=3 regime count
+│   ├── test_section_signals.py       # Feature section signal quality
+│   ├── test_signal_combination.py    # Signal combination engine
 │   ├── test_signal_combination_performance.py
-│   ├── test_feature_selection_bias.py
-│   ├── test_oos_fragmentation.py
-│   ├── test_regime_count_selection.py
-│   ├── test_model_card_validation.py
-│   └── test_validation.py
-├── data/                       # Generated pipeline outputs (not committed except structure)
-│   ├── market_data.csv         # Raw aligned OHLCV + VIX
-│   ├── features_transformed.csv
-│   ├── features_scaled.csv
-│   ├── pca_components.csv
-│   ├── regime_results.csv      # PRIMARY OUTPUT — consumed by downstream systems
-│   ├── bic_selection.csv
-│   ├── feature_selection_report.txt
-│   ├── regime_count_selection_report.txt
-│   └── cache/                  # Incremental data cache
-│       ├── .cache_manifest.json
-│       ├── {TICKER}_incremental.csv
-│       └── {TICKER}_index.feather (JSON metadata)
-├── models/                     # Serialized model artifacts (joblib)
-│   ├── hmm_model.pkl
-│   ├── pca_model.pkl
-│   └── regime_model.pkl
-├── figures/                    # Visualization outputs
-│   ├── dashboard.html          # Interactive Plotly regime dashboard
-│   └── feature_analysis.html   # Feature diagnostics report
-├── docs/                       # Documentation
-│   ├── ARCHITECTURE.md         # Legacy architecture doc (pre-Phase 3.1)
-│   ├── INTEGRATION.md          # Algo-Trading-Bot integration guide
-│   ├── KNOWN_ISSUES.md
-│   ├── MODEL_CARD.md
-│   ├── NOTES.md
-│   ├── REPRODUCIBILITY.md
-│   ├── RISK_MODEL_CARD.md
-│   └── TROUBLESHOOTING.md
-├── reports/                    # Diagnostic reports
-│   ├── fragmentation_diagnostic.log
-│   └── fragmentation_report.txt
-├── .planning/                  # GSD planning artifacts
-│   ├── codebase/               # This directory — codebase maps
-│   ├── phases/                 # Phase plans and reviews
-│   │   ├── 01-blockers/
-│   │   ├── 02-incremental/
-│   │   ├── 02.5-model-diagnostics-robustness/
-│   │   ├── 03-refactor/
-│   │   ├── 04-empirical-diagnostics/
-│   │   └── 05-feature-engineering-overhaul/
-│   └── milestones/
-├── .github/workflows/tests.yml # CI: version pin check + full pytest suite
-├── requirements.txt            # Exact pinned dependencies
-├── src/config.py               # (also root: __init__.py, __pycache__)
-├── CLAUDE.md                   # Project-level Claude instructions
-├── NOTES.md                    # Session resume state
-└── README.md
+│   ├── test_trust_scorecard.py       # Trust scorecard checks
+│   ├── test_output_count.py          # Pipeline output file count
+│   ├── test_model_card_validation.py # MODEL_CARD.md validation
+│   ├── test_var_backtesting.py       # VaR backtest tests
+│   ├── test_validation.py            # General validation checks
+│   ├── test_feature_selection_bias.py # Feature selection bias detection
+│   ├── test_hdp_decision.py          # HDP vs StudentTHMM decision tests
+│   ├── test_dashboard_hardening.py   # Dashboard robustness
+│   ├── test_dashboard_refactor.py    # Dashboard refactoring regression
+│   └── _hdp_verdict.txt             # Stored regime fixture for reproducibility checks
+├── docs/
+│   ├── ARCHITECTURE.md               # Historical architecture doc (superseded by .planning/)
+│   ├── INTEGRATION.md                # Bot integration guide
+│   ├── MODEL_CARD.md                 # Complete model card (architecture, validation, checklist)
+│   ├── RISK_MODEL_CARD.md            # VaR analysis (static vs GARCH comparison)
+│   ├── KNOWN_ISSUES.md               # 8 Phase 2.5 issues with root causes and mitigations
+│   ├── REPRODUCIBILITY.md            # Exact reproduction steps and verification checklist
+│   ├── TROUBLESHOOTING.md            # Debug guide for common failures
+│   └── NOTES.md                      # Scratch notes
+├── logs/
+│   ├── pipeline.log                  # RotatingFileHandler output (10 MB, 3 backups)
+│   ├── pipeline_run.log              # Run-level log
+│   └── cron_run.log                  # Cron execution log
+├── figures/                          # Generated HTML dashboards (cleared on each full run)
+├── reports/
+│   ├── fragmentation_diagnostic.log  # OOS fragmentation diagnostic output
+│   └── fragmentation_report.txt      # Human-readable fragmentation report
+├── requirements.txt                  # Dependencies with exact pins for jax/numpyro
+├── CLAUDE.md                         # Claude session context (architecture, constraints)
+├── NOTES.md                          # Current state and next action (read first)
+└── README.md                         # Project README
 ```
 
 ## Directory Purposes
 
+**`src/`:**
+- Purpose: All importable library code
+- Contains: Five sub-packages (`config`, `pipeline`, `features`, `data`, `core`, `signals`)
+- Key files: `src/config.py` (single source of truth for all parameters)
+
 **`src/core/`:**
-- Purpose: All model logic — inference, training, evaluation, orchestration
-- Key files: `inference.py` (foundation), `hmm_training.py` (training), `evaluation.py` (metrics), `orchestrator.py` (walk-forward), `hdp_hmm.py` (Bayesian alternative)
-- Pattern: Each module has explicit `__all__` exports
+- Purpose: Core model and inference logic (the mathematical heart of the system)
+- Contains: HDP-HMM, inference, PCA, evaluation, VaR, walk-forward
+- Key constraint: All functions here must be causal (forward-pass only)
+
+**`src/pipeline/`:**
+- Purpose: Pipeline orchestration (stage registry, timing, logging, exit codes)
+- Contains: `runner.py` (Pipeline class), `stages.py` (STAGES registry)
+- Key constraint: STAGES order is locked; do not reorder without updating docs/tests
 
 **`src/features/`:**
-- Purpose: Data ingestion and feature construction
-- Key files: `collect.py` (Yahoo Finance), `features.py` (17 features + preprocessing)
+- Purpose: Data collection and feature engineering
+- Contains: `collect.py` (market data), `features.py` (feature computation)
+- Key constraint: `collect.py` schema changes require `features.py` compatibility check
+
+**`src/data/`:**
+- Purpose: External data collection beyond market OHLCV
+- Contains: `collect_macro.py` (FRED macro series)
 
 **`src/signals/`:**
-- Purpose: Output layer — translate regime results into structured signals
-- Key files: `signals.py` (compute_signals, the downstream API), `trust.py` (scorecard)
+- Purpose: Translation from regime state to actionable trading signals
+- Contains: `signals.py` (regime awareness), `trust.py` (trust scorecard)
 
 **`scripts/`:**
-- Purpose: CLI entry points; no library logic
-- Key files: `run.py` (top-level dispatcher), `pipelines/train.py` (heavy orchestrator), `pipelines/analyze.py` (diagnostics)
-- `scripts/analysis/` contains standalone Phase 4 diagnostic scripts — not part of production pipeline
+- Purpose: Executable entry points and research scripts
+- Contains: `run.py` (main CLI), `cron_run.sh` (daily cron), `pipelines/` (train + analyze orchestrators), `analysis/` (one-off research, not in pipeline)
 
-**`tests/`:**
-- Purpose: Automated test suite; pytest fixtures in `conftest.py`
-- Critical tests: `test_causality.py` (10 causality guarantees), `test_bot_integration.py` (signal schema), `test_regime_economic_validity.py` (24 validity checks)
+**`scripts/analysis/`:**
+- Purpose: One-off research and diagnostic scripts used during model development
+- Contains: Feature selection, OOS fragmentation, signal quality, K selection analysis
+- Note: These are NOT part of the daily pipeline; they were used during Phases 2.5-6
 
 **`data/`:**
-- Purpose: Pipeline artifacts — generated at runtime, not committed to git (except structure)
-- Primary output: `data/regime_results.csv` — consumed by Algo-Trading-Bot and Portfolio-Manager
+- Purpose: All pipeline input and output data artifacts
+- Generated: Yes (written by pipeline stages)
+- Committed: Only `data/garch_params.json` and `data/feature_selection_report.txt` are committed; CSVs are gitignored
+
+**`data/cache/`:**
+- Purpose: Incremental data collection cache (avoids full re-download on each run)
+- Generated: Yes
+- Committed: No (gitignored)
 
 **`models/`:**
-- Purpose: Serialized model checkpoints (joblib)
-- Loaded for live inference without retraining
+- Purpose: Trained model checkpoints (pkl files)
+- Generated: Yes (written by train_hmm stage)
+- Committed: No (gitignored — too large and environment-specific)
+
+**`figures/`:**
+- Purpose: Generated HTML dashboards and diagnostic plots
+- Generated: Yes (cleared on each full pipeline run)
+- Committed: No (gitignored)
+
+**`tests/`:**
+- Purpose: Automated test suite (160+ tests)
+- Contains: Unit, integration, and contract tests
+- Key files: `conftest.py` (fixtures), `test_causality.py` (CI-enforced causality guarantees)
 
 **`docs/`:**
-- Purpose: Human-readable documentation including integration guide, model card, risk card
-- `INTEGRATION.md` is the contract spec for downstream consumers
-
-## Key File Locations
-
-**Entry Points:**
-- `scripts/run.py` — top-level CLI (`python scripts/run.py [step]`)
-- `scripts/pipelines/train.py::train()` — full training pipeline
-- `scripts/pipelines/train.py::rebuild_dashboard()` — dashboard only
-
-**Configuration:**
-- `src/config.py` — all hyperparameters, feature lists, paths, label mappings
-
-**Core Logic:**
-- `src/core/inference.py` — causal inference primitives (start here for regime logic)
-- `src/core/hmm_training.py` — PCA + HMM training
-- `src/core/evaluation.py` — VaR backtesting
-- `src/core/orchestrator.py` — OOS validation
-
-**Feature Pipeline:**
-- `src/features/features.py::build_features()` — generates all 17 features
-- `src/features/features.py::prepare_features()` — end-to-end: build → transform → PCA → save
-- `src/features/collect.py::collect()` — data download with incremental cache
-
-**Output / Integration:**
-- `src/signals/signals.py::compute_signals()` — produces the downstream API dict
-- `src/config.py::LABEL_MAPPING` — regime name → bot label (source of truth)
-- `docs/INTEGRATION.md` — integration contract documentation
-
-**Testing:**
-- `tests/test_causality.py` — most critical; must pass before any inference changes
-- `tests/test_bot_integration.py` — must pass before any signals.py changes
+- Purpose: Human-readable documentation and model cards
+- Contains: Architecture docs, integration guide, model card, VaR analysis, troubleshooting
 
 ## Naming Conventions
 
 **Files:**
-- Source modules: `snake_case.py` (e.g., `hmm_training.py`, `collect.py`)
-- Test files: `test_{module_or_area}.py` (e.g., `test_causality.py`)
-- Analysis scripts: `analyze_{topic}.py` (e.g., `analyze_oos_fragmentation.py`)
-- Data outputs: `{content}_{type}.csv` (e.g., `features_transformed.csv`, `regime_results.csv`)
+- Snake_case for all Python modules: `collect.py`, `hmm_training.py`, `pca_utils.py`
+- Test files prefixed `test_`: `test_causality.py`, `test_bot_integration.py`
+- Stage functions prefixed `stage_`: `stage_collect`, `stage_train_hmm`
 
 **Directories:**
-- Source packages: `snake_case/` (e.g., `src/core/`, `src/features/`)
-- Planning: kebab-case phases (e.g., `04-empirical-diagnostics/`)
+- Snake_case: `src/core/`, `src/features/`, `src/signals/`
 
-**Functions:**
-- Public API: `snake_case` (e.g., `compute_signals`, `fit_rolling_pca`)
-- Private helpers: `_prefixed_snake_case` (e.g., `_fit_hmm`, `_validate_cache`, `_fix_skew`)
+**Data files:**
+- Descriptive snake_case: `regime_results.csv`, `features_transformed.csv`, `garch_params.json`
+- Model files: `hdp_params.pkl`, `regime_model.pkl`, `pca_model.pkl`
 
 **Config constants:**
-- `UPPER_SNAKE_CASE` throughout `src/config.py`
+- UPPER_SNAKE_CASE: `N_STATES`, `FEATURE_SUBSET`, `LABEL_MAPPING`, `VOL_BRACKETS`
 
 ## Where to Add New Code
 
-**New feature (market indicator):**
-- Add to `src/features/features.py::build_features()` — append to the existing feature group sections
-- Add name to `CURATED_FEATURES` list in `features.py`
-- Update `FEATURE_SUBSET` in `src/config.py` if it should be selected for PCA
-- Add test to `tests/test_causality.py` if the feature has a causal constraint
+**New pipeline stage:**
+- Implementation: Add `stage_<name>(config, prev=None)` to `src/pipeline/stages.py`
+- Registration: Append to `STAGES` list in `src/pipeline/stages.py:261` (order matters)
+- Test: Add `test_pipeline_stages.py` coverage and `GSD_FORCE_STAGE_FAIL` exit-code test
+
+**New feature:**
+- Implementation: Add computation to `src/features/features.py::build_features()`
+- Registration: Add name to `CURATED_FEATURES` list; add to `FEATURE_SUBSET` in `src/config.py` only after OOS validation
+- Test: Add to `tests/test_features.py`
 
 **New regime metric or diagnostic:**
-- Add function to `src/core/evaluation.py`
-- Call from `scripts/pipelines/train.py::train()` in the evaluation block
-- If it should appear in the regime awareness output, add to `src/signals/signals.py::compute_signals()`
-- Add corresponding key to `tests/test_bot_integration.py` schema validation
+- Implementation: Add to `src/core/evaluation.py` or create new file in `src/core/`
+- Wire up: Import and call from `scripts/pipelines/train.py`
+- Test: Add to `tests/test_validation.py` or create new test file
 
-**New signal field for downstream consumers:**
-- Implement in `src/signals/signals.py`
-- Add to `compute_signals()` return dict
-- Update schema validation in `tests/test_bot_integration.py`
-- Document in `docs/INTEGRATION.md`
+**New signal output column:**
+- Implementation: Add column in `src/signals/signals.py::enrich_results()` or `src/pipeline/stages.py::stage_signals()`
+- Schema: Add to `validate_signal_schema()` in `src/signals/signals.py`
+- Test: Add to `tests/test_regime_results_schema.py` and `tests/test_bot_integration.py`
 
-**New training variant or model:**
-- Add gated by a config flag in `src/config.py` (follow `USE_HDP` pattern)
-- Implement in new or existing `src/core/` module
-- Add to `scripts/pipelines/train.py` conditional block
+**New research/analysis script:**
+- Location: `scripts/analysis/` (not in pipeline, not in `src/`)
+- Pattern: Standalone script that reads from `data/` and writes to `reports/` or `figures/`
 
-**New analysis script (non-production):**
-- Place in `scripts/analysis/`
-- Import from `src/` modules; do not add production-path dependencies
-
-**Utilities:**
-- Shared statistical helpers: add to the relevant `src/core/` module
-- Shared data helpers: add to `src/features/collect.py` or `src/features/features.py`
-- No dedicated `utils.py` — helpers live in the module that owns their concern
+**New config parameter:**
+- Location: `src/config.py` — add at the relevant section with a comment explaining the value
+- Do not add default values inside individual modules; all tunable params belong in config
 
 ## Special Directories
 
-**`.claude/worktrees/`:**
-- Purpose: Agent worktree checkouts from previous GSD agent runs
-- Generated: Yes (by GSD tooling)
-- Committed: No (should be in `.gitignore`)
-
-**`.clone/`:**
-- Purpose: Partial clone worktrees from agent runs
-- Generated: Yes
-- Committed: No
-
-**`.venv/`:**
-- Purpose: Local Python virtual environment
-- Generated: Yes (by pip install)
-- Committed: No
-
 **`data/cache/`:**
-- Purpose: Incremental data cache (ticker CSVs + manifest)
-- Generated: Yes (by `collect.py` on first run)
-- Committed: Structure only (actual CSVs gitignored)
+- Purpose: Per-ticker incremental download cache (CSV delta rows + Feather index)
+- Generated: Yes, by `src/features/collect.py`
+- Committed: No
+
+**`models/`:**
+- Purpose: Trained model pkl checkpoints
+- Generated: Yes, by `train_hmm` and `garch` stages
+- Committed: No — pkl files are environment-specific and too large
+
+**`figures/`:**
+- Purpose: HTML dashboards (Plotly interactive, browser-viewable)
+- Generated: Yes — cleared at the start of each full `run_all()` run
+- Committed: No
 
 **`.planning/`:**
-- Purpose: GSD planning artifacts — phase plans, reviews, codebase maps
-- Generated: Partially (by GSD tooling and manual authoring)
+- Purpose: GSD workflow planning documents (STATE.md, phase plans, codebase maps)
+- Generated: Partially (codebase docs auto-generated by GSD mapper)
 - Committed: Yes
 
 ---
 
-*Structure analysis: 2026-04-18*
+*Structure analysis: 2026-05-09*
