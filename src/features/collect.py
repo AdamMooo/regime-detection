@@ -347,8 +347,19 @@ def _incremental_collect(cache_path=CACHE_PATH):
     # Create current manifest (same file hashes as before)
     curr_manifest = _create_cache_manifest(TICKERS, cache_path)
 
-    # Detect delta
+    # Detect delta — hash change OR data is more than 1 trading day stale
     delta_tickers = _detect_delta(curr_manifest, prev_manifest)
+    if not delta_tickers:
+        from datetime import date
+        last_fetch = prev_manifest.get("tickers", {})
+        oldest = min(
+            (v.get("last_fetch_date", "2000-01-01") for v in last_fetch.values()),
+            default="2000-01-01",
+        )
+        days_stale = (date.today() - date.fromisoformat(oldest)).days
+        if days_stale > 1:
+            delta_tickers = list(last_fetch.keys())
+            print(f"Cache is {days_stale} days stale — forcing refresh")
     print(f"Delta tickers needing refresh: {delta_tickers}")
 
     # For simplicity in Phase 2, if any ticker changed, re-fetch all
