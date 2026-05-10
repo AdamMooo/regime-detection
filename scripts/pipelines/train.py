@@ -2096,9 +2096,10 @@ def train(reload_pca_checkpoint_path=None):
 
     n_states = max(len(active_states), 2)
 
-    name_map = label_regimes_hdp(
+    name_map, state_vols = label_regimes_hdp(
         labels, active_states, spy_daily_ret_v.values,
     )
+    print(f"  Per-state realized vols: {state_vols}")
     print(f"  Final regimes: {list(name_map.values())}")
 
     # Stability check: label agreement across posterior samples

@@ -345,7 +345,8 @@ def run_hdp_oos(market, features, spy_returns):
         # Remap to active-state local indices for label_regimes_hdp
         # labels from get_labels_and_probs are already local (0..len(active)-1)
         # label_regimes_hdp expects local labels and active_states list
-        name_map = label_regimes_hdp(tl_aligned, active_states, spy_ret_train)
+        name_map, state_vols = label_regimes_hdp(tl_aligned, active_states, spy_ret_train)
+        print(f"  Per-state realized vols: {state_vols}")
 
         # Apply trained model to test PCs for OOS labels
         labels_test, _, _, _ = get_labels_and_probs(pc_test, params)
@@ -430,7 +431,8 @@ def _run_hdp_full_sample(market, features, spy_returns):
     spy_ret = np.log(spy_prices / spy_prices.shift(1)).dropna().values
     tl_aligned = labels[1:len(spy_ret) + 1]
 
-    name_map = label_regimes_hdp(tl_aligned, active_states, spy_ret)
+    name_map, state_vols = label_regimes_hdp(tl_aligned, active_states, spy_ret)
+    print(f"  Per-state realized vols: {state_vols}")
 
     named_labels = pd.Series(
         [name_map.get(r, f'Regime-{r}') for r in labels],

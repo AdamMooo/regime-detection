@@ -521,49 +521,58 @@ def merge_similar_states(labels, filt_probs, params, active_states,
 
 
 def label_regimes_hdp(labels, active_states, spy_returns, vol_brackets=None):
-    """Assign regime names based on rank-ordered VIX/vol levels.
+    """Assign regime names by absolute realized-vol bracket.
 
-    Sorts discovered states by annualized realized vol and assigns names
-    from REGIME_NAMES[K] where K is the number of active states.
-    This ensures exactly K clean names with no letter suffixes.
+    Each state's mean annualized realized volatility is computed, then mapped
+    directly into VOL_BRACKETS thresholds.  A state with 13% realized vol is
+    named 'Moderate-Vol' (if 10-18% is that bracket) regardless of how many
+    other states exist or what their vols are.  No rank ordering is used.
+
+    If no state's vol exceeds the high-vol threshold, no high-vol label fires —
+    that is the correct output for a calm-market period.
 
     Parameters
     ----------
-    labels : ndarray, shape (T,)
-        Integer regime labels (0-indexed into active_states).
-    active_states : list[int]
-        Indices of active HDP states.
-    spy_returns : ndarray, shape (T,)
-        Daily SPY log returns (used to compute realized vol per regime).
-    vol_brackets : list[tuple] or None
-        Unused; kept for API compatibility.
+    labels       : ndarray (T,) — integer state assignments (0-indexed into active_states)
+    active_states: list[int]    — indices of active HDP states
+    spy_returns  : ndarray (T,) — daily SPY log returns (decimal, not percent)
+    vol_brackets : list of (low_pct, high_pct, label_str) or None → uses VOL_BRACKETS
+
+    Returns
+    -------
+    name_map   : dict[int -> str]   — maps local state index to regime label string
+    state_vols : dict[int -> float] — maps local state index to mean annualized realized vol (%)
     """
+    if vol_brackets is None:
+        vol_brackets = VOL_BRACKETS
+
     K_eff = len(active_states)
 
     # Compute annualized realized vol (%) for each discovered state
-    regime_vol = {}
+    state_vols = {}
     for i in range(K_eff):
         mask = (labels == i)
         if mask.sum() > 5:
-            regime_vol[i] = float(np.std(spy_returns[mask]) * np.sqrt(252) * 100)
+            state_vols[i] = float(np.std(spy_returns[mask]) * np.sqrt(252) * 100)
         else:
-            regime_vol[i] = 0.0
+            state_vols[i] = 0.0
 
-    # Sort states by vol (low to high) and assign names from REGIME_NAMES[K]
-    sorted_indices = sorted(regime_vol, key=lambda k: regime_vol[k])
-
-    # Get canonical names for this K
-    if K_eff in REGIME_NAMES:
-        regime_name_list = REGIME_NAMES[K_eff]
-    else:
-        # Fallback: generate generic names
-        regime_name_list = [f'Regime-{i}' for i in range(K_eff)]
-
+    # Map each state to the bracket its realized vol falls into (no rank)
     name_map = {}
-    for rank, i in enumerate(sorted_indices):
-        name_map[i] = regime_name_list[rank]
+    for i in range(K_eff):
+        vol = state_vols[i]
+        assigned = vol_brackets[-1][2]      # fallback: top bracket (vol above all thresholds)
+        for low, high, bracket_name in vol_brackets:
+            if low <= vol < high:
+                assigned = bracket_name
+                break
+        name_map[i] = assigned
 
-    return name_map
+    print("  Absolute vol labeling (no rank):")
+    for i in range(K_eff):
+        print(f"    state {i}: realized vol = {state_vols[i]:.1f}%  ->  {name_map[i]}")
+
+    return name_map, state_vols
 
 
 # ===================================================================

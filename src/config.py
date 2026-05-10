@@ -33,7 +33,12 @@ LONG_WINDOW  = 63       # ~1 quarter
 PCA_MAX_COMPONENTS = 5
 PCA_VAR_THRESHOLD  = 0.90   # cumulative variance for auto-selection
 PCA_ROLLING_WINDOW = 63     # rolling window for PCA (~3 months)
-VIX_BYPASS         = True   # Phase 6: append scaled VIX directly to PCA dims — forces HMM to cluster on implied vol level
+VIX_BYPASS         = False  # Phase 9 (Plan 3): removed — VIX is already in FEATURE_SUBSET via PCA;
+                            # bypass was double-counting it and forcing VIX-driven clustering that
+                            # mismatched the realized-vol naming (e.g. 2021: VIX~18 but RV~13%).
+                            # Phase 6 original reason: VIX_BYPASS=True added to force HMM to cluster
+                            # on implied vol level directly (GLD_trend dominated PC1). GLD_trend was
+                            # removed in Phase 5; bypass is no longer needed.
 
 # Representative feature subset for PCA (reduces collinearity).
 # Set to None to use all features. Using a curated subset prevents
@@ -61,6 +66,8 @@ VIX_BYPASS         = True   # Phase 6: append scaled VIX directly to PCA dims �
 # Source: data/walk_forward_selection_result.json
 # Selected sections (>=60% fold stability): s_mac, s_fin, s_vol
 FEATURE_SUBSET = [
+    # 'lev_effect20' excluded: F=0.4, p=0.70 — statistically indistinguishable from noise
+    # (Phase 9 diagnosis: zero discriminative power across all three regimes)
     'yield_curve_slope',
     'credit_stress',
     'SPY_TLT_corr63',
@@ -163,6 +170,9 @@ LABEL_MAPPING = {
 # Each state is named by its realized vol level, not its rank — so a state
 # with 14% annualized vol is always "Moderate-Vol" whether the model finds
 # 2 states or 5.  Thresholds are annualized SPY realized vol (%).
+# Phase 9 (Plan 3): thresholds below are PROVISIONAL pending retrain.
+# After retrain, Task 3 reviews discovered state realized vols and may adjust these.
+# See scripts/analysis/regime_label_audit.py for per-day audit output.
 VOL_BRACKETS = [
     (0,   10,  'Low-Vol'),
     (10,  18,  'Moderate-Vol'),
