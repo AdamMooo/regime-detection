@@ -529,3 +529,23 @@ Traceback (most recent call last):
   File "/home/adam/projects/regime-detection/.venv/lib/python3.12/site-packages/pandas/core/indexers/utils.py", line 570, in check_array_indexer
     raise IndexError(
 IndexError: Boolean index has wrong length: 3735 instead of 3797
+2026-05-10 20:45:42,141 ERROR pipeline [FAIL] train_hmm: cannot import name 'T_DF' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 101, in run_stage
+    return fn(self.config) or {}
+           ^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 84, in stage_train_hmm
+    from scripts.pipelines.train import train
+  File "/home/adam/projects/regime-detection/scripts/pipelines/train.py", line 38, in <module>
+    from src.config import (
+ImportError: cannot import name 'T_DF' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)
+2026-05-10 20:45:46,923 ERROR pipeline [FAIL] train_hmm: cannot import name 'T_DF' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 101, in run_stage
+    return fn(self.config) or {}
+           ^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 84, in stage_train_hmm
+    from scripts.pipelines.train import train
+  File "/home/adam/projects/regime-detection/scripts/pipelines/train.py", line 38, in <module>
+    from src.config import (
+ImportError: cannot import name 'T_DF' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)

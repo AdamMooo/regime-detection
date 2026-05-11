@@ -23,14 +23,14 @@ Three model quality failures found during first live pipeline run. Phase 9 (Regi
 3. **GARCH VaR scaling bug** — mean_vol=700%+, VaR=-546%. Returns likely in wrong units (basis points vs decimal) somewhere in GARCH path.
 
 ## Next Action
-**CURRENT: Phase 9 — Regime Calibration**
+**CURRENT: Architecture rewrite — new train.py wired up**
 
-Fix the 3 critical UAT failures in order:
-1. GARCH VaR scaling bug (isolated, fastest fix)
-2. Label variant explosion (walk-forward fold alignment)
-3. High-Vol dominance (prior/threshold calibration)
-
-Files: `src/core/var_backtesting.py`, `signals.py`, `src/core/hmm_training.py`, `src/core/orchestrator.py`, `src/config.py`
+The pipeline has been stripped and train.py rewritten (~150 lines). Next steps:
+1. Run `python run.py collect` + `python run.py features` to get fresh data
+2. Run `python run.py train` — verify it completes and regime_results.csv looks correct
+3. Check regime distribution (should be ~15-25% High-Vol, not 61%)
+4. Rewrite walk_forward() in orchestrator.py for HDP architecture
+5. Clean up signals.py to remove GARCH VaR references
 
 ## Key Feature State (Post Phase 5+6)
 

@@ -59,23 +59,13 @@ PCA_ROLLING_WINDOW = 63     # rolling window for PCA (~3 months)
 # Phase 5 selected on 2026-04-19: walk-forward section selection
 # Source: data/walk_forward_selection_result.json
 # Selected sections (>=60% fold stability): s_mac, s_fin, s_vol
+# 4 features feed directly into HDP-HMM (no PCA needed at this dimensionality).
+# All lagged 1 day in train.py for causality.
 FEATURE_SUBSET = [
-    # 'lev_effect20' excluded: F=0.4, p=0.70 — statistically indistinguishable from noise
-    # (Phase 9 diagnosis: zero discriminative power across all three regimes)
-    'yield_curve_slope',
-    'credit_stress',
-    'SPY_TLT_corr63',
-    'NFCI',
-    'eigen_conc',
-    'SPY_dd63',
-    'VIX',
-    'VRP',
-    'rv_ratio_10_63',
-    'vix_ts_slope',
-    'SPY_volvol20',
-    'SPY_rv10_lag5',
-    'SPY_rv10_lag10',
-    'SPY_skew20',
+    'VIX',              # implied volatility level
+    'yield_curve_slope', # 10y-2y — macro cycle
+    'NFCI',             # financial stress
+    'VRP',              # variance risk premium — implied vs realized vol gap
 ]
 
 # --- HMM (classic) ---

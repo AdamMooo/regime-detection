@@ -202,7 +202,6 @@ STAGES = [
     ('feature_analysis', stage_feature_analysis),
     ('pca', stage_pca),
     ('train_hmm', stage_train_hmm),
-    ('garch', stage_garch),
     ('signals', stage_signals),
     ('dashboard', stage_dashboard),
     ('walk_forward', stage_walk_forward),
