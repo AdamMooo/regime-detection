@@ -2,23 +2,23 @@
 
 **Bayesian HDP-HMM Market Regime Detection**
 
-A quantitative pipeline that automatically discovers market regimes using a Hierarchical Dirichlet Process Hidden Markov Model (HDP-HMM) with sticky transitions. Four macro/volatility features are fed directly into the Bayesian model — no dimensionality reduction step. The system produces regime labels and signals consumed downstream by Algo-Trading-Bot and Portfolio-Manager.
+A quantitative pipeline that automatically discovers market regimes using a Hierarchical Dirichlet Process Hidden Markov Model (HDP-HMM) with sticky transitions. The system computes 23 curated features spanning volatility, cross-asset risk, microstructure, and macro conditions. A configurable subset (`FEATURE_SUBSET`) is selected for HMM input, currently set to 4 features. The system produces regime labels and signals consumed downstream by Algo-Trading-Bot and Portfolio-Manager.
 
 ---
 
 ## Pipeline Architecture
 
 ```
-collect.py          features.py          train.py             signals.py
-┌──────────┐       ┌──────────────┐     ┌────────────────┐   ┌────────────────┐
-│  Yahoo   │──────>│  4 Features  │────>│   HDP-HMM      │──>│ Regime Signals │
-│  Finance │       │  (VIX, VRP,  │     │  (NumPyro/JAX) │   │ + Trust Score  │
-│  + FRED  │       │  NFCI, yield │     │   SVI / NUTS)  │   └───────┬────────┘
-└──────────┘       │   curve)     │     └────────────────┘           │
-                   └──────────────┘                           ┌───────▼────────┐
-                                                              │   Dashboard    │
-                                                              │  (Plotly HTML) │
-                                                              └────────────────┘
+collect.py          features.py           train.py              signals.py
+┌──────────┐       ┌──────────────┐      ┌────────────────┐    ┌────────────────┐
+│  Yahoo   │──────>│ 23 Curated   │─────>│  Select 4 via  │───>│ Regime Signals │
+│  Finance │       │  Features    │      │  FEATURE_SUBSET│    │ + Trust Score  │
+│  + FRED  │       │  (vol, macro,│      │  → HDP-HMM     │    └───────┬────────┘
+└──────────┘       │  structure,  │      │  (NumPyro/JAX) │            │
+                   │  microstruc) │      └────────────────┘    ┌───────▼────────┐
+                   └──────────────┘                            │   Dashboard    │
+                                                               │  (Plotly HTML) │
+                                                               └────────────────┘
 ```
 
 ## Documentation
@@ -45,16 +45,18 @@ collect.py          features.py          train.py             signals.py
 
 ## Features
 
-Four features fed directly into the HDP-HMM (no PCA):
+`features.py` computes 23 curated features, saved to `data/features_transformed.csv`. `FEATURE_SUBSET` in `src/config.py` selects which of these feed the HDP-HMM (currently: VIX, VRP, NFCI, yield_curve_slope). Features are standardized with expanding-window z-score at training time — causal, no future data.
 
-| Feature | Source | Description |
-|---------|--------|-------------|
-| `VIX` | CBOE / yfinance | Implied volatility level |
-| `VRP` | VIX − RV20 | Variance risk premium |
-| `NFCI` | FRED | National Financial Conditions Index |
-| `yield_curve_slope` | FRED | 10Y−2Y Treasury spread |
+| Category | Features |
+|----------|----------|
+| **Volatility state** | `VIX`, `VRP` |
+| **Vol dynamics** | `rv_ratio_10_63`, `vix_ts_slope`, `SPY_volvol20`, `SPY_skew20` |
+| **Cross-asset risk** | `SPY_TLT_corr63`, `credit_stress`, `eigen_conc`, `SPY_dd63` |
+| **Microstructure** | `SPY_ret`, `SPY_ac1_20`, `SPY_rel_volume`, `SPY_vol_adj_ret`, `amihud_illiq20`, `roll_spread20`, `lev_effect20` |
+| **SV-specific** | `SPY_rv10_lag5`, `SPY_rv10_lag10` |
+| **Macro (FRED)** | `HY_OAS`, `NFCI`, `yield_curve_slope`, `GLD_trend` |
 
-Features are standardized with expanding-window z-score (causal, no future data). All lagged one day to prevent lookahead.
+Right-skewed features are log-transformed before winsorization.
 
 ## Regime Labels
 
