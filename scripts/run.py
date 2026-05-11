@@ -1,16 +1,13 @@
 """
-Run the PCA -> HMM -> Regime-Dependent SV pipeline.
+Run the HDP-HMM regime detection pipeline.
 
 Usage:
-    python run.py              # full pipeline (8 stages)
+    python run.py              # full pipeline
     python run.py --validate   # full pipeline + walk-forward validation
     python run.py collect      # data download only
     python run.py features     # feature engineering only
-    python run.py feature_analysis  # feature analysis / diagnostics
-    python run.py analyze      # alias for feature_analysis
-    python run.py train        # alias for train_hmm
-    python run.py train_hmm    # PCA + HMM + GARCH training
-    python run.py garch        # GARCH fitting only
+    python run.py analyze      # feature analysis / diagnostics
+    python run.py train        # fit HDP-HMM -> regime_results.csv
     python run.py signals      # signal assembly only
     python run.py dashboard    # rebuild dashboard from saved model
     python run.py regime       # print current regime awareness
