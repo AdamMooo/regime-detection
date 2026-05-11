@@ -23,7 +23,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.config import LABEL_MAPPING, REGIME_NAMES
 from src.signals.signals import compute_signals
-from src.core.inference import StudentTHMM, filtered_probs, filtered_labels
 
 
 # ═══════════════════════════════════════════════════════════════════

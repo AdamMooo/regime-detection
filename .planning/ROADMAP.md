@@ -111,10 +111,12 @@ Plans:
   1. High-Vol at 61% — threshold/prior calibration causing one regime to absorb too much of the distribution
   2. OOS label proliferation — walk-forward fold labels not aligned to in-sample regime names; need Procrustes or Hungarian matching across folds
   3. GARCH VaR scaling bug — mean_vol=700% suggests returns are in basis points not decimals somewhere in the GARCH path
-**Plans:** 0 plans (run /gsd-plan-phase 9 to break down)
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 9 to break down)
+- [ ] 09-01-PLAN.md — Dashboard NaN crash fix + GARCH VaR unit fix (× 1e5 / ÷ 1e5) + 2 regression test files
+- [ ] 09-02-PLAN.md — Hungarian fold alignment in walk_forward() (replaces broken VIX-rank mapping) + OOS label count assertion + regression tests
+- [ ] 09-03-PLAN.md — Vol distribution diagnostic + VOL_BRACKETS calibration (or HDP prior tune) + regression test enforcing 15-25%% high-vol band
 
 ### Phase 8: HDP-HMM Inference Optimization — Parallelize the 133-fold walk-forward loop (joblib multiprocessing), add JAX XLA CPU flag for all-core utilization, implement ELBO early stopping when plateau detected, and optionally expose a NUTS path for overnight-viable full posterior sampling. Goal: cut overnight run from ~4 hours to under 90 minutes on a 6-core machine.
 

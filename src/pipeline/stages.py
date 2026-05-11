@@ -94,67 +94,6 @@ def stage_train_hmm(config, prev=None):
     return None
 
 
-def stage_garch(config, prev=None):
-    """Fit per-regime GARCH and write data/garch_params.json.
-
-    Returns {'garch_results': garch_results} for downstream stages.
-    """
-    if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'garch':
-        raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for garch")
-
-    import joblib
-    from src.core.hmm_training import fit_regime_garch
-
-    # Load model checkpoint
-    checkpoint_path = os.path.join(MODEL_DIR, 'regime_model.pkl')
-    if not os.path.exists(checkpoint_path):
-        logger.warning("garch: no regime_model.pkl found, skipping")
-        return None
-
-    checkpoint = joblib.load(checkpoint_path)
-    model = checkpoint['model']
-    results_df = checkpoint.get('regime_results')
-
-    if results_df is None:
-        results_path = os.path.join(DATA_DIR, 'regime_results.csv')
-        results_df = pd.read_csv(results_path, index_col=0, parse_dates=True)
-
-    # Build name_map from results_df
-    name_map = {}
-    if 'regime' in results_df.columns and 'regime_name' in results_df.columns:
-        for r, name in zip(results_df['regime'], results_df['regime_name']):
-            if int(r) not in name_map:
-                name_map[int(r)] = name
-
-    # SPY returns for GARCH fitting
-    spy_col = 'SPY_close' if 'SPY_close' in results_df.columns else 'SPY_Close'
-    spy_close = results_df[spy_col]
-    spy_ret = np.log(spy_close / spy_close.shift(1)).dropna()
-    labels = results_df['regime'].loc[spy_ret.index].values
-
-    garch_results = fit_regime_garch(spy_ret, labels, name_map)
-
-    # Write garch_params.json
-    params = {}
-    for key, res in garch_results.items():
-        if key == 'full':
-            name = 'full'
-        else:
-            name = name_map.get(key, str(key))
-        if hasattr(res, 'params'):
-            params[name] = {
-                'omega': float(res.params.get('omega', 0.0)),
-                'alpha': float(res.params.get('alpha[1]', 0.0)),
-                'beta':  float(res.params.get('beta[1]', 0.0)),
-            }
-
-    os.makedirs(DATA_DIR, exist_ok=True)
-    with open(os.path.join(DATA_DIR, 'garch_params.json'), 'w') as f:
-        json.dump(params, f, indent=2)
-    logger.info("garch: wrote data/garch_params.json with %d entries", len(params))
-
-    return {'garch_results': garch_results}
-
 
 def stage_signals(config, prev=None):
     """Assemble and write data/regime_results.csv.
@@ -217,7 +156,6 @@ def stage_walk_forward(config):
         raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for walk_forward")
 
     from src.config import N_STATES, WALK_FORWARD_MODE
-    from src.core.pca_utils import fit_rolling_pca
     from src.core.inference import expanding_standardize
 
     market_path = os.path.join(DATA_DIR, 'market_data.csv')

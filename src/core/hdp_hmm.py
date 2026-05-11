@@ -1,9 +1,9 @@
 """
-Bayesian HDP-HMM with Sticky Transitions and Student-t Emissions.
-=================================================================
+Bayesian HDP-HMM with Sticky Transitions and Gaussian Emissions.
+================================================================
 Supports two inference methods:
   - SVI  (Stochastic Variational Inference) -- fast, recommended for CPU
-  - NUTS (Hamiltonian Monte Carlo)          -- gold-standard, slow on CPU
+  - NUTS (Hamiltonian Monte Carlo)          -- gold-standard for the paper
 
 The model auto-discovers the number of regimes via a truncated
 stick-breaking prior.
@@ -11,10 +11,10 @@ stick-breaking prior.
 Key features:
   - Stick-breaking GEM(gamma) prior -> global state weights beta
   - Sticky transition rows:  pi_k ~ Dir(alpha*beta + kappa*delta_k)
-  - Multivariate Student-t emissions with learnable degrees of freedom
+  - Multivariate Gaussian emissions
   - Forward algorithm in JAX (jax.lax.scan) for marginalizing discrete states
   - Vectorized model (no Python for-loops) for fast JIT compilation
-  - Posterior state probabilities via forward-backward on posterior mean params
+  - Full posterior over hidden states (uncertainty bands on regime probabilities)
 """
 
 import json
@@ -26,7 +26,6 @@ import jax
 import jax.numpy as jnp
 import jax.random as jrandom
 from jax import lax
-from jax.scipy.special import gammaln
 import numpy as np
 import numpyro
 import numpyro.distributions as dist
@@ -38,8 +37,7 @@ from src.config import (
     RANDOM_SEED, HDP_TRUNCATION, HDP_ALPHA, HDP_KAPPA,
     HDP_INFERENCE, MCMC_NUM_WARMUP, MCMC_NUM_SAMPLES, MCMC_NUM_CHAINS,
     SVI_NUM_STEPS, SVI_LEARNING_RATE, SVI_NUM_SAMPLES,
-    T_DF, REGIME_NAMES, MIN_REGIME_OBS, HDP_MAX_REGIMES,
-    VOL_BRACKETS,
+    REGIME_NAMES, HDP_MAX_REGIMES, VOL_BRACKETS,
 )
 
 # Silence JAX/NumPyro startup noise
@@ -50,31 +48,6 @@ warnings.filterwarnings('ignore', message='.*jaxlib.*')
 jax.config.update("jax_platform_name", "cpu")
 # 64-bit precision for numerical stability in forward algorithm
 jax.config.update("jax_enable_x64", True)
-
-
-# ===================================================================
-# Student-t log-pdf (multivariate) in JAX
-# ===================================================================
-
-def _diag_mvt_logpdf_batch(X, loc, scale_diag_vec, df):
-    """
-    Log-pdf of multivariate Student-t with diagonal covariance.
-    Vectorized over observations.  Avoids solve_triangular for stability.
-    """
-    D = loc.shape[0]
-    safe_sd = jnp.clip(scale_diag_vec, 1e-6)
-    diff = X - loc[None, :]          # (T, D)
-    z = diff / safe_sd[None, :]      # (T, D)
-    quad = jnp.sum(z ** 2, axis=1)   # (T,)
-
-    log_norm = (
-        gammaln((df + D) / 2.0)
-        - gammaln(df / 2.0)
-        - 0.5 * D * jnp.log(df * jnp.pi)
-        - jnp.sum(jnp.log(safe_sd))
-    )
-    log_kernel = -0.5 * (df + D) * jnp.log1p(quad / df)
-    return log_norm + log_kernel
 
 
 # ===================================================================
@@ -95,14 +68,12 @@ def stick_breaking(v):
 
 def hdp_hmm_model(obs, K_max=HDP_TRUNCATION):
     """
-    Sticky HDP-HMM with Student-t emissions.
+    Sticky HDP-HMM with Gaussian emissions.
     Discrete states are marginalized via the forward algorithm.
     """
     T_len, D = obs.shape
 
     # --- Global state weights via stick-breaking ---
-    # Gamma(0.5, 2.0) prior on alpha_dp: mean=0.25, concentrates mass
-    # on fewer states (lower alpha -> sparser stick-breaking)
     alpha_dp = numpyro.sample('alpha_dp', dist.Gamma(0.5, 2.0))
     v_raw = numpyro.sample(
         'v_raw',
@@ -114,7 +85,6 @@ def hdp_hmm_model(obs, K_max=HDP_TRUNCATION):
     kappa = numpyro.sample('kappa', dist.Gamma(2.0, 0.2))
     alpha_trans = numpyro.sample('alpha_trans', dist.Gamma(1.0, 1.0))
 
-    # Concentration: alpha * beta + kappa * I (sticky diagonal)
     conc_matrix = alpha_trans * beta[None, :] + kappa * jnp.eye(K_max)  # type: ignore[index]
     conc_matrix = jnp.clip(conc_matrix, 1e-6)
     trans_matrix = numpyro.sample(
@@ -124,7 +94,7 @@ def hdp_hmm_model(obs, K_max=HDP_TRUNCATION):
     # --- Initial state distribution ---
     init_probs = numpyro.deterministic('init_probs', beta)
 
-    # --- Emission parameters ---
+    # --- Gaussian emission parameters ---
     locs = numpyro.sample(
         'locs',
         dist.Normal(0.0, 3.0).expand([K_max, D]).to_event(2),
@@ -133,17 +103,12 @@ def hdp_hmm_model(obs, K_max=HDP_TRUNCATION):
         'scale_diag',
         dist.HalfCauchy(2.0).expand([K_max, D]).to_event(2),
     )
-    df_raw = numpyro.sample(
-        'df_raw',
-        dist.Gamma(2.0, 0.1).expand([K_max]).to_event(1),
-    )
-    df = numpyro.deterministic('df', df_raw + 2.0)
 
     # --- Emission log-likelihoods (vectorized over states) ---
-    def _single_state_ll(loc_k, sd_k, df_k):
-        return _diag_mvt_logpdf_batch(obs, loc_k, sd_k, df_k)
+    def _single_state_ll(loc_k, sd_k):
+        return dist.Normal(loc_k, sd_k).log_prob(obs).sum(-1)
 
-    log_lik = jax.vmap(_single_state_ll)(locs, scale_diag, df).T  # (T, K)
+    log_lik = jax.vmap(_single_state_ll)(locs, scale_diag).T  # (T, K)
 
     # --- Forward algorithm (marginalize discrete states via scan) ---
     log_trans = jnp.log(trans_matrix + 1e-30)
@@ -229,8 +194,6 @@ def _fit_svi(obs, K_max, seed):
     if 'beta' not in samples:
         v = jnp.array(samples['v_raw'])
         samples['beta'] = np.array(jax.vmap(stick_breaking)(v))
-    if 'df' not in samples:
-        samples['df'] = np.array(samples['df_raw']) + 2.0
     if 'init_probs' not in samples:
         samples['init_probs'] = samples['beta'].copy()
 
@@ -293,8 +256,6 @@ def _fit_nuts(obs, K_max, seed):
     if 'beta' not in samples:
         v = jnp.array(samples['v_raw'])
         samples['beta'] = np.array(jax.vmap(stick_breaking)(v))
-    if 'df' not in samples:
-        samples['df'] = np.array(samples['df_raw']) + 2.0
     if 'init_probs' not in samples:
         samples['init_probs'] = samples['beta'].copy()
 
@@ -322,7 +283,6 @@ def posterior_mean_params(samples, K_max=HDP_TRUNCATION):
     trans_matrix = np.array(samples['trans_matrix']).mean(axis=0)
     locs = np.array(samples['locs']).mean(axis=0)
     scale_diag = np.array(samples['scale_diag']).mean(axis=0)
-    df = np.array(samples['df']).mean(axis=0)
 
     return {
         'beta': beta,
@@ -330,7 +290,6 @@ def posterior_mean_params(samples, K_max=HDP_TRUNCATION):
         'init_probs': init_probs,
         'locs': locs,
         'scale_diag': scale_diag,
-        'df': df,
         'K_max': K_max,
     }
 
@@ -345,16 +304,14 @@ def forward_backward_numpy(obs, params):
     trans = params['trans_matrix']
     locs = params['locs']
     scale_diag = params['scale_diag']
-    df_arr = params['df']
     init = params['init_probs']
 
-    from scipy.stats import t as t_dist
+    from scipy.stats import norm
     log_lik = np.zeros((T_len, K))
     for k in range(K):
         for d in range(D):
-            log_lik[:, k] += t_dist.logpdf(
-                obs[:, d], df=df_arr[k],
-                loc=locs[k, d], scale=scale_diag[k, d],
+            log_lik[:, k] += norm.logpdf(
+                obs[:, d], loc=locs[k, d], scale=scale_diag[k, d],
             )
 
     log_trans = np.log(trans + 1e-300)
@@ -743,7 +700,6 @@ def hdp_stability_check(samples, obs, n_draws=10, seed=42):
             'init_probs': samples['beta'][idx] / samples['beta'][idx].sum(),
             'locs': samples['locs'][idx],
             'scale_diag': samples['scale_diag'][idx],
-            'df': samples['df'][idx],
             'K_max': len(samples['beta'][idx]),
         }
 
@@ -832,15 +788,14 @@ class HDPModelAdapter:
         return 0.0
 
     def _compute_log_likelihood(self, X):
-        from scipy.stats import t as t_dist
+        from scipy.stats import norm
         T_len, D = X.shape
         K = self.n_components
         log_lik = np.zeros((T_len, K))
         for ki, k_orig in enumerate(self.active_states):
             for d in range(D):
-                log_lik[:, ki] += t_dist.logpdf(
+                log_lik[:, ki] += norm.logpdf(
                     X[:, d],
-                    df=self.params['df'][k_orig],
                     loc=self.params['locs'][k_orig, d],
                     scale=self.params['scale_diag'][k_orig, d],
                 )

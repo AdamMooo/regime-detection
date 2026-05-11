@@ -33,12 +33,6 @@ LONG_WINDOW  = 63       # ~1 quarter
 PCA_MAX_COMPONENTS = 5
 PCA_VAR_THRESHOLD  = 0.90   # cumulative variance for auto-selection
 PCA_ROLLING_WINDOW = 63     # rolling window for PCA (~3 months)
-VIX_BYPASS         = False  # Phase 9 (Plan 3): removed — VIX is already in FEATURE_SUBSET via PCA;
-                            # bypass was double-counting it and forcing VIX-driven clustering that
-                            # mismatched the realized-vol naming (e.g. 2021: VIX~18 but RV~13%).
-                            # Phase 6 original reason: VIX_BYPASS=True added to force HMM to cluster
-                            # on implied vol level directly (GLD_trend dominated PC1). GLD_trend was
-                            # removed in Phase 5; bypass is no longer needed.
 
 # Representative feature subset for PCA (reduces collinearity).
 # Set to None to use all features. Using a curated subset prevents
@@ -90,7 +84,6 @@ N_STATES       = 3               # K=3 confirmed cleaner: Low-Vol (15.3 VIX), Mo
                                 # K=4 was statistically justified by BIC but empirically weak - 2 regimes barely different
                                 # Phase 3.1 next: feature diversification (reduce correlated vol signals)
 COV_TYPE       = 'full'
-T_DF           = 4               # Student-t degrees of freedom
 N_SEEDS        = 20              # multi-seed stability check
 HMM_ITER       = 300
 
@@ -112,15 +105,7 @@ MCMC_NUM_WARMUP    = 300
 MCMC_NUM_SAMPLES   = 1000
 MCMC_NUM_CHAINS    = 1           # single chain for CPU
 
-# --- Regime-Dependent GARCH (Phase 2.5.4) ---
-# GARCH-conditional VaR for risk management (passes Kupiec POF and Christoffersen tests)
-# Per-regime GARCH(1,1) models capture volatility persistence and remove exceedance clustering
-# See docs/RISK_MODEL_CARD.md for detailed comparison vs static VaR
-GARCH_P        = 1
-GARCH_Q        = 1
-GARCH_DIST     = 'normal'
-MIN_REGIME_OBS = 50              # minimum obs per regime for GARCH fit
-REGIME_HOLD_DAYS = 1             # Simplified: Reduced hysteresis filter
+REGIME_HOLD_DAYS = 1
 
 # --- Validation ---
 WALK_FORWARD_TRAIN_YEARS = 5
@@ -193,21 +178,3 @@ CACHE_PATH     = 'data/cache'     # Directory for incremental data cache (CSV + 
 CACHE_WINDOW       = 252           # Trading days for rolling PCA refit (1 year window)
 INCREMENTAL_MODE   = 'auto'        # 'auto' = auto-detect based on cache existence, 'full', or 'incremental'
 
-# ===================================================================
-# Phase 3.4: Multi-Signal Combination (Optional Ensemble Mode)
-# ===================================================================
-
-# Enable 11-step signal combination engine (Fundamental Law of Active Management)
-# When True: regime probabilities from combined signal engine
-# When False: regime probabilities from single-HMM baseline (current behavior)
-# Default: False (backward compatible, single-HMM)
-USE_SIGNAL_COMBINATION = False
-
-# Signal combination configuration
-SIGNAL_COMBINATION_CONFIG = {
-    'hold_days': 1,              # Forward-looking window for IC calculation
-    'min_warmup': 252,           # Minimum observations before calculating IC
-    'n_cross_val_folds': 5,      # Number of CV folds for evaluation
-    'bias_adjustment_factor': 0.1,  # Penalty factor for IC overfitting correction
-    'winsorize_sigma': 3.0,      # Clipping threshold (n sigma)
-}
