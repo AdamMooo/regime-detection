@@ -507,22 +507,15 @@ def build_section_signals_for_fold(features_slice: pd.DataFrame,
 
 # ── Convenience: build + transform + save ───────────────────────────
 
-def prepare_features(market=None, reload_pca=None, pca_window=252):
-    """
-    Full feature pipeline:  build -> transform -> save.
+def prepare_features(market=None):
+    """Build, transform, and save features to data/features_transformed.csv.
 
-    Args:
-        market: DataFrame with market data. If None, loads from DATA_DIR/market_data.csv.
-        reload_pca: Optional fitted PCA object from prior run. If provided, uses it instead of computing new.
-        pca_window: Number of trading days for rolling PCA refit (default 252 = 1 year).
+    Applies skew correction and winsorization. Does NOT standardize —
+    train.py applies causal expanding-window standardization at training time.
 
     Returns:
-        Tuple: (features_df, pca_fitted_object)
-            - features_df: DataFrame with PCA-transformed features
-            - pca_fitted_object: Fitted scikit-learn PCA object (for checkpoint)
+        features_df: DataFrame of raw computed features
     """
-    from sklearn.decomposition import PCA
-
     os.makedirs(DATA_DIR, exist_ok=True)
 
     if market is None:
@@ -536,35 +529,11 @@ def prepare_features(market=None, reload_pca=None, pca_window=252):
     features = _winsorize(features)
     _validate_features(features)
 
-    # Transformed features (log1p + winsorized, NOT standardized).
-    # train.py applies its own causal expanding-window standardization.
     features.to_csv(os.path.join(DATA_DIR, 'features_transformed.csv'))
-
     print(f"Features: {features.shape[1]} indicators x {features.shape[0]} days")
     print(f"  Columns: {list(features.columns)}")
 
-    # PCA state management (for incremental mode)
-    # Per D-07: Rolling PCA refit on latest pca_window rows (causal, no future data)
-    if reload_pca is None:
-        # Compute PCA from scratch on latest pca_window rows
-        fit_data = features.iloc[-pca_window:, :].values
-        pca = PCA(n_components=5, random_state=42)
-        pca.fit(fit_data)
-        print(f"  PCA fitted on latest {pca_window} rows; explained variance: {pca.explained_variance_ratio_.sum():.1%}")
-    else:
-        # Use reloaded PCA
-        pca = reload_pca
-        print(f"  Using reloaded PCA from checkpoint")
-
-    # Transform all features using PCA
-    X_pca = pca.transform(features.values)
-    pca_features = pd.DataFrame(
-        X_pca,
-        columns=[f'PC{i+1}' for i in range(X_pca.shape[1])],
-        index=features.index,
-    )
-
-    return pca_features, pca
+    return features
 
 
 if __name__ == '__main__':

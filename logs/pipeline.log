@@ -560,3 +560,16 @@ ImportError: cannot import name 'T_DF' from 'src.config' (/home/adam/projects/re
 2026-05-10 21:08:47,619 INFO pipeline.stages pca: embedded in train_hmm stage when run via run_all()
 2026-05-10 21:08:47,619 INFO pipeline [DONE] pca - 0.0s
 2026-05-10 21:08:47,619 INFO pipeline [START] train_hmm
+2026-05-10 21:11:01,846 INFO pipeline [DONE] train_hmm - 134.2s
+2026-05-10 21:11:01,846 INFO pipeline [START] signals
+2026-05-10 21:11:01,887 INFO pipeline.stages signals: enriched regime_results.csv with 6 placeholder columns
+2026-05-10 21:11:01,887 INFO pipeline [DONE] signals - 0.0s
+2026-05-10 21:11:01,888 INFO pipeline [START] dashboard
+2026-05-10 21:11:01,888 ERROR pipeline [FAIL] dashboard: cannot import name 'rebuild_dashboard' from 'scripts.pipelines.train' (/home/adam/projects/regime-detection/scripts/pipelines/train.py)
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 77, in run_all
+    result = fn(self.config, prev=prev)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 144, in stage_dashboard
+    from scripts.pipelines.train import rebuild_dashboard
+ImportError: cannot import name 'rebuild_dashboard' from 'scripts.pipelines.train' (/home/adam/projects/regime-detection/scripts/pipelines/train.py)

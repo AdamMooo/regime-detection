@@ -1,18 +1,13 @@
 """Pipeline stage functions — stateless disk-to-disk transformations.
 
-Each stage reads inputs from known disk paths, writes outputs to known disk paths,
-and may return a small dict for ephemeral in-memory hand-off to the next stage.
-
-Stage order (LOCKED — 8 daily stages + 1 validate-gated stage):
+Stage order:
 1. collect          -> data/market_data.csv, data/macro_data.csv
 2. features         -> data/features_transformed.csv
 3. feature_analysis -> figures/feature_analysis.html
-4. pca              -> data/pca_components.csv  (run inside train_hmm)
-5. train_hmm        -> models/ artifacts + returns results_df, market_v
-6. garch            -> data/garch_params.json + returns garch_results dict
-7. signals          -> data/regime_results.csv
-8. dashboard        -> figures/dashboard.html
-9. walk_forward     -> data/oos_regime_labels.csv  (gated by --validate flag)
+4. train_hmm        -> data/regime_results.csv, models/hdp_checkpoint.pkl
+5. signals          -> data/regime_results.csv (enriched)
+6. dashboard        -> figures/dashboard.html
+7. walk_forward     -> data/oos_regime_labels.csv  (gated by --validate flag)
 """
 
 import os
@@ -57,20 +52,6 @@ def stage_feature_analysis(config):
     analyze()
     return None
 
-
-def stage_pca(config):
-    """PCA stage — run as part of train_hmm (data already available via that stage).
-
-    This stage is a no-op when run in isolation because PCA is tightly coupled
-    to train_hmm in the existing codebase (train() computes PCA internally).
-    When run through run_all(), pca is embedded in stage_train_hmm.
-    Kept as a separate registry entry to satisfy the 8-stage design contract.
-    """
-    if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'pca':
-        raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for pca")
-
-    logger.info("pca: embedded in train_hmm stage when run via run_all()")
-    return None
 
 
 def stage_train_hmm(config, prev=None):
@@ -200,7 +181,6 @@ STAGES = [
     ('collect', stage_collect),
     ('features', stage_features),
     ('feature_analysis', stage_feature_analysis),
-    ('pca', stage_pca),
     ('train_hmm', stage_train_hmm),
     ('signals', stage_signals),
     ('dashboard', stage_dashboard),
