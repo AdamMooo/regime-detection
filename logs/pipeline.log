@@ -549,3 +549,14 @@ Traceback (most recent call last):
   File "/home/adam/projects/regime-detection/scripts/pipelines/train.py", line 38, in <module>
     from src.config import (
 ImportError: cannot import name 'T_DF' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)
+2026-05-10 21:08:43,173 INFO pipeline [CLEANUP] removed 2 stale HTML file(s) from figures/
+2026-05-10 21:08:43,173 INFO pipeline [START] collect
+2026-05-10 21:08:45,382 INFO pipeline [DONE] collect - 2.2s
+2026-05-10 21:08:45,382 INFO pipeline [START] features
+2026-05-10 21:08:46,740 INFO pipeline [DONE] features - 1.4s
+2026-05-10 21:08:46,740 INFO pipeline [START] feature_analysis
+2026-05-10 21:08:47,619 INFO pipeline [DONE] feature_analysis - 0.9s
+2026-05-10 21:08:47,619 INFO pipeline [START] pca
+2026-05-10 21:08:47,619 INFO pipeline.stages pca: embedded in train_hmm stage when run via run_all()
+2026-05-10 21:08:47,619 INFO pipeline [DONE] pca - 0.0s
+2026-05-10 21:08:47,619 INFO pipeline [START] train_hmm
