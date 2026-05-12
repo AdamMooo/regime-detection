@@ -16,8 +16,6 @@ import logging
 import numpy as np
 import pandas as pd
 from src.config import DATA_DIR, MODEL_DIR, FIGURE_DIR
-from src.core.orchestrator import walk_forward as _orchestrator_walk_forward
-
 logger = logging.getLogger('pipeline.stages')
 
 
@@ -122,7 +120,7 @@ def stage_dashboard(config, prev=None):
     if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'dashboard':
         raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for dashboard")
 
-    from scripts.pipelines.train import rebuild_dashboard
+    from scripts.pipelines.dashboard import rebuild_dashboard
     rebuild_dashboard()
     return None
 
@@ -131,48 +129,18 @@ def stage_walk_forward(config):
     """Run walk-forward OOS validation. Writes data/oos_regime_labels.csv.
 
     NEVER runs unless the runner passes validate=True (the runner gates this stage).
-    Uses the canonical walk_forward from src.core.orchestrator.
+    FIXME: walk_forward() is a stub in the stripped HDP-HMM architecture.
+    See src/core/orchestrator.py:walk_forward().
     """
     if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'walk_forward':
         raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for walk_forward")
 
-    from src.config import N_STATES, WALK_FORWARD_MODE
-    from src.core.inference import expanding_standardize
+    from src.core.orchestrator import walk_forward as _orchestrator_walk_forward
 
-    market_path = os.path.join(DATA_DIR, 'market_data.csv')
-    feat_path = os.path.join(DATA_DIR, 'features_transformed.csv')
-
-    if not os.path.exists(market_path) or not os.path.exists(feat_path):
-        logger.warning("walk_forward: required data files not found, skipping")
-        return None
-
-    market = pd.read_csv(market_path, index_col=0, parse_dates=True)
-    features = pd.read_csv(feat_path, index_col=0, parse_dates=True)
-
-    # Determine n_pca from existing PCA components if available
-    pca_path = os.path.join(DATA_DIR, 'pca_components.csv')
-    n_pca = 3  # default
-    if os.path.exists(pca_path):
-        pca_df = pd.read_csv(pca_path, index_col=0, nrows=1)
-        n_pca = len(pca_df.columns)
-
-    oos_labels, oos_name_map = _orchestrator_walk_forward(
-        market, features, n_states=N_STATES, n_pca=n_pca, mode=WALK_FORWARD_MODE,
+    logger.warning(
+        "walk_forward: orchestrator.walk_forward() raises NotImplementedError "
+        "in the stripped HDP-HMM architecture. Skipping."
     )
-
-    # Write OOS labels with columns [date, fold_id, regime, regime_name]
-    if oos_labels is not None and len(oos_labels) > 0:
-        oos_df = pd.DataFrame({
-            'date': oos_labels.index,
-            'fold_id': 0,  # orchestrator doesn't expose fold_id directly
-            'regime': oos_labels.values,
-            'regime_name': [oos_name_map.get(int(l), str(l)) for l in oos_labels.values],
-        })
-        os.makedirs(DATA_DIR, exist_ok=True)
-        oos_df.to_csv(os.path.join(DATA_DIR, 'oos_regime_labels.csv'), index=False)
-        logger.info("walk_forward: wrote %d OOS labels to oos_regime_labels.csv",
-                    len(oos_df))
-
     return None
 
 

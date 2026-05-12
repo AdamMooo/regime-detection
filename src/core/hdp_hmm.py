@@ -35,9 +35,7 @@ from numpyro.infer.initialization import init_to_feasible
 
 from src.config import (
     RANDOM_SEED, HDP_TRUNCATION, HDP_ALPHA, HDP_KAPPA,
-    HDP_INFERENCE, MCMC_NUM_WARMUP, MCMC_NUM_SAMPLES, MCMC_NUM_CHAINS,
-    SVI_NUM_STEPS, SVI_LEARNING_RATE, SVI_NUM_SAMPLES,
-    REGIME_NAMES, HDP_MAX_REGIMES, VOL_BRACKETS,
+    HDP_INFERENCE, SVI_NUM_STEPS, SVI_LEARNING_RATE, SVI_NUM_SAMPLES,
 )
 
 # Silence JAX/NumPyro startup noise
@@ -434,7 +432,7 @@ def _apply_hysteresis(raw, hold_days):
 
 
 def merge_similar_states(labels, filt_probs, params, active_states,
-                         max_regimes=HDP_MAX_REGIMES):
+                         max_regimes=5):
     """
     Iteratively merge closest pair of states (by emission location)
     until at most max_regimes remain.

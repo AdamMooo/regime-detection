@@ -1,4 +1,9 @@
-"""Regime-Detection configuration. Edit parameters here, not in individual scripts."""
+"""Thesis Configuration: Sticky HDP-HMM vs Threshold Rules on SPX
+
+Data: S&P 500 (^GSPC) + VIX + WTI shocks, 2015-2026
+Models: Threshold rules, Parametric HMM (statsmodels), Sticky HDP-HMM (NumPyro)
+Metrics: Log-likelihood, 2020 COVID F1, regime stability, Sharpe ratio
+"""
 
 import os
 
@@ -6,84 +11,44 @@ import os
 RANDOM_SEED = 42
 
 # --- Data ---
-START_DATE   = '2010-01-01'
-END_DATE     = None             # None = today
+START_DATE = '2015-01-01'
+END_DATE   = '2026-12-31'
+TRAIN_END  = '2023-12-31'
 
-TICKERS      = ['SPY', 'QQQ', 'IWM', 'EEM', 'TLT', 'HYG', 'GLD']
-VIX_TICKER   = '^VIX'
-VIX3M_TICKER = '^VIX3M'
-VVIX_TICKER  = '^VVIX'
+# Tickers - Real market indices
+SPX_TICKER = '^GSPC'  # S&P 500
+VOL_TICKER = '^VIX'   # Market volatility index
+WTI_TICKER = 'CL=F'   # WTI crude oil futures (macro feature)
 
-# FRED API key — get free key at https://fred.stlouisfed.org/docs/api/api_key.html
-FRED_API_KEY = os.getenv('FRED_API_KEY', '')
+# --- Features for HDP-HMM ---
+FEATURES = ['vol_index', 'wti_shock']  # VIX level, WTI % change
 
-# --- Feature windows ---
-SHORT_WINDOW = 10
-MED_WINDOW   = 20
-LONG_WINDOW  = 63
+# --- Threshold Rules ---
+THRESH_VOL_LOW = 15
+THRESH_VOL_HIGH = 25
+THRESH_WTI_POS = 0
+THRESH_WTI_NEG = -0.05
 
-# --- Feature selection ---
-# 4 features fed directly into HDP-HMM (no PCA).
-# All lagged 1 day in train.py for causality.
-FEATURE_SUBSET = [
-    'VIX',               # implied volatility level
-    'yield_curve_slope', # 10y-2y — macro cycle
-    'NFCI',              # financial stress
-    'VRP',               # variance risk premium — implied vs realized vol gap
-]
+# --- Parametric HMM ---
+PARAMETRIC_K_REGIMES = 3
 
-# --- Bayesian HDP-HMM (NumPyro) ---
-HDP_TRUNCATION  = 6            # max states for stick-breaking
-HDP_ALPHA       = 1.0          # DP concentration (global)
-HDP_KAPPA       = 10.0         # sticky self-transition weight
-HDP_MAX_REGIMES = 6            # merge down to at most this many regimes
-HDP_INFERENCE   = 'svi'        # 'svi' (fast) or 'nuts' (gold-standard, overnight)
+# --- Sticky HDP-HMM ---
+HDP_TRUNCATION = 8
+HDP_ALPHA = 1.0
+HDP_KAPPA = 10.0  # stickiness
+HDP_INFERENCE = 'svi'
+SVI_NUM_STEPS = 4000
+SVI_LEARNING_RATE = 0.005
+SVI_NUM_SAMPLES = 500
 
-# SVI settings
-SVI_NUM_STEPS     = 3000
-SVI_LEARNING_RATE = 0.003
-SVI_NUM_SAMPLES   = 500
+# --- Metrics ---
+COVID_START = '2020-03-09'
+COVID_END = '2020-03-23'
+COVID_DRAWDOWN_THRESH = 0.15
 
-# NUTS settings
-MCMC_NUM_WARMUP  = 300
-MCMC_NUM_SAMPLES = 1000
-MCMC_NUM_CHAINS  = 1
-
-REGIME_HOLD_DAYS = 1
-
-# --- Walk-forward validation ---
-WALK_FORWARD_TRAIN_YEARS = 5
-WALK_FORWARD_STEP_DAYS   = 21
-WALK_FORWARD_MODE        = 'rolling'
-
-# --- Regime naming ---
-# VOL_BRACKETS: map annualized realized vol (%) to regime name.
-# Thresholds are absolute — a state with 13% vol is always "Moderate-Vol"
-# regardless of how many other states exist.
-VOL_BRACKETS = [
-    (0,   10,  'Low-Vol'),
-    (10,  18,  'Moderate-Vol'),
-    (18,  28,  'Elevated-Vol'),
-    (28, 999,  'Crisis-Vol'),
-]
-
-# --- Bot Label Mapping ---
-# Source of truth for downstream consumers (algo-trading-bot, portfolio-manager).
-LABEL_MAPPING = {
-    'Low-Vol':      'LOW_VOL',
-    'Moderate-Vol': 'MED_VOL',
-    'Elevated-Vol': 'HIGH_VOL',
-    'Crisis-Vol':   'HIGH_VOL',
-}
-
-# --- Data freshness ---
-MAX_DATA_STALENESS_DAYS = 3
-
-# --- Paths ---
-DATA_DIR   = 'data'
-MODEL_DIR  = 'models'
-FIGURE_DIR = 'figures'
-CACHE_PATH = 'data/cache'
+# --- Output ---
+FIGURES_DIR = 'figures'
+RESULTS_DIR = 'results'
 
 # --- Incremental Data Collection ---
 CACHE_WINDOW     = 252

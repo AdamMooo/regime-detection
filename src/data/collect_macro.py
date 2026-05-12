@@ -1,113 +1,50 @@
-"""Macro data collection: FRED series via fredapi.
-
-Fetches T10Y2Y (10Y-2Y yield spread), BAMLH0A0HYM2 (ICE BofA HY OAS), and
-NFCI (Chicago Fed National Financial Conditions Index). Aligns everything
-to business-day frequency with causal forward-fill and saves to
-data/macro_data.csv.
-
-Phase 5 FEAT-01: these three FRED series populate the Macro and Financial
-Conditions sections of the sectioned funnel feature architecture.
-"""
+"""Collect SPX market data: prices, VIX, WTI shocks."""
 
 import os
 import pandas as pd
-from datetime import datetime
+import yfinance as yf
+from src.config import START_DATE, END_DATE, TRAIN_END, SPX_TICKER, WTI_TICKER, VOL_TICKER
 
-from src.config import START_DATE, DATA_DIR, FRED_API_KEY
+def fetch_spx_data() -> pd.DataFrame:
+    """Fetch S&P 500, VIX, WTI."""
+    print("[1/3] Fetching SPX...")
+    spx = yf.download(SPX_TICKER, start=START_DATE, end=END_DATE)[['Close']].rename(columns={'Close': 'spx_price'})
+    if isinstance(spx.columns, pd.MultiIndex):
+        spx.columns = [col[0] for col in spx.columns]
+    
+    print("[2/3] Fetching VIX...")
+    vix = yf.download(VOL_TICKER, start=START_DATE, end=END_DATE)[['Close']].rename(columns={'Close': 'vol_index'})
+    if isinstance(vix.columns, pd.MultiIndex):
+        vix.columns = [col[0] for col in vix.columns]
+    
+    print("[3/3] Fetching WTI...")
+    wti = yf.download(WTI_TICKER, start=START_DATE, end=END_DATE)[['Close']].rename(columns={'Close': 'wti_price'})
+    if isinstance(wti.columns, pd.MultiIndex):
+        wti.columns = [col[0] for col in wti.columns]
+    wti['wti_shock'] = wti['wti_price'].pct_change()
+    
+    # Merge and clean
+    df = pd.concat([spx, vix[['vol_index']], wti[['wti_shock']]], axis=1, join='outer', sort=True).dropna()
+    df.index.name = 'Date'
+    
+    print(f"\nData shape: {df.shape}")
+    print(f"Date range: {df.index[0].date()} to {df.index[-1].date()}")
+    print(f"\nFirst 5 rows:\n{df.head()}")
+    print(f"\nLast 5 rows:\n{df.tail()}")
+    print(f"\nSummary stats:\n{df.describe()}")
+    
+    return df
 
-
-# FRED series code -> canonical column name in features pipeline
-FRED_SERIES = {
-    'T10Y2Y':       'yield_curve_slope',  # daily; 10Y-2Y Treasury spread
-    'BAMLH0A0HYM2': 'HY_OAS',             # daily; ICE BofA HY Option-Adjusted Spread
-    'NFCI':         'NFCI',               # weekly (Friday); forward-fill to business day
-}
-
-
-def _fetch_via_fredapi(api_key: str, start_date: str) -> pd.DataFrame:
-    """Primary path: authenticated fredapi client."""
-    from fredapi import Fred
-    fred = Fred(api_key=api_key)
-    frames = {}
-    for code, name in FRED_SERIES.items():
-        s = fred.get_series(code, observation_start=start_date)
-        if s is None or len(s) == 0:
-            raise ValueError(f"FRED series '{code}' returned empty response")
-        s.name = name
-        frames[name] = s
-    return pd.DataFrame(frames)
-
-
-def _fetch_via_pdr(start_date: str) -> pd.DataFrame:
-    """Fallback path: pandas_datareader (no API key needed, rate-limited)."""
-    import pandas_datareader.data as pdr
-    frames = {}
-    for code, name in FRED_SERIES.items():
-        df = pdr.get_data_fred(code, start=start_date)
-        if df is None or df.empty:
-            raise ValueError(f"FRED series '{code}' returned empty response (pdr)")
-        # pdr returns a one-column DataFrame; rename to canonical name
-        s = df.iloc[:, 0]
-        s.name = name
-        frames[name] = s
-    return pd.DataFrame(frames)
-
-
-def collect_macro_features(start_date: str | None = None,
-                           api_key: str | None = None) -> pd.DataFrame:
-    """Fetch FRED macro series, align to business-day frequency, return DataFrame.
-
-    Args:
-        start_date: ISO date string (e.g. '2010-01-01'). Defaults to config.START_DATE.
-        api_key:    FRED API key. Defaults to config.FRED_API_KEY. Empty string triggers
-                    pandas_datareader fallback.
-
-    Returns:
-        DataFrame with business-day DatetimeIndex and columns
-        ['HY_OAS', 'NFCI', 'yield_curve_slope'] (forward-filled).
-
-    Causal guarantee: all gaps are forward-filled, never back-filled. For weekly
-    NFCI this means the Friday reading applies from Friday onward (see 05-RESEARCH.md
-    Pitfall 2 for the publication-lag note).
-    """
-    start = start_date or START_DATE
-    key = FRED_API_KEY if api_key is None else api_key
-
-    if key:
-        print(f"[collect_macro] Using fredapi with authenticated key (start={start})")
-        raw = _fetch_via_fredapi(key, start)
-    else:
-        print(f"[collect_macro] FRED_API_KEY empty -- falling back to pandas_datareader (start={start})")
-        raw = _fetch_via_pdr(start)
-
-    # Align to business-day frequency with causal forward-fill
-    # (weekly NFCI and gappy daily series both get filled)
-    aligned = raw.resample('B').last().ffill()
-
-    # Input validation (ASVS V5): assert non-empty result
-    assert len(aligned) >= 252, (
-        f"Insufficient macro data after alignment: {len(aligned)} business days "
-        f"(need >= 252). Check FRED availability or start_date."
-    )
-    expected_cols = set(FRED_SERIES.values())
-    missing = expected_cols - set(aligned.columns)
-    assert not missing, f"Macro data missing expected columns: {missing}"
-
-    aligned.index.name = 'Date'
-    return aligned
-
-
-def collect() -> pd.DataFrame:
-    """Top-level entry: fetch macro features and save to data/macro_data.csv."""
-    os.makedirs(DATA_DIR, exist_ok=True)
-    macro = collect_macro_features()
-    out_path = os.path.join(DATA_DIR, 'macro_data.csv')
-    macro.to_csv(out_path)
-    print(f"[collect_macro] Saved {len(macro)} rows to {out_path}")
-    print(f"[collect_macro] Date range: {macro.index.min().date()} -> {macro.index.max().date()}")
-    print(f"[collect_macro] Columns: {list(macro.columns)}")
-    return macro
-
+def save_train_test(df: pd.DataFrame):
+    """Save full, train, test."""
+    os.makedirs('data/processed', exist_ok=True)
+    df.to_csv('data/processed/spx_data.csv')
+    train = df.loc[:TRAIN_END]
+    test = df.loc[TRAIN_END:]
+    train.to_csv('data/processed/train.csv')
+    test.to_csv('data/processed/test.csv')
+    print(f"\nSaved: {len(df)} total, {len(train)} train, {len(test)} test")
 
 if __name__ == '__main__':
-    collect()
+    df = fetch_spx_data()
+    save_train_test(df)

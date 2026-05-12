@@ -573,3 +573,82 @@ Traceback (most recent call last):
   File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 144, in stage_dashboard
     from scripts.pipelines.train import rebuild_dashboard
 ImportError: cannot import name 'rebuild_dashboard' from 'scripts.pipelines.train' (/home/adam/projects/regime-detection/scripts/pipelines/train.py)
+2026-05-10 21:25:12,578 INFO pipeline [CLEANUP] removed 1 stale HTML file(s) from figures/
+2026-05-10 21:25:12,578 INFO pipeline [START] collect
+2026-05-10 21:25:15,371 INFO pipeline [DONE] collect - 2.8s
+2026-05-10 21:25:15,371 INFO pipeline [START] features
+2026-05-10 21:25:16,723 INFO pipeline [DONE] features - 1.4s
+2026-05-10 21:25:16,723 INFO pipeline [START] feature_analysis
+2026-05-10 21:25:17,538 INFO pipeline [DONE] feature_analysis - 0.8s
+2026-05-10 21:25:17,538 INFO pipeline [START] train_hmm
+2026-05-10 21:25:17,977 ERROR pipeline [FAIL] train_hmm: cannot import name 'REGIME_NAMES' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 77, in run_all
+    result = fn(self.config, prev=prev)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 65, in stage_train_hmm
+    from scripts.pipelines.train import train
+  File "/home/adam/projects/regime-detection/scripts/pipelines/train.py", line 27, in <module>
+    from src.core.hdp_hmm import (
+  File "/home/adam/projects/regime-detection/src/core/hdp_hmm.py", line 36, in <module>
+    from src.config import (
+ImportError: cannot import name 'REGIME_NAMES' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)
+2026-05-10 21:37:23,758 INFO pipeline [CLEANUP] removed 1 stale HTML file(s) from figures/
+2026-05-10 21:37:23,761 INFO pipeline [START] collect
+2026-05-10 21:37:28,200 INFO pipeline [DONE] collect - 4.4s
+2026-05-10 21:37:28,200 INFO pipeline [START] features
+2026-05-10 21:37:30,398 INFO pipeline [DONE] features - 2.2s
+2026-05-10 21:37:30,398 INFO pipeline [START] feature_analysis
+2026-05-10 21:37:31,440 INFO pipeline [DONE] feature_analysis - 1.0s
+2026-05-10 21:37:31,440 INFO pipeline [START] train_hmm
+2026-05-10 21:37:32,366 ERROR pipeline [FAIL] train_hmm: cannot import name 'REGIME_NAMES' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 77, in run_all
+    result = fn(self.config, prev=prev)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 65, in stage_train_hmm
+    from scripts.pipelines.train import train
+  File "/home/adam/projects/regime-detection/scripts/pipelines/train.py", line 27, in <module>
+    from src.core.hdp_hmm import (
+  File "/home/adam/projects/regime-detection/src/core/hdp_hmm.py", line 36, in <module>
+    from src.config import (
+ImportError: cannot import name 'REGIME_NAMES' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)
+2026-05-10 22:15:52,973 ERROR pipeline [FAIL] train_hmm: cannot import name 'REGIME_NAMES' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 101, in run_stage
+    return fn(self.config) or {}
+           ^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 63, in stage_train_hmm
+    from scripts.pipelines.train import train
+  File "/home/adam/projects/regime-detection/scripts/pipelines/train.py", line 27, in <module>
+    from src.core.hdp_hmm import (
+  File "/home/adam/projects/regime-detection/src/core/hdp_hmm.py", line 36, in <module>
+    from src.config import (
+ImportError: cannot import name 'REGIME_NAMES' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)
+2026-05-10 22:16:04,485 ERROR pipeline [FAIL] train_hmm: cannot import name 'REGIME_NAMES' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)
+Traceback (most recent call last):
+  File "/home/adam/projects/regime-detection/src/pipeline/runner.py", line 101, in run_stage
+    return fn(self.config) or {}
+           ^^^^^^^^^^^^^^^
+  File "/home/adam/projects/regime-detection/src/pipeline/stages.py", line 63, in stage_train_hmm
+    from scripts.pipelines.train import train
+  File "/home/adam/projects/regime-detection/scripts/pipelines/train.py", line 27, in <module>
+    from src.core.hdp_hmm import (
+  File "/home/adam/projects/regime-detection/src/core/hdp_hmm.py", line 36, in <module>
+    from src.config import (
+ImportError: cannot import name 'REGIME_NAMES' from 'src.config' (/home/adam/projects/regime-detection/src/config.py)
+2026-05-10 23:59:52,283 INFO pipeline [CLEANUP] removed 2 stale HTML file(s) from figures/
+2026-05-10 23:59:52,284 INFO pipeline [START] collect
+2026-05-10 23:59:54,575 INFO pipeline [DONE] collect - 2.3s
+2026-05-10 23:59:54,575 INFO pipeline [START] features
+2026-05-10 23:59:56,318 INFO pipeline [DONE] features - 1.7s
+2026-05-10 23:59:56,318 INFO pipeline [START] feature_analysis
+2026-05-10 23:59:57,268 INFO pipeline [DONE] feature_analysis - 1.0s
+2026-05-10 23:59:57,268 INFO pipeline [START] train_hmm
+2026-05-11 00:00:36,386 INFO pipeline [DONE] train_hmm - 39.1s
+2026-05-11 00:00:36,387 INFO pipeline [START] signals
+2026-05-11 00:00:36,441 INFO pipeline.stages signals: enriched regime_results.csv with 6 placeholder columns
+2026-05-11 00:00:36,442 INFO pipeline [DONE] signals - 0.1s
+2026-05-11 00:00:36,442 INFO pipeline [START] dashboard
+2026-05-11 00:00:37,190 INFO pipeline [DONE] dashboard - 0.7s
+2026-05-11 00:00:37,190 INFO pipeline [TOTAL] 45s
