@@ -1,63 +1,75 @@
-# Regime-Detection — Session Resume
+# Regime-Detection — Session Notes
 
 ## Status
-Phase: v1.1 — Phase 7 complete (2026-04-27), v1.1 milestone complete
-Milestone: Model Quality & Regime Reliability (Phases 4–7) — ALL PHASES DONE
+Architecture: stripped HDP-HMM, paper-first
 Branch: main
+Last updated: 2026-05-24
 
-## v1.1 Summary (all phases complete)
+## Current Architecture (Clean)
 
-| Phase | Status | Completed |
-|-------|--------|-----------|
-| 4. Empirical Diagnostics | ✅ Complete | 2026-04-20 |
-| 5. Feature Engineering Overhaul | ✅ Complete | 2026-04-19 |
-| 6. Model Architecture Experiments | ✅ Complete | 2026-04-21 |
-| 7. Daily Pipeline & Clean Outputs | ✅ Complete | 2026-04-27 |
+The pipeline has been stripped to the minimum needed for the paper:
+- 4 features: spy_ret, vol_index, yield_slope, nfci (no PCA, no GARCH, no Student-t)
+- HDP-HMM with Gaussian emissions, sticky transitions
+- SVI for fast runs, NUTS for paper-quality posterior
+- VOL_BRACKETS labeling (absolute realized vol)
 
-## Phase 7 UAT — Critical Failures Discovered (2026-04-27)
+## What Changed (2026-05-24 session)
 
-Three model quality failures found during first live pipeline run. Phase 9 (Regime Calibration) created to fix:
+- Fixed feature set: `vol_index + wti_shock` → `spy_ret + vol_index + yield_slope + nfci`
+- Fixed broken import chain in `stages.py` (called non-existent `src.features.*`)
+- Fixed `VOL_BRACKETS` and `MCMC_NUM_*` used in hdp_hmm.py but never imported
+- Rewrote `collect_macro.py`: now fetches FRED T10Y2Y + NFCI (not WTI)
+- Rewrote `baselines/parametric_hmm.py`: uses spy_ret, hmmlearn, 10 restarts
+- Rewrote `baselines/threshold_rules.py`: VIX-only threshold (the null hypothesis)
+- Stripped `stages.py` to 5 clean stages (removed dashboard, feature_analysis)
+- Rewrote `CLAUDE.md` to match actual architecture
 
-1. **High-Vol dominance** — 61% of days assigned High-Vol (should be ~15-25%). Threshold/prior miscalibration.
-2. **Label variant explosion** — OOS walk-forward produces 8 label variants instead of 3. Procrustes/Hungarian matching broken across folds.
-3. **GARCH VaR scaling bug** — mean_vol=700%+, VaR=-546%. Returns likely in wrong units (basis points vs decimal) somewhere in GARCH path.
+## Import Check (2026-05-24)
+
+All imports pass:
+```
+config OK: ['spy_ret', 'vol_index', 'yield_slope', 'nfci']
+hdp_hmm OK
+inference OK
+evaluation OK
+threshold_rules OK
+parametric_hmm OK
+stages OK: ['collect', 'features', 'train_hmm', 'signals', 'walk_forward']
+```
 
 ## Next Action
-**CURRENT: Architecture rewrite — new train.py wired up**
 
-The pipeline has been stripped and train.py rewritten (~150 lines). Next steps:
-1. Run `python run.py collect` + `python run.py features` to get fresh data
-2. Run `python run.py train` — verify it completes and regime_results.csv looks correct
-3. Check regime distribution (should be ~15-25% High-Vol, not 61%)
-4. Rewrite walk_forward() in orchestrator.py for HDP architecture
-5. Clean up signals.py to remove GARCH VaR references
+**Run the pipeline for the first time with the 4-feature set:**
+```bash
+python -c "from src.pipeline.runner import Pipeline; Pipeline().run_all()"
+```
+Or stage by stage:
+```bash
+python -c "from src.pipeline.stages import stage_collect; stage_collect(None)"
+python -c "from src.pipeline.stages import stage_features; stage_features(None)"
+python -c "from src.pipeline.stages import stage_train_hmm; stage_train_hmm(None)"
+```
 
-## Key Feature State (Post Phase 5+6)
+Requires `.env` with `FRED_API_KEY` (already set).
 
-**14 active features** in `FEATURE_SUBSET` (config.py):
-- s_vol (8): VIX, VRP, rv_ratio_10_63, vix_ts_slope, SPY_volvol20, SPY_rv10_lag5, SPY_rv10_lag10, SPY_skew20
-- s_fin (5): credit_stress, SPY_TLT_corr63, NFCI, eigen_conc, SPY_dd63
-- s_mac (1): yield_curve_slope (GLD_trend removed in Phase 6 — dominated PC1, caused mislabeling)
+## After First Run
 
-**VIX_BYPASS=True** (appends scaled VIX directly to PCA dims to force regime separation on implied vol level)
+1. Check regime distribution — should be roughly Low-Vol 50%, Moderate-Vol 30%, High-Vol 20%
+2. Implement `thesis_experiments.py` properly (currently has a placeholder `hdp_regime = 0`)
+3. Build Figure 1: find two days with same VIX but different posterior (money shot)
+4. Implement `walk_forward()` in `orchestrator.py` for OOS validation
 
-## Architecture Constraints
-- HDP-HMM via NumPyro (SVI) — USE_HDP=True, StudentTHMM removed from train.py
-- Rolling PCA with Procrustes alignment for label consistency (currently broken — Phase 9 to fix)
-- Student-t emissions for fat-tailed returns
-- K=3 regimes (locked)
-- Downstream consumers: Algo-Trading-Bot, Portfolio-Manager
+## Stale Files (root level — can delete when ready)
 
-## Known Issues (pre-existing, not blocking)
-- test_dashboard_refactor.py::test_dashboard_loads_regime_results — zombie test for deleted dashboard.py
-- test_model_card_validation.py — Windows subprocess path issue
-- test_regime_count_selection.py — requires live data + K=4 logic (K=3 now)
+- `data_download.py` — old XEG.TO fetcher, superseded by collect_macro.py
+- `fit_toy_hdp.py` — toy experiment on old feature set (tsx_vol, boc_spread, wti_shock)
+- `parametric_hmm.py` — duplicate of src/baselines/parametric_hmm.py
+- `threshold_regimes.py` — duplicate of src/baselines/threshold_rules.py
 
 ## Key Files
-- `src/config.py` — USE_HDP=True, FEATURE_SUBSET (14 features), VIX_BYPASS=True
-- `src/core/hdp_hmm.py` — primary model (844 lines)
-- `src/core/var_backtesting.py` — VaR/GARCH backtest functions (bug here)
-- `src/core/hmm_training.py` — label_regimes(), check_stability(), fit_rolling_pca()
-- `src/core/orchestrator.py` — walk_forward() (label alignment bug here)
-- `src/core/pca_utils.py` — fit_rolling_pca + LinearizedSV
-- `data/feature_importance_report.md` — Phase 5 walk-forward selection report
+
+- `src/config.py` — single source of truth: FEATURES, VOL_BRACKETS, all params
+- `src/core/hdp_hmm.py` — the model (844 lines, clean)
+- `src/data/collect_macro.py` — data collection (4 features via yfinance + FRED)
+- `src/pipeline/stages.py` — pipeline stages (5 stages, all wired)
+- `.env` — FRED_API_KEY (required, already set)

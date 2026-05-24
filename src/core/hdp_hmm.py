@@ -36,6 +36,7 @@ from numpyro.infer.initialization import init_to_feasible
 from src.config import (
     RANDOM_SEED, HDP_TRUNCATION, HDP_ALPHA, HDP_KAPPA,
     HDP_INFERENCE, SVI_NUM_STEPS, SVI_LEARNING_RATE, SVI_NUM_SAMPLES,
+    MCMC_NUM_WARMUP, MCMC_NUM_SAMPLES, MCMC_NUM_CHAINS, VOL_BRACKETS,
 )
 
 # Silence JAX/NumPyro startup noise

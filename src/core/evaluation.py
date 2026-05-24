@@ -1,28 +1,11 @@
 """Regime evaluation metrics and bootstrap confidence intervals.
 
-This module implements:
-1. Regime characteristic reporting
-2. Bootstrap confidence intervals for regime statistics
-
-IMPORTANT: VaR Backtesting (Phase 2.5.4)
------------------------------------------
-VaR backtesting functions were extracted to `src.core.var_backtesting` in
-Phase 6 (MODEL-03). See `docs/MODEL_CARD.md` for the decision record.
-
-Static regime-dependent VaR (fixed quantile per regime) FAILS Christoffersen test,
-indicating exceedances cluster (volatility persistence not captured).
-
-GARCH-conditional VaR (regime + volatility-adjusted) PASSES both tests:
-  - Kupiec POF: p=0.952 (correct coverage)
-  - Christoffersen: p=0.547 (exceedances independent, no clustering)
-
-USE src.core.var_backtesting.compute_var_backtest_garch() for production risk limits.
-For details, see docs/RISK_MODEL_CARD.md.
-
 Functions
 ---------
 evaluate(market, labels, name_map, spy_ret, label_source='In-Sample')
-    Print regime characteristics
+    Print regime characteristics (mean VIX, 5-day SPY return) per regime.
+_print_bootstrap_cis(...)
+    Block bootstrap 90% CIs for VIX mean, regime duration, persistence.
 """
 
 import logging

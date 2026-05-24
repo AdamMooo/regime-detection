@@ -1,156 +1,196 @@
 """Pipeline stage functions — stateless disk-to-disk transformations.
 
 Stage order:
-1. collect          -> data/market_data.csv, data/macro_data.csv
-2. features         -> data/features_transformed.csv
-3. feature_analysis -> figures/feature_analysis.html
-4. train_hmm        -> data/regime_results.csv, models/hdp_checkpoint.pkl
-5. signals          -> data/regime_results.csv (enriched)
-6. dashboard        -> figures/dashboard.html
-7. walk_forward     -> data/oos_regime_labels.csv  (gated by --validate flag)
+1. collect       -> data/processed/spx_data.csv (SPY return, VIX, yield slope, NFCI)
+2. features      -> data/processed/features.csv (expanding-standardized, train/test split)
+3. train_hmm     -> data/regime_results.csv, models/hdp_checkpoint.pkl
+4. signals       -> data/regime_results.csv (enriched with days_in_regime, regime_entropy)
+5. walk_forward  -> data/oos_regime_labels.csv  (gated by --validate flag)
 """
 
-import os
-import json
 import logging
+import os
+
 import numpy as np
 import pandas as pd
-from src.config import DATA_DIR, MODEL_DIR, FIGURE_DIR
+
+from src.config import DATA_DIR, MODEL_DIR, FEATURES, TRAIN_END
+
 logger = logging.getLogger('pipeline.stages')
 
 
+# ===================================================================
+# Stage 1: collect
+# ===================================================================
+
 def stage_collect(config):
-    """Collect market and macro data. Writes data/market_data.csv."""
+    """Fetch SPY return, VIX, yield slope, NFCI. Writes data/processed/."""
     if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'collect':
         raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for collect")
+    from src.data.collect_macro import fetch_and_save_data
+    fetch_and_save_data()
 
-    from src.features.collect import collect
-    from src.data.collect_macro import collect as collect_macro
-    collect()
-    collect_macro()
-    return None
 
+# ===================================================================
+# Stage 2: features
+# ===================================================================
 
 def stage_features(config):
-    """Build and transform features. Writes data/features_transformed.csv."""
+    """Load raw data, apply expanding-window standardization, save features.csv."""
     if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'features':
         raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for features")
 
-    from src.features.features import prepare_features
-    prepare_features()
-    return None
+    raw_path = os.path.join(DATA_DIR, 'processed', 'spx_data.csv')
+    if not os.path.exists(raw_path):
+        raise FileNotFoundError(f"Run 'collect' first: {raw_path} not found")
+
+    df = pd.read_csv(raw_path, index_col=0, parse_dates=True)
+    cols = [c for c in FEATURES if c in df.columns]
+    missing = [c for c in FEATURES if c not in df.columns]
+    if missing:
+        raise ValueError(f"Missing features in raw data: {missing}")
+
+    from src.core.inference import expanding_standardize
+    X_raw = df[cols].values
+    X_scaled, _, _ = expanding_standardize(X_raw)
+
+    out = pd.DataFrame(X_scaled, index=df.index, columns=cols)
+
+    # Drop warmup rows (NaN from expanding_standardize)
+    out = out.dropna()
+
+    os.makedirs(os.path.join(DATA_DIR, 'processed'), exist_ok=True)
+    feat_path  = os.path.join(DATA_DIR, 'processed', 'features.csv')
+    train_path = os.path.join(DATA_DIR, 'processed', 'features_train.csv')
+    test_path  = os.path.join(DATA_DIR, 'processed', 'features_test.csv')
+
+    out.to_csv(feat_path)
+    out.loc[:TRAIN_END].to_csv(train_path)
+    out.loc[TRAIN_END:].to_csv(test_path)
+
+    logger.info("features: wrote %d rows (%d train, %d test)",
+                len(out),
+                (out.index <= TRAIN_END).sum(),
+                (out.index > TRAIN_END).sum())
 
 
-def stage_feature_analysis(config):
-    """Build feature analysis HTML report. Writes figures/feature_analysis.html."""
-    if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'feature_analysis':
-        raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for feature_analysis")
-
-    from scripts.pipelines.analyze import analyze
-    analyze()
-    return None
-
-
+# ===================================================================
+# Stage 3: train_hmm
+# ===================================================================
 
 def stage_train_hmm(config, prev=None):
-    """Fit HDP-HMM and produce regime labels. Writes model artifacts to models/.
-
-    Returns a dict with results_df and market_v for downstream stages.
-    """
+    """Fit HDP-HMM on training features. Writes models/ and data/regime_results.csv."""
     if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'train_hmm':
         raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for train_hmm")
 
-    from scripts.pipelines.train import train
-    # train() writes regime_results.csv and model artifacts, returns None
-    train()
-    # Load results from disk for downstream stages
-    results_path = os.path.join(DATA_DIR, 'regime_results.csv')
-    if os.path.exists(results_path):
-        results_df = pd.read_csv(results_path, index_col=0, parse_dates=True)
-        market_path = os.path.join(DATA_DIR, 'market_data.csv')
-        market_v = pd.read_csv(market_path, index_col=0, parse_dates=True)
-        return {'results_df': results_df, 'market_v': market_v}
-    return None
+    feat_path = os.path.join(DATA_DIR, 'processed', 'features_train.csv')
+    if not os.path.exists(feat_path):
+        raise FileNotFoundError(f"Run 'features' first: {feat_path} not found")
+
+    df_train = pd.read_csv(feat_path, index_col=0, parse_dates=True).dropna()
+    obs = df_train.values
+
+    from src.core.hdp_hmm import (
+        fit_hdp_hmm, posterior_mean_params, get_labels_and_probs,
+        label_regimes_hdp, effective_K, save_hdp_results, mcmc_diagnostics,
+    )
+    from src.config import RANDOM_SEED, HDP_TRUNCATION, HDP_INFERENCE
+
+    result, samples = fit_hdp_hmm(obs)
+    params = posterior_mean_params(samples)
+    labels, filt_probs, smooth_probs, active = get_labels_and_probs(obs, params)
+
+    raw_path = os.path.join(DATA_DIR, 'processed', 'spx_data.csv')
+    spy_ret = pd.read_csv(raw_path, index_col=0, parse_dates=True)['spy_ret']
+    spy_aligned = spy_ret.reindex(df_train.index).values
+
+    name_map, state_vols = label_regimes_hdp(labels, active, spy_aligned)
+    eff_k = effective_K(samples)
+
+    diag = mcmc_diagnostics(result, samples)
+
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    save_hdp_results(
+        MODEL_DIR, result, samples, params, diag, eff_k,
+        data_info={'train_end': TRAIN_END, 'n_obs': len(obs)}
+    )
+
+    # Write regime_results.csv
+    results_df = pd.DataFrame({
+        'regime_label': [name_map[l] for l in labels],
+        'regime_idx':   labels,
+        'filt_prob_max': filt_probs.max(axis=1),
+    }, index=df_train.index)
+
+    for k, name in name_map.items():
+        col = f'filt_prob_{name.replace("-", "_").lower()}'
+        if k < filt_probs.shape[1]:
+            results_df[col] = filt_probs[:, k]
+
+    out_path = os.path.join(DATA_DIR, 'regime_results.csv')
+    results_df.to_csv(out_path)
+    logger.info("train_hmm: wrote %s (%d rows)", out_path, len(results_df))
+
+    return {'results_df': results_df, 'name_map': name_map}
 
 
+# ===================================================================
+# Stage 4: signals
+# ===================================================================
 
 def stage_signals(config, prev=None):
-    """Assemble and write data/regime_results.csv.
-
-    NOTE: In the current architecture, train() already writes regime_results.csv.
-    This stage enriches it with placeholder columns for PIPE-03 schema compliance
-    (days_in_regime, regime_entropy, garch_vol_forecast, blended_vol_forecast,
-    transition_score, structural_anomaly). Plan 07-03 wires real data for the
-    non-placeholder columns.
-    """
+    """Compute days_in_regime and regime_entropy. Enriches regime_results.csv."""
     if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'signals':
         raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for signals")
 
     results_path = os.path.join(DATA_DIR, 'regime_results.csv')
     if not os.path.exists(results_path):
-        logger.warning("signals: no regime_results.csv found, skipping enrichment")
+        logger.warning("signals: no regime_results.csv found, skipping")
         return None
 
     df = pd.read_csv(results_path, index_col=0, parse_dates=True)
 
-    # Add PIPE-03 schema columns as placeholders (all-NaN per Phase 7 contract)
-    # Plan 07-03 will wire real data for days_in_regime, regime_entropy,
-    # garch_vol_forecast; blended_vol_forecast, transition_score, structural_anomaly
-    # remain all-NaN as stubs for future phases.
-    changed = False
-    placeholder_cols = [
-        'days_in_regime', 'regime_entropy', 'garch_vol_forecast',
-        'blended_vol_forecast', 'transition_score', 'structural_anomaly',
-    ]
-    for col in placeholder_cols:
-        if col not in df.columns:
-            df[col] = np.nan
-            changed = True
+    # Days in current regime streak
+    regime_series = df['regime_idx']
+    streak = np.ones(len(df), dtype=int)
+    for t in range(1, len(df)):
+        if regime_series.iloc[t] == regime_series.iloc[t - 1]:
+            streak[t] = streak[t - 1] + 1
+    df['days_in_regime'] = streak
 
-    if changed:
-        df.to_csv(results_path)
-        logger.info("signals: enriched regime_results.csv with %d placeholder columns",
-                    sum(1 for c in placeholder_cols if c in df.columns))
+    # Regime entropy from filtered probs
+    prob_cols = [c for c in df.columns if c.startswith('filt_prob_') and c != 'filt_prob_max']
+    if prob_cols:
+        probs = df[prob_cols].values.clip(1e-10, 1.0)
+        df['regime_entropy'] = -(probs * np.log(probs)).sum(axis=1)
 
-    return None
+    df.to_csv(results_path)
+    logger.info("signals: enriched regime_results.csv")
 
 
-def stage_dashboard(config, prev=None):
-    """Build interactive dashboard. Writes figures/dashboard.html."""
-    if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'dashboard':
-        raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for dashboard")
-
-    from scripts.pipelines.dashboard import rebuild_dashboard
-    rebuild_dashboard()
-    return None
-
+# ===================================================================
+# Stage 5: walk_forward (stub)
+# ===================================================================
 
 def stage_walk_forward(config):
-    """Run walk-forward OOS validation. Writes data/oos_regime_labels.csv.
+    """Walk-forward OOS validation. Gated by --validate flag.
 
-    NEVER runs unless the runner passes validate=True (the runner gates this stage).
-    FIXME: walk_forward() is a stub in the stripped HDP-HMM architecture.
-    See src/core/orchestrator.py:walk_forward().
+    Not yet implemented — see orchestrator.py.
     """
     if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'walk_forward':
         raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for walk_forward")
 
-    from src.core.orchestrator import walk_forward as _orchestrator_walk_forward
-
-    logger.warning(
-        "walk_forward: orchestrator.walk_forward() raises NotImplementedError "
-        "in the stripped HDP-HMM architecture. Skipping."
-    )
-    return None
+    logger.warning("walk_forward: not yet implemented, skipping")
 
 
+# ===================================================================
 # STAGES registry — order is LOCKED
+# ===================================================================
+
 STAGES = [
-    ('collect', stage_collect),
-    ('features', stage_features),
-    ('feature_analysis', stage_feature_analysis),
-    ('train_hmm', stage_train_hmm),
-    ('signals', stage_signals),
-    ('dashboard', stage_dashboard),
+    ('collect',      stage_collect),
+    ('features',     stage_features),
+    ('train_hmm',    stage_train_hmm),
+    ('signals',      stage_signals),
     ('walk_forward', stage_walk_forward),
 ]

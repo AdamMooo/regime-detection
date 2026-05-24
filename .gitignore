@@ -5,10 +5,10 @@ __pycache__/
 .env
 .venv/
 
-# Generated outputs
-data/
-models/
-figures/
+# Generated outputs (root-level dirs only — /src/data/ is source code, not data)
+/data/
+/models/
+/figures/
 *.pyo
 *.bak
 .claude/
