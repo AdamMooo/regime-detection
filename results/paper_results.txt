@@ -1,0 +1,140 @@
+% ================================================================
+% AUTO-GENERATED PAPER RESULTS — regime-detection/run_paper_experiments.py
+% Generated: 2026-05-24 13:06
+% Train: 2016-01-07 to 2023-12-29  (1995 trading days)
+% ================================================================
+
+% ---- TABLE 1: REGIME CHARACTERISTICS ----
+
+\begin{table}[htbp]
+\centering
+\caption{Within-regime characteristics (in-sample training period). Ann. Ret and Ann. Vol are annualized (\%). Sharpe = Ann. Ret / Ann. Vol. Dwell = mean consecutive days in regime.}
+\label{tab:regime_chars}
+\begin{tabular}{llrrrrrrrr}
+\toprule
+Model & Regime & N & \% & Ann. Ret & Ann. Vol & Sharpe & Avg VIX & Dwell \\
+\midrule
+HDP-HMM & Low-Vol & 987 & 49.5\% & +10.54 & 11.24 & +0.94 & 14.3 & 82.2 \\
+HDP-HMM & Moderate-Vol & 812 & 40.7\% & +10.20 & 17.93 & +0.57 & 21.1 & 73.8 \\
+HDP-HMM & High-Vol & 196 & 9.8\% & +16.60 & 40.04 & +0.41 & 31.7 & 39.2 \\
+\addlinespace
+VIX Threshold & Low-Vol & 755 & 37.8\% & +37.95 & 7.37 & +5.15 & 12.5 & 16.8 \\
+VIX Threshold & Moderate-Vol & 905 & 45.4\% & +16.98 & 15.60 & +1.09 & 19.3 & 10.5 \\
+VIX Threshold & High-Vol & 335 & 16.8\% & -65.91 & 35.78 & -1.84 & 31.7 & 8.2 \\
+\addlinespace
+Param HMM & Moderate-Vol & 372 & 18.6\% & +14.30 & 17.18 & +0.83 & 19.5 & 372.0 \\
+Param HMM & High-Vol & 400 & 20.1\% & -34.55 & 34.08 & -1.01 & 29.3 & 25.0 \\
+Param HMM & Low-Vol & 1223 & 61.3\% & +24.89 & 9.97 & +2.50 & 15.1 & 81.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---- TABLE 2: TRANSITION MATRIX (HDP-HMM) ----
+
+\begin{table}[htbp]
+\centering
+\caption{HDP-HMM transition matrix (posterior mean). High diagonal entries confirm regime persistence (sticky transitions).}
+\label{tab:transition}
+\begin{tabular}{lrrr}
+\toprule
+From $\backslash$ To & Low-Vol & Moderate-Vol & High-Vol \\
+\midrule
+Low-Vol & 0.989 & 0.009 & 0.002 \\
+Moderate-Vol & 0.011 & 0.986 & 0.002 \\
+High-Vol & 0.015 & 0.010 & 0.974 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---- TABLE 3: INFORMATION CONTENT REGRESSION ----
+
+\begin{table}[htbp]
+\centering
+\caption{Information content of regime labels beyond VIX. Dependent variable: 5-day forward SPY log return. Columns show $R^2$ from OLS regression on (i) VIX alone, (ii) VIX + regime dummies. $\Delta R^2$ is the improvement.}
+\label{tab:info_content}
+\begin{tabular}{lrrr}
+\toprule
+Model & $R^2$ (VIX only) & $R^2$ (+ Regimes) & $\Delta R^2$ \\
+\midrule
+HDP-HMM & 0.0008 & 0.0009 & +0.0000 \\
+VIX Threshold & 0.0008 & 0.0008 & +0.0000 \\
+Param HMM & 0.0008 & 0.0020 & +0.0011 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---- TABLE 4: VOLATILITY-TARGETING BACKTEST ----
+
+\begin{table}[htbp]
+\centering
+\caption{Volatility-targeting backtest (in-sample, \nTrainStart{}--\nTrainEnd{}). All strategies target 15\% annualized portfolio volatility, capped at $1.5\times$ exposure. RV30 = 30-day lagged realized volatility. Rebalances/yr = mean annual position changes.}
+\label{tab:backtest}
+\begin{tabular}{lrrrrrr}
+\toprule
+Strategy & Ann.\ Ret (\%) & Ann.\ Vol (\%) & Sharpe & Max DD (\%) & Rebal./yr \\
+\midrule
+Buy \& Hold & 11.00 & 18.73 & 0.587 & -36.1 & 0 \\
+Vol-Target (RV30) & 11.42 & 15.22 & 0.750 & -20.4 & 90 \\
+Vol-Target (VIX-Thr) & 24.31 & 13.77 & 1.766 & -17.1 & 22 \\
+Vol-Target (HDP) & 11.04 & 15.00 & 0.736 & -25.7 & 3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newcommand{\nBHSharpe}{0.587}
+\newcommand{\nBHMaxDD}{-36.1\%}
+\newcommand{\nRV30Sharpe}{0.750}
+\newcommand{\nHDPBTSharpe}{0.736}
+\newcommand{\nHDPBTMaxDD}{-25.7\%}
+\newcommand{\nHDPRebalPerYear}{3}
+\newcommand{\nRV30RebalPerYear}{90}
+
+% ---- APPENDIX: POSTERIOR DIAGNOSTICS ----
+
+% Paste into diagnostics section or footnote.
+
+% Effective K (raw, pre-merge): mean=8.0, std=0.0, mode=8
+% Merged to K=3 for tables using merge_similar_states()
+% SVI steps:    4000
+% SVI converged: True
+% Final ELBO:   6269.3
+% Active states (post-merge to 3): Low-Vol, Moderate-Vol, High-Vol
+% Realized vol by regime: {'Low-Vol': 11.2, 'Moderate-Vol': 17.9, 'High-Vol': 40.0} (annualized %)
+
+% ---- INLINE NUMBERS FOR PAPER BODY ----
+
+% Usage example: The HDP-HMM identified \nEffKRaw{} latent states,
+% merged to \nEffKMerged{} for interpretation.
+
+\newcommand{\nLowVolDays}{987}
+\newcommand{\nLowVolPct}{49.5\%}
+\newcommand{\nLowVolAnnRet}{+10.54}
+\newcommand{\nLowVolAnnVol}{11.24}
+\newcommand{\nLowVolSharpe}{+0.94}
+\newcommand{\nLowVolVIX}{14.3}
+\newcommand{\nLowVolDwell}{82.2}
+
+\newcommand{\nModerateVolDays}{812}
+\newcommand{\nModerateVolPct}{40.7\%}
+\newcommand{\nModerateVolAnnRet}{+10.20}
+\newcommand{\nModerateVolAnnVol}{17.93}
+\newcommand{\nModerateVolSharpe}{+0.57}
+\newcommand{\nModerateVolVIX}{21.1}
+\newcommand{\nModerateVolDwell}{73.8}
+
+\newcommand{\nHighVolDays}{196}
+\newcommand{\nHighVolPct}{9.8\%}
+\newcommand{\nHighVolAnnRet}{+16.60}
+\newcommand{\nHighVolAnnVol}{40.04}
+\newcommand{\nHighVolSharpe}{+0.41}
+\newcommand{\nHighVolVIX}{31.7}
+\newcommand{\nHighVolDwell}{39.2}
+
+\newcommand{\nEffKRaw}{8}
+\newcommand{\nEffKMerged}{3}
+\newcommand{\nTrainDays}{1995}
+\newcommand{\nTrainStart}{January 2016}
+\newcommand{\nTrainEnd}{December 2023}
+\newcommand{\nR2VIX}{0.0008}
+\newcommand{\nR2HDP}{0.0009}
+\newcommand{\nDeltaR2HDP}{+0.0000}

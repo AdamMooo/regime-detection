@@ -1,0 +1,33 @@
+============================================================
+REGIME DETECTION — PAPER EXPERIMENTS
+============================================================
+
+[1/6] Collecting data...
+  Raw data: (2843, 4)  (2015-01-05 to 2026-05-22)
+
+[2/6] Feature engineering...
+  Train: 1995 rows  |  Test: 596 rows
+
+[3/6] Training HDP-HMM (SVI, 4000 steps — takes a few minutes)...
+  Effective K (raw): mean=8.0, mode=8
+  Active states (raw): [0, 1, 2, 3, 4, 5, 6, 7]
+  VIX rank map (raw state → regime): {2: 0, 5: 0, 0: 0, 3: 1, 1: 1, 6: 1, 4: 2, 7: 2}
+  Distribution: {'Low-Vol': 987, 'Moderate-Vol': 812, 'High-Vol': 196}
+  Mean VIX: {'Low-Vol': 14.3, 'Moderate-Vol': 21.1, 'High-Vol': 31.7}
+
+[4/6] Threshold baseline...
+  Threshold distribution: {1: 905, 0: 755, 2: 335}
+
+[5/6] Parametric HMM baseline...
+  Parametric HMM distribution: {'Low-Vol': 1223, 'High-Vol': 400, 'Moderate-Vol': 372}
+
+[6/6] Computing paper statistics...
+
+Backtest results (15% vol target, 1.5x max leverage):
+  Buy \& Hold                Sharpe=0.587  MaxDD=-36.1%  Rebal=0/yr
+  Vol-Target (RV30)          Sharpe=0.750  MaxDD=-20.4%  Rebal=90/yr
+  Vol-Target (VIX-Thr)       Sharpe=1.766  MaxDD=-17.1%  Rebal=22/yr
+  Vol-Target (HDP)           Sharpe=0.736  MaxDD=-25.7%  Rebal=3/yr
+
+Writing LaTeX output to results/paper_results.txt ...
+Done. Results written to results/paper_results.txt and results/run_log.txt
