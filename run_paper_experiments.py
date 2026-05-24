@@ -233,6 +233,90 @@ r2_vix, r2_results = information_content_regression(
 
 
 # ===================================================================
+# Table 4: Volatility-targeting backtest
+# ===================================================================
+
+def vol_target_backtest(spy_ret, vol_estimate, target_vol_pct=15.0, max_leverage=1.5):
+    """Scale daily SPY exposure by target_vol / current_vol_estimate.
+
+    Parameters
+    ----------
+    spy_ret       : array (T,) daily log returns
+    vol_estimate  : array (T,) annualized vol estimate for each day (%)
+    target_vol_pct: float — target annualized portfolio vol (%)
+    max_leverage  : float — cap on position size
+
+    Returns dict of performance metrics.
+    """
+    vol_est = np.where(vol_estimate > 1e-6, vol_estimate, target_vol_pct)
+    sizes   = np.clip(target_vol_pct / vol_est, 0.0, max_leverage)
+    port    = spy_ret * sizes
+
+    ann_ret  = float(port.mean() * 252 * 100)
+    ann_vol  = float(port.std() * np.sqrt(252) * 100)
+    sharpe   = ann_ret / ann_vol if ann_vol > 0 else np.nan
+    cum      = np.cumprod(1 + port)
+    roll_max = np.maximum.accumulate(cum)
+    drawdown = (cum - roll_max) / roll_max
+    max_dd   = float(drawdown.min() * 100)
+
+    # Turnover: fraction of days position size changes meaningfully (>1%)
+    size_changes = np.abs(np.diff(sizes))
+    turnover_annual = float((size_changes > 0.01).mean() * 252)
+
+    return {
+        'Ann. Ret (%)':  ann_ret,
+        'Ann. Vol (%)':  ann_vol,
+        'Sharpe':        sharpe,
+        'Max DD (%)':    max_dd,
+        'Rebalances/yr': turnover_annual,
+    }
+
+
+spy_arr = spy_ret_s.values
+vix_arr = vol_s.values
+T       = len(spy_arr)
+
+# Strategy 1: Buy and hold
+bh_ret  = float(spy_arr.mean() * 252 * 100)
+bh_vol  = float(spy_arr.std() * np.sqrt(252) * 100)
+bh_shr  = bh_ret / bh_vol
+bh_cum  = np.cumprod(1 + spy_arr)
+bh_roll = np.maximum.accumulate(bh_cum)
+bh_dd   = float(((bh_cum - bh_roll) / bh_roll).min() * 100)
+bh_results = {'Ann. Ret (%)': bh_ret, 'Ann. Vol (%)': bh_vol,
+              'Sharpe': bh_shr, 'Max DD (%)': bh_dd, 'Rebalances/yr': 0.0}
+
+# Strategy 2: Vol-target using 30-day realized vol (lagged 1 day to avoid lookahead)
+rv30 = pd.Series(spy_arr).rolling(30).std().shift(1).bfill().values * np.sqrt(252) * 100
+rv_results = vol_target_backtest(spy_arr, rv30)
+
+# Strategy 3: Vol-target using HDP regime vol (regime assigned at start of day)
+regime_vol_map = {k: hdp_vols.get(k, 15.0) for k in range(3)}
+hdp_vol_series = np.array([regime_vol_map[l] for l in hdp_labels])
+hdp_bt_results = vol_target_backtest(spy_arr, hdp_vol_series)
+
+# Strategy 4: Vol-target using VIX-threshold regime vol
+thresh_vol_map = {}
+for k in range(3):
+    mask = thresh_labels == k
+    thresh_vol_map[k] = float(spy_arr[mask].std() * np.sqrt(252) * 100) if mask.sum() > 0 else 15.0
+thresh_vol_series = np.array([thresh_vol_map[l] for l in thresh_labels])
+thresh_bt_results = vol_target_backtest(spy_arr, thresh_vol_series)
+
+backtest_rows = {
+    'Buy \& Hold':        bh_results,
+    'Vol-Target (RV30)':  rv_results,
+    'Vol-Target (VIX-Thr)': thresh_bt_results,
+    'Vol-Target (HDP)':   hdp_bt_results,
+}
+log("\nBacktest results (15% vol target, 1.5x max leverage):")
+for name, res in backtest_rows.items():
+    log(f"  {name:<25s}  Sharpe={res['Sharpe']:.3f}  MaxDD={res['Max DD (%)']:.1f}%  "
+        f"Rebal={res['Rebalances/yr']:.0f}/yr")
+
+
+# ===================================================================
 # LaTeX output
 # ===================================================================
 log("\nWriting LaTeX output to results/paper_results.txt ...")
@@ -326,6 +410,41 @@ for model_name, r2_full in r2_results.items():
 tex(r"\bottomrule")
 tex(r"\end{tabular}")
 tex(r"\end{table}")
+tex("")
+
+
+# --- Table 4: Backtest ---
+tex("% ---- TABLE 4: VOLATILITY-TARGETING BACKTEST ----\n")
+tex(r"\begin{table}[htbp]")
+tex(r"\centering")
+tex(r"\caption{Volatility-targeting backtest (in-sample, \nTrainStart{}--\nTrainEnd{}). "
+    r"All strategies target 15\% annualized portfolio volatility, capped at $1.5\times$ "
+    r"exposure. RV30 = 30-day lagged realized volatility. "
+    r"Rebalances/yr = mean annual position changes.}")
+tex(r"\label{tab:backtest}")
+tex(r"\begin{tabular}{lrrrrrr}")
+tex(r"\toprule")
+tex(r"Strategy & Ann.\ Ret (\%) & Ann.\ Vol (\%) & Sharpe & Max DD (\%) & Rebal./yr \\")
+tex(r"\midrule")
+for strat_name, res in backtest_rows.items():
+    tex(f"{strat_name} & {res['Ann. Ret (%)']:.2f} & {res['Ann. Vol (%)']:.2f} & "
+        f"{res['Sharpe']:.3f} & {res['Max DD (%)']:.1f} & {res['Rebalances/yr']:.0f} \\\\")
+tex(r"\bottomrule")
+tex(r"\end{tabular}")
+tex(r"\end{table}")
+tex("")
+
+# Inline backtest numbers
+hdp_bt = backtest_rows['Vol-Target (HDP)']
+bh_bt  = backtest_rows['Buy \& Hold']
+rv_bt  = backtest_rows['Vol-Target (RV30)']
+tex(f"\\newcommand{{\\nBHSharpe}}{{{bh_bt['Sharpe']:.3f}}}")
+tex(f"\\newcommand{{\\nBHMaxDD}}{{{bh_bt['Max DD (%)']:.1f}\\%}}")
+tex(f"\\newcommand{{\\nRV30Sharpe}}{{{rv_bt['Sharpe']:.3f}}}")
+tex(f"\\newcommand{{\\nHDPBTSharpe}}{{{hdp_bt['Sharpe']:.3f}}}")
+tex(f"\\newcommand{{\\nHDPBTMaxDD}}{{{hdp_bt['Max DD (%)']:.1f}\\%}}")
+tex(f"\\newcommand{{\\nHDPRebalPerYear}}{{{hdp_bt['Rebalances/yr']:.0f}}}")
+tex(f"\\newcommand{{\\nRV30RebalPerYear}}{{{rv_bt['Rebalances/yr']:.0f}}}")
 tex("")
 
 

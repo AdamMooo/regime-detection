@@ -1,0 +1,327 @@
+\documentclass[12pt]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}           % \toprule \midrule \bottomrule
+\usepackage{natbib}             % author-year citations
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{microtype}
+
+\doublespacing
+
+% ── Auto-generated numbers (run_paper_experiments.py → results/paper_results.txt)
+% Paste the contents of results/paper_results.txt here before compiling,
+% or \input{../results/paper_results.txt}
+\input{../results/paper_results.txt}
+
+% ── Title ─────────────────────────────────────────────────────────────────────
+\title{Nonparametric Bayesian Market Regime Detection:\\
+       A Sticky HDP-HMM Approach}
+
+\author{Adam Morris\\
+        \small University of [TODO]\\
+        \small \texttt{adam.morris0201@gmail.com}}
+
+\date{\today}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+\maketitle
+
+% ── Abstract ──────────────────────────────────────────────────────────────────
+\begin{abstract}
+We propose a Bayesian nonparametric hidden Markov model (HDP-HMM) for identifying
+latent volatility regimes in equity markets.
+Unlike threshold-based approaches that partition on a single observable such as
+VIX, our model recovers persistent hidden states from a four-dimensional
+macro-financial feature vector---S\&P 500 log returns, the VIX level,
+the 10-year minus 2-year Treasury yield spread, and the Chicago Fed National
+Financial Conditions Index (NFCI).
+A sticky Dirichlet-process prior over the transition distribution encourages
+regime persistence, which we verify empirically: the HDP-HMM produces regimes
+with a mean dwell time of \nLowVolDwell{}--\nHighVolDwell{} days versus
+8--17 days for a VIX-threshold benchmark.
+The model identifies \nEffKRaw{} latent sub-states, consolidated into three
+canonical regimes (Low-Vol, Moderate-Vol, High-Vol) by mean VIX rank.
+A simple volatility-targeting strategy that scales equity exposure by the
+inverse of the current regime volatility achieves a Sharpe ratio of
+\nHDPBTSharpe{} versus \nBHSharpe{} for buy-and-hold, with a maximum drawdown
+of \nHDPBTMaxDD{} and only \nHDPRebalPerYear{} rebalances per year.
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+\label{sec:intro}
+
+% TODO: 3–4 paragraphs
+% Para 1: motivation — why regime detection matters for investors and researchers
+% Para 2: the problem with VIX thresholds (VIX dwell time 8–17 days, noisy)
+% Para 3: what this paper does differently (Bayesian, nonparametric K, 4 macro features)
+% Para 4: contributions + roadmap
+
+Financial markets exhibit qualitatively distinct periods of calm and stress
+that are not directly observable.
+Identifying these latent regimes is practically important: risk models,
+position sizing, and hedging strategies all depend on accurate characterization
+of the current volatility environment.
+
+The dominant practitioner approach is threshold-based: label a day High-Vol
+when VIX exceeds some cutoff (often 20 or 25).
+This is transparent but brittle.
+VIX fluctuates daily, causing mechanical regime labels to flip every
+8--17 days on average---far too frequently to drive portfolio decisions---and
+VIX captures only the implied volatility of SPX options, ignoring the credit
+and yield-curve signals that historically precede market stress.
+
+In this paper we ask: \emph{can a Bayesian nonparametric model recover more
+stable and economically coherent regimes from a small set of macro-financial
+features?}
+We fit a sticky hierarchical Dirichlet process hidden Markov model
+\citep[HDP-HMM;][]{teh2006hdp,fox2011sticky} to four daily time series
+spanning \nTrainStart{} to \nTrainEnd{}: the S\&P 500 log return, the VIX
+level, the 10-to-2-year Treasury yield spread, and the Chicago Fed NFCI.
+The HDP prior allows the number of regimes $K$ to be inferred from the data
+rather than fixed in advance; the sticky self-transition term penalises rapid
+state switching.
+
+Our main contributions are:
+\begin{enumerate}
+  \item We show that the HDP-HMM discovers \nEffKRaw{} latent sub-states that
+        consolidate into three economically interpretable regimes with realized
+        volatilities of \nLowVolAnnVol{}\%, \nModerateVolAnnVol{}\%, and
+        \nHighVolAnnVol{}\% respectively---a 3.6$\times$ spread from Low-Vol
+        to High-Vol that VIX thresholds cannot cleanly separate.
+  \item Regime dwell times of \nLowVolDwell{}--\nHighVolDwell{} trading days
+        confirm genuine persistence, in contrast to the 8--17 day flicker
+        of VIX-threshold labels.
+  \item A simple inverse-volatility sizing rule applied to the HDP regime labels
+        achieves a Sharpe ratio of \nHDPBTSharpe{} versus \nBHSharpe{} for
+        buy-and-hold, requiring only \nHDPRebalPerYear{} rebalances per year.
+\end{enumerate}
+
+The remainder of the paper is organised as follows.
+Section~\ref{sec:related} reviews the regime-switching literature.
+Section~\ref{sec:data} describes the data and features.
+Section~\ref{sec:model} presents the HDP-HMM specification and inference.
+Section~\ref{sec:results} reports in-sample regime characteristics, transition
+dynamics, and the backtest.
+Section~\ref{sec:conclusion} concludes.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Related Work}
+\label{sec:related}
+
+% TODO: 2–3 paragraphs covering:
+% - Hamilton (1989) Markov-switching baseline
+% - Guidolin & Timmermann (2007) asset allocation under regime switching
+% - Fox et al. (2011) sticky HDP-HMM
+% - Dacco & Satchell (1999) misclassification risk
+% - Any recent macro-augmented HMM papers (AH-HMM 2025)
+
+The regime-switching framework of \citet{hamilton1989new} models a time series
+as generated by a hidden Markov chain with $K$ states, estimated by EM.
+\citet{guidolin2007asset} extend this to multivariate equity-bond settings,
+showing that regime-aware allocation outperforms static mean-variance
+benchmarks.
+A limitation of the parametric HMM is that $K$ must be chosen in advance;
+misspecification of $K$ leads to regime fragmentation or aggregation
+\citep{dacco1999predictability}.
+
+The hierarchical Dirichlet process of \citet{teh2006hdp} enables a
+nonparametric prior over countably infinite state spaces.
+\citet{fox2011sticky} augment the HDP-HMM with a self-transition stickiness
+parameter $\kappa$, directly encoding the prior belief that real-world regimes
+are persistent.
+Our model builds on this foundation, specialised to the equity market setting
+with macro-financial inputs.
+
+% TODO: add any other papers you've found relevant
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Data and Features}
+\label{sec:data}
+
+\subsection{Sample}
+
+We use daily data from \nTrainStart{} to \nTrainEnd{} (\nTrainDays{} trading
+days) for the in-sample analysis.
+% TODO: describe test period
+
+\subsection{Feature construction}
+
+We construct four features, all lagged one day to ensure causal inference:
+
+\begin{enumerate}
+  \item \textbf{SPY log return} ($r_t$): daily log return of the S\&P 500
+        index (\^{}GSPC via Yahoo Finance).  Captures price momentum.
+  \item \textbf{VIX level} ($\sigma^{iv}_t$): CBOE Volatility Index close
+        (\^{}VIX).  Captures option-implied forward volatility.
+  \item \textbf{Yield slope} ($y_t$): 10-year minus 2-year US Treasury yield
+        spread (FRED series T10Y2Y).  Captures the macro business cycle.
+  \item \textbf{NFCI} ($f_t$): Chicago Fed National Financial Conditions Index
+        (FRED series NFCI, weekly, forward-filled to daily).  Captures broad
+        financial stress.
+\end{enumerate}
+
+Four features feed directly into the HMM without dimensionality reduction;
+at $D=4$ the covariance structure is well-identified and PCA would discard
+interpretable axes.
+Each feature is expanding-window standardised at each time $t$ using only
+data from $[1, t]$, preserving the causal guarantee required for live trading.
+
+\subsection{Descriptive statistics}
+
+% TODO: add a Table 0 with feature summary stats if desired
+% Mean, std, min, max for each of the 4 features over the train period.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Model}
+\label{sec:model}
+
+\subsection{Hidden Markov Model baseline}
+
+Let $\mathbf{x}_t \in \mathbb{R}^4$ be the feature vector at time $t$ and
+$z_t \in \{1,\ldots,K\}$ the latent regime.
+A standard Gaussian HMM assumes:
+\begin{align}
+  z_t \mid z_{t-1} &\sim \mathrm{Categorical}(\pi_{z_{t-1}}) \\
+  \mathbf{x}_t \mid z_t &\sim \mathcal{N}(\mu_{z_t},\, \Sigma_{z_t})
+\end{align}
+with transition matrix $\Pi = [\pi_k]$ and emission parameters
+$\{\mu_k, \Sigma_k\}$ estimated by EM.
+We fix $K=3$ for this baseline.
+
+\subsection{Sticky HDP-HMM}
+
+The HDP-HMM replaces the finite Dirichlet prior on each row of $\Pi$ with a
+hierarchical Dirichlet process \citep{teh2006hdp}, enabling $K$ to grow with
+the data.
+We adopt the truncated stick-breaking representation of \citet{fox2011sticky}
+with truncation level $K_{\max} = 8$.
+
+Global state weights $\beta$ are drawn via the GEM construction:
+\[
+  v_k \sim \mathrm{Beta}(1, \alpha_{DP}),\quad
+  \beta_k = v_k \prod_{j<k}(1-v_j), \quad k=1,\ldots,K_{\max}.
+\]
+
+Transition rows are sticky Dirichlet:
+\[
+  \pi_k \sim \mathrm{Dirichlet}(\alpha_{\mathrm{trans}}\,\beta + \kappa\,\mathbf{e}_k),
+\]
+where $\kappa > 0$ concentrates probability mass on self-transitions.
+Gaussian emissions with diagonal covariance:
+\[
+  \mathbf{x}_t \mid z_t = k \;\sim\; \mathcal{N}(\mu_k,\,\mathrm{diag}(\sigma^2_k)).
+\]
+
+Discrete states are marginalised analytically via the forward algorithm
+(implemented in JAX with \texttt{lax.scan}), making the model differentiable
+and amenable to stochastic variational inference.
+
+\subsection{Inference}
+
+We use stochastic variational inference (SVI) with an AutoNormal guide
+\citep{ranganath2014blackbox} for fast training, and optionally NUTS MCMC
+\citep{hoffman2014nuts} for the paper-quality posterior used in uncertainty
+quantification.
+All inference uses JAX \citep{jax2018github} and NumPyro \citep{phan2019composable}.
+The random seed is fixed at 42 throughout; JAX and NumPyro versions are pinned
+exactly to guarantee reproducibility.
+
+\subsection{Regime labelling}
+
+After inference the model returns $K_{\mathrm{eff}}$ active states (those
+with posterior beta weight above a threshold and at least 1\% of days assigned).
+States are sorted by mean within-state VIX level and partitioned into three
+canonical regimes by floor-division tertile:
+Low-Vol (lowest VIX states), Moderate-Vol, and High-Vol (highest VIX states).
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Results}
+\label{sec:results}
+
+\subsection{Regime characteristics}
+
+Table~\ref{tab:regime_chars} reports within-regime statistics for the
+HDP-HMM, the VIX-threshold baseline, and the parametric HMM baseline.
+
+\input{../results/paper_results.txt}
+
+% (Tables 1–4 are auto-inserted by \input above.)
+% Comment out the \input and paste the table code directly for journal submission.
+
+The HDP-HMM Low-Vol regime covers \nLowVolPct{} of training days and exhibits
+\nLowVolAnnVol{}\% annualized realized volatility with a Sharpe of
+\nLowVolSharpe{}.
+The High-Vol regime covers only \nHighVolPct{} of days but with
+\nHighVolAnnVol{}\% realized volatility---a 3.6$\times$ spread relative to
+Low-Vol.
+Crucially, both the Low-Vol and High-Vol regimes are highly persistent
+(mean dwell times of \nLowVolDwell{} and \nHighVolDwell{} days respectively),
+compared to only 8--17 days for the VIX-threshold benchmark.
+This persistence is not imposed by the model: it emerges from the data via
+the learned $\kappa$ stickiness parameter.
+
+\subsection{Transition dynamics}
+
+Table~\ref{tab:transition} shows the posterior-mean transition matrix.
+The diagonals of 0.989, 0.986, and 0.974 confirm that the model has learned
+genuinely sticky regimes: on any given day, there is less than a 3\% chance
+of transitioning out of the current regime.
+Cross-regime transitions are asymmetric: High-Vol exits preferentially to
+Low-Vol rather than Moderate-Vol, consistent with the empirical pattern of
+V-shaped recoveries following market stress.
+
+\subsection{Information content beyond VIX}
+
+% TODO: discuss Table 3 carefully.
+% The R² gains are small in absolute terms (equity returns are near-unpredictable),
+% which is expected and should be acknowledged.
+% Frame this section around what the model DOES separate: volatility, not returns.
+
+\subsection{Volatility-targeting backtest}
+
+% TODO: discuss Table 4 once numbers are in.
+% Lead with: Sharpe improvement, max drawdown reduction, low rebalancing frequency.
+% Acknowledge limitation: in-sample, no transaction costs modelled.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+\label{sec:conclusion}
+
+% TODO: 2–3 paragraphs
+% Para 1: what we showed (persistent latent regimes, not recoverable from VIX alone)
+% Para 2: practical implication (vol targeting, low turnover)
+% Para 3: limitations and future work (OOS validation, NUTS full posterior, macro-augmented transitions)
+
+We have demonstrated that equity markets exhibit latent volatility regimes with
+mean dwell times of \nLowVolDwell{}--\nHighVolDwell{} trading days---far longer
+than the 8--17 day flicker of VIX-threshold labels.
+These regimes, recovered by a sticky HDP-HMM from four macro-financial features,
+separate realized volatility by a factor of 3.6$\times$ from Low-Vol to High-Vol,
+providing a stable, actionable signal for risk management.
+
+% TODO: limitations + future work paragraph
+
+
+% ── Bibliography ──────────────────────────────────────────────────────────────
+\bibliographystyle{apalike}
+\bibliography{references}
+
+\end{document}
