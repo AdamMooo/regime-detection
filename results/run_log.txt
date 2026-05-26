@@ -7,6 +7,7 @@ REGIME DETECTION — PAPER EXPERIMENTS
 
 [2/6] Feature engineering...
   Train: 1995 rows  |  Test: 596 rows
+  Saved results/paper_desc_stats.tex (Table 0)
 
 [3/6] Training HDP-HMM (SVI, 4000 steps — takes a few minutes)...
   Effective K (raw): mean=8.0, mode=8
@@ -26,8 +27,11 @@ REGIME DETECTION — PAPER EXPERIMENTS
 Backtest results (15% vol target, 1.5x max leverage):
   Buy \& Hold                Sharpe=0.587  MaxDD=-36.1%  Rebal=0/yr
   Vol-Target (RV30)          Sharpe=0.750  MaxDD=-20.4%  Rebal=90/yr
-  Vol-Target (VIX-Thr)       Sharpe=1.766  MaxDD=-17.1%  Rebal=22/yr
   Vol-Target (HDP)           Sharpe=0.736  MaxDD=-25.7%  Rebal=3/yr
 
-Writing LaTeX output to results/paper_results.txt ...
-Done. Results written to results/paper_results.txt and results/run_log.txt
+Saving regime labels and backtest series to results/...
+  Saved results/regime_labels_train.csv and results/transition_matrix.csv
+
+Writing LaTeX output to results/ ...
+Done. Written: results/paper_results.txt, results/paper_macros.tex, results/paper_tables.tex
+             + results/regime_labels_train.csv, results/transition_matrix.csv

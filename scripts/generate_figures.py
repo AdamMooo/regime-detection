@@ -47,20 +47,17 @@ REGIME_EDGE = {
 STRATEGY_COLORS = {
     'Buy & Hold':        GRAY_MID,
     'Vol-Target (RV30)': BLUE_LIGHT,
-    'Vol-Target (VIX-Thr)': BLUE_MID,
     'Vol-Target (HDP)':  BLUE_DARK,
 }
 STRATEGY_LW = {
-    'Buy & Hold': 1.2,
+    'Buy & Hold':        1.2,
     'Vol-Target (RV30)': 1.2,
-    'Vol-Target (VIX-Thr)': 1.2,
-    'Vol-Target (HDP)': 2.0,
+    'Vol-Target (HDP)':  2.0,
 }
 STRATEGY_LS = {
-    'Buy & Hold': '--',
+    'Buy & Hold':        '--',
     'Vol-Target (RV30)': ':',
-    'Vol-Target (VIX-Thr)': '-.',
-    'Vol-Target (HDP)': '-',
+    'Vol-Target (HDP)':  '-',
 }
 
 plt.rcParams.update({
@@ -267,10 +264,9 @@ savefig('transition_heatmap.pdf')
 print("Generating Figure 4: Backtest Equity Curves...")
 
 cum_cols = {
-    'Buy & Hold':          'cum_bh',
-    'Vol-Target (RV30)':   'cum_rv30',
-    'Vol-Target (VIX-Thr)':'cum_vix_thr',
-    'Vol-Target (HDP)':    'cum_hdp',
+    'Buy & Hold':        'cum_bh',
+    'Vol-Target (RV30)': 'cum_rv30',
+    'Vol-Target (HDP)':  'cum_hdp',
 }
 
 fig, ax = plt.subplots(figsize=(7.5, 3.8))

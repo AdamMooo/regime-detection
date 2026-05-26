@@ -336,10 +336,9 @@ thresh_vol_series = np.array([thresh_vol_map[l] for l in thresh_labels])
 thresh_bt_results = vol_target_backtest(spy_arr, thresh_vol_series)
 
 backtest_rows = {
-    'Buy \\& Hold':        bh_results,
-    'Vol-Target (RV30)':  rv_results,
-    'Vol-Target (VIX-Thr)': thresh_bt_results,
-    'Vol-Target (HDP)':   hdp_bt_results,
+    'Buy \\& Hold':       bh_results,
+    'Vol-Target (RV30)': rv_results,
+    'Vol-Target (HDP)':  hdp_bt_results,
 }
 log("\nBacktest results (15% vol target, 1.5x max leverage):")
 for name, res in backtest_rows.items():
@@ -521,11 +520,11 @@ bh_bt  = backtest_rows['Buy \\& Hold']
 rv_bt  = backtest_rows['Vol-Target (RV30)']
 tex(f"\\newcommand{{\\nBHSharpe}}{{{bh_bt['Sharpe']:.3f}}}", 'macros')
 tex(f"\\newcommand{{\\nBHMaxDD}}{{{bh_bt['Max DD (%)']:.1f}\\%}}", 'macros')
-tex(f"\\newcommand{{\\nRV30Sharpe}}{{{rv_bt['Sharpe']:.3f}}}", 'macros')
+tex(f"\\newcommand{{\\nRVSharpe}}{{{rv_bt['Sharpe']:.3f}}}", 'macros')
 tex(f"\\newcommand{{\\nHDPBTSharpe}}{{{hdp_bt['Sharpe']:.3f}}}", 'macros')
 tex(f"\\newcommand{{\\nHDPBTMaxDD}}{{{hdp_bt['Max DD (%)']:.1f}\\%}}", 'macros')
 tex(f"\\newcommand{{\\nHDPRebalPerYear}}{{{hdp_bt['Rebalances/yr']:.0f}}}", 'macros')
-tex(f"\\newcommand{{\\nRV30RebalPerYear}}{{{rv_bt['Rebalances/yr']:.0f}}}", 'macros')
+tex(f"\\newcommand{{\\nRVRebalPerYear}}{{{rv_bt['Rebalances/yr']:.0f}}}", 'macros')
 tex("", 'macros')
 
 

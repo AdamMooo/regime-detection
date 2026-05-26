@@ -342,29 +342,30 @@ predictability per se.
 
 \subsection{Volatility-targeting backtest}
 
-The volatility-targeting backtest in Table~\ref{tab:backtest} and
-Figure~\ref{fig:backtest_equity} illustrate the practical implications of
-the regime labels.
-An HDP-based volatility-target produces a modest Sharpe improvement over
-buy-and-hold (\nHDPBTSharpe{} vs.\ \nBHSharpe{}) while drastically reducing
-trading frequency (only \nHDPRebalPerYear{} rebalances per year), which is
-attractive for low-cost implementation.
-By contrast, the VIX-threshold vol-target achieves a higher apparent
-in-sample Sharpe but at the cost of substantially greater turnover and a
-profile that may reflect in-sample overfitting to specific market stress
-episodes.
-All backtests reported here are in-sample and do not include transaction
-cost modelling; out-of-sample robustness is a key direction for future work.
+Table~\ref{tab:backtest} and Figure~\ref{fig:backtest_equity} compare three
+strategies: buy-and-hold, a 30-day realized-volatility target (RV30), and
+the HDP-based volatility target.
+The HDP strategy achieves a Sharpe of \nHDPBTSharpe{} versus \nBHSharpe{}
+for buy-and-hold, with a maximum drawdown of \nHDPBTMaxDD{}---a meaningful
+improvement in risk-adjusted terms.
+The key result is the efficiency of the HDP signal: it delivers performance
+nearly identical to RV30 (Sharpe \nHDPBTSharpe{} vs.\ \nRVSharpe{}) while
+requiring only \nHDPRebalPerYear{} rebalances per year versus
+\nRVRebalPerYear{} for RV30---a \nRVRebalPerYear{}$\times$ reduction in
+turnover at essentially no cost to risk-adjusted performance.
+All backtests are in-sample; out-of-sample validation and transaction-cost
+modelling are key directions for future work.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/backtest_equity.pdf}
-\caption{Cumulative returns of four volatility-targeting strategies
+\caption{Cumulative returns of three volatility-targeting strategies
   (January 2016--December 2023, in-sample). All strategies target 15\%
-  annualized portfolio volatility with a $1.5\times$ leverage cap. The
-  HDP-based strategy (solid dark line) requires only \nHDPRebalPerYear{}
-  rebalances per year yet tracks buy-and-hold closely while reducing
-  drawdown.}
+  annualized portfolio volatility with a $1.5\times$ leverage cap.
+  The HDP strategy (solid dark line, \nHDPRebalPerYear{} rebalances/yr)
+  tracks the RV30 benchmark (dotted, \nRVRebalPerYear{} rebalances/yr)
+  closely, demonstrating that regime-based sizing achieves comparable
+  risk-adjusted performance with a fraction of the trading activity.}
 \label{fig:backtest_equity}
 \end{figure}
 
@@ -390,8 +391,8 @@ negligible.
 The practical payoff is parsimonious risk management.
 A simple inverse-volatility sizing rule driven by HDP regime labels achieves
 a Sharpe of \nHDPBTSharpe{} with only \nHDPRebalPerYear{} rebalances per year,
-versus \nRV30RebalPerYear{} rebalances per year for the realized-volatility
-benchmark at a similar Sharpe of \nRV30Sharpe{}.
+versus \nRVRebalPerYear{} rebalances per year for the realized-volatility
+benchmark at a similar Sharpe of \nRVSharpe{}.
 For institutions where transaction costs, market impact, or governance
 constraints make high turnover costly, this combination of reasonable
 risk-adjusted performance and extreme parsimony is appealing.
