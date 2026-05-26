@@ -1,6 +1,6 @@
 % ================================================================
 % AUTO-GENERATED PAPER RESULTS — regime-detection/run_paper_experiments.py
-% Generated: 2026-05-26 00:36
+% Generated: 2026-05-26 00:43
 % Train: 2016-01-07 to 2023-12-29  (1995 trading days)
 % ================================================================
 
@@ -131,6 +131,6 @@ Vol-Target (HDP) & 11.04 & 15.00 & 0.736 & -25.7 & 3 \\
 \newcommand{\nTrainDays}{1995}
 \newcommand{\nTrainStart}{January 2016}
 \newcommand{\nTrainEnd}{December 2023}
-\newcommand{\nR2VIX}{0.0008}
-\newcommand{\nR2HDP}{0.0009}
-\newcommand{\nDeltaR2HDP}{+0.0000}
+\newcommand{\nRsqVIX}{0.0008}
+\newcommand{\nRsqHDP}{0.0009}
+\newcommand{\nDeltaRsqHDP}{+0.0000}
