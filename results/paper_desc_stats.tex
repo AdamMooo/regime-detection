@@ -1,0 +1,15 @@
+\begin{table}[htbp]
+\centering
+\caption{Descriptive statistics for the four input features (training period, \nTrainStart{}--\nTrainEnd{}, $N=\nTrainDays{}$ trading days). SPY log return is the daily log return of the S\&P 500 (\%). VIX is the CBOE Volatility Index close. Yield slope is the 10y-2y Treasury spread (pp). NFCI is the Chicago Fed National Financial Conditions Index.}
+\label{tab:desc_stats}
+\begin{tabular}{lrrrrrr}
+\toprule
+Feature & Mean & Std & Min & P25 & P75 & Max \\
+\midrule
+SPY log return ($r_t$) & 0.000 & 0.012 & -0.128 & -0.004 & 0.006 & 0.090 \\
+VIX level ($\sigma^{iv}_t$) & 18.801 & 7.834 & 9.140 & 13.285 & 22.290 & 82.690 \\
+Yield slope ($y_t$) & 0.439 & 0.607 & -1.080 & 0.160 & 0.930 & 1.590 \\
+NFCI ($f_t$) & -0.445 & 0.177 & -0.693 & -0.577 & -0.333 & 0.307 \\
+\bottomrule
+\end{tabular}
+\end{table}

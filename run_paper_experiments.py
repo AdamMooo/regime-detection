@@ -51,6 +51,37 @@ feat_train = pd.read_csv('data/processed/features_train.csv', index_col=0, parse
 feat_test  = pd.read_csv('data/processed/features_test.csv',  index_col=0, parse_dates=True).dropna()
 log(f"  Train: {len(feat_train)} rows  |  Test: {len(feat_test)} rows")
 
+# Write Table 0: descriptive stats for the 4 raw (un-standardised) features
+raw_train = df_raw[['spy_ret', 'vol_index', 'yield_slope', 'nfci']].reindex(feat_train.index).dropna()
+feat_labels = {
+    'spy_ret':     r'SPY log return ($r_t$)',
+    'vol_index':   r'VIX level ($\sigma^{iv}_t$)',
+    'yield_slope': r'Yield slope ($y_t$)',
+    'nfci':        r'NFCI ($f_t$)',
+}
+with open('results/paper_desc_stats.tex', 'w') as _f:
+    _f.write(r"\begin{table}[htbp]" + "\n")
+    _f.write(r"\centering" + "\n")
+    _f.write(r"\caption{Descriptive statistics for the four input features "
+             r"(training period, \nTrainStart{}--\nTrainEnd{}, $N=\nTrainDays{}$ trading days). "
+             r"SPY log return is the daily log return of the S\&P 500 (\%). "
+             r"VIX is the CBOE Volatility Index close. "
+             r"Yield slope is the 10y-2y Treasury spread (pp). "
+             r"NFCI is the Chicago Fed National Financial Conditions Index.}" + "\n")
+    _f.write(r"\label{tab:desc_stats}" + "\n")
+    _f.write(r"\begin{tabular}{lrrrrrr}" + "\n")
+    _f.write(r"\toprule" + "\n")
+    _f.write(r"Feature & Mean & Std & Min & P25 & P75 & Max \\" + "\n")
+    _f.write(r"\midrule" + "\n")
+    for col, label in feat_labels.items():
+        s = raw_train[col]
+        _f.write(f"{label} & {s.mean():.3f} & {s.std():.3f} & {s.min():.3f} & "
+                 f"{s.quantile(0.25):.3f} & {s.quantile(0.75):.3f} & {s.max():.3f} \\\\\n")
+    _f.write(r"\bottomrule" + "\n")
+    _f.write(r"\end{tabular}" + "\n")
+    _f.write(r"\end{table}" + "\n")
+log("  Saved results/paper_desc_stats.tex (Table 0)")
+
 
 # ===================================================================
 # 3. HDP-HMM training
@@ -305,7 +336,7 @@ thresh_vol_series = np.array([thresh_vol_map[l] for l in thresh_labels])
 thresh_bt_results = vol_target_backtest(spy_arr, thresh_vol_series)
 
 backtest_rows = {
-    'Buy \& Hold':        bh_results,
+    'Buy \\& Hold':        bh_results,
     'Vol-Target (RV30)':  rv_results,
     'Vol-Target (VIX-Thr)': thresh_bt_results,
     'Vol-Target (HDP)':   hdp_bt_results,
@@ -317,13 +348,63 @@ for name, res in backtest_rows.items():
 
 
 # ===================================================================
+# Save intermediates for figure generation
+# ===================================================================
+log("\nSaving regime labels and backtest series to results/...")
+
+# Backtest cumulative return series (for equity curve figure)
+bh_cum  = np.cumprod(1 + spy_arr)
+
+rv30    = pd.Series(spy_arr).rolling(30).std().shift(1).bfill().values * np.sqrt(252) * 100
+rv_sizes = np.clip(15.0 / np.where(rv30 > 1e-6, rv30, 15.0), 0.0, 1.5)
+rv_cum  = np.cumprod(1 + spy_arr * rv_sizes)
+
+thresh_sizes = np.clip(15.0 / np.where(thresh_vol_series > 1e-6, thresh_vol_series, 15.0), 0.0, 1.5)
+thresh_cum   = np.cumprod(1 + spy_arr * thresh_sizes)
+
+hdp_sizes = np.clip(15.0 / np.where(hdp_vol_series > 1e-6, hdp_vol_series, 15.0), 0.0, 1.5)
+hdp_cum   = np.cumprod(1 + spy_arr * hdp_sizes)
+
+labels_df = pd.DataFrame({
+    'date':          feat_train.index,
+    'spy_ret':       spy_arr,
+    'vol_index':     vol_s.values,
+    'hdp_regime':    [hdp_name_map[l]    for l in hdp_labels],
+    'thresh_regime': [thresh_name_map[l] for l in thresh_labels],
+    'param_regime':  [param_name_map[s]  for s in param_states],
+    'cum_bh':        bh_cum,
+    'cum_rv30':      rv_cum,
+    'cum_vix_thr':   thresh_cum,
+    'cum_hdp':       hdp_cum,
+})
+labels_df.to_csv('results/regime_labels_train.csv', index=False)
+
+trans_df = pd.DataFrame(
+    hdp_trans,
+    index=['Low-Vol', 'Moderate-Vol', 'High-Vol'],
+    columns=['Low-Vol', 'Moderate-Vol', 'High-Vol'],
+)
+trans_df.to_csv('results/transition_matrix.csv')
+log("  Saved results/regime_labels_train.csv and results/transition_matrix.csv")
+
+
+# ===================================================================
 # LaTeX output
 # ===================================================================
-log("\nWriting LaTeX output to results/paper_results.txt ...")
+log("\nWriting LaTeX output to results/ ...")
 
-OUT = open('results/paper_results.txt', 'w')
+# paper_results.txt stays for backward compat — full file (macros + tables)
+OUT   = open('results/paper_results.txt', 'w')
+MACRO = open('results/paper_macros.tex', 'w')   # \newcommand only → preamble
+TABLE = open('results/paper_tables.tex', 'w')   # table envs only → Results section
 
-def tex(s): OUT.write(s + '\n')
+def tex(s, dest='tables'):
+    """Write to paper_results.txt always; also route to the split files."""
+    OUT.write(s + '\n')
+    if dest == 'macros':
+        MACRO.write(s + '\n')
+    else:
+        TABLE.write(s + '\n')
 
 tex("% ================================================================")
 tex("% AUTO-GENERATED PAPER RESULTS — regime-detection/run_paper_experiments.py")
@@ -434,21 +515,21 @@ tex(r"\end{tabular}")
 tex(r"\end{table}")
 tex("")
 
-# Inline backtest numbers
+# Inline backtest numbers — macros → preamble
 hdp_bt = backtest_rows['Vol-Target (HDP)']
-bh_bt  = backtest_rows['Buy \& Hold']
+bh_bt  = backtest_rows['Buy \\& Hold']
 rv_bt  = backtest_rows['Vol-Target (RV30)']
-tex(f"\\newcommand{{\\nBHSharpe}}{{{bh_bt['Sharpe']:.3f}}}")
-tex(f"\\newcommand{{\\nBHMaxDD}}{{{bh_bt['Max DD (%)']:.1f}\\%}}")
-tex(f"\\newcommand{{\\nRV30Sharpe}}{{{rv_bt['Sharpe']:.3f}}}")
-tex(f"\\newcommand{{\\nHDPBTSharpe}}{{{hdp_bt['Sharpe']:.3f}}}")
-tex(f"\\newcommand{{\\nHDPBTMaxDD}}{{{hdp_bt['Max DD (%)']:.1f}\\%}}")
-tex(f"\\newcommand{{\\nHDPRebalPerYear}}{{{hdp_bt['Rebalances/yr']:.0f}}}")
-tex(f"\\newcommand{{\\nRV30RebalPerYear}}{{{rv_bt['Rebalances/yr']:.0f}}}")
-tex("")
+tex(f"\\newcommand{{\\nBHSharpe}}{{{bh_bt['Sharpe']:.3f}}}", 'macros')
+tex(f"\\newcommand{{\\nBHMaxDD}}{{{bh_bt['Max DD (%)']:.1f}\\%}}", 'macros')
+tex(f"\\newcommand{{\\nRV30Sharpe}}{{{rv_bt['Sharpe']:.3f}}}", 'macros')
+tex(f"\\newcommand{{\\nHDPBTSharpe}}{{{hdp_bt['Sharpe']:.3f}}}", 'macros')
+tex(f"\\newcommand{{\\nHDPBTMaxDD}}{{{hdp_bt['Max DD (%)']:.1f}\\%}}", 'macros')
+tex(f"\\newcommand{{\\nHDPRebalPerYear}}{{{hdp_bt['Rebalances/yr']:.0f}}}", 'macros')
+tex(f"\\newcommand{{\\nRV30RebalPerYear}}{{{rv_bt['Rebalances/yr']:.0f}}}", 'macros')
+tex("", 'macros')
 
 
-# --- Appendix: Posterior Diagnostics ---
+# --- Appendix: Posterior Diagnostics (comments only, no dest needed) ---
 tex("% ---- APPENDIX: POSTERIOR DIAGNOSTICS ----\n")
 tex("% Paste into diagnostics section or footnote.\n")
 tex(f"% Effective K (raw, pre-merge): mean={eff_k_mean:.1f}, std={eff_k_std:.1f}, mode={eff_k_mode}")
@@ -461,10 +542,8 @@ tex(f"% Realized vol by regime: { {hdp_name_map[k]: round(hdp_vols[k],1) for k i
 tex("")
 
 
-# --- Inline numbers for paper body ---
-tex("% ---- INLINE NUMBERS FOR PAPER BODY ----\n")
-tex("% Usage example: The HDP-HMM identified \\nEffKRaw{} latent states,")
-tex("% merged to \\nEffKMerged{} for interpretation.\n")
+# --- Inline numbers for paper body — macros → preamble ---
+tex("% ---- INLINE NUMBERS FOR PAPER BODY ----\n", 'macros')
 hdp_rows = stats_df[stats_df['Model'] == 'HDP-HMM'].copy()
 seen = set()
 for _, row in hdp_rows.iterrows():
@@ -472,25 +551,28 @@ for _, row in hdp_rows.iterrows():
     if label in seen:
         continue
     seen.add(label)
-    tex(f"\\newcommand{{\\n{label}Days}}{{{int(row['N'])}}}")
-    tex(f"\\newcommand{{\\n{label}Pct}}{{{row['Pct']:.1f}\\%}}")
-    tex(f"\\newcommand{{\\n{label}AnnRet}}{{{row['AnnRet']:+.2f}}}")
-    tex(f"\\newcommand{{\\n{label}AnnVol}}{{{row['AnnVol']:.2f}}}")
-    tex(f"\\newcommand{{\\n{label}Sharpe}}{{{row['Sharpe']:+.2f}}}")
-    tex(f"\\newcommand{{\\n{label}VIX}}{{{row['VIX']:.1f}}}")
-    tex(f"\\newcommand{{\\n{label}Dwell}}{{{row['Dwell']:.1f}}}")
-    tex("")
-tex(f"\\newcommand{{\\nEffKRaw}}{{{eff_k_mode}}}")
-tex(f"\\newcommand{{\\nEffKMerged}}{{3}}")
-tex(f"\\newcommand{{\\nTrainDays}}{{{len(feat_train)}}}")
-tex(f"\\newcommand{{\\nTrainStart}}{{{feat_train.index[0].strftime('%B %Y')}}}")
-tex(f"\\newcommand{{\\nTrainEnd}}{{{feat_train.index[-1].strftime('%B %Y')}}}")
-tex(f"\\newcommand{{\\nR2VIX}}{{{r2_vix:.4f}}}")
+    tex(f"\\newcommand{{\\n{label}Days}}{{{int(row['N'])}}}", 'macros')
+    tex(f"\\newcommand{{\\n{label}Pct}}{{{row['Pct']:.1f}\\%}}", 'macros')
+    tex(f"\\newcommand{{\\n{label}AnnRet}}{{{row['AnnRet']:+.2f}}}", 'macros')
+    tex(f"\\newcommand{{\\n{label}AnnVol}}{{{row['AnnVol']:.2f}}}", 'macros')
+    tex(f"\\newcommand{{\\n{label}Sharpe}}{{{row['Sharpe']:+.2f}}}", 'macros')
+    tex(f"\\newcommand{{\\n{label}VIX}}{{{row['VIX']:.1f}}}", 'macros')
+    tex(f"\\newcommand{{\\n{label}Dwell}}{{{row['Dwell']:.1f}}}", 'macros')
+    tex("", 'macros')
+tex(f"\\newcommand{{\\nEffKRaw}}{{{eff_k_mode}}}", 'macros')
+tex(f"\\newcommand{{\\nEffKMerged}}{{3}}", 'macros')
+tex(f"\\newcommand{{\\nTrainDays}}{{{len(feat_train)}}}", 'macros')
+tex(f"\\newcommand{{\\nTrainStart}}{{{feat_train.index[0].strftime('%B %Y')}}}", 'macros')
+tex(f"\\newcommand{{\\nTrainEnd}}{{{feat_train.index[-1].strftime('%B %Y')}}}", 'macros')
+tex(f"\\newcommand{{\\nR2VIX}}{{{r2_vix:.4f}}}", 'macros')
 r2_hdp = r2_results.get('HDP-HMM', None)
 if r2_hdp is not None:
-    tex(f"\\newcommand{{\\nR2HDP}}{{{r2_hdp:.4f}}}")
-    tex(f"\\newcommand{{\\nDeltaR2HDP}}{{{r2_hdp - r2_vix:+.4f}}}")
+    tex(f"\\newcommand{{\\nR2HDP}}{{{r2_hdp:.4f}}}", 'macros')
+    tex(f"\\newcommand{{\\nDeltaR2HDP}}{{{r2_hdp - r2_vix:+.4f}}}", 'macros')
 
 OUT.close()
-log("Done. Results written to results/paper_results.txt and results/run_log.txt")
+MACRO.close()
+TABLE.close()
+log("Done. Written: results/paper_results.txt, results/paper_macros.tex, results/paper_tables.tex")
+log("             + results/regime_labels_train.csv, results/transition_matrix.csv")
 LOG.close()
