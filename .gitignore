@@ -4,13 +4,3 @@ __pycache__/
 # Environment
 .env
 .venv/
-
-# Generated outputs (root-level dirs only — /src/data/ is source code, not data)
-/data/
-/models/
-/figures/
-*.pyo
-*.bak
-.claude/
-.claude/settings.local.json
-CLAUDE.md
