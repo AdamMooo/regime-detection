@@ -4,3 +4,7 @@ __pycache__/
 # Environment
 .env
 .venv/
+
+# Generated dashboard/figure outputs (large, reproducible via scripts/generate_figures.py)
+figures/dashboard.html
+figures/feature_analysis.html
