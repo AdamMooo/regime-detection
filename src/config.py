@@ -34,9 +34,9 @@ THRESH_VOL_HIGH = 25    # VIX above -> High-Vol
 PARAMETRIC_K_REGIMES = 3
 
 # --- Sticky HDP-HMM ---
+# alpha_trans and kappa are NOT set here -- they are fully Bayesian latents
+# (Gamma priors) inferred inside hdp_hmm_model(). See paper.tex:289.
 HDP_TRUNCATION    = 8
-HDP_ALPHA         = 1.0
-HDP_KAPPA         = 10.0   # stickiness — markets are persistent
 HDP_INFERENCE     = 'svi'
 SVI_NUM_STEPS     = 4000
 SVI_LEARNING_RATE = 0.005

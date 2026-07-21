@@ -1,7 +1,7 @@
 % ================================================================
-% AUTO-GENERATED PAPER RESULTS â€” regime-detection/run_paper_experiments.py
-% Generated: 2026-05-26 00:43
-% Train: 2016-01-07 to 2023-12-29  (1995 trading days)
+% AUTO-GENERATED PAPER RESULTS — regime-detection/run_paper_experiments.py
+% Generated: 2026-07-21 11:36
+% Train: 2016-01-13 to 2023-12-29  (1991 trading days)
 % ================================================================
 
 % ---- TABLE 1: REGIME CHARACTERISTICS ----
@@ -14,17 +14,17 @@
 \toprule
 Model & Regime & N & \% & Ann. Ret & Ann. Vol & Sharpe & Avg VIX & Dwell \\
 \midrule
-HDP-HMM & Low-Vol & 987 & 49.5\% & +10.54 & 11.24 & +0.94 & 14.3 & 82.2 \\
-HDP-HMM & Moderate-Vol & 812 & 40.7\% & +10.20 & 17.93 & +0.57 & 21.1 & 73.8 \\
-HDP-HMM & High-Vol & 196 & 9.8\% & +16.60 & 40.04 & +0.41 & 31.7 & 39.2 \\
+HDP-HMM & Low-Vol & 988 & 49.6\% & +8.95 & 10.97 & +0.82 & 14.2 & 65.9 \\
+HDP-HMM & Moderate-Vol & 796 & 40.0\% & +11.41 & 18.01 & +0.63 & 21.3 & 61.2 \\
+HDP-HMM & High-Vol & 207 & 10.4\% & +22.61 & 39.37 & +0.57 & 31.2 & 41.4 \\
 \addlinespace
-VIX Threshold & Low-Vol & 755 & 37.8\% & +37.95 & 7.37 & +5.15 & 12.5 & 16.8 \\
-VIX Threshold & Moderate-Vol & 905 & 45.4\% & +16.98 & 15.60 & +1.09 & 19.3 & 10.5 \\
-VIX Threshold & High-Vol & 335 & 16.8\% & -65.91 & 35.78 & -1.84 & 31.7 & 8.2 \\
+VIX Threshold & Low-Vol & 755 & 37.9\% & +37.95 & 7.37 & +5.15 & 12.5 & 16.8 \\
+VIX Threshold & Moderate-Vol & 902 & 45.3\% & +17.47 & 15.56 & +1.12 & 19.3 & 10.7 \\
+VIX Threshold & High-Vol & 334 & 16.8\% & -65.28 & 35.83 & -1.82 & 31.8 & 8.3 \\
 \addlinespace
-Param HMM & Moderate-Vol & 372 & 18.6\% & +14.30 & 17.18 & +0.83 & 19.5 & 372.0 \\
-Param HMM & High-Vol & 400 & 20.1\% & -34.55 & 34.08 & -1.01 & 29.3 & 25.0 \\
-Param HMM & Low-Vol & 1223 & 61.3\% & +24.89 & 9.97 & +2.50 & 15.1 & 81.5 \\
+Param HMM & Low-Vol & 1192 & 59.9\% & +24.60 & 9.63 & +2.55 & 15.0 & 45.8 \\
+Param HMM & High-Vol & 432 & 21.7\% & -28.07 & 33.17 & -0.85 & 28.8 & 16.0 \\
+Param HMM & Moderate-Vol & 367 & 18.4\% & +14.72 & 17.20 & +0.86 & 19.4 & 367.0 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -39,9 +39,9 @@ Param HMM & Low-Vol & 1223 & 61.3\% & +24.89 & 9.97 & +2.50 & 15.1 & 81.5 \\
 \toprule
 From $\backslash$ To & Low-Vol & Moderate-Vol & High-Vol \\
 \midrule
-Low-Vol & 0.989 & 0.009 & 0.002 \\
-Moderate-Vol & 0.011 & 0.986 & 0.002 \\
-High-Vol & 0.015 & 0.010 & 0.974 \\
+Low-Vol & 0.986 & 0.011 & 0.003 \\
+Moderate-Vol & 0.015 & 0.984 & 0.001 \\
+High-Vol & 0.014 & 0.010 & 0.976 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -56,9 +56,9 @@ High-Vol & 0.015 & 0.010 & 0.974 \\
 \toprule
 Model & $R^2$ (VIX only) & $R^2$ (+ Regimes) & $\Delta R^2$ \\
 \midrule
-HDP-HMM & 0.0008 & 0.0009 & +0.0000 \\
-VIX Threshold & 0.0008 & 0.0008 & +0.0000 \\
-Param HMM & 0.0008 & 0.0020 & +0.0011 \\
+HDP-HMM & 0.0009 & 0.0009 & +0.0000 \\
+VIX Threshold & 0.0009 & 0.0009 & +0.0000 \\
+Param HMM & 0.0009 & 0.0009 & +0.0000 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -73,9 +73,9 @@ Param HMM & 0.0008 & 0.0020 & +0.0011 \\
 \toprule
 Strategy & Ann.\ Ret (\%) & Ann.\ Vol (\%) & Sharpe & Max DD (\%) & Rebal./yr \\
 \midrule
-Buy \& Hold & 11.00 & 18.73 & 0.587 & -36.1 & 0 \\
-Vol-Target (RV30) & 11.42 & 15.22 & 0.750 & -20.4 & 90 \\
-Vol-Target (HDP) & 11.04 & 15.00 & 0.736 & -25.7 & 3 \\
+Buy \& Hold & 11.35 & 18.73 & 0.606 & -36.1 & 0 \\
+Vol-Target (RV30) & 11.66 & 15.22 & 0.766 & -20.4 & 90 \\
+Vol-Target (HDP) & 9.85 & 15.80 & 0.624 & -29.6 & 13 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -88,7 +88,7 @@ Vol-Target (HDP) & 11.04 & 15.00 & 0.736 & -25.7 & 3 \\
 % Merged to K=3 for tables using merge_similar_states()
 % SVI steps:    4000
 % SVI converged: True
-% Final ELBO:   6269.3
+% Final ELBO:   6381.7
 % Active states (post-merge to 3): Low-Vol, Moderate-Vol, High-Vol
-% Realized vol by regime: {'Low-Vol': 11.2, 'Moderate-Vol': 17.9, 'High-Vol': 40.0} (annualized %)
+% Realized vol by regime: {'Low-Vol': 11.0, 'Moderate-Vol': 18.0, 'High-Vol': 39.4} (annualized %)
 

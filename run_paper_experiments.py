@@ -17,10 +17,15 @@ from scipy import stats as scipy_stats
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 
+# Log messages use non-ASCII characters (→, etc.); Windows consoles default
+# to cp1252, which can't encode them and crashes the run mid-pipeline.
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 warnings.filterwarnings('ignore')
 os.makedirs('results', exist_ok=True)
 
-LOG = open('results/run_log.txt', 'w', buffering=1)
+LOG = open('results/run_log.txt', 'w', buffering=1, encoding='utf-8')
 
 def log(msg):
     print(msg)
@@ -103,11 +108,17 @@ log(f"  Active states (raw): {hdp_active}")
 
 # --- Merge K raw states to 3 canonical regimes by VIX rank ---
 # Sort all discovered states ascending by mean VIX, partition into thirds.
-# This always produces exactly 3 non-empty groups regardless of K.
+# NOTE: min(int(i*3/K_eff), 2) only fills all 3 groups when K_eff >= 3 --
+# below that, "High-Vol" silently never gets assigned. Fail loudly instead.
 vix_train = df_raw['vol_index'].reindex(feat_train.index).values
 spy_train = df_raw['spy_ret'].reindex(feat_train.index).values
 
 K_eff = len(hdp_active)
+assert K_eff >= 3, (
+    f"HDP pruned to only {K_eff} active state(s) -- cannot map to 3 canonical "
+    f"regimes (Low/Moderate/High-Vol). Rerun with a different seed/kappa, or "
+    f"handle K_eff<3 explicitly before merging."
+)
 mean_vix_per_state = {
     s: float(vix_train[hdp_labels_raw == s].mean()) if (hdp_labels_raw == s).sum() > 0 else 0.0
     for s in range(K_eff)
@@ -322,17 +333,14 @@ bh_results = {'Ann. Ret (%)': bh_ret, 'Ann. Vol (%)': bh_vol,
 rv30 = pd.Series(spy_arr).rolling(30).std().shift(1).bfill().values * np.sqrt(252) * 100
 rv_results = vol_target_backtest(spy_arr, rv30)
 
-# Strategy 3: Vol-target using HDP regime vol (regime assigned at start of day)
-regime_vol_map = {k: hdp_vols.get(k, 15.0) for k in range(3)}
-hdp_vol_series = np.array([regime_vol_map[l] for l in hdp_labels])
+# Strategy 3: Vol-target using HDP regime vol (causal -- point-in-time
+# per-regime vol, no full-sample lookahead; see src.core.inference)
+from src.core.inference import expanding_regime_vol
+hdp_vol_series = expanding_regime_vol(spy_arr, hdp_labels, n_regimes=3)
 hdp_bt_results = vol_target_backtest(spy_arr, hdp_vol_series)
 
-# Strategy 4: Vol-target using VIX-threshold regime vol
-thresh_vol_map = {}
-for k in range(3):
-    mask = thresh_labels == k
-    thresh_vol_map[k] = float(spy_arr[mask].std() * np.sqrt(252) * 100) if mask.sum() > 0 else 15.0
-thresh_vol_series = np.array([thresh_vol_map[l] for l in thresh_labels])
+# Strategy 4: Vol-target using VIX-threshold regime vol (same causal estimator)
+thresh_vol_series = expanding_regime_vol(spy_arr, thresh_labels, n_regimes=3)
 thresh_bt_results = vol_target_backtest(spy_arr, thresh_vol_series)
 
 backtest_rows = {

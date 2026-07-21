@@ -4,6 +4,8 @@ Functions
 ---------
 expanding_standardize(X_raw, min_warmup=252)
     Expanding-window z-score (past data only, no lookahead)
+expanding_regime_vol(returns, labels, n_regimes, min_periods, fallback)
+    Causal, point-in-time annualized vol per regime (past data only)
 """
 
 import numpy as np
@@ -45,4 +47,57 @@ def expanding_standardize(X_raw, min_warmup=252):
     return X_scaled, cum_mean[-1], cum_std[-1]
 
 
-__all__ = ['expanding_standardize']
+def expanding_regime_vol(returns, labels, n_regimes, min_periods=20, fallback=15.0):
+    """Causal, point-in-time annualized vol (%) estimate, grouped by regime.
+
+    Row t uses only returns[s] for s < t where labels[s] == labels[t] --
+    same "no future data" discipline as expanding_standardize(), but
+    grouped by regime instead of global, AND lagged one extra step:
+    returns[t] is the outcome being traded on day t, so it must not be
+    folded into regime k's running stats until AFTER vol_series[t] is
+    computed (the same reason the RV30 baseline uses `.shift(1)`).
+
+    Parameters
+    ----------
+    returns : ndarray (T,)
+        Daily returns.
+    labels : ndarray (T,) int
+        Regime label per row, values in [0, n_regimes).
+    n_regimes : int
+    min_periods : int
+        Minimum past observations of a regime before trusting its estimate.
+    fallback : float
+        Annualized vol (%) to use before min_periods is reached.
+
+    Returns
+    -------
+    vol_series : ndarray (T,)
+        Annualized vol (%) known at the START of day t (uses no data
+        from day t onward).
+    """
+    returns = np.asarray(returns, dtype=np.float64)
+    labels = np.asarray(labels)
+    T = len(returns)
+    vol_series = np.empty(T)
+
+    sums = np.zeros(n_regimes)
+    sqsums = np.zeros(n_regimes)
+    counts = np.zeros(n_regimes, dtype=np.int64)
+
+    for t in range(T):
+        k = labels[t]
+        if counts[k] >= min_periods:
+            mean_k = sums[k] / counts[k]
+            var_k = sqsums[k] / counts[k] - mean_k ** 2
+            vol_series[t] = np.sqrt(max(var_k, 0.0)) * np.sqrt(252) * 100
+        else:
+            vol_series[t] = fallback
+
+        sums[k] += returns[t]
+        sqsums[k] += returns[t] ** 2
+        counts[k] += 1
+
+    return vol_series
+
+
+__all__ = ['expanding_standardize', 'expanding_regime_vol']

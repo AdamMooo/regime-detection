@@ -3,7 +3,33 @@
 ## Status
 Architecture: stripped HDP-HMM, paper-first
 Branch: main
-Last updated: 2026-05-26
+Last updated: 2026-07-21
+
+## Causality Deep-Review (2026-07-20/21) — Fixed, Pending Commit
+
+Deep code review found 5 critical lookahead/correctness bugs (full detail: `.planning/DEEP-REVIEW.md`, untracked). All 5 are now fixed and verified against a clean pipeline run:
+
+- **CR-01** NFCI weekly series was ffill'd on reference date, not release date — 7-day publication-lag shift added (`src/data/collect_macro.py`).
+- **CR-02** `HDP_ALPHA`/`HDP_KAPPA` config constants were dead (kappa is Bayesian-learned, not fixed) — removed the dead constants/import.
+- **CR-03** Parametric HMM baseline's `get_filtered_states()` used hmmlearn's smoothed (forward-backward) posterior despite claiming causal filtering — replaced with a manual forward-only pass (`src/baselines/parametric_hmm.py`).
+- **CR-04** (headline bug) Table 4 vol-target backtest sized positions using full-training-sample realized vol per regime (lookahead). Fixed via `expanding_regime_vol()` in `src/core/inference.py` — causal, point-in-time per-regime vol.
+- **CR-05** VIX-rank regime partition could silently drop "High-Vol" if HDP prunes to <3 active states — added `assert K_eff >= 3` stopgap in `run_paper_experiments.py`.
+
+**Table 4 numbers changed after the CR-04 fix** (as expected — removing lookahead should reduce inflated performance):
+
+| | Before (buggy) | After (fixed) |
+|---|---|---|
+| Vol-Target (HDP) Sharpe | 0.736 | 0.624 |
+| Rebalances/yr | 3 | 13 |
+| Max DD | — | -29.6% |
+
+Table 1 dwell times also shifted (65.9 / 61.2 / 41.4 days vs previous 82/74/39) — attributable to the CR-01 NFCI feature fix changing what the HDP model learns, not a bug.
+
+**Still open from the review (not yet done):**
+- Causality-invariant test (perturb-a-future-value / assert-nothing-before-it-changes) for `expanding_standardize`, `expanding_regime_vol`, `get_filtered_states`, HDP forward pass — recommended as the actual root-cause fix, not yet written.
+- `data/processed/*.csv` and `models/*.pkl` are committed/regenerable and bloat git; `.gitignore` doesn't cover them.
+- `requirements.txt` has dead deps (`arch`, `plotly`, `pandas_datareader`).
+- README.md still describes the old pre-strip-down architecture (separate staleness issue).
 
 ## Paper Status — UPLOAD-READY
 
@@ -32,11 +58,11 @@ Overleaf: set main file to `paper.tex`, hit Compile.
 - Table 4: Information content regression (R² beyond VIX)
 - Table 5: Volatility-targeting backtest (B&H / RV30 / HDP)
 
-**Key results:**
-- HDP: 8 raw states → 3 regimes, dwell times 82 / 74 / 39 days
-- VIX-threshold dwell: 8–17 days (4× less persistent)
-- Backtest Sharpe: HDP 0.736 vs B&H 0.587 vs RV30 0.750
-- HDP uses 3 rebalances/yr vs RV30's 90 — same Sharpe at 1/30th turnover
+**Key results (superseded — see "Causality Deep-Review" section above for current numbers):**
+- HDP: 8 raw states → 3 regimes, dwell times ~65 / 61 / 41 days
+- VIX-threshold dwell: 8–17 days (persistence advantage still holds)
+- Backtest Sharpe: HDP 0.624 vs B&H 0.606 vs RV30 0.766
+- HDP uses 13 rebalances/yr vs RV30's 90 — lower turnover, but Sharpe no longer leads RV30 (was inflated by the CR-04 lookahead bug)
 
 ## Current Architecture (Clean)
 

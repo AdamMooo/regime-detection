@@ -34,7 +34,7 @@ from numpyro.infer.autoguide import AutoNormal
 from numpyro.infer.initialization import init_to_feasible
 
 from src.config import (
-    RANDOM_SEED, HDP_TRUNCATION, HDP_ALPHA, HDP_KAPPA,
+    RANDOM_SEED, HDP_TRUNCATION,
     HDP_INFERENCE, SVI_NUM_STEPS, SVI_LEARNING_RATE, SVI_NUM_SAMPLES,
     MCMC_NUM_WARMUP, MCMC_NUM_SAMPLES, MCMC_NUM_CHAINS, VOL_BRACKETS,
 )

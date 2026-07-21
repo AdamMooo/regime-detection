@@ -11,7 +11,9 @@ The key difference from HDP-HMM:
 
 import numpy as np
 import pandas as pd
+from hmmlearn import _hmmc
 from hmmlearn.hmm import GaussianHMM
+from scipy.special import logsumexp
 from sklearn.preprocessing import StandardScaler
 from src.config import PARAMETRIC_K_REGIMES, RANDOM_SEED, FEATURES
 
@@ -43,11 +45,20 @@ def fit_parametric_hmm(X_train: np.ndarray, n_restarts: int = 10) -> GaussianHMM
 
 
 def get_filtered_states(model: GaussianHMM, X: np.ndarray) -> tuple:
-    """Forward-pass filtered states only (causal, no lookahead)."""
-    _, posteriors = model.score_samples(X)
-    row_sums = posteriors.sum(axis=1, keepdims=True)
-    row_sums = np.where(row_sums == 0, 1.0, row_sums)
-    posteriors = posteriors / row_sums
+    """Forward-pass filtered states only (causal, no lookahead).
+
+    model.score_samples() runs forward-backward and returns the SMOOTHED
+    posterior P(z_t | x_1..T), which uses future observations -- not
+    appropriate for a causal baseline. We call hmmlearn's forward
+    recursion directly and skip the backward pass entirely, matching
+    P(z_t | x_1..t).
+    """
+    log_frameprob = model._compute_log_likelihood(X)
+    _, fwdlattice = _hmmc.forward_log(model.startprob_, model.transmat_, log_frameprob)
+    # fwdlattice[t, j] = log P(x_1..t, z_t=j); normalizing each row gives
+    # the filtered posterior P(z_t=j | x_1..t).
+    log_norm = logsumexp(fwdlattice, axis=1, keepdims=True)
+    posteriors = np.exp(fwdlattice - log_norm)
     return np.argmax(posteriors, axis=1), posteriors
 
 

@@ -66,6 +66,11 @@ def fetch_and_save_data() -> pd.DataFrame:
         FRED_NFCI_SERIES, observation_start=START_DATE, observation_end=END_DATE
     )
     raw_nfci.name = 'nfci'
+    # fred.get_series() indexes NFCI by its reference week (a Friday), not
+    # its release date. The Chicago Fed publishes each week's NFCI value
+    # the following Friday (~7-day lag) -- shift the index forward by the
+    # publication lag so ffill never assigns a value before it was public.
+    raw_nfci.index = raw_nfci.index + pd.Timedelta(days=7)
 
     # Align everything to SPX trading-day index
     idx = spx.index
