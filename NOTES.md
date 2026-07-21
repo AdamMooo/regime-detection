@@ -26,9 +26,10 @@ Deep code review found 5 critical lookahead/correctness bugs (full detail: `.pla
 Table 1 dwell times also shifted (65.9 / 61.2 / 41.4 days vs previous 82/74/39) — attributable to the CR-01 NFCI feature fix changing what the HDP model learns, not a bug.
 
 **Still open from the review (not yet done):**
-- Causality-invariant test (perturb-a-future-value / assert-nothing-before-it-changes) for `expanding_standardize`, `expanding_regime_vol`, `get_filtered_states`, HDP forward pass — recommended as the actual root-cause fix, not yet written.
 - `data/processed/*.csv` and `models/*.pkl` are committed/regenerable and bloat git; `.gitignore` doesn't cover them.
 - `requirements.txt` has dead deps (`arch`, `plotly`, `pandas_datareader`).
+
+**2026-07-21 (later):** Added `tests/test_causality_invariants.py` — perturb-a-future-value / assert-nothing-before-it-changes checks for the 4 functions claiming causality (`expanding_standardize`, `expanding_regime_vol`, `get_filtered_states`, HDP `forward_backward_numpy`'s filtered output). Includes a negative control (smoothed output *does* change before t) proving the perturbation is large enough to matter. Verified the `expanding_regime_vol` test fails against the pre-fix buggy version (fold-before-compute) — the test has teeth, not just vacuously passing. Run with `pytest tests/ -v`.
 
 **2026-07-21 merge:** `origin/main` had diverged with a same-day-earlier commit (`70849ae`, pushed from a different machine before this deep-review session) adding `scripts/run.py` (CLI wrapper for collect/features/train/signals/dashboard/regime/trust/analyze, with cached-artifact fallback) + `tests/test_cli_runner.py` + a README.md rewrite. Non-overlapping with the causality fixes — merged clean (`8dc349c`), both new tests pass. README staleness is now resolved.
 

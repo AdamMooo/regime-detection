@@ -27,4 +27,4 @@ Two undecided directions (see `NOTES.md`):
 ## Known Issues
 
 - No walk-forward OOS validation yet — all current results are in-sample; treat backtest Sharpe as provisional until direction B lands.
-- No causality-invariant test yet (perturb-a-future-value / assert-nothing-before-it-changes) — the 5 lookahead bugs found in the 2026-07-21 review were all caught by manual reading, not by any automated check.
+- `data/processed/*.csv` / `models/*.pkl` are committed/regenerable (git bloat); `requirements.txt` has dead deps (`arch`, `plotly`, `pandas_datareader`) — cheap cleanup, not done.
