@@ -1,6 +1,6 @@
 % ================================================================
 % AUTO-GENERATED PAPER RESULTS — regime-detection/run_paper_experiments.py
-% Generated: 2026-07-21 11:36
+% Generated: 2026-07-21 13:02
 % Train: 2016-01-13 to 2023-12-29  (1991 trading days)
 % ================================================================
 

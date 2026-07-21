@@ -42,6 +42,9 @@ SVI_NUM_STEPS     = 4000
 SVI_LEARNING_RATE = 0.005
 SVI_NUM_SAMPLES   = 500
 
+# --- Walk-forward OOS validation ---
+WALK_FORWARD_REFIT_DAYS = 63   # ~1 trading quarter between HDP-HMM refits
+
 # --- MCMC settings (for paper-quality NUTS run, best overnight) ---
 MCMC_NUM_WARMUP  = 500
 MCMC_NUM_SAMPLES = 1000

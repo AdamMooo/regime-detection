@@ -169,18 +169,35 @@ def stage_signals(config, prev=None):
 
 
 # ===================================================================
-# Stage 5: walk_forward (stub)
+# Stage 5: walk_forward
 # ===================================================================
 
 def stage_walk_forward(config):
     """Walk-forward OOS validation. Gated by --validate flag.
 
-    Not yet implemented — see orchestrator.py.
+    Refits the HDP-HMM periodically (expanding window) and forward-filters
+    each new block, producing regime labels the model never saw in-sample.
+    See src/core/walk_forward.py. Writes data/oos_regime_labels.csv.
     """
     if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'walk_forward':
         raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for walk_forward")
 
-    logger.warning("walk_forward: not yet implemented, skipping")
+    feat_path = os.path.join(DATA_DIR, 'processed', 'features.csv')
+    raw_path = os.path.join(DATA_DIR, 'processed', 'spx_data.csv')
+    if not os.path.exists(feat_path) or not os.path.exists(raw_path):
+        raise FileNotFoundError("Run 'collect' and 'features' first")
+
+    feat_full = pd.read_csv(feat_path, index_col=0, parse_dates=True).dropna()
+    raw_df = pd.read_csv(raw_path, index_col=0, parse_dates=True)
+
+    from src.core.walk_forward import walk_forward_oos
+    logger.info("walk_forward: starting expanding-window OOS validation")
+    oos_df = walk_forward_oos(feat_full, raw_df['vol_index'])
+
+    out_path = os.path.join(DATA_DIR, 'oos_regime_labels.csv')
+    oos_df.to_csv(out_path)
+    logger.info("walk_forward: wrote %s (%d OOS rows)", out_path, len(oos_df))
+    return {'oos_df': oos_df}
 
 
 # ===================================================================

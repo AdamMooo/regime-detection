@@ -185,53 +185,7 @@ log("\n[6/6] Computing paper statistics...")
 spy_ret_s  = df_raw['spy_ret'].reindex(feat_train.index)
 vol_s      = df_raw['vol_index'].reindex(feat_train.index)
 
-def regime_stats(labels, name_map, spy_ret, vix, model_name):
-    """Compute within-regime statistics for Table 1."""
-    rows = []
-    T = len(labels)
-    for r in sorted(name_map.keys()):
-        name = name_map[r]
-        mask = labels == r
-        n = mask.sum()
-        if n < 5:
-            continue
-        ret = spy_ret[mask]
-        ret_ann  = float(ret.mean() * 252 * 100)   # annualized %
-        vol_ann  = float(ret.std() * np.sqrt(252) * 100)
-        sharpe   = ret_ann / vol_ann if vol_ann > 0 else np.nan
-        vix_mean = float(vix[mask].mean())
-
-        # Dwell time (mean days per spell)
-        label_arr = np.asarray(labels)
-        spells = []
-        in_spell = False
-        count = 0
-        for t in range(T):
-            if label_arr[t] == r:
-                in_spell = True
-                count += 1
-            else:
-                if in_spell:
-                    spells.append(count)
-                    in_spell = False
-                    count = 0
-        if in_spell:
-            spells.append(count)
-        dwell = float(np.mean(spells)) if spells else 0.0
-
-        rows.append({
-            'Model':   model_name,
-            'Regime':  name,
-            'N':       n,
-            'Pct':     n / T * 100,
-            'AnnRet':  ret_ann,
-            'AnnVol':  vol_ann,
-            'Sharpe':  sharpe,
-            'VIX':     vix_mean,
-            'Dwell':   dwell,
-        })
-    return rows
-
+from src.core.evaluation import regime_stats, vol_target_backtest
 
 all_rows = []
 all_rows += regime_stats(hdp_labels,    hdp_name_map,    spy_ret_s.values, vol_s.values, 'HDP-HMM')
@@ -277,43 +231,6 @@ r2_vix, r2_results = information_content_regression(
 # ===================================================================
 # Table 4: Volatility-targeting backtest
 # ===================================================================
-
-def vol_target_backtest(spy_ret, vol_estimate, target_vol_pct=15.0, max_leverage=1.5):
-    """Scale daily SPY exposure by target_vol / current_vol_estimate.
-
-    Parameters
-    ----------
-    spy_ret       : array (T,) daily log returns
-    vol_estimate  : array (T,) annualized vol estimate for each day (%)
-    target_vol_pct: float — target annualized portfolio vol (%)
-    max_leverage  : float — cap on position size
-
-    Returns dict of performance metrics.
-    """
-    vol_est = np.where(vol_estimate > 1e-6, vol_estimate, target_vol_pct)
-    sizes   = np.clip(target_vol_pct / vol_est, 0.0, max_leverage)
-    port    = spy_ret * sizes
-
-    ann_ret  = float(port.mean() * 252 * 100)
-    ann_vol  = float(port.std() * np.sqrt(252) * 100)
-    sharpe   = ann_ret / ann_vol if ann_vol > 0 else np.nan
-    cum      = np.cumprod(1 + port)
-    roll_max = np.maximum.accumulate(cum)
-    drawdown = (cum - roll_max) / roll_max
-    max_dd   = float(drawdown.min() * 100)
-
-    # Turnover: fraction of days position size changes meaningfully (>1%)
-    size_changes = np.abs(np.diff(sizes))
-    turnover_annual = float((size_changes > 0.01).mean() * 252)
-
-    return {
-        'Ann. Ret (%)':  ann_ret,
-        'Ann. Vol (%)':  ann_vol,
-        'Sharpe':        sharpe,
-        'Max DD (%)':    max_dd,
-        'Rebalances/yr': turnover_annual,
-    }
-
 
 spy_arr = spy_ret_s.values
 vix_arr = vol_s.values

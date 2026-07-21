@@ -41,7 +41,30 @@ def classify_regime_from_vix(vix_level: float | None) -> str:
 
 
 def get_current_regime_label() -> str:
-    """Return a current regime label using live VIX data when available."""
+    """Return the most recent regime label, preferring the real HDP posterior.
+
+    Priority: walk-forward OOS output (genuine causal model, never saw this
+    date in-sample) > cached/paper HDP results (in-sample, still the real
+    model) > live VIX-threshold classification (the null hypothesis this
+    project's paper argues against -- last resort only, used when no model
+    output exists at all).
+    """
+    try:
+        oos_path = _oos_results()
+        if oos_path.exists():
+            df = pd.read_csv(oos_path, index_col=0, parse_dates=True)
+            if not df.empty and 'regime_label' in df.columns:
+                return str(df.iloc[-1]['regime_label'])
+    except Exception:
+        pass
+
+    try:
+        df = _load_results()
+        if 'regime_label' in df.columns and not df.empty:
+            return str(df.iloc[-1]['regime_label'])
+    except Exception:
+        pass
+
     try:
         data = yf.download('^VIX', period='5d', progress=False, auto_adjust=False)
         if isinstance(data.columns, pd.MultiIndex):
@@ -51,14 +74,6 @@ def get_current_regime_label() -> str:
             label = classify_regime_from_vix(float(latest_close))
             if label != 'unknown':
                 return label
-    except Exception:
-        pass
-
-    # Fallback to the latest saved artifact when live market data is unavailable.
-    try:
-        df = _load_results()
-        if 'regime_label' in df.columns and not df.empty:
-            return str(df.iloc[-1]['regime_label'])
     except Exception:
         pass
 
@@ -89,6 +104,10 @@ def _cached_results() -> Path:
 
 def _paper_results() -> Path:
     return ROOT / 'results' / 'regime_labels_train.csv'
+
+
+def _oos_results() -> Path:
+    return _data_dir() / 'oos_regime_labels.csv'
 
 
 def _load_results() -> pd.DataFrame:
@@ -258,15 +277,37 @@ def run_regime() -> int:
 
 
 def run_trust() -> int:
+    oos_path = _oos_results()
+    if oos_path.exists():
+        df = pd.read_csv(oos_path, index_col=0, parse_dates=True)
+        if not df.empty:
+            print('Trust scorecard (walk-forward OOS -- genuine out-of-sample)')
+            print(f"rows={len(df)}  range={df.index.min().date()} -> {df.index.max().date()}")
+            for regime, count in df['regime_label'].value_counts().items():
+                print(f"{regime}: {count}")
+            print(f"mean filt_prob_max (confidence): {df['filt_prob_max'].mean():.3f}")
+            print(f"latest filt_prob_max: {df.iloc[-1]['filt_prob_max']:.3f} "
+                  f"({df.index[-1].date()}: {df.iloc[-1]['regime_label']})")
+            return 0
+
     df = _load_results()
     if 'regime_label' in df.columns:
         counts = df['regime_label'].value_counts()
-        print('Trust scorecard')
+        print('Trust scorecard (in-sample -- no walk-forward OOS run yet)')
         print(f"rows={len(df)}")
         for regime, count in counts.items():
             print(f"{regime}: {count}")
     else:
         print('No regime labels available')
+    return 0
+
+
+def run_walk_forward() -> int:
+    _ensure_dirs()
+    from src.pipeline.stages import stage_walk_forward
+
+    stage_walk_forward({})
+    print(f"Walk-forward OOS validation completed; wrote {_oos_results()}")
     return 0
 
 
@@ -296,9 +337,7 @@ def run_analyze() -> int:
 
 def run_full(validate: bool) -> int:
     print("Running full pipeline")
-    if validate:
-        print("--validate was supplied; the walk-forward validation stage remains a stub in this checkout.")
-    for name, fn in [
+    steps = [
         ('collect', run_collect),
         ('features', run_features),
         ('train', run_train),
@@ -307,7 +346,10 @@ def run_full(validate: bool) -> int:
         ('regime', run_regime),
         ('trust', run_trust),
         ('analyze', run_analyze),
-    ]:
+    ]
+    if validate:
+        steps.append(('walk_forward', run_walk_forward))
+    for name, fn in steps:
         print(f"[{name}]")
         fn()
     return 0
@@ -315,8 +357,8 @@ def run_full(validate: bool) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='Run the regime-detection pipeline')
-    parser.add_argument('command', nargs='?', help='One of: collect, features, train, signals, dashboard, regime, trust, analyze')
-    parser.add_argument('--validate', action='store_true', help='Accepted for compatibility; walk-forward validation is not implemented in this checkout')
+    parser.add_argument('command', nargs='?', help='One of: collect, features, train, signals, dashboard, regime, trust, analyze, walk_forward')
+    parser.add_argument('--validate', action='store_true', help='When running the full pipeline (no command given), also run walk-forward OOS validation -- several minutes, refits the HDP-HMM periodically')
     return parser
 
 
@@ -335,6 +377,7 @@ def main() -> int:
         'regime': run_regime,
         'trust': run_trust,
         'analyze': run_analyze,
+        'walk_forward': run_walk_forward,
     }
 
     if args.command not in command_map:
