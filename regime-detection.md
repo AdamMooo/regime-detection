@@ -12,7 +12,7 @@ Paper is upload-ready. A deep causality review (2026-07-20/21) found and fixed 5
 
 Not GSD-managed in the usual sense — `.planning/` holds a codebase snapshot and a planning doc, not `STATE.md`/`ROADMAP.md`.
 
-Walk-forward OOS validation shipped 2026-07-21 (`scripts/run.py walk_forward`) — the model now produces a genuine live regime signal instead of falling back to a VIX-threshold guess. First run: today classified Low-Vol at 99.99% confidence, but OOS dwell times and backtest edge are both notably weaker than the in-sample paper numbers (see NOTES.md).
+Walk-forward OOS validation shipped 2026-07-21 (`scripts/run.py walk_forward`) — the model now produces a genuine live regime signal instead of falling back to a VIX-threshold guess. Same-day follow-up found regime assignment is meaningfully sensitive to training-window length (down to 51% agreement between configs on the same days), so the signal is now a 3-window ensemble reporting cross-window agreement (e.g. "Low-Vol, 2/3 windows agree") rather than one model's overstated posterior confidence. See NOTES.md "Training-Window Sensitivity."
 
 ## Next
 
@@ -28,5 +28,6 @@ Two undecided directions (see `NOTES.md`):
 
 ## Known Issues
 
-- Walk-forward OOS validation now implemented (2026-07-21) — first real run shows dwell times and backtest edge both shrink notably out-of-sample vs. the in-sample paper claims. Not yet root-caused (real market character vs. refit-boundary artifact); treat the in-sample Table 1/4 numbers as optimistic until this is resolved.
+- **Regime assignment is sensitive to training-window length** (2026-07-21) — expanding vs. rolling-5y vs. rolling-3y windows agree on the label only 51-69% of the time, even when each individually reports >99% confidence. `data/oos_regime_labels.csv` is now a 3-window ensemble (majority vote + agreement_frac) rather than one overconfident number, but the in-sample paper Table 1/2/4 numbers still use only the original single (full-history) window — this sensitivity almost certainly applies there too, not yet addressed.
+- Walk-forward OOS validation dwell times and backtest edge both shrink notably vs. the in-sample paper claims. Partially explained by real 2024-2026 market character (calmer VIX) and partially by the window-sensitivity above; not fully decomposed.
 - `data/processed/*.csv` / `models/*.pkl` are committed/regenerable (git bloat); `requirements.txt` has dead deps (`arch`, `plotly`, `pandas_datareader`) — cheap cleanup, not done.

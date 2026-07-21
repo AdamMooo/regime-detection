@@ -46,6 +46,24 @@ Table 1 dwell times also shifted (65.9 / 61.2 / 41.4 days vs previous 82/74/39) 
 
 These are reported as-is, not smoothed over — exactly the kind of honest OOS grounding the paper needs. Next: investigate the dwell-time shrinkage (refit-artifact vs real) and whether the backtest edge is period-specific.
 
+## Training-Window Sensitivity — Discovered and Addressed (2026-07-21, commit 8b06545)
+
+Investigating the dwell-time shrinkage above turned up something bigger. Compared three training-window configurations for the same 635 OOS days (2024-01-02 → 2026-07-21): **expanding** (full history since 2015, the original design), **rolling 5-year** (1260 trading days), **rolling 3-year** (756 trading days).
+
+**Pairwise agreement on the regime label:**
+| | Expanding | Rolling 5y |
+|---|---|---|
+| Rolling 5y | 68.8% | — |
+| Rolling 3y | 51.2% | 67.2% |
+
+That's a **smooth gradient, not a threshold** — adjacent choices (5y vs 3y) disagree almost as much as the extremes (32.8% vs 31.2%/48.8%), which rules out "it's just about whether COVID is in the window." It's a pervasive sensitivity to training-window length, likely compounded by (a) genuine SVI estimation noise with less data per state, and (b) the coarse "sort states by mean VIX, chop into thirds by index" merge heuristic being brittle to small shifts in state ordering.
+
+**The important part: even on days where BOTH configs independently reported >99% posterior confidence, they disagreed 22% of the time** (88/394 such days). A single model's `filt_prob_max` only measures uncertainty *within* one fixed training-window choice — it says nothing about uncertainty *about* that choice, which this shows is large. Today's own classification wasn't even unanimous: expanding and 5y both said Low-Vol (99.99%/99.8% confidence), but 3y said **Moderate-Vol at 98.8% confidence** — a different regime, stated with comparable certainty.
+
+**Fix shipped:** `data/oos_regime_labels.csv` is now an ensemble of `config.WALK_FORWARD_WINDOW_DAYS = [expanding, 5y, 3y]` (see `ensemble_oos()` in `src/core/walk_forward.py`) — majority vote + `agreement_frac` as the real confidence measure, replacing any single window's overstated posterior. `scripts/run.py regime`/`trust` now report cross-window agreement (e.g. "Low-Vol, 2/3 windows agree, 67% confidence") instead of a single model's 99%+ number. Cost: `stage_walk_forward` now runs 3 window configs (~24 min total, up from ~8).
+
+**Not yet done:** this same sensitivity almost certainly affects the in-sample paper Table 1/2/4 numbers too (only one training-window choice — full history — has ever been used there). Whether/how to report this as an explicit robustness section in the paper is still open. Raw per-config runs kept for reproducibility: `data/oos_regime_labels_rolling5y.csv`, `data/oos_regime_labels_rolling3y.csv`.
+
 ## Paper Status — UPLOAD-READY
 
 `paper_overleaf.zip` (206K) is ready to upload to Overleaf. Contains:
