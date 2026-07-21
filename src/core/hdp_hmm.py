@@ -506,6 +506,19 @@ def label_regimes_hdp(labels, active_states, spy_returns, vol_brackets=None):
     If no state's vol exceeds the high-vol threshold, no high-vol label fires —
     that is the correct output for a calm-market period.
 
+    NOTE: this is a DIFFERENT labeling method than
+    src.core.walk_forward.merge_states_to_regimes() (rank-based: sort states
+    by mean VIX, partition into thirds — always produces exactly 3 buckets).
+    This function is used by stage_train_hmm (the "production" pipeline
+    path); the rank-based method is used by run_paper_experiments.py and the
+    walk-forward/ensemble OOS path (i.e. everything the paper's headline
+    numbers and data/oos_regime_labels.csv are built on). The two can
+    disagree on the same data. Not yet reconciled -- see NOTES.md
+    "Two Regime-Labeling Schemes" for the tradeoff (this method can
+    correctly report "no High-Vol regime today"; rank-based thirds cannot,
+    but always yields exactly 3 buckets, which the paper's Table 1/backtest
+    structure and the walk-forward ensemble both depend on).
+
     Parameters
     ----------
     labels       : ndarray (T,) — integer state assignments (0-indexed into active_states)

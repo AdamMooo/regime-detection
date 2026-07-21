@@ -1,6 +1,6 @@
 % ================================================================
 % AUTO-GENERATED PAPER RESULTS — regime-detection/run_paper_experiments.py
-% Generated: 2026-07-21 13:02
+% Generated: 2026-07-21 16:19
 % Train: 2016-01-13 to 2023-12-29  (1991 trading days)
 % ================================================================
 
@@ -93,7 +93,7 @@ Vol-Target (HDP) & 9.85 & 15.80 & 0.624 & -29.6 & 13 \\
 % Paste into diagnostics section or footnote.
 
 % Effective K (raw, pre-merge): mean=8.0, std=0.0, mode=8
-% Merged to K=3 for tables using merge_similar_states()
+% Merged to K=3 for tables by sorting active states by mean VIX and partitioning into thirds
 % SVI steps:    4000
 % SVI converged: True
 % Final ELBO:   6381.7

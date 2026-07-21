@@ -30,6 +30,14 @@ def merge_states_to_regimes(labels_raw, vix_values, K_eff):
     Same method run_paper_experiments.py uses in-sample: sort active
     states by mean VIX, partition into thirds. Must be redone per fold
     since state indices aren't stable across independent SVI fits.
+
+    NOTE: this is a DIFFERENT labeling method than
+    src.core.hdp_hmm.label_regimes_hdp() (absolute VOL_BRACKETS thresholds
+    -- can report "no High-Vol regime today" for a calm period; this
+    function always forces exactly 3 buckets). label_regimes_hdp() is used
+    by stage_train_hmm, the "production" pipeline path -- so that path can
+    disagree with the paper/walk-forward numbers on the same data. Not yet
+    reconciled -- see NOTES.md "Two Regime-Labeling Schemes".
     """
     if K_eff < 3:
         raise ValueError(
