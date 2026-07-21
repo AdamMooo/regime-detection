@@ -12,6 +12,8 @@ Paper is upload-ready. A deep causality review (2026-07-20/21) found and fixed 5
 
 Not GSD-managed in the usual sense — `.planning/` holds a codebase snapshot and a planning doc, not `STATE.md`/`ROADMAP.md`.
 
+Walk-forward OOS validation shipped 2026-07-21 (`scripts/run.py walk_forward`) — the model now produces a genuine live regime signal instead of falling back to a VIX-threshold guess. First run: today classified Low-Vol at 99.99% confidence, but OOS dwell times and backtest edge are both notably weaker than the in-sample paper numbers (see NOTES.md).
+
 ## Next
 
 Two undecided directions (see `NOTES.md`):
@@ -26,5 +28,5 @@ Two undecided directions (see `NOTES.md`):
 
 ## Known Issues
 
-- No walk-forward OOS validation yet — all current results are in-sample; treat backtest Sharpe as provisional until direction B lands.
+- Walk-forward OOS validation now implemented (2026-07-21) — first real run shows dwell times and backtest edge both shrink notably out-of-sample vs. the in-sample paper claims. Not yet root-caused (real market character vs. refit-boundary artifact); treat the in-sample Table 1/4 numbers as optimistic until this is resolved.
 - `data/processed/*.csv` / `models/*.pkl` are committed/regenerable (git bloat); `requirements.txt` has dead deps (`arch`, `plotly`, `pandas_datareader`) — cheap cleanup, not done.

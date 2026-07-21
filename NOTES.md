@@ -33,6 +33,19 @@ Table 1 dwell times also shifted (65.9 / 61.2 / 41.4 days vs previous 82/74/39) 
 
 **2026-07-21 merge:** `origin/main` had diverged with a same-day-earlier commit (`70849ae`, pushed from a different machine before this deep-review session) adding `scripts/run.py` (CLI wrapper for collect/features/train/signals/dashboard/regime/trust/analyze, with cached-artifact fallback) + `tests/test_cli_runner.py` + a README.md rewrite. Non-overlapping with the causality fixes — merged clean (`8dc349c`), both new tests pass. README staleness is now resolved.
 
+## Walk-Forward OOS Validation — Implemented (2026-07-21, commit d4f4872)
+
+`stage_walk_forward` was a no-op stub — the model had never actually been scored on anything after `TRAIN_END` (2023-12-31), meaning `scripts/run.py regime` was silently falling back to a live VIX-threshold guess (the null hypothesis this whole project argues against). Implemented properly: `src/core/walk_forward.py` refits the HDP-HMM quarterly (63 trading days, `config.WALK_FORWARD_REFIT_DAYS`) on an expanding window, forward-filters (never smooths) each new block, then folds it into the training window before the next refit. Run via `scripts/run.py walk_forward` or `--validate`; writes `data/oos_regime_labels.csv`.
+
+**First real OOS run, 2024-01-02 → 2026-07-21 (11 folds):**
+- **Today (2026-07-21) is genuinely Low-Vol at 99.99% posterior confidence** — the first real (non-VIX-threshold) live signal this project has ever produced.
+- Mean confidence across all 635 OOS days: 96.5%; 26 days (4%) below 0.7 (real uncertainty on transition days, not degenerate always-100%-confident output).
+- Distribution: Moderate-Vol 55.3%, Low-Vol 38.4%, High-Vol 6.3% — notably different mix than the in-sample training period (50/40/10).
+- **Dwell times OOS (30.5 / 35.1 / 8.0 days) are much shorter than the in-sample claim (65.9 / 61.2 / 41.4 days)** — the "persistence advantage over VIX-threshold" story holds much less dramatically out-of-sample; High-Vol dwell (8.0 days) is right at the VIX-threshold baseline's range. Not yet root-caused: could be genuine 2024-2026 market character, or partial refit-boundary instability (fold-boundary check showed 7/10 boundaries label-stable, so not fully explained by that alone).
+- **OOS vol-target(HDP) backtest Sharpe (1.062) slightly trails buy-and-hold (1.098)** over this period — the modest in-sample edge (0.624 vs 0.606) does not clearly replicate OOS. Both OOS Sharpes are much higher than in-sample simply because 2024-2026 was a strong bull run overall — only the HDP-vs-B&H *relative* comparison is meaningful here.
+
+These are reported as-is, not smoothed over — exactly the kind of honest OOS grounding the paper needs. Next: investigate the dwell-time shrinkage (refit-artifact vs real) and whether the backtest edge is period-specific.
+
 ## Paper Status — UPLOAD-READY
 
 `paper_overleaf.zip` (206K) is ready to upload to Overleaf. Contains:
