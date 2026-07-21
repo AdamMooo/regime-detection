@@ -64,6 +64,32 @@ That's a **smooth gradient, not a threshold** — adjacent choices (5y vs 3y) di
 
 **Not yet done:** this same sensitivity almost certainly affects the in-sample paper Table 1/2/4 numbers too (only one training-window choice — full history — has ever been used there). Whether/how to report this as an explicit robustness section in the paper is still open. Raw per-config runs kept for reproducibility: `data/oos_regime_labels_rolling5y.csv`, `data/oos_regime_labels_rolling3y.csv`.
 
+## Statistical Significance Test + Hysteresis Fix (2026-07-21, commit e6962df)
+
+Pivoted the evaluation framework: stop asking "does vol-target backtest beat buy-and-hold" (never actually established — OOS Sharpe 1.062 vs B&H 1.098, HDP trails) and instead test whether the regime label carries statistically significant information at all, honestly, on the genuinely-OOS ensemble labels.
+
+Added `block_bootstrap_ci()` + `regime_delta_r2()` to `src/core/evaluation.py` — resamples contiguous 21-day blocks (not individual rows) since daily vol/returns are serially correlated (VIX AC(1) ≈ 0.9); an i.i.d. bootstrap would understate sampling variability and make noise look significant.
+
+**Result:**
+- Forward 5-day return: ΔR² = 0.00077, 90% CI [0.0002, 0.0097] — significant but a tiny effect. Not a case for return-timing.
+- Forward 21-day realized vol: ΔR² = 0.0124, 90% CI [0.0017, 0.0665] — significant, ~16x larger effect. **The regime label's real, provable signal is about future volatility, not direction** — consistent with the window-sensitivity finding above and with `algo-trading-bot`'s independent conclusion that HMMs ceiling out at classification, not timing.
+
+Caveat: this CI tests whether the observed ΔR² is stable under block-resampling of the actual data, not a strict permutation test against an explicit null (regime randomly reshuffled relative to target). Same family of test as this project's pre-refactor `evaluation.py` used; a stricter permutation-null version is a possible future refinement.
+
+**Separately, found and fixed a real comparability bug** (surfaced during the 2026-07-21 codebase mapping): in-sample regime labels get 3-day hysteresis smoothing via `get_labels_and_probs`' `hold_days=3` default (both `run_paper_experiments.py` and `stage_train_hmm` use it); `walk_forward_oos` computed OOS block labels via raw argmax with **zero** smoothing. So "OOS dwell times are half the in-sample claim" was never a fair comparison — turning off flicker-suppression mechanically shortens measured dwell regardless of any real persistence difference. Fixed: `_apply_hysteresis()` in `src/core/hdp_hmm.py` now accepts/returns chainable state (verified byte-identical to the original single-shot behavior via a split-and-chain equivalence test), so `walk_forward_oos` applies the same `hold_days=3` hysteresis across fold boundaries without resetting at every quarterly refit — in canonical regime-index space (0/1/2), since raw HDP state indices aren't comparable across independently-fit folds.
+
+**A corrected 3-window ensemble regeneration was kicked off in the background and was still running when this session closed** (~24 min job, only ~6/33 folds done at close). Check `data/oos_regime_labels.csv`'s freshness / rerun `scripts/run.py walk_forward` before trusting the dwell-time comparison next session — it should move closer to the in-sample figures now that OOS finally gets the same smoothing.
+
+Also fixed a false comment in generated paper LaTeX (`run_paper_experiments.py`) claiming `merge_similar_states()` was used for K=3 regime merging — that function is dead code, never called; the actual method is the inline VIX-rank sort-and-partition-into-thirds two lines earlier. Regenerated paper outputs to confirm the fix was comment-only (all numbers unchanged).
+
+## Two Regime-Labeling Schemes (2026-07-21) — Open Decision, Not a Bug
+
+Codebase mapping surfaced that two different methods assign the 3 canonical regime names, and nothing checks they agree:
+- `label_regimes_hdp()` (`src/core/hdp_hmm.py`) — absolute `VOL_BRACKETS` thresholds. Used by `stage_train_hmm`, the "production" pipeline path. Can correctly report "no High-Vol regime today" for a genuinely calm period — no rank ordering forced.
+- `merge_states_to_regimes()` (`src/core/walk_forward.py`) — sorts active states by mean VIX, partitions into thirds. Used by `run_paper_experiments.py` and the walk-forward/ensemble path — i.e. everything the paper's headline numbers and `data/oos_regime_labels.csv` are built on. Always forces exactly 3 buckets (needed for the paper's Table 1/backtest structure).
+
+These can disagree on the same data. Cross-referenced in both docstrings so nobody rediscovers this confused, but deliberately **not unified** under session-close time pressure — each has a real tradeoff, this is a decision for Adam, not an obvious fix.
+
 ## Paper Status — UPLOAD-READY
 
 `paper_overleaf.zip` (206K) is ready to upload to Overleaf. Contains:
@@ -128,17 +154,24 @@ rm paper_overleaf.zip && zip paper_overleaf.zip paper.tex paper/paper.tex \
   results/paper_macros.tex results/paper_tables.tex results/paper_desc_stats.tex
 ```
 
-## Next Session — Decided Options
+## Next Session — Updated Priority List (2026-07-21)
 
-Two directions under consideration for strengthening the paper:
+Superseded the old A/B split below — walk-forward OOS validation (was "B", highest value) is now done, and turned up more than expected. Priority order for next session:
+
+1. **Verify the corrected-hysteresis 3-window ensemble regeneration** — was still running in the background at last session close (~24 min job). Confirm it finished, `data/oos_regime_labels.csv` reflects it, update the dwell-time comparison in this file.
+2. **Decide on the two regime-labeling schemes** (see above) — unify, or keep the documented tradeoff permanently.
+3. **Test training-window sensitivity on the in-sample paper numbers** — the OOS ensemble proved this matters; the paper's Table 1/2/4 have only ever used one window (full history).
+4. Lower priority: update `CLAUDE.md`/`README.md` (still describe deleted modules, call walk-forward "a stub"), check/fix stale CI (`.github/workflows/tests.yml` references deleted files), hygiene batch (dead deps, `.gitignore` gaps, dead code removal — `merge_similar_states`, `HDPModelAdapter`).
+
+Original A/B framing, still relevant for presentation-only work if wanted later:
 
 **A) Better presentation (no model changes):**
 - Replace Figure 4 equity curve with 3-panel bar chart (Sharpe / MaxDD / Rebalances)
 - Add break-even cost analysis: at <0.25bps/trade HDP matches RV30 net of costs
 - This makes the efficiency story visual without touching the model
 
-**B) Strengthen the model/evaluation:**
-- Walk-forward OOS validation (highest value — turns in-sample into real claims)
-- Bootstrap CIs on Sharpe (statistically shows HDP ≈ RV30)
-- NUTS full posterior (paper-quality uncertainty quantification)
+**B) Strengthen the model/evaluation — DONE (2026-07-21):**
+- ~~Walk-forward OOS validation~~ — shipped, then extended into the window-sensitivity ensemble and the significance-testing pivot above
+- Bootstrap CIs — done, but on regime information content (ΔR²), not Sharpe specifically; could still add a Sharpe-specific CI
+- NUTS full posterior (paper-quality uncertainty quantification) — still not done
 - Adding features is lowest priority (uncertain payoff, requires re-running ablations)

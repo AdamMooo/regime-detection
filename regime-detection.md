@@ -14,6 +14,8 @@ Not GSD-managed in the usual sense — `.planning/` holds a codebase snapshot an
 
 Walk-forward OOS validation shipped 2026-07-21 (`scripts/run.py walk_forward`) — the model now produces a genuine live regime signal instead of falling back to a VIX-threshold guess. Same-day follow-up found regime assignment is meaningfully sensitive to training-window length (down to 51% agreement between configs on the same days), so the signal is now a 3-window ensemble reporting cross-window agreement (e.g. "Low-Vol, 2/3 windows agree") rather than one model's overstated posterior confidence. See NOTES.md "Training-Window Sensitivity."
 
+A same-day follow-up pivoted the evaluation framework: instead of asking "does vol-targeting beat buy-and-hold" (never actually established), a block-bootstrap significance test now asks "does the regime label carry real information, honestly tested" on the genuinely-OOS ensemble labels. Answer: forward-return information content is statistically significant but tiny (ΔR²=0.00077); forward-*volatility* information content is significant and ~16x larger (ΔR²=0.0124). The defensible claim is that regimes predict future volatility, not direction. Also found and fixed a real bug: in-sample dwell times were smoothed with 3-day hysteresis while OOS labels used raw argmax — part of the earlier "OOS dwell times are half in-sample" finding was just this mismatch, not new information. A corrected re-run of the 3-window ensemble was kicked off in the background and was still running at last session close — check `data/oos_regime_labels.csv`'s freshness before trusting the dwell-time numbers.
+
 ## Next
 
 Two undecided directions (see `NOTES.md`):
@@ -29,5 +31,8 @@ Two undecided directions (see `NOTES.md`):
 ## Known Issues
 
 - **Regime assignment is sensitive to training-window length** (2026-07-21) — expanding vs. rolling-5y vs. rolling-3y windows agree on the label only 51-69% of the time, even when each individually reports >99% confidence. `data/oos_regime_labels.csv` is now a 3-window ensemble (majority vote + agreement_frac) rather than one overconfident number, but the in-sample paper Table 1/2/4 numbers still use only the original single (full-history) window — this sensitivity almost certainly applies there too, not yet addressed.
-- Walk-forward OOS validation dwell times and backtest edge both shrink notably vs. the in-sample paper claims. Partially explained by real 2024-2026 market character (calmer VIX) and partially by the window-sensitivity above; not fully decomposed.
+- **Two regime-labeling schemes coexist with no test enforcing agreement**: `label_regimes_hdp()` (absolute VOL_BRACKETS, used by `stage_train_hmm`) vs. `merge_states_to_regimes()` (VIX-rank thirds, used by the paper/walk-forward path). Each has a real tradeoff; cross-referenced in both docstrings but not unified — open decision.
+- Corrected-hysteresis 3-window ensemble regeneration was still running in the background at last session close — verify it completed and `data/oos_regime_labels.csv` reflects it before trusting dwell-time numbers.
 - `data/processed/*.csv` / `models/*.pkl` are committed/regenerable (git bloat); `requirements.txt` has dead deps (`arch`, `plotly`, `pandas_datareader`) — cheap cleanup, not done.
+- `CLAUDE.md`/`README.md` still describe deleted modules (`orchestrator.py`, old `evaluation.py`) and call walk-forward "a stub" — stale, not yet updated.
+- `.github/workflows/tests.yml` references test/analysis files deleted in the May 2026 refactor — CI may be silently broken or not testing what it claims to.
