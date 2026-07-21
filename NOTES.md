@@ -5,7 +5,7 @@ Architecture: stripped HDP-HMM, paper-first
 Branch: main
 Last updated: 2026-07-21
 
-## Causality Deep-Review (2026-07-20/21) — Fixed, Pending Commit
+## Causality Deep-Review (2026-07-20/21) — Fixed and Committed (185ae8d)
 
 Deep code review found 5 critical lookahead/correctness bugs (full detail: `.planning/DEEP-REVIEW.md`, untracked). All 5 are now fixed and verified against a clean pipeline run:
 
@@ -29,7 +29,8 @@ Table 1 dwell times also shifted (65.9 / 61.2 / 41.4 days vs previous 82/74/39) 
 - Causality-invariant test (perturb-a-future-value / assert-nothing-before-it-changes) for `expanding_standardize`, `expanding_regime_vol`, `get_filtered_states`, HDP forward pass — recommended as the actual root-cause fix, not yet written.
 - `data/processed/*.csv` and `models/*.pkl` are committed/regenerable and bloat git; `.gitignore` doesn't cover them.
 - `requirements.txt` has dead deps (`arch`, `plotly`, `pandas_datareader`).
-- README.md still describes the old pre-strip-down architecture (separate staleness issue).
+
+**2026-07-21 merge:** `origin/main` had diverged with a same-day-earlier commit (`70849ae`, pushed from a different machine before this deep-review session) adding `scripts/run.py` (CLI wrapper for collect/features/train/signals/dashboard/regime/trust/analyze, with cached-artifact fallback) + `tests/test_cli_runner.py` + a README.md rewrite. Non-overlapping with the causality fixes — merged clean (`8dc349c`), both new tests pass. README staleness is now resolved.
 
 ## Paper Status — UPLOAD-READY
 
