@@ -17,7 +17,8 @@ import pandas as pd
 
 from src.config import HDP_TRUNCATION, TRAIN_END, WALK_FORWARD_REFIT_DAYS
 from src.core.hdp_hmm import (
-    fit_hdp_hmm, forward_backward_numpy, get_labels_and_probs, posterior_mean_params,
+    _apply_hysteresis, fit_hdp_hmm, forward_backward_numpy, get_labels_and_probs,
+    posterior_mean_params,
 )
 
 REGIME_NAMES = {0: 'Low-Vol', 1: 'Moderate-Vol', 2: 'High-Vol'}
@@ -46,7 +47,7 @@ def merge_states_to_regimes(labels_raw, vix_values, K_eff):
 
 def walk_forward_oos(feat_full, vix_full, refit_every=WALK_FORWARD_REFIT_DAYS,
                       train_end=TRAIN_END, K_max=HDP_TRUNCATION, seed_base=1000,
-                      window_days=None):
+                      window_days=None, hold_days=3):
     """Expanding-window walk-forward OOS regime labels for dates after train_end.
 
     Parameters
@@ -75,6 +76,17 @@ def walk_forward_oos(feat_full, vix_full, refit_every=WALK_FORWARD_REFIT_DAYS,
         is fit on -- expanding_standardize() is still computed once over
         the full series beforehand, since "expanding-window standardization"
         is a hard project constraint, not something this experiment touches.
+    hold_days : int
+        Hysteresis: a regime switch must persist this many days before it's
+        accepted (suppresses single-day flicker). Matches the in-sample
+        default (get_labels_and_probs' hold_days=3) so OOS dwell times are
+        comparable to in-sample ones -- prior to this, OOS labels used raw
+        argmax with zero smoothing, which mechanically shortens measured
+        dwell time regardless of any real regime-persistence difference.
+        Applied in CANONICAL regime-index space (0/1/2), not raw HDP state
+        space, and threaded across fold boundaries -- raw state indices
+        aren't comparable across independently-fit folds, but the canonical
+        Low/Moderate/High mapping is.
 
     Returns
     -------
@@ -89,6 +101,7 @@ def walk_forward_oos(feat_full, vix_full, refit_every=WALK_FORWARD_REFIT_DAYS,
 
     oos_rows = []
     window_end = train_end
+    hysteresis_state = None
 
     for fold_num, start in enumerate(range(0, len(test_index), refit_every)):
         block_index = test_index[start:start + refit_every]
@@ -118,6 +131,10 @@ def walk_forward_oos(feat_full, vix_full, refit_every=WALK_FORWARD_REFIT_DAYS,
         block_labels_raw = block_filtered.argmax(axis=1)
         block_filt_prob_max = block_filtered.max(axis=1)
         block_regime_idx = np.array([state_to_regime[l] for l in block_labels_raw])
+
+        if hold_days > 1:
+            block_regime_idx, hysteresis_state = _apply_hysteresis(
+                block_regime_idx, hold_days, init_state=hysteresis_state)
 
         for i, date in enumerate(block_index):
             oos_rows.append({

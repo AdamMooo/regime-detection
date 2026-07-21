@@ -402,34 +402,53 @@ def get_labels_and_probs(obs, params, hold_days=3):
     smooth_active /= smooth_active.sum(axis=1, keepdims=True)
 
     raw = filt_active.argmax(axis=1)
-    labels = _apply_hysteresis(raw, hold_days) if hold_days > 1 else raw
+    labels = _apply_hysteresis(raw, hold_days)[0] if hold_days > 1 else raw
 
     return labels, filt_active, smooth_active, active
 
 
-def _apply_hysteresis(raw, hold_days):
-    """Apply hold-days hysteresis to prevent regime flicker."""
+def _apply_hysteresis(raw, hold_days, init_state=None):
+    """Apply hold-days hysteresis to prevent regime flicker.
+
+    init_state, if given, is (prev_label, pending, streak) carried over from
+    a previous call -- lets hysteresis continue seamlessly across a
+    walk-forward fold boundary instead of resetting (which would otherwise
+    artificially break an in-progress regime spell every time the model
+    refits). Pass None (default) to start fresh, matching the original
+    single-shot in-sample behavior.
+
+    Returns (out, final_state) -- final_state has the same shape as
+    init_state, for the next call to chain from.
+    """
     out = np.empty_like(raw)
-    out[0] = raw[0]
-    pending = raw[0]
-    streak = 0
-    for t in range(1, len(raw)):
-        if raw[t] == out[t - 1]:
-            out[t] = out[t - 1]
-            pending = out[t]
+    if init_state is None:
+        prev_out, pending, streak = raw[0], raw[0], 0
+        out[0] = prev_out
+        start = 1
+    else:
+        prev_out, pending, streak = init_state
+        start = 0
+
+    for t in range(start, len(raw)):
+        if raw[t] == prev_out:
+            new_out = prev_out
+            pending = new_out
             streak = 0
         elif raw[t] == pending:
             streak += 1
             if streak >= hold_days:
-                out[t] = pending
+                new_out = pending
                 streak = 0
             else:
-                out[t] = out[t - 1]
+                new_out = prev_out
         else:
             pending = raw[t]
             streak = 1
-            out[t] = out[t - 1]
-    return out
+            new_out = prev_out
+        out[t] = new_out
+        prev_out = new_out
+
+    return out, (prev_out, pending, streak)
 
 
 def merge_similar_states(labels, filt_probs, params, active_states,
