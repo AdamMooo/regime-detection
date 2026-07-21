@@ -175,9 +175,15 @@ def stage_signals(config, prev=None):
 def stage_walk_forward(config):
     """Walk-forward OOS validation. Gated by --validate flag.
 
-    Refits the HDP-HMM periodically (expanding window) and forward-filters
-    each new block, producing regime labels the model never saw in-sample.
-    See src/core/walk_forward.py. Writes data/oos_regime_labels.csv.
+    Refits the HDP-HMM periodically across several training-window lengths
+    (config.WALK_FORWARD_WINDOW_DAYS) and forward-filters each new block,
+    producing regime labels the model never saw in-sample. The per-window
+    runs are then combined into a majority-vote label + cross-window
+    agreement fraction (see src/core/walk_forward.py ensemble_oos) -- a
+    single window's own posterior confidence understates how much regime
+    assignment depends on an arbitrary training-window-length choice
+    (see NOTES.md "Training-Window Sensitivity"). Writes
+    data/oos_regime_labels.csv. Takes ~8 min per window config.
     """
     if os.environ.get('GSD_FORCE_STAGE_FAIL') == 'walk_forward':
         raise RuntimeError("GSD_FORCE_STAGE_FAIL triggered for walk_forward")
@@ -190,14 +196,22 @@ def stage_walk_forward(config):
     feat_full = pd.read_csv(feat_path, index_col=0, parse_dates=True).dropna()
     raw_df = pd.read_csv(raw_path, index_col=0, parse_dates=True)
 
-    from src.core.walk_forward import walk_forward_oos
-    logger.info("walk_forward: starting expanding-window OOS validation")
-    oos_df = walk_forward_oos(feat_full, raw_df['vol_index'])
+    from src.config import WALK_FORWARD_WINDOW_DAYS
+    from src.core.walk_forward import ensemble_oos, walk_forward_oos
+
+    run_results = {}
+    for window_days in WALK_FORWARD_WINDOW_DAYS:
+        name = 'expanding' if window_days is None else f'rolling_{window_days}d'
+        logger.info("walk_forward: running config %s (window_days=%s)", name, window_days)
+        run_results[name] = walk_forward_oos(feat_full, raw_df['vol_index'], window_days=window_days)
+
+    oos_df = ensemble_oos(run_results)
 
     out_path = os.path.join(DATA_DIR, 'oos_regime_labels.csv')
     oos_df.to_csv(out_path)
-    logger.info("walk_forward: wrote %s (%d OOS rows)", out_path, len(oos_df))
-    return {'oos_df': oos_df}
+    logger.info("walk_forward: wrote %s (%d OOS rows, ensemble of %d configs)",
+                out_path, len(oos_df), len(run_results))
+    return {'oos_df': oos_df, 'run_results': run_results}
 
 
 # ===================================================================

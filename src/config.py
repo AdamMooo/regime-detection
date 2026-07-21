@@ -45,6 +45,13 @@ SVI_NUM_SAMPLES   = 500
 # --- Walk-forward OOS validation ---
 WALK_FORWARD_REFIT_DAYS = 63   # ~1 trading quarter between HDP-HMM refits
 
+# Training-window lengths (trading days) to ensemble across. None = full
+# expanding/anchored history. Motivated by a 2026-07-21 finding: regime
+# assignment is sensitive to how much training history is used -- as low as
+# 51% pairwise agreement between the expanding window and a 3-year rolling
+# window, even on days both report >99% individual confidence. See NOTES.md.
+WALK_FORWARD_WINDOW_DAYS = [None, 1260, 756]   # expanding, 5y, 3y
+
 # --- MCMC settings (for paper-quality NUTS run, best overnight) ---
 MCMC_NUM_WARMUP  = 500
 MCMC_NUM_SAMPLES = 1000

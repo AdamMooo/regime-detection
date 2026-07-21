@@ -45,7 +45,8 @@ def merge_states_to_regimes(labels_raw, vix_values, K_eff):
 
 
 def walk_forward_oos(feat_full, vix_full, refit_every=WALK_FORWARD_REFIT_DAYS,
-                      train_end=TRAIN_END, K_max=HDP_TRUNCATION, seed_base=1000):
+                      train_end=TRAIN_END, K_max=HDP_TRUNCATION, seed_base=1000,
+                      window_days=None):
     """Expanding-window walk-forward OOS regime labels for dates after train_end.
 
     Parameters
@@ -66,6 +67,14 @@ def walk_forward_oos(feat_full, vix_full, refit_every=WALK_FORWARD_REFIT_DAYS,
     seed_base : int
         RANDOM_SEED offset per fold so folds don't share identical SVI
         initialization noise.
+    window_days : int or None
+        If None (default), use the full anchored/expanding history since
+        inception -- the standard walk-forward behavior. If set, train on
+        only the trailing `window_days` rows ending at window_end instead
+        (a rolling window). Note this only changes which rows the HDP-HMM
+        is fit on -- expanding_standardize() is still computed once over
+        the full series beforehand, since "expanding-window standardization"
+        is a hard project constraint, not something this experiment touches.
 
     Returns
     -------
@@ -84,6 +93,8 @@ def walk_forward_oos(feat_full, vix_full, refit_every=WALK_FORWARD_REFIT_DAYS,
     for fold_num, start in enumerate(range(0, len(test_index), refit_every)):
         block_index = test_index[start:start + refit_every]
         train_idx = feat_full.index[feat_full.index <= window_end]
+        if window_days is not None:
+            train_idx = train_idx[-window_days:]
         obs_train = feat_full.loc[train_idx].values
         obs_window = feat_full.loc[train_idx.append(block_index)].values
 
@@ -123,3 +134,44 @@ def walk_forward_oos(feat_full, vix_full, refit_every=WALK_FORWARD_REFIT_DAYS,
         window_end = block_index[-1]
 
     return pd.DataFrame(oos_rows).set_index('date')
+
+
+def ensemble_oos(run_results):
+    """Combine multiple walk_forward_oos() runs into a majority-vote label
+    plus cross-window agreement fraction.
+
+    Motivated by a 2026-07-21 finding: training-window length materially
+    changes regime assignment (as low as 51% pairwise agreement between an
+    expanding window and a 3-year rolling window), even on days where each
+    individual run's own posterior confidence is >99%. A single window's
+    filt_prob_max only captures uncertainty within that one training-window
+    choice -- it says nothing about uncertainty ABOUT the choice itself.
+    Agreement fraction across independently-configured windows is a cheap,
+    honest stand-in for that missing piece.
+
+    Parameters
+    ----------
+    run_results : dict[str, DataFrame]
+        {config_name: oos_df} -- each oos_df as returned by walk_forward_oos()
+        (must share the same date index).
+
+    Returns
+    -------
+    DataFrame indexed by date: regime_idx/regime_label (majority vote across
+    configs), agreement_frac (fraction of configs agreeing with the
+    majority), n_configs, plus one `{name}_label` column per input config
+    for transparency.
+    """
+    idx_cols = pd.DataFrame({name: df['regime_idx'] for name, df in run_results.items()})
+    majority_idx = idx_cols.mode(axis=1)[0].astype(int)
+    agreement_frac = idx_cols.eq(majority_idx, axis=0).mean(axis=1)
+
+    label_cols = pd.DataFrame({f'{name}_label': df['regime_label'] for name, df in run_results.items()})
+
+    out = pd.DataFrame({
+        'regime_idx': majority_idx,
+        'regime_label': majority_idx.map(REGIME_NAMES),
+        'agreement_frac': agreement_frac,
+        'n_configs': len(run_results),
+    })
+    return out.join(label_cols)

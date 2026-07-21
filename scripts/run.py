@@ -54,7 +54,12 @@ def get_current_regime_label() -> str:
         if oos_path.exists():
             df = pd.read_csv(oos_path, index_col=0, parse_dates=True)
             if not df.empty and 'regime_label' in df.columns:
-                return str(df.iloc[-1]['regime_label'])
+                label = str(df.iloc[-1]['regime_label'])
+                if 'agreement_frac' in df.columns:
+                    agree = df.iloc[-1]['agreement_frac']
+                    n = int(df.iloc[-1]['n_configs'])
+                    return f"{label} ({agree*n:.0f}/{n} training-windows agree, {agree*100:.0f}% confidence)"
+                return label
     except Exception:
         pass
 
@@ -285,9 +290,22 @@ def run_trust() -> int:
             print(f"rows={len(df)}  range={df.index.min().date()} -> {df.index.max().date()}")
             for regime, count in df['regime_label'].value_counts().items():
                 print(f"{regime}: {count}")
-            print(f"mean filt_prob_max (confidence): {df['filt_prob_max'].mean():.3f}")
-            print(f"latest filt_prob_max: {df.iloc[-1]['filt_prob_max']:.3f} "
-                  f"({df.index[-1].date()}: {df.iloc[-1]['regime_label']})")
+            if 'agreement_frac' in df.columns:
+                n = int(df.iloc[-1]['n_configs'])
+                print(f"ensemble of {n} training-window configs "
+                      f"(cross-window agreement is the real confidence measure here --\n"
+                      f"a single window's own posterior confidence understates how much\n"
+                      f"regime assignment depends on this arbitrary choice, see NOTES.md)")
+                print(f"mean cross-window agreement: {df['agreement_frac'].mean():.3f}")
+                unanimous = (df['agreement_frac'] >= 1.0).mean()
+                print(f"days with unanimous agreement across all configs: {unanimous*100:.1f}%")
+                latest = df.iloc[-1]
+                print(f"latest ({df.index[-1].date()}): {latest['regime_label']} "
+                      f"({latest['agreement_frac']*n:.0f}/{n} agree)")
+            elif 'filt_prob_max' in df.columns:
+                print(f"mean filt_prob_max (confidence): {df['filt_prob_max'].mean():.3f}")
+                print(f"latest filt_prob_max: {df.iloc[-1]['filt_prob_max']:.3f} "
+                      f"({df.index[-1].date()}: {df.iloc[-1]['regime_label']})")
             return 0
 
     df = _load_results()
