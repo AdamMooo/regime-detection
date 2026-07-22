@@ -5,6 +5,147 @@ Architecture: stripped HDP-HMM, paper-first
 Branch: main
 Last updated: 2026-07-22
 
+## Session 2026-07-22 (direction decision) — "Continuous state + jumps" proposal evaluated → reduced to a tail-hazard MVE
+
+Adam proposed reframing to a continuous-time latent state with jumps (dX = μdt + σdW + JdN),
+explicitly not assuming the HMM survives. Full analysis: `.planning/CONTINUOUS-JUMP-STATE-DECISION.md`.
+**Decision:** (1) literal latent jump-diffusion REJECTED — the continuous-state half was already run and
+returned null (Z_t / EWMA-env: no incremental info; any filtered state is a function of the same
+observables — representation cannot create information), and the jump half is unidentifiable at daily
+frequency (jump vs heavy-tail vs fast-vol needs intraday/infill data — BNS bipower, Aït-Sahalia–Jacod).
+(2) The one NEW, testable, gate-clearing component: **self-exciting tail-event intensity** (option D of
+Adam's taxonomy) — after conditioning on the strongest vol model, do exceedances of z_t = r_t/σ̂_t still
+cluster? Orthogonal to the vol axis BY CONSTRUCTION (standardized residuals). Also = the univariate
+version of "tail dependence," one of the two untested objects named at Chapter-3 closure.
+**MVE (draft prereg in the doc §8, NOT frozen — needs Adam's approval):** Hawkes-GLM / autoregressive
+conditional hazard on z<−2 events, ^GSPC 1950→2026 (~450+ events, ~10 crisis episodes = real replication
+count), hazard ladder A→D mirroring the stock-bond prereg, primary = OOS Δlog-score(D−C), block-bootstrap
+CI + LOTO + VIX-era kill-check + surrogate/simulation controls. ~2–3 sessions, no new data infra.
+If null → Chapter 4 of the methods/negative paper (vol axis exhausts daily structure across every
+representation tried). Next action: Adam approves/edits/freezes §8, or declines and defaults to the paper.
+
+## Session 2026-07-22 (latest) — Chapter 3 (Stage-1' covariance conditioning): NULL/negative, scoped closure
+
+Frozen prereg `.planning/COVARIANCE-CONDITIONING-PREREG.md`; run `scripts/stage1p_covariance.py`
+(`results/stage1p_covariance.csv`). New object (covariance matrix + eigenstructure), new lens (OOS
+portfolio risk + covariance forecast loss, not predictive R²). 13-ETF universe 2007–2026, 206 monthly OOS
+rebalances. PRIMARY test = T (vol+absorption ratio) vs **B_match** (matched similarity-weighted vol-only).
+
+**Result: T fails, decisively negative.** M1 Var(GMV_T)/Var(GMV_Bmatch)=**2.24** [90% CI 1.00,4.33] —
+T's min-var portfolio has 2.24× the variance (realized vol 1.98% vs 1.32%). M2: correlation-Frobenius
+Δ=+0.004 [−0.020,+0.027] (FLAT — absorption adds nothing to the dependence-structure estimate); QLIK
+Δ=−0.089 [−0.154,−0.019] (trivial ~1% average edge, contradicted by M1 → the exact coherence-grid case the
+M2 metric was added to catch). Mechanism: AR is persistent/trending → similarity kernel concentrates weight
+→ small effective sample → occasional degenerate covariances (0.5%) → GMV amplifies → variance blowup.
+Controls: **placebo** (matched dim, uninformative coord) does NOT degrade (1.32%=B_match) → degradation is
+AR-specific, not a kernel-dimension artifact; B_match vs EWMA ratio 0.95 → architecture is fine. Robust:
+worse at all costs, all leave-one-crisis-out (2.24/2.31/2.53), risk-parity, hedge, diversification; T+
+(adding macro/infl/credit) also worse (2.23).
+
+**Scoped closure (frozen wording):** closes THIS covariance-conditioning approach / universe / features /
+architecture — the pre-specified observable coordinates and estimator do NOT add incremental OOS covariance
+or portfolio value beyond the matched vol-only baseline. Does NOT prove all non-vol structure exhausted.
+Untested different objects remain: factor structure, tail dependence, nonlinear dependence, dynamic factor
+loadings, liquidity/funding, other portfolio-specific dependence.
+
+### Program status — three chapters, all null (genuine narrowing, not circling)
+1. HMM/regime latent info → no robust incremental info. 2. Macro/rates → stock-bond corr → Case C
+co-trend, no stable incremental prediction. 3. Covariance conditioning → this null. Broader question is now
+"can observable structure improve systematic portfolio decisions beyond volatility?" — three
+increasingly-well-designed nulls. **Decision point (do NOT auto-run a 4th experiment):** interpret whether
+any remaining object (tail dependence / dynamic factor loadings the strongest candidates) is worth a
+genuinely different design, or write the methods/negative paper documenting the three-chapter arc. Adam to choose.
+
+**DIRECTION CHANGE (Adam, 2026-07-22):** pivot to a **Continuous-Time Latent Market State with Jumps**
+(jump-diffusion / continuous-time latent state). Closes the discrete-HMM + macro-prediction +
+covariance-conditioning arc; the three-chapter negative record stands and the methods/negative paper is the
+documented fallback. The jump/tail framing targets the one object the reframe audit flagged as genuinely
+untested. Next session: design + pre-register the jump-model experiment (object, baseline, metric,
+falsification) before running — same discipline as the last three chapters. **This chat is closed.**
+
+## Session 2026-07-22 (latest) — Stage-1 prereg FROZEN + Case-E construction gate PASSED
+
+New, separate research line (does NOT reopen the HMM thesis): does the observable **macro/rates axis**
+carry incremental, stable OOS information about **stock-bond correlation** beyond the strongest honest
+volatility/stress baseline? Approved Option A (U.S.-only first stage).
+
+**Pre-registration FROZEN:** `.planning/STOCKBOND-MACRO-PREREG.md` (2026-07-22) — hypothesis, primary
+target (fwd 63d corr, SPX vs synthetic constant-maturity 10y par-bond TR), baseline ladder A→D (primary =
+**D−C**, macro beyond a flexible spline+ridge stress model incl. RV21/RV63/NFCI/credit), macro axis
+{slope, inflation}, primary metric ΔR²_OOS(D−C)>0 with block-bootstrap CI + leave-one-transition-out,
+secondary sign-prediction test, 4-leg structural-break validation, Case A–E table, and a downstream
+Stage 1→4 decision tree (trading strictly downstream; Stage 4 reachable only from Case A/scoped B).
+Regime-count caveat is permanent (~2 independent U.S. transitions → any positive is provisional;
+international pairs are the pre-named confirmation escalation). Do NOT alter hypothesis/thresholds by result.
+
+**Case-E construction gate PASSED** (`scripts/histext_construction_gate.py`,
+`results/histext_construction_gate.csv`): synthetic 10y par-bond TR reproduces the ETF-based stock-bond
+correlation over 2002–2026 — corr(ρ_synth, ρ_IEF)=**0.985**, mean|Δρ|=**0.041** (frozen bar ≥0.90/≤0.10);
+−dy corroborator identical (corr 1.000); the 2021→2022 sign flip is reproduced. Target is valid.
+
+### Stage-1 RESULT (2026-07-22) — **Case C: historical co-trend / non-stationary**
+Built `data/processed/histext_daily.csv` (1976-06→2026-07, ~12.1k complete-case days; 3 corr regimes /
+2 major transitions: +pre-2000, −2000-2021, +2022; stress spans both signs; inflation 1976-82/1990/2008/
+2021-23). Ran the frozen battery (`scripts/histext_build.py`, `scripts/histext_stage1.py`,
+`results/histext_stage1.csv`).
+
+**DECISIVE CONTEXT: all models have deeply negative OOS R²** (A −1.28, B −1.40, C −1.52, D −1.27) — they
+predict forward corr *worse than the pooled mean*. So the frozen primary ΔR²(D−C)=**+0.253** is the gap
+between two failing models — NOT "macro predicts correlation." 90% CI **[−0.017,+0.564] includes 0**
+(support bar required exclude-0 → fails). **Two frozen falsifiers triggered:** (#4) detrending collapses
+it +0.25→**−0.040** (co-trend); (#5) slope coef flips sign across regimes (−0.01/−0.09/+0.17) and
+calibration fails (per-regime R²_D −1.29/−2.98/−0.28) → non-stationary. Per-regime ΔR²: R1 **−0.17**
+(long positive era — fails there), R2 +0.42, R3 +0.87. Robust across maturities (2/5/10/30y +0.16..+0.23),
+horizons (+0.16/+0.34), −dy corroborator (+0.25), alt vol proxies — but "robust between two failing
+models" ≠ useful. **One on-mechanism positive:** stress alone predicts corr SIGN at AUC 0.497 (chance);
++macro → AUC 0.597 (ΔAUC +0.10) — consistent with vol=magnitude, macro=sign, but modest and plausibly
+low-frequency era-identification (the thing detrending removes). Not enough for Case A.
+
+**Verdict: Case C.** Macro/rates axis does NOT give stable incremental OOS info about the *level* of
+stock-bond correlation beyond volatility; the increment is a non-stationary co-trend. HMM thesis stays
+separate/dead. Per frozen §11 downstream tree, **Case C → STOP the portfolio bridge** (no Stage 2 on U.S.
+data). No trading/allocation work.
+
+### Next action (recommendation)
+Default: **bank the negative + write the methods paper** (stable observable geometry; HMM adds nothing;
+macro axis adds no stable incremental dependence info beyond a co-trend; unproven on-mechanism sign hint).
+Only optional, clearly-provisional continuation: **international stock-bond pairs** (DE/JP/UK) — the one
+way to get independent transitions and adjudicate whether the corr-SIGN signal is real vs one secular arc.
+Pre-register it the same way; it is diagnosis, NOT a portfolio bridge. Awaiting Adam's choice.
+
+## Session 2026-07-22 (later) — Belief Revision: the HMM coordinate is a compression, not a distinct latent state
+
+Pre-registered OOS incremental-information test (`scripts/representation_information.py`,
+`results/representation_information.csv`) — the direct test never previously run (prior negatives used
+the VIX-projected discrete label; stage2 used an EWMA proxy, not the actual HMM `Z_t`).
+
+**Result (Case A — no evidence):** `Z_loc` adds **no** incremental OOS information about forward SPY
+realized vol beyond rich causal observables. Primary 21d ΔR² = −0.040 (perm p=0.53; boot 90% CI
+[−0.41, +0.01]; phase-randomized negative control median −0.061 — `Z` ≈ its own surrogate). Broadly
+negative across {5,21,63}d × {all, hiVIX, loVIX} + entropy; no Bonferroni cell passes; ΔR² → 0 as the
+baseline is enriched (redundancy signature). Absolute: R²_X = 0.140 vs R²_{X+Z} = 0.100.
+
+**Correction:** `Z_t` OOS cross-perturbation stability is only ≈0.42–0.60 (cross-seed/window/feature/
+K_max) — far below the in-sample 0.92–0.97 the Continuum-Turn section reported. Even same-data seed noise
+→ ≈0.45.
+
+**Revised belief:** the HMM coordinate is a moderately-stable statistical *compression* of the
+observables, not a distinct latent environment with incremental vol info. Durable writeup:
+`RESEARCH-RECORD.md` → "Belief Revision". Scope: the negative is specific to volatility targets;
+dependence/tail/factor properties untested.
+
+### Next action (re-entry) — a GATE, not an experiment
+Do NOT run another experiment unless it clears this gate: *why should `Z_t` (or the macro/curve axis)
+carry information about `Y_t` orthogonal to the volatility axis?* Assessed 2026-07-22: the only principled
+candidate is the **rates/inflation-regime family** (stock-bond corr sign; duration / value-growth
+rotation), governed by PC2 (macro/curve), to which VIX is sign-blind. BUT (a) it is a *conditioning*
+claim (macro axis beyond VIX), not the latent-distinctness claim that just failed, and (b) our 2016–2026
+window contains ~one relevant macro-regime shift (2022) → severely underpowered / single-episode. Honest
+default: the project has likely reached its strongest defensible conclusion — a stable statistical
+geometry of observable vol/stress + macro conditions, with no independently-informative latent state.
+Pursue the rates-regime question only via a longer sample (pre-2000, multi-regime) or as an explicit
+descriptive-conditioning study with single-episode caveats — not as a rescue of the latent thesis.
+
 ## Session 2026-07-22 — The Continuum Turn: HMM estimator rejected on OOS prediction; env is a continuous 2-D coordinate
 
 Big reframe + 6 reproducible experiments. Durable narrative: `RESEARCH-RECORD.md` → "2026-07-22 — The

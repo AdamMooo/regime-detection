@@ -8,6 +8,21 @@ Bayesian HDP-HMM market regime detection. Two goals: (1) an academic paper provi
 
 ## Status
 
+**2026-07-22 (latest) — three-chapter negative arc concluded; DIRECTION CHANGE.** After the Continuum
+Turn, the project ran three increasingly-well-designed, pre-registered tests of "is there useful observable
+structure beyond volatility/stress?" — all null (see `RESEARCH-RECORD.md` newest-first, `NOTES.md`):
+(1) **HMM/latent state** — belief-revised to a moderately-stable *compression* of observables, no
+incremental OOS info; (2) **macro/rates → stock-bond correlation** (frozen prereg
+`.planning/STOCKBOND-MACRO-PREREG.md`, ~50y data) — **Case C**, non-stationary co-trend; (3) **covariance
+conditioning** (frozen prereg `.planning/COVARIANCE-CONDITIONING-PREREG.md`, matched vol-only baseline) —
+**null/negative** (GMV variance 2.24× worse, dependence-structure estimate flat). Cumulative read:
+volatility/stress absorbs whatever the candidate dimensions were meant to add. The documented fallback
+deliverable is a **methods/negative paper** covering the arc. **New direction (Adam, 2026-07-22): pivot to
+a Continuous-Time Latent Market State with Jumps** (jump-diffusion / continuous-time latent state) — targets
+the jump/tail object left untested by the audit. Next session begins that experiment.
+
+---
+
 **2026-07-22 (The Continuum Turn):** Major reframe + 6 reproducible experiments — see `RESEARCH-RECORD.md`
 → "2026-07-22 — The Continuum Turn", `NOTES.md`, and `.planning/ROADMAP.md`. Key results: the raw states
 are **~2-D** (stress + an independent yield-curve axis), not a 1-D vol ladder — and every prior "no
@@ -52,16 +67,17 @@ A same-day follow-up pivoted the evaluation framework: instead of asking "does v
 
 ## Next
 
-Current decision: **documentation finalized; research-code changes (C1/C2/C3) deliberately deferred.**
-Three experiments recorded in `RESEARCH-RECORD.md`, in priority order — none implemented yet:
-1. **Reproducible significance testing** — `scripts/significance_test.py` wiring `block_bootstrap_ci` +
-   `regime_delta_r2` into the pipeline (+ permutation null). Makes the best result reproducible.
-2. **Symmetric persistence comparison** — equal smoothing across HDP/VIX-threshold/parametric labels;
-   report model-implied vs empirical transition matrices separately.
-3. **Raw 8-state fingerprinting + VIX-ablation** — the decisive test of the headline thesis.
+**Direction change (2026-07-22): experiment with a Continuous-Time Latent Market State with Jumps.** The
+discrete-HMM / predictive-regime / covariance-conditioning arc is concluded (three nulls; see Status).
+The new line is a continuous-time latent-state model with a jump component (jump-diffusion), which also
+addresses the strongest untested object from the reframe audit (tail/jump behavior). Not yet designed;
+apply the same discipline used throughout — pre-register object, baseline, metric, and falsification
+before running. The **methods/negative paper** documenting the three-chapter arc remains the standing
+fallback deliverable if the new line does not land.
 
-Deferred: K_max sweep / fixed-K ladder (is the HDP's complexity justified?); NUTS run (only after adding
-label-relabeling to `posterior_mean_params`). Paper revision waits until 1–3 land.
+(Superseded: the earlier three deferred experiments — significance-test wiring was since shipped
+`scripts/significance_test.py`; the raw-state/VIX-ablation and persistence questions were overtaken by the
+belief revision and the reframe. See `RESEARCH-RECORD.md` for the full chronology.)
 
 ## Memory
 

@@ -3,7 +3,7 @@ type: research-record
 project: regime-detection
 created: 2026-07-21
 last_updated: 2026-07-22
-status: interim — continuous-representation turn; HMM estimator rejected on OOS prediction
+status: interim — belief revised (2026-07-22): HMM coordinate is a moderately-stable compression of observables; no incremental OOS vol info beyond raw features
 detailed_audit: .planning/RESEARCH-AUDIT.md (full 25-section research audit — retained as evidence)
 code_review: .planning/DEEP-REVIEW.md (code-level causality review, 5 fixed bugs)
 ---
@@ -20,6 +20,108 @@ Detailed technical evidence is retained in two `.planning/` files: `RESEARCH-AUD
 map) and `DEEP-REVIEW.md` (the code-level causality review, 5 fixed bugs). This record is the durable
 **narrative** and current status; those files are the **evidence**. Where a table here is summarized,
 the full version is in `RESEARCH-AUDIT.md`. Nothing from the audit has been discarded.
+
+---
+
+## 2026-07-22 (latest) — Chapter 3 (covariance conditioning): NULL/negative, scoped closure
+
+Frozen, pre-registered reframe (`.planning/COVARIANCE-CONDITIONING-PREREG.md`): new object (covariance
+matrix + eigenstructure), new lens (OOS portfolio risk + covariance forecast loss, not predictive R²). Test
+whether an observable NON-volatility coordinate (absorption ratio primary) improves covariance estimation
+beyond a MATCHED volatility-only similarity-weighted estimator (`B_match`). 13-ETF universe 2007–2026, 206
+monthly OOS rebalances (`scripts/stage1p_covariance.py`).
+
+**Verdict: NULL, indeed negative.** Primary M1 Var(GMV_T)/Var(GMV_Bmatch)=2.24 [CI 1.00,4.33] — T's
+minimum-variance portfolio has 2.24× the realized variance (1.98% vs 1.32%). M2: correlation-Frobenius flat
+(Δ=+0.004, CI incl 0 — absorption adds nothing to the dependence-structure estimate); QLIK a trivial ~1%
+edge (Δ=−0.089) that is contradicted by the portfolio outcome. A dimensionality-matched placebo does not
+degrade (isolates the harm to the AR coordinate, not the kernel dimension); similarity architecture ≈ EWMA;
+negative across costs, leave-one-crisis-out, risk-parity, hedge, diversification, and T+ (macro/credit
+added). Mechanism: the persistent/trending absorption ratio concentrates the similarity kernel → small
+effective sample → occasionally degenerate covariances → GMV amplifies into variance blowups. The
+GMV-blowup is partly architecture-sensitive, but the flat correlation-Frobenius means there is no
+dependence-structure signal to recover.
+
+**Scoped closure:** closes THIS covariance-conditioning approach / universe / features / architecture — the
+pre-specified coordinates and estimator do not add incremental OOS covariance or portfolio value beyond the
+matched vol-only baseline. Does NOT establish that all useful non-vol structure is exhausted; untested
+objects remain (factor structure, tail dependence, nonlinear dependence, dynamic factor loadings,
+liquidity/funding, other portfolio-specific dependence). Program status: three chapters (HMM latent info;
+macro→stock-bond-corr Case C; covariance conditioning), all null — genuine narrowing of where useful
+structure beyond volatility could live.
+
+## 2026-07-22 (latest) — Stage-1 result: macro/rates axis is a non-stationary co-trend (Case C)
+
+Pre-registered, frozen test (`.planning/STOCKBOND-MACRO-PREREG.md`) of a *separate* hypothesis (does NOT
+reopen the HMM): does the observable macro/rates axis carry stable, incremental OOS information about
+stock-bond correlation beyond a strong volatility/stress baseline? Built a ~50y dataset
+(`data/processed/histext_daily.csv`, 1976→2026; 3 correlation regimes / 2 major transitions; synthetic
+constant-maturity par-bond TRs validated against IEF/TLT, gate corr 0.985) and ran the full frozen battery
+(`scripts/histext_build.py`, `scripts/histext_stage1.py`).
+
+**Verdict: Case C — historical co-trend / non-stationary.** Decisive context: all models have deeply
+negative OOS R² (A −1.28 … D −1.27) — they predict forward correlation worse than the pooled mean, so the
+frozen primary ΔR²(D−C)=+0.253 is a gap between two *failing* models, not evidence macro predicts
+correlation. Its 90% CI [−0.017, +0.564] includes 0 (support bar = exclude-0, fails). Two frozen
+falsifiers triggered: (#4) detrending collapses it to −0.040 (the increment is the secular
+disinflation→reflation trend); (#5) the standardized macro effect flips sign across regimes
+(−0.01/−0.09/+0.17) and calibration is badly non-stationary (per-regime R²_D −1.29/−2.98/−0.28).
+Per-regime ΔR² is negative in the long pre-2000 positive era (−0.17), positive in R2/R3. Robust across
+maturities/horizons and the −dy corroborator — but robustness between two failing models is not
+usefulness. One genuinely on-mechanism positive: volatility alone predicts the correlation *sign* at
+chance (AUC 0.497) while +macro reaches AUC 0.597 — consistent with vol=magnitude, macro=sign, but modest
+and plausibly low-frequency era-identification (what detrending removes); insufficient for Case A.
+
+**Net:** the macro/rates axis does NOT provide stable incremental OOS information about the *level* of
+stock-bond correlation beyond volatility on U.S. data. Per the frozen downstream tree, Case C stops the
+portfolio bridge (no Stage 2 on U.S. data). Only legitimate continuation: international stock-bond pairs
+(independent transitions) to adjudicate the corr-*sign* hint — as pre-registered diagnosis, not a
+portfolio path. Default recommendation: bank the negative and write the methods paper. HMM thesis remains
+separate and dead; this does not revive it.
+
+## 2026-07-22 (later) — Belief Revision: the HMM coordinate is a compression, not a distinct latent state
+
+Formal belief revision following a pre-registered out-of-sample test
+(`scripts/representation_information.py`, `results/representation_information.csv`). This is the current
+headline; the "Continuum Turn" object below is superseded where they conflict.
+
+**Prior belief.** The continuous HMM coordinate `Z_t = E[μ_S | x_{1:t}]` appeared highly stable across
+training windows (in-sample cross-window corr 0.92–0.97) and potentially represented a latent market
+environment distinct from the raw observables.
+
+**New evidence.**
+- *Stability (genuine OOS perturbation tests, 2024→present):* cross-seed 0.42 / 0.50, cross-window
+  (exp~5y / exp~3y) 0.52 / 0.44, feature-subset (drop `spy_ret`) 0.60, K_max 8→12 0.54 — mean ≈0.5,
+  **substantially below the in-sample 0.92–0.97.** Even pure SVI seed noise (same data, same window)
+  drops Z-agreement to ≈0.45. Partly range-restriction on a calm validation window, partly genuine
+  estimation fragility; either way `Z` is not the seed/window-invariant coordinate it was filed as.
+- *Incremental information (pre-registered; HMM frozen on discovery ≤2023-12-31, forward-filtered):*
+  `Y ~ X_rich` vs `Y ~ X_rich + Z` for forward SPY realized vol. Primary (21d, baseline X+EWMA21):
+  R²_naive −0.031, R²_X **+0.140**, R²_{X+Z} +0.100, **ΔR² = −0.040** (block-perm p=0.53; bootstrap 90%
+  CI [−0.41, +0.01]; phase-randomized negative control median −0.061 — `Z` is indistinguishable from its
+  own spectral surrogate). **Broadly negative across {5,21,63}d × {all, hiVIX, loVIX} + entropy; no cell
+  passes Bonferroni.** The increment shrinks toward 0 as the observable baseline is enriched (A_raw
+  −0.052 → C_ewma5/21/63 −0.017) — the signature of a redundant compression.
+
+**Revised belief.** The HMM coordinate is best regarded as a **moderately-stable statistical
+compression / reparameterization of the observable feature space**, *not* — on current evidence — a
+distinct latent environment carrying incremental volatility information. This retires the implicit hope
+in the Continuum-Turn framing that `Z_t` was a trustworthy object beyond the observables.
+
+**Remaining uncertainty (scope of the negative).** The result is specific to **volatility-related
+outcomes**. It does not establish whether the representation (more precisely, the macro/curve axis)
+carries incremental information about **dependence structure, tail co-movement, factor exposures,
+breadth, or liquidity** — untested, and worth testing ONLY given a stated theoretical reason for
+orthogonality to the volatility axis (not "something has to work").
+
+**Gate for any further experiment.** Before testing a new target class, answer: *why should `Z_t` (or the
+macro axis) contain information about `Y_t` that the volatility axis cannot already explain?* Assessed
+2026-07-22: only the **rates/inflation-regime family** (stock-bond correlation sign; duration /
+value-growth rotation) has a principled orthogonality argument (governed by PC2, to which VIX is
+sign-blind) — but (a) it is a *conditioning* claim (macro axis beyond VIX), not the latent-distinctness
+claim that just failed, and (b) in this 2016–2026 sample the relevant macro-regime shift is essentially a
+single episode (2022), so it is severely underpowered. Honest default: the project has likely reached its
+strongest defensible conclusion. See `NOTES.md`.
 
 ---
 
@@ -46,7 +148,7 @@ filter_horserace,stage2_conditioning}.py`).
 
 3. **The continuous coordinate Z_t = E[μ_S | x_{1:t}] is stable; the label instability was largely an
    artifact** (`continuous_state_diagnostic.py`). Across training windows Z_t's 2-D coordinate correlates
-   0.92–0.97 (label ARI 0.60–0.81 in-sample — far above E2's OOS 0.04–0.33, most of which was the VIX-merge
+   0.92–0.97 (label ARI 0.60–0.81 in-sample [but Z_t's OOS cross-perturbation stability is only ≈0.42–0.60 — corrected 2026-07-22; see Belief Revision above] — far above E2's OOS 0.04–0.33, most of which was the VIX-merge
    + label-switching on the projected label). Z_t is label-switching-invariant (a physical location), so it
    needs no merge to compare. BUT ~2/3 of Z_t is reproducible by a plain EWMA of the features (R²=0.68): a
    trustworthy continuous coordinate that is mostly smoothed observables + a ~1/3 model-specific component.
