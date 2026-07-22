@@ -17,12 +17,63 @@ frequency (jump vs heavy-tail vs fast-vol needs intraday/infill data — BNS bip
 Adam's taxonomy) — after conditioning on the strongest vol model, do exceedances of z_t = r_t/σ̂_t still
 cluster? Orthogonal to the vol axis BY CONSTRUCTION (standardized residuals). Also = the univariate
 version of "tail dependence," one of the two untested objects named at Chapter-3 closure.
-**MVE (draft prereg in the doc §8, NOT frozen — needs Adam's approval):** Hawkes-GLM / autoregressive
-conditional hazard on z<−2 events, ^GSPC 1950→2026 (~450+ events, ~10 crisis episodes = real replication
-count), hazard ladder A→D mirroring the stock-bond prereg, primary = OOS Δlog-score(D−C), block-bootstrap
-CI + LOTO + VIX-era kill-check + surrogate/simulation controls. ~2–3 sessions, no new data infra.
-If null → Chapter 4 of the methods/negative paper (vol axis exhausts daily structure across every
-representation tried). Next action: Adam approves/edits/freezes §8, or declines and defaults to the paper.
+**APPROVED by Adam 2026-07-22, with revision:** ladder must contain an explicit leverage-aware rung
+below the self-excitation comparison, and no freeze until event definition, vol model, threshold, and
+ladder are causally specified. Done — §8 now pins: Layer-1 = GJR-GARCH(1,1)-t (leverage-aware),
+expanding annual causal refits, 1950s initial window, events from 1960-01 (no full-sample fitting —
+CR-04 bug class); events e_t = 1{z_t < −2.0}, fixed constant threshold; ladder
+A → B_vol → B_lev (signed-return sums, RS⁻ share, down-day counts — absorbs leverage so b can't claim
+it) → C (splines+ridge on B_lev set) → D (+H_t, β from fixed half-life grid {1,2,5,10,21,63}d); primary
+OOS Δlog-score(D−C) with the full increment curve reported; prob clipping, uniform covariate set,
+NFCI (1971+, 7d lag) and VIX-era kill-check as pre-declared variants. ~420–580 events, ~10 crisis
+episodes, scoring starts ≈1986. If null → Chapter 4 of the methods/negative paper.
+**FROZEN 2026-07-22** — Adam signed §8.9; also declared this the **FINAL preregistered experiment of the
+current research program** (null → accept convergence, write the paper; Case A → genuinely new axis).
+Recorded as a pre-declared stopping rule in the doc (§8 status + §9). Design changes now prohibited.
+
+**Build session 1 DONE (2026-07-22):** `scripts/tailhazard_build.py` → `data/processed/tailhazard_daily.csv`
++ `results/tailhazard_{garch_params,construction_gate}.csv`. Construction gate CLEAN: 530 events @ c=2.0
+(rate 3.16%, inside the frozen 2.5–3.5% band), 67/67 GJR refits converged, all 11 pre-named crisis
+episodes contain events, per-decade counts even (56–94). Sanity highlight: top-|z| days mix raw crashes
+(1987-10-19, z −9.5) with low-vol surprises (2007-02-27: −3.5% raw but z −7.5) — standardization doing
+its job. venv note: `.venv` exists and has arch 8.0.0 / yfinance 1.2.0 (the dev-CLAUDE.md "not yet
+created" row is stale).
+
+**Build session 2 DONE (2026-07-22): full stage-1 battery scaffolded + smoke-tested.**
+`scripts/tailhazard_stage1.py` (mirrors histext_stage1 idioms): ladder A/B_vol/B_lev/C(spline+ridge,
+blocked-CV alpha)/D(+H_t, half-life grid), rolling-origin annual refits, 40% burn-in, per-day
+log-scores clipped 1e-5, stationary block bootstrap (mean block 126d), LOTO over the 11 episodes,
+increment curve D−A/D−B_vol/D−B_lev/D−C, per-refit b + chosen half-life (sign-stability falsifier),
+Christoffersen screen, hazard-shape diagnostic, all 3 controls (positive-tail placebo, shifted-history
+surrogate ×10, simulation calibration ×10), VIX-era kill-check. NFCI variant intentionally SKIPPED
+(NFCI not in panel — session-3 item). **Every rung fits by penalized MLE over Adam's `bernoulli_nll`
+with H from Adam's `excitation_state` — the battery cannot run until the core is written** (blind
+preserved: no real-data result exists). Adam confirmed the causal convention H[t]→e[t+1] (leak
+reasoning correct, incl. β distortion).
+
+**Smoke-tested on SYNTHETIC panels only** (scratchpad-only reference core, never committed):
+iid (b=0) → clean null (dLS −0.0002, CI incl 0, b sign-inconsistent, Christoffersen p=0.86);
+strong excitation (b=1.2, went supercritical — 96% event rate, a branching-ratio object lesson) →
+detected (dLS +0.056, P>0=1.00); moderate realistic (b=0.5, 3.5% rate, 95 OOS events) → detected
+(dLS +0.0020, CI [+0.0002,+0.0038], b +0.72 sign-consistent), controls all ≤0. Real run has ~330 OOS
+events ≈ 3.5× that power. Surrogate-control reading: PASS = not positive (strongly negative under
+genuine excitation is expected — destroyed history actively hurts D).
+
+**Core WRITTEN (2026-07-22, by Claude at Adam's direction — Learning-Mode arrangement waived):**
+`excitation_state` (O(n) recursion) + `bernoulli_nll` (logit-space via logaddexp) in
+`scripts/tailhazard_core.py`; all 5 property tests PASS. Pre-run verification checklist all green
+(prereg frozen/unchanged, β grid, rungs, OOS, bootstrap/LOTO, H_t→e_{t+1}, no prior results).
+
+**Real run LAUNCHED then ABORTED 2026-07-22 ~16:50 (Adam had to shut down).** ~12 min in, still inside
+the primary OOS loop; stdout was block-buffered so NOTHING was observed and results write only at
+completion → **no partial results exist, blind fully intact, relaunching is NOT a protocol violation**
+(the one-look discipline applies to completed results, none were produced).
+
+**Next action — relaunch when the machine can stay on ~2.5h (overnight is ideal):**
+`.venv/Scripts/python scripts/tailhazard_stage1.py 2>&1 | Tee-Object -FilePath results/tailhazard_stage1_run.log`
+(full battery, no --quick). Then the 12-part report incl. branching ratio
+n ≈ b·p̄(1−p̄)·e^(−β)/(1−e^(−β)) and frozen case classification. Session 3 after verdict: NFCI variant,
+RESEARCH-RECORD chapter. Nothing committed to git yet this arc.
 
 ## Session 2026-07-22 (latest) — Chapter 3 (Stage-1' covariance conditioning): NULL/negative, scoped closure
 

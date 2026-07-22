@@ -1,8 +1,8 @@
 ---
 title: Research decision — continuous-time latent state with jumps
-status: DECISION DOCUMENT 2026-07-22 — not frozen; §8 is a DRAFT prereg requiring Adam's approval before freezing
+status: FROZEN 2026-07-22 — §8 prereg frozen per Adam's §8.9 sign-off; do not edit hypothesis, event definition, threshold, vol model, or ladder after this date; declared the FINAL preregistered experiment of the current research program
 depends_on: RESEARCH-RECORD.md (Belief Revision; Continuum Turn; Chapters 1–3), .planning/COVARIANCE-CONDITIONING-PREREG.md, .planning/STOCKBOND-MACRO-PREREG.md
-approved_by: (pending)
+approved_by: Adam, 2026-07-22 (direction + leverage rung; §8.9 freeze sign-off same day)
 ---
 
 # Research decision: continuous latent state with jumps
@@ -33,9 +33,11 @@ approved_by: (pending)
 3. **Recommended model**: a discrete-time self-exciting hazard model (Hawkes-GLM /
    autoregressive conditional hazard) for tail-event arrival, benchmarked against a
    vol-calibrated hazard ladder. Not a latent SDE, not Bates SVJ, not a neural SDE (§3, §5).
-4. **MVE** (§8, draft prereg): S&P daily 1950→2026, ~450+ left-tail events across ~10 distinct
-   crisis episodes — an order of magnitude better replication count than Chapter 2's ~2
-   stock-bond transitions. ~2–3 sessions of work, all data already available.
+4. **MVE** (§8 — direction approved 2026-07-22; freeze pending §8.9): S&P daily 1950→2026
+   (events from 1960), ~420–580 left-tail events across ~10 distinct crisis episodes — an
+   order of magnitude better replication count than Chapter 2's ~2 stock-bond transitions.
+   ~2–3 sessions of work, all data already available. Per Adam's revision, the hazard ladder
+   contains an explicit leverage-aware rung (B_lev) below the self-excitation comparison.
 5. **If the MVE fails**, the negative closes the continuous-time/jump reframing at daily
    frequency and becomes Chapter 4 of the methods/negative paper — strengthening the
    three-chapter arc, not padding it.
@@ -256,10 +258,14 @@ exists to prevent.
    statistic: the empirical hazard profile $h(\tau)$ = P(event at lag τ after an event) —
    HMM implies a flat-then-step (memoryless within state) profile; Hawkes implies smooth
    exponential decay from an elevated peak. Also compare OOS log-scores directly.
-3. **vs SV misspecification (the most likely false positive):** the baseline *ladder* —if
-   apparent self-excitation shrinks toward zero as Layer 1 is enriched (GARCH-n → GJR-t →
-   HAR-RV with semivariance → +VIX), it was vol misspecification wearing a jump costume.
-   This is the same redundancy-signature diagnostic that correctly diagnosed Z_t.
+3. **vs SV misspecification — above all the leverage effect (the most likely false
+   positive):** a large down move raises tomorrow's volatility (asymmetry/leverage) and hence
+   tomorrow's tail probability *through the vol channel*; event-history excitation would
+   inherit that pattern and misreport it as b > 0. Controlled twice: parametrically at the
+   standardization stage (Layer 1 is GJR-asymmetric) and non-parametrically by the dedicated
+   leverage rung B_lev (§8.3). If apparent self-excitation shrinks toward zero across
+   A → B_vol → B_lev → C, it was vol/leverage misspecification wearing a jump costume —
+   the same redundancy-signature diagnostic that correctly diagnosed Z_t.
 4. **vs smooth tail drift:** rival D″ = GAS-t with dynamic ν_t (score-driven tail thickness,
    no event mechanism). If D″ ≈ D, tail dynamics exist but are smooth, not self-exciting —
    a different (still interesting) conclusion.
@@ -280,8 +286,8 @@ Declare **no evidence for tail-event dynamics beyond volatility** if ANY of:
   testing (Christoffersen-type) in-sample — nothing left to model;
 - OOS Δlog-score(D−C) ≤ 0, or its block-bootstrap CI includes 0;
 - The increment collapses under leave-one-crisis-out (single-episode artifact);
-- The increment shrinks monotonically toward 0 as the vol baseline is enriched
-  (redundancy signature — it's vol misspecification);
+- The increment shrinks monotonically toward 0 across the rungs A → B_vol → B_lev → C
+  (redundancy signature — leverage or vol miscalibration, not excitation);
 - $b$ (or branching ratio) is unstable in sign across the 1950–1990 / 1990–2026 halves;
 - The surrogate/simulation controls fire (pipeline manufactures excitation from i.i.d. data).
 
@@ -292,55 +298,111 @@ provisional; the pre-named escalation is international indices (independent cras
 
 ---
 
-## 8. DRAFT pre-registration — Minimum Viable Experiment (requires approval + freeze)
+## 8. Pre-registration — Minimum Viable Experiment (FROZEN 2026-07-22)
+
+**Status (2026-07-22, frozen).** Adam approved the experiment, required (i) an explicit
+leverage-aware volatility rung below the self-excitation comparison and (ii) full causal
+specification of the event definition, volatility model, threshold, and ladder — both
+incorporated — and then **signed the §8.9 checklist. This pre-registration is FROZEN**:
+hypothesis, thresholds, event definition, and ladder do not change; all post-hoc analysis
+is labeled exploratory. **Program-level commitment (Adam, 2026-07-22): this is the FINAL
+preregistered experiment of the current research program.** A null result is accepted as
+the convergence of the evidence — write the methods/negative paper, no further conditioning
+experiments. A Case-A result is a genuinely new axis that the HMM and covariance analyses
+were not designed to detect — proceed per §8.8.
 
 **Hypothesis (falsifiable form).** H1: conditional on the strongest honest causal volatility
-model, left-tail event arrival in S&P daily returns is self-exciting — event history carries
-incremental, stable OOS information about near-term tail-event probability. H0: standardized
-returns' tail exceedances are serially independent given the vol model (SV-complete world).
+model — *including its leverage/asymmetry channel* — left-tail event arrival in S&P daily
+returns is self-exciting: event history carries incremental, stable OOS information about
+near-term tail-event probability. H0: standardized returns' tail exceedances are serially
+independent given the vol/leverage information set (SV-complete world).
 
-**8.1 Events (primary target).** $z_t = r_t/\hat{\sigma}_{t|t-1}$ from rung C;
-$e_t = \mathbf{1}\{z_t < -2.0\}$. Robustness: c = 2.5; two-sided $|z_t| > c$ as pre-declared
-secondary. Expected event count: ~2.3–3% of ~19,200 days (1950→2026) ≈ **440–570 events**
-across ≈ 10+ distinct crisis episodes (1962, 1974, 1987, 1998, 2000–02, 2008–09, 2011, 2015,
-2018, 2020, 2022, …) — the replication-count weakness of Chapters 2–3 does not apply here.
+**8.1 Layer-1 volatility model (event-defining; pinned, causal, leverage-aware).**
+- **Primary: GJR-GARCH(1,1) with Student-t innovations** — leverage-aware by construction
+  (the asymmetry term lets negative returns raise conditional vol more than positive ones),
+  so the leverage effect is absorbed at the standardization stage before any hazard modeling.
+- **Causal estimation protocol:** parameters re-estimated each year-end on all data through
+  that date (expanding window); $\hat\sigma_{t|t-1}$ for days in year Y+1 is produced by
+  running the GARCH recursion causally under the year-Y parameters. Initial estimation window
+  1950-01→1959-12; the event series therefore begins **1960-01**. No full-sample parameter
+  fitting anywhere — fitting once on all data and standardizing in-sample would leak the
+  future through the parameters (the same class of bug as CR-04).
+- **Pre-declared alternative event-vol models (robustness — full pipeline re-run):** HAR-RV
+  with signed semivariance (Patton–Sheppard; leverage-aware through $RS^-$), and RiskMetrics
+  EWMA (λ = 0.94; no estimation, trivially causal). A Case-A result must not be specific to
+  the GJR event definition.
+- **The event series is fixed by the primary Layer-1 model.** The hazard ladder varies the
+  *information set*, never the events — otherwise rung comparisons would be scoring different
+  targets.
 
-**8.2 Primary metric.** OOS mean Δ log-score (D − C) for the 1-day-ahead event probability,
-rolling-origin (first ~40% burn-in, annual refit), stationary block bootstrap CI (mean block
-~126d) excluding 0, plus leave-one-crisis-out. Secondaries: Brier; cumulative event
-probability at h ∈ {5, 21}; hazard-shape diagnostic (§6.2).
+**8.2 Events and threshold (pinned).** $z_t = r_t/\hat\sigma_{t|t-1}$;
+$e_t = \mathbf{1}\{z_t < -2.0\}$ with the threshold a **fixed constant** — causal by
+definition (no estimated quantile, no calibration to a target rate, nothing fit to data).
+Robustness: c = 2.5. Two-sided $|z_t| > 2.0$ is the one pre-declared secondary. Under
+t-innovations expect P(z < −2) ≈ 2.5–3.5% → roughly **420–580 events** on ~16,700
+event-eligible days (1960→2026), across 10+ distinct crisis episodes (1962, 1974, 1987, 1998,
+2000–02, 2008–09, 2011, 2015, 2018, 2020, 2022, …) — the replication-count weakness of
+Chapters 2–3 does not apply here.
 
-**8.3 Baseline ladder (Layer 1 + hazard rungs).**
-- Vol models, increasing strength: GARCH(1,1)-normal → GJR-GARCH-t → HAR-RV with realized
-  semivariance (Patton–Sheppard) → +VIX (1990+ subsample). Rung used for event definition and
-  as C's information set = the strongest available at each date.
-- Hazard rungs: **A** constant hazard; **B** hazard + linear vol/stress covariates;
-  **C** hazard + flexible vol/stress covariates (splines + ridge, blocked-CV, mirroring the
-  stock-bond prereg's rung C) — absorbs any vol-dependent miscalibration of Layer 1;
-  **D** = C + excitation state $H_t$. **Primary comparison: D − C.**
-- Note: if Layer 1 were perfectly specified, A ≈ C by construction; the B/C rungs exist
-  precisely so that D−C cannot be won by "the GARCH is miscalibrated when VIX is high."
+**8.3 Hazard ladder (pinned; every rung predicts $e_{t+1}$ from information ≤ t, all on the
+same fixed event series).**
+- **A — constant hazard:** expanding-window empirical event rate.
+- **B_vol — symmetric vol/stress:** logistic hazard on
+  $\{\log\hat\sigma_{t|t-1},\ \log RV21_t,\ \log RV63_t\}$. Absorbs *level*-dependent
+  miscalibration of Layer 1 ("the GARCH is miscalibrated when vol is high").
+- **B_lev — leverage-aware rung (required by Adam, 2026-07-22):** B_vol +
+  $\{r_t^-,\ \textstyle\sum_{5d} r^-,\ \sum_{21d} r^-,\ RS^-_{21}/RV_{21},\ \text{down-day count}_{21}\}$
+  — signed-return magnitudes, negative-semivariance share, down-day frequency. Absorbs the
+  leverage effect non-parametrically: a large down day raises tomorrow's vol and hence
+  tomorrow's tail probability *through the vol channel*, a pattern event-history excitation
+  would otherwise inherit and misreport as b > 0. Leverage is thus controlled twice —
+  parametrically in Layer 1 (GJR asymmetry) and non-parametrically here.
+- **C — flexible:** natural cubic splines (df = 4 per input) + ridge (alpha by blocked CV on
+  the training portion only) over the **B_lev covariate set** — the strongest honest
+  vol/leverage-driven hazard.
+- **D — C + excitation:** adds $H_t = e^{-\beta}H_{t-1} + e_t$ ($H_0 = 0$; α absorbed into
+  b); β selected on training data only, from the pre-declared half-life grid
+  {1, 2, 5, 10, 21, 63} days.
+- **Primary comparison: D − C.** The full increment curve D−A, D−B_vol, D−B_lev, D−C is also
+  reported: the increment must *survive to the last rung*; monotone shrinkage toward 0 is the
+  redundancy signature (leverage/vol miscalibration, not excitation).
+- Note: if Layer 1 were perfectly specified, A ≈ B_vol ≈ B_lev ≈ C by construction; the rungs
+  exist so that D−C cannot be won by any vol- or leverage-dependent miscalibration of Layer 1.
 
-**8.4 Sample.** Primary: ^GSPC daily 1950-01→2026-07 (RV-based baselines; yfinance, already
-in-pipeline). **Pre-declared kill-check:** the D−C increment must independently hold on
-1990→2026 with VIX in the baseline (if it lives only where implied vol is unobservable, it is
-proxying implied-vol information, not excitation). NFCI enters covariates 1971+.
+**8.4 Primary metric and OOS protocol (causal).** OOS mean Δ log-score (D − C) for the
+1-day-ahead event probability. Rolling-origin with burn-in = first 40% of the event-eligible
+sample (scoring starts ≈ 1986, so 1987, 1998, 2000–02, 2008–09, 2011, 2015, 2018, 2020, 2022
+are all OOS); **annual refit of everything** (Layer 1, all hazard rungs, ridge alphas, β) on
+data through each refit date; predicted probabilities clipped to $[10^{-5}, 1-10^{-5}]$
+(log-score stability, pre-declared); all rungs scored on identical evaluation days.
+Inference: stationary block bootstrap CI (mean block ~126d) excluding 0, plus
+leave-one-crisis-out. Secondaries: Brier; cumulative event probability at h ∈ {5, 21};
+hazard-shape diagnostic (§6.2).
 
-**8.5 Controls.** Positive-tail placebo; block-shuffled event-history surrogate; i.i.d.
+**8.5 Sample and covariate availability (pre-declared).** Primary: ^GSPC daily
+1950-01→2026-07 (events from 1960-01; yfinance, already in-pipeline). The primary covariate
+set is **uniform over the whole sample** (σ̂, RV, leverage terms — all return-derived; no
+series that starts mid-sample). Two pre-declared enrichment variants, reported separately and
+never swapped in post hoc: (i) **NFCI-added** (1971+, with the 7-day publication lag per the
+CR-01 convention); (ii) **VIX-era kill-check** (1990→2026, prior-day VIX close added to
+B_vol/B_lev/C): the D−C increment must independently hold there — if it lives only where
+implied vol is unobservable, it is proxying implied-vol information, not excitation.
+
+**8.6 Controls.** Positive-tail placebo; block-shuffled event-history surrogate; i.i.d.
 simulation false-positive calibration (§6.5). One primary, one pre-declared secondary
 (two-sided events); all else robustness.
 
-**8.6 Case table.**
+**8.7 Case table.**
 
 | Case | Outcome | Interpretation |
 |---|---|---|
-| A | D−C > 0, CI excludes 0, survives LOTO + ladder + VIX-era kill-check + controls | tail-arrival dynamics beyond vol exist — provisional; proceed to Stage 2 |
+| A | D−C > 0, CI excludes 0, survives LOTO + full rung curve + VIX-era kill-check + controls | tail-arrival dynamics beyond vol/leverage exist — provisional; proceed to Stage 2 |
 | B | increment exists only in some eras/episodes | episode-conditional; diagnose, do not proceed |
-| C | in-sample clustering exists but OOS increment ≤ 0 or dies under ladder enrichment | vol misspecification / co-movement, not excitation — close |
+| C | in-sample clustering exists but OOS increment ≤ 0, or dies across A → B_vol → B_lev → C | leverage/vol miscalibration, not excitation — close |
 | D | rung-C hit sequence already independent in-sample | SV-complete world at daily frequency — close, bank the negative |
 | E | controls fire (surrogate/simulation false positives) | pipeline invalid — fix before any claim |
 
-**8.7 Downstream decision tree (strictly gated, nothing built now).**
+**8.8 Downstream decision tree (strictly gated, nothing built now).**
 Stage 2 (entry: Case A): marked process (jump-size distribution), asymmetry (left vs right
 excitation), cross-asset mutual excitation (does an SPX event raise credit/rates tail hazard —
 the ACL 2015 contagion object), and the D″ GAS-ν rival to classify smooth-vs-event-driven.
@@ -352,14 +414,31 @@ even under Case A: excitation half-lives are days, so the natural consumer is **
 risk-ops/de-risking** — consistent with where the record already located this project's
 practical value — not monthly allocation.
 
-**8.8 Effort estimate.** Layer-1 vol models + event construction ~1 session; hazard ladder +
-OOS harness (reusing the rolling-origin/bootstrap machinery from `histext_stage1.py` /
-`stage1p_covariance.py`) ~1 session; controls + writeup ~1 session. No new data
-infrastructure; no options, no intraday.
+**8.9 Freeze checklist — the four blocking items, now pinned.**
+
+| # | Item | Pinned specification | Sign-off |
+|---|---|---|---|
+| 1 | Event definition | $e_t = \mathbf{1}\{z_t < -2.0\}$ on GJR-GARCH(1,1)-t standardized residuals; events from 1960-01; fixed across all rungs and never redefined by the ladder | ✓ 2026-07-22 |
+| 2 | Volatility model | GJR-GARCH(1,1)-t, expanding annual causal refits, 1950-01→1959-12 initial window; HAR-RS⁻ and EWMA(0.94) as event-definition robustness | ✓ 2026-07-22 |
+| 3 | Threshold | fixed constant c = 2.0 (causal by definition); c = 2.5 robustness; two-sided the one secondary | ✓ 2026-07-22 |
+| 4 | Ladder | A → B_vol → B_lev (leverage rung) → C (splines+ridge on B_lev set) → D (+ $H_t$, β from fixed half-life grid); primary D−C; full increment curve reported | ✓ 2026-07-22 |
+
+Sign-off: **Adam, 2026-07-22** → status **FROZEN**. Thereafter no changes to hypothesis,
+thresholds, event definition, or ladder; deviations require a logged amendment before
+results are seen.
+
+**8.10 Effort estimate.** Layer-1 causal GJR harness + event construction ~1 session; hazard
+ladder + OOS harness (reusing the rolling-origin/bootstrap machinery from
+`histext_stage1.py` / `stage1p_covariance.py`) ~1 session; controls + writeup ~1 session. No
+new data infrastructure; no options, no intraday.
 
 ---
 
 ## 9. Roadmap and what each outcome means
+
+**Pre-declared stopping rule (Adam, 2026-07-22):** this MVE is the final preregistered
+experiment of the current program — Case C/D ends the program at the methods/negative
+paper; there is no fifth experiment.
 
 - **Case A →** Stage 2 as in §8.7. The only place "genuine jumps" ever become *identifiable*
   (rather than inferred) is with new data: intraday realized measures (RV/BV/JV) or the
