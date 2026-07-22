@@ -3,7 +3,123 @@
 ## Status
 Architecture: stripped HDP-HMM, paper-first
 Branch: main
-Last updated: 2026-07-21
+Last updated: 2026-07-22
+
+## Session 2026-07-22 — The Continuum Turn: HMM estimator rejected on OOS prediction; env is a continuous 2-D coordinate
+
+Big reframe + 6 reproducible experiments. Durable narrative: `RESEARCH-RECORD.md` → "2026-07-22 — The
+Continuum Turn". Forward plan: `.planning/ROADMAP.md`. Arc:
+
+- **Reframe** (ROADMAP.md): goal = a *trustworthy* state, defined as CALIBRATION (not accuracy),
+  purpose-relative + confidence-conditional; two-stage (trusted state → conditional asset behavior).
+- **Phase 0 gate** (`scripts/trust_gate.py`): cross-window agreement IS a real confidence signal (state
+  η² rises 0.095→0.160 with agreement); but the VIX-projected state ties the VIX 15/25 null on forward-vol
+  resolution (η² 0.078 vs 0.081). (RMSE-by-confidence was heteroskedasticity-confounded — use η².)
+- **Raw-state fingerprint** (`scripts/raw_state_fingerprint.py`): the 8 raw states are **~2-D (PR 1.88),
+  NOT a 1-D vol ladder** — PC1 (65%) stress = VIX+NFCI, PC2 (32%) macro = yield_slope, nearly orthogonal
+  (cross-state corr 0.15). **Every prior "no beyond-VIX" negative was on the VIX-rank-merged label, which
+  deletes PC2 by construction.**
+- **Characterization** (`scripts/state_characterization.py`): it's a weakly-structured **CONTINUUM**, not
+  discrete clusters (silhouette 0.19; GMM BIC never minimizes → explains K-saturation + E2 instability).
+  Macro axis RECURS (corr w/ time 0.06, 92 crossings), not secular. No independent scale dim (cleanly 2-D).
+- **Continuous-state diagnostic** (`scripts/continuous_state_diagnostic.py`): Z_t = E[μ_S|x] is STABLE
+  across windows (PC corr 0.92–0.97; label ARI 0.60–0.81 — far above E2's 0.04–0.33, so most of E2's
+  "instability" was the VIX-merge/label-switching artifact). Z_t is ~2/3 explained by a plain EWMA of the
+  features (R²=0.68): trustworthy coordinate, mostly smoothed features + ~1/3 model-specific.
+- **Filter horse-race** (`scripts/filter_horserace.py`) — DECISIVE: **the current HMM-based environment
+  estimator is REJECTED on OOS predictive grounds vs simpler continuous filters.** Scale-invariant OOS corr
+  predicting X_{t+h}: HMM 0.25–0.38 vs EWMA/VAR/persistence 0.51–0.73 (~half the info), every horizon, both
+  regimes. Mechanism: discretizing a continuum discards within-state position (~half the predictive signal;
+  corr(Z_t,X_{t+1})=0.38 < corr(X_t,X_{t+1})=0.71). SCOPE: this estimator on this evidence — NOT "HMMs wrong".
+- **Stage 2 first cut** (`scripts/stage2_conditioning.py`): continuous env coordinate (stress=VIX+NFCI,
+  macro=slope) adds **no reliable incremental OOS value over raw features** for conditioning cross-asset
+  behavior (ΔR² mostly ≤0). Descriptive conditional structure exists (stress tertiles: TLT +1.1%→−0.6%,
+  SPY +0.6%→+2.1% fwd-21d) but ~captured by raw features. Stock-bond (SPY–IEF) corr weakly tracks macro
+  (+0.14; −0.21 inv → −0.04 steep). Basket cached: `data/processed/cross_asset.csv` (SPY IEF TLT HYG LQD
+  GLD IWF IWD via yfinance).
+
+**Net:** trustworthy object = a continuous, stable 2-D (stress, macro) coordinate ≈ the smoothed macro
+features; the HMM adds no predictive value and is rejected as the estimator; the coordinate shows no clear
+incremental conditioning value over raw features yet (first cut, low OOS power).
+
+### Next action (re-entry)
+1. If pursuing Stage 2: redo with block-bootstrap significance, a cleaner env spec, and focus the
+   macro-axis → duration/style/stock-bond-corr hypotheses (the one place beyond-VIX structure could live),
+   strictly benchmarked vs raw features.
+2. If that also shows nothing incremental, write up the **methods/negative paper**: (a) the 2-D
+   stress/macro geometry the VIX-projection hid; (b) markets = weakly-structured continuum, not discrete
+   regimes (explains K-saturation); (c) HMM estimator rejected on OOS prediction vs simple filters;
+   (d) cross-window agreement as honest confidence. Retires the discrete-HMM framing.
+
+Nothing needs doing immediately. `paper.tex` untouched and now badly out of date.
+
+## Session End 2026-07-21 — feature investigation done; headline thesis NOT supported
+
+Full arc this session: research audit → reproducible significance test → feature diagnostics → reduced
+feature search. **Verdict: the regimes are volatility regimes (overdetermined) — no beyond-VIX
+information, and no tradeable alpha.** The vol ladder recovers even with zero vol inputs (no VIX, no
+NFCI); every candidate feature (dispersion & participation breadth, slope, NFCI) collapses onto the vol
+axis; K saturates at 8 in every fit. Robustness ⇒ already priced.
+
+The durable take-away doc is **`RESEARCH-RECORD.md`** — see especially "Alpha Assessment & Where This
+Leaves the Project" for the 4 options (pivot the paper to descriptive/methodological + honest negatives;
+ship the tool as risk-ops only; treat alpha as a separate problem; or shelve). Nothing needs doing now.
+
+New scripts (all reproducible): `scripts/significance_test.py`, `feature_ablation.py`,
+`feature_discovery.py`, `feature_search.py`. `paper.tex` intentionally untouched pending the pivot decision.
+
+---
+
+## Experiment 1 DONE — significance test (surprising result)
+
+`block_permutation_test()` implemented in `src/core/evaluation.py`; `scripts/significance_test.py` runs
+end-to-end and is now the reproducible source for the ΔR² numbers (Finding 4 closed). **Result: 0/4 cells
+significant under the block-permutation null** — return 5d p=0.20, return 21d p=0.16, vol 5d p=0.73, vol
+21d p=0.50. The prior "regimes carry beyond-VIX volatility information" claim does **not** survive; vol
+was demoted *hardest*. The bootstrap CIs all excluded 0 — the predicted mirage (ΔR²≥0 by construction).
+Leading cause: **regime↔VIX collinearity** — the regime is a VIX-rank partition, so it can't add much
+beyond VIX; permutation decorrelates it and inflates the null (observed ΔR² sits below the null median
+for vol). This is quantitative proof of the audit's core concern: you can't test "beyond VIX" with a
+label built from VIX. Full writeup + numbers: `RESEARCH-RECORD.md` → "Experiment 1 — Result".
+
+Files: `scripts/significance_test.py` (new), `block_permutation_test()` in `evaluation.py` (new),
+`results/significance_test.{txt,csv}` (generated). Check question answered: row-shuffle → smaller p →
+overstates significance; block-permute is the honest choice.
+
+**Next: Experiment 3** (raw 8-state fingerprints + VIX-ablation) — the only way to make the beyond-VIX
+question answerable, since today's label is a function of VIX. Secondary: a conditional (VIX-stratified)
+permutation as the "fair" version of this null.
+
+## Research Audit (2026-07-21) — `RESEARCH-RECORD.md` (root)
+
+Durable research record promoted to repo root (`RESEARCH-RECORD.md`); full technical evidence retained
+at `.planning/RESEARCH-AUDIT.md`. Full read-only research reconstruction + statistical-validity audit.
+No code changed. Verdict:
+narrow thesis Partially Supported; headline thesis ("VIX-irrecoverable structure recovered by a
+nonparametric model") Not Yet Established. Four findings not previously logged, ranked:
+
+1. **[HIGH] Table 2 "posterior-mean transition matrix" is neither.** `run_paper_experiments.py:133-137`
+   computes it as an empirical count on the hysteresis-smoothed, VIX-merged 3-state labels — not
+   `params['trans_matrix']` (the real posterior matrix `get_transition_matrix()` extracts but is never
+   used). High diagonals are partly inflated by hysteresis + the 8→3 merge, so "persistence is not
+   imposed by the model" is backwards. Paper prose diagonals (0.989/0.986/0.974) are also stale vs the
+   regenerated table (0.986/0.984/0.976).
+2. **[HIGH] In-sample dwell comparison is confounded** — HDP labels get 3-day hysteresis; the
+   VIX-threshold + parametric baselines it's compared against get none. Same class of bug already fixed
+   for OOS (e6962df), but the inverse asymmetry is still baked into the paper's headline (66/61/41 vs
+   8-17). Persistence advantage is real but its *magnitude* is inflated.
+3. **[HIGH] The HDP's K-selection is inert.** `effective_K` = mean 8.0, std 0.0, mode 8 every run — it
+   saturates K_max and keeps all 8 states; the 3 regimes are imposed by the VIX-rank tertile cut, not
+   discovered. On current evidence the nonparametric complexity isn't demonstrably beating a fixed-K
+   sticky HMM (and the one parametric baseline is degenerate: Moderate-Vol N=367, dwell=367 = one block).
+4. **[HIGH] The significance test isn't reproducible.** `block_bootstrap_ci`/`regime_delta_r2` exist in
+   `evaluation.py` but are called by no committed script — the ΔR² numbers (the project's best result)
+   live only in prose. Fix: a ~30-line `scripts/significance_test.py`.
+
+Top-3 next moves per the audit: (C2) write the significance-test script + permutation null; (C1) fix
+the dwell/persistence comparison asymmetry + relabel Table 2; (R1) fingerprint the raw 8 states +
+VIX-ablation — the experiment that actually decides the headline thesis. Also: `paper.tex:153` "features
+lagged one day" is false (causality is from expanding-standardize + filtering, not a lag).
 
 ## Causality Deep-Review (2026-07-20/21) — Fixed and Committed (185ae8d)
 

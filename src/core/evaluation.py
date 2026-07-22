@@ -161,3 +161,66 @@ def block_bootstrap_ci(arrays, statistic_fn, n_boot=1000, block_size=21, ci=90, 
     lo_pct, hi_pct = (100 - ci) / 2, 100 - (100 - ci) / 2
     ci_low, ci_high = np.percentile(boot_stats, [lo_pct, hi_pct])
     return observed, ci_low, ci_high, boot_stats
+
+
+def block_permutation_test(arrays, statistic_fn, permute_arg=0, n_perm=1000,
+                           block_size=21, seed=42):
+    """Block-permutation (Monte-Carlo) test: is statistic_fn's value larger than
+    what RANDOM rearrangements of ONE input series would produce?
+
+    Why this and not block_bootstrap_ci: for statistics like regime_delta_r2 the
+    value is >= 0 *by construction* (adding OLS regressors never lowers in-sample
+    R^2), so a bootstrap CI almost always excludes 0 and proves nothing about a
+    real effect. This test instead breaks the link between arrays[permute_arg]
+    (e.g. the regime label) and the other arrays (VIX, target) by block-shuffling
+    it while holding the rest fixed in time. The resulting null distribution is
+    "what delta-R^2 do 2 spuriously-placed dummies give?" -- NOT centered at 0 --
+    and the p-value asks whether the real labels beat that.
+
+    BLOCK shuffling (permute the order of contiguous blocks), not row shuffling:
+    preserves the permuted series' own serial correlation and run structure. Row
+    shuffling would turn a persistent regime series into white noise, collapsing
+    the null's spread and overstating significance -- the mirror image of why
+    block_bootstrap_ci resamples blocks rather than rows.
+
+    Parameters
+    ----------
+    arrays : tuple of ndarrays, all length T
+        Same convention as block_bootstrap_ci -- e.g. (regime_idx, vix, target).
+    statistic_fn : callable
+        Takes the (possibly permuted) arrays, returns a single float.
+    permute_arg : int
+        Index into `arrays` of the series to shuffle (0 = the regime label).
+        Every other array is held fixed in its original time order.
+    n_perm : int
+        Number of permutations (null draws).
+    block_size : int
+        Trading days per block (21 ~ 1 month), matching block_bootstrap_ci.
+    seed : int
+
+    Returns
+    -------
+    observed : float -- statistic_fn on the real (unpermuted) arrays
+    p_value  : float -- (1 + #{null >= observed}) / (n_perm + 1)
+    null_dist: ndarray (n_perm,) -- the permutation null distribution
+    """
+    T = len(arrays[0])
+    rng = np.random.RandomState(seed)
+    observed = statistic_fn(*arrays)
+
+    # Permute the ORDER of contiguous blocks (each row used exactly once) so the
+    # permuted series keeps its marginal distribution and within-block serial
+    # structure -- only its timing relative to the other arrays is destroyed.
+    blocks = [np.arange(i, min(i + block_size, T)) for i in range(0, T, block_size)]
+    null_dist = np.empty(n_perm)
+    for b in range(n_perm):
+        perm_idx = np.concatenate([blocks[i] for i in rng.permutation(len(blocks))])
+        permuted = list(arrays)
+        permuted[permute_arg] = arrays[permute_arg][perm_idx]
+        null_dist[b] = statistic_fn(*permuted)
+
+    # +1 in numerator AND denominator: the observed value counts as one of its own
+    # null draws, so a finite Monte-Carlo test can never return exactly 0
+    # (North et al. 2002).
+    p_value = (1 + np.sum(null_dist >= observed)) / (n_perm + 1)
+    return observed, p_value, null_dist
