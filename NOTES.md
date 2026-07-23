@@ -50,6 +50,26 @@ graded tilts, never 0/100 — goal set 2026-07-23).
    inputs, v1 deps — all deleted; recoverable in git history). Any future downstream integration
    is designed fresh against the jump-model label.
 
+## Track 1 — DONE (2026-07-23)
+
+- **Ex-post benchmark** (`scripts/validate_sensor.py`, `results/sensor_validation.csv`): the
+  sensor is a VOLATILITY-STATE detector, not a bear-market detector — catches 15/18 LT-15%
+  bears (median lag 20d from ex-post peak), precision ~0.32 (also flags vol-without-bear),
+  misses fast crashes entirely (1998 LTCM, 2018 Q4 — sub-threshold at deployed λ; documented
+  spec limitation; asymmetric-λ is the Track-2 knob for it).
+- **Characterization (the headline):** stressed state has HIGHER ann. mean (14.1% vs 11.6%)
+  at 2× vol (25% vs 14.3%) — crashes AND rebounds share the state (partly a mechanical
+  entry-lag tilt toward rebound days). Sharpe 0.56 vs 0.81 → risk-adjusted logic alone cuts
+  stressed exposure to ~40% of calm with NO directional bet. **Conditional value lives in
+  second moments** → atlas focuses there. Confidence upgrades queued: calibrated P(state)
+  from the filter evidence gap; K=3 crash/rebound split as atlas-phase exploration (must
+  re-clear K=2's stability bar; watch the entry-lag confound).
+- **Live label operational** (`scripts/live_label.py`, `results/label_live.csv`): SPY splice
+  gate PASS (corr 0.9957), label runs to TODAY; 1.0000 agreement with frozen labels on all
+  9120 overlap days. Current state: CALM since 2026-04-23.
+
 ## Next action
 
-Track 1: ex-post dating benchmark + state characterization + SPY-splice live tail.
+Program step 2-3: expand the panel (French 10 industries + SMB/HML/MOM, synthetic bond TR,
+gold + gates in `build_panel.py`), then the state-conditional atlas with per-episode
+(leave-one-episode-out) stability checks → new report pages.
