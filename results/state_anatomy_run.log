@@ -1,0 +1,29 @@
+=== 1. WHAT IS EACH STATE (daily market return distribution) ===
+  calm      n= 6467 ret  +11.6% vol  14.3% Sharpe  0.81 skew -0.44 exkurt   4.6 VaR5 -1.49% ES5 -2.17% best +5.4% worst -7.0%
+  stressed  n= 2653 ret  +14.1% vol  25.0% Sharpe  0.56 skew -0.09 exkurt   7.3 VaR5 -2.36% ES5 -3.68% best +11.4% worst -12.0%
+
+=== 2. INSIDE STRESSED EPISODES: crash phase vs rebound phase ===
+  crash phase   (entry→trough):  1256 days, ann ret  -42.2%, vol  29.4%
+  rebound phase (trough→exit):   1397 days, ann ret  +64.7%, vol  19.7%
+  → the stressed state is ~53% rebound days. Median rebound captured INSIDE the state (a switcher forfeits this): +6.9% per episode (mean +13.2%; total across 30 episodes +3126.5% compounded)
+  median trough position: day 9 of 35 (median episode) — 73% of a median episode is rebound
+  63d after exit: median +3.8% (the re-entry is not too late once it happens)
+
+=== 3. EXIT HAZARD: given stress has lasted d days, P(exit within 21d) ===
+  survived   0d: 30 episodes alive, P(exit within 21d) = 33%
+  survived  21d: 20 episodes alive, P(exit within 21d) = 40%
+  survived  42d: 12 episodes alive, P(exit within 21d) = 17%
+  survived  63d: 10 episodes alive, P(exit within 21d) = 10%
+  survived 126d:  5 episodes alive, P(exit within 21d) = 20%
+  survived 252d:  3 episodes alive, P(exit within 21d) = 0%
+
+=== 4. BULL ANATOMY: calm days by age since stress exit ===
+  young bull (0-63d)   n= 1245 ret  +15.9% vol  12.4% Sharpe  1.29 skew -0.43
+  mid bull (63-252d)   n= 1899 ret   +7.1% vol  13.8% Sharpe  0.51 skew -0.68
+  old bull (252d+)     n= 3323 ret  +12.5% vol  15.3% Sharpe  0.82 skew -0.33
+
+=== 5. MOMENTUM BY STATE (12-1 trailing market return, contemporaneous) ===
+  calm      12-1 momentum positive on 97% of days (median +16.8%)
+  stressed  12-1 momentum positive on 44% of days (median -3.5%)
+
+wrote results/state_anatomy.csv (45 rows)

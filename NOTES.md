@@ -149,6 +149,33 @@ options were:
 3. Instrument-track continuation regardless: λ frontier / asymmetric penalties (Track 2)
    are about the SENSOR, not allocation, and remain legitimate.
 
+## State anatomy — DONE (2026-07-23, descriptive, no look spent)
+
+`scripts/state_anatomy.py` → `results/state_anatomy.csv` (+ run log). Adam's re-entry
+question, quantified on the frozen labels:
+
+- **The stressed state is 53% rebound days.** Crash phase (entry→trough) −42.2% ann at
+  29.4% vol; rebound phase (trough→exit) **+64.7% ann at 19.7% vol** — the best
+  risk-adjusted environment in the dataset is hiding INSIDE the "bear" label. Median
+  trough = day 9 of a 35-day median episode (73% of a median episode is rebound). A 0/100
+  switcher forfeits median +6.9%/episode (mean +13.2%, fat right tail: 2008/2020).
+- **Exit hazard is non-monotone** (33% → 40% → 17% → 10% per 21d as episodes age): quick
+  scares die inside ~6 weeks; episodes that survive become long grinds — two episode
+  species, supports the K=3 crash/rebound split idea.
+- **The bull is not one thing:** young bull (first 63d post-stress) Sharpe **1.29** at
+  12.4% vol — the honeymoon; mid bull (63-252d) is the WORST calm phase (Sharpe 0.51);
+  old bull 0.82.
+- **Momentum ties in exactly as Daniel–Moskowitz says:** stressed days are 44%
+  momentum-positive (median 12-1 = −3.5%) vs calm 97% — the state overlaps momentum-crash
+  conditions; design knowledge for the gated chapter 3.
+- **Honesty caveat (binding):** trough positions are defined EX-POST. The rebound phase is
+  real structure, not a tradeable signal — recognizing the trough in real time is the same
+  detection-lag race chapters 1–2 lost. Any economic use needs prereg + honest incumbent.
+
+Next instrument steps this motivates (no prereg needed until an economic claim is made):
+K=3 crash/rebound/calm exploration (must re-clear K=2's stability bar; entry-lag confound
+check), asymmetric-λ exit dial, calibrated P(state) from the filter evidence gap.
+
 Also queued (not blocking): calibrated P(state) from the filter evidence gap (needed by the
 graded variant — calibrate on SYNTHETIC panels pre-freeze); K=3 crash/rebound exploration
 (entry-lag confound check); atlas pages in report.html; λ lag-vs-whipsaw frontier.
