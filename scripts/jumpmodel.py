@@ -33,6 +33,13 @@ def _dp_assign(C, lam):
     T, k = C.shape
     if k == 2:
         return _dp_assign_k2(C, lam)
+    if k == 3:
+        return _dp_assign_k3(C, lam)
+    return _dp_assign_general(C, lam)
+
+
+def _dp_assign_general(C, lam):
+    T, k = C.shape
     switch = lam * (1.0 - np.eye(k))
     V = np.empty((T, k))
     B = np.zeros((T, k), dtype=int)
@@ -73,6 +80,51 @@ def _dp_assign_k2(C, lam):
     for t in range(T - 1, 0, -1):
         s[t - 1] = back[t, s[t]]
     return s, float(min(v0, v1))
+
+
+def _dp_assign_k3(C, lam):
+    """Scalar fast path for k=3 (same recursion as the general path; the best
+    predecessor for target j is min(v_j, lam + min over the other two))."""
+    T = C.shape[0]
+    c0, c1, c2 = C[:, 0].tolist(), C[:, 1].tolist(), C[:, 2].tolist()
+    v0, v1, v2 = c0[0], c1[0], c2[0]
+    back = np.zeros((T, 3), dtype=np.uint8)
+    for t in range(1, T):
+        if v0 <= v1:
+            m01, a01 = v0, 0
+        else:
+            m01, a01 = v1, 1
+        if v0 <= v2:
+            m02, a02 = v0, 0
+        else:
+            m02, a02 = v2, 2
+        if v1 <= v2:
+            m12, a12 = v1, 1
+        else:
+            m12, a12 = v2, 2
+        alt = m12 + lam
+        if alt < v0:
+            b0, n0 = a12, c0[t] + alt
+        else:
+            b0, n0 = 0, c0[t] + v0
+        alt = m02 + lam
+        if alt < v1:
+            b1, n1 = a02, c1[t] + alt
+        else:
+            b1, n1 = 1, c1[t] + v1
+        alt = m01 + lam
+        if alt < v2:
+            b2, n2 = a01, c2[t] + alt
+        else:
+            b2, n2 = 2, c2[t] + v2
+        back[t, 0], back[t, 1], back[t, 2] = b0, b1, b2
+        v0, v1, v2 = n0, n1, n2
+    s = np.empty(T, dtype=int)
+    vals = (v0, v1, v2)
+    s[-1] = int(min(range(3), key=lambda j: vals[j]))
+    for t in range(T - 1, 0, -1):
+        s[t - 1] = back[t, s[t]]
+    return s, float(min(vals))
 
 
 def _cost(X, mu):

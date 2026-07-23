@@ -134,3 +134,14 @@ def test_build_features_is_causal():
     f_b = build_features(r_pert).to_numpy()
     assert np.allclose(f_a[:300], f_b[:300], equal_nan=True)
     assert not np.allclose(f_a[300:], f_b[300:], equal_nan=True)
+
+
+def test_k3_fast_path_matches_general_dp():
+    from jumpmodel import _dp_assign_general, _dp_assign_k3
+    rng = np.random.default_rng(11)
+    for lam in (0.0, 0.5, 5.0, 50.0):
+        C = rng.random((400, 3)) * 3.0
+        s_fast, obj_fast = _dp_assign_k3(C, lam)
+        s_gen, obj_gen = _dp_assign_general(C, lam)
+        assert abs(obj_fast - obj_gen) < 1e-9
+        assert np.array_equal(s_fast, s_gen)
