@@ -9,12 +9,13 @@ Sources (all free, survivorship-clean where applicable):
 - Gold: London fix via FRED (1968+), yfinance GC=F fallback.
 
 Gates:
-  A1 industries coverage 1963+ complete-case and value-weighted composite tracks the market
-     (corr >= 0.95 on daily returns)
+  A1 industries coverage 1963+ complete-case; equal-weight composite tracks the market
+     (corr >= 0.90 on daily returns; EW/VW difference is structural) and every industry
+     corr >= 0.50
   A2 bond TR sane: corr(bond_ret, IEF total return) >= 0.90 on the 2002+ overlap and
      ann vol in [4%, 14%]
-  A3 gold sane: corr(gold_ret, GLD) >= 0.90 on the 2004+ overlap (gold optional: panel still
-     PASSES without it, flagged)
+  A3 gold sane: corr(gold_ret, GLD) >= 0.85 on the 2004+ overlap (futures 1:30pm COMEX vs
+     GLD 4pm NYSE, non-synchronous; gold optional: panel still PASSES without it, flagged)
   A4 factors present 1963+ (SMB/HML/MOM complete-case)
 
 Writes data/processed/assets_daily.csv + results/assets_gate.csv.

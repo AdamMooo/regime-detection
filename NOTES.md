@@ -76,26 +76,39 @@ synthetic 10y bond TR (IEF corr 0.962, ann vol 7.1% — fixed a duration bug tha
 vol: half-year periods vs years), gold via GC=F (2000+, GLD corr 0.888, non-synchronous
 closes documented; FRED London-fix series unavailable).
 
-## The atlas — DONE (2026-07-23) — IT FOUND STABLE STRUCTURE
+## The atlas — DONE (2026-07-23) — STRUCTURE REAL, ONE CLAIM CORRECTED BY AUDIT
 
-`scripts/atlas.py` → `results/atlas.csv` (+ run log). Cross-ASSET conditional structure is
-real and 30/30 LOEO-stable: **bonds** corr −0.10→−0.30 in stressed states (flight-to-quality),
+`scripts/atlas.py` → `results/atlas.csv` (+ run log). Cross-ASSET conditional structure,
+30/30 LOEO-stable at the pooled level: **bonds** corr −0.10→−0.30 in stressed states,
 ret +4.4→+7.2%, vol ratio 1.35 vs mkt 1.75; **gold** uncorrelated both states (2000+ only);
 **momentum factor** corr FLIPS +0.25→−0.52, premium evaporates (Daniel-Moskowitz crash
 dynamic — anti-hedge, design knowledge not a position). **Industries: correlations converge
 0.83–0.92 in stress — within-equity rotation is cosmetic** (Page diversification-failure).
 Conclusion: conditional value lives in cross-asset SECOND MOMENTS only.
 
-## Next action — CHAPTER 2 (blocked on Adam's freeze)
+**Audit correction (2026-07-23, pre-freeze):** LOEO sign-stability is robustness of the
+POOLED estimate to single-episode drops — NOT per-episode evidence. The stock-bond corr
+deepening holds in only 11/23 episodes ≥15d: the 1990s stressed shift is +0.07 (bonds
+anti-hedge) and the 2022 inflation bear ran at stress corr +0.11. The vol state can't
+distinguish growth-scare from inflation/rates stress (v1 stock-bond lesson: macro/rates
+axis is a non-stationary co-trend). The VOL-RATIO structure is era-consistent and survives;
+the corr tilt is era-fragile → chapter-2 prereg reframed around scale, not corr.
 
-`.planning/ALLOCATION-PREREG.md` is DRAFTED: state-conditional ERC over equity/bond/gold+cash
-(covariances only, NO return forecasts), 8% vol target, vs the IDENTICAL unconditional ERC
-(B_match). Primary = FKO fee, γ=10, CI; mechanism falsifier F2 = must track the vol target
-better; controls C1-C3. **Adam to review the four pinned judgment calls (8% target, caps
-75/75/25, shrinkage 0.5, monthly rebalance) and sign the freeze.** Then: build
-`scripts/run_allocation.py` (mirror run_backtest idioms, --confirm-frozen guard), synthetic
-smoke, real one-look run. Atlas findings may inform review but the confirmatory result does
-not exist — blind intact.
+## Next action — CHAPTER 2 (blocked on Adam's freeze of Rev 2)
+
+`.planning/ALLOCATION-PREREG.md` is at **DRAFT Rev 2** after the pre-freeze outside audit
+(changelog in §10): H2 reframed around state-conditional SCALE (corr tilt demoted,
+era-fragile — see atlas correction above); **B_react (EWMA λ=0.97 ERC) added as co-primary
+baseline** with partial-verdict falsifier F1b (v1 chapter-3 lesson made structural);
+hard-state promoted to primary (graded variant = secondary, contingent on pre-run synthetic
+calibration); rebalancing = monthly + state-flip event; pinned: vol-target formula
+(scale-down only), pure-numpy ERC solver + cap-and-redistribute, two-era covariance
+construction + NaN policy, per-era/per-state 500-day activation (era-1 stressed clears
+1993-12-31), costs exclude cash, primary window = full 1990+; C2 50 draws / C3 20 panels.
+**Adam to re-review the Rev 2 calls (freeze checklist at doc bottom) and sign.** Then:
+build `scripts/run_allocation.py` (mirror run_backtest idioms, --confirm-frozen guard),
+synthetic smoke, real one-look run. Blind intact — no allocation backtest has been run;
+audit checks touched only descriptive moments (corr/vol by state/era), never arm returns.
 
 Also queued (not blocking): calibrated P(state) from the filter evidence gap (needed by the
 graded variant — calibrate on SYNTHETIC panels pre-freeze); K=3 crash/rebound exploration
