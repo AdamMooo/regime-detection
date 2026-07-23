@@ -23,7 +23,103 @@ the full version is in `RESEARCH-AUDIT.md`. Nothing from the audit has been disc
 
 ---
 
-## 2026-07-22 (latest) — Chapter 3 (covariance conditioning): NULL/negative, scoped closure
+## 2026-07-22 (latest) — FINAL EXPERIMENT CLOSED: self-exciting tail hazard is NULL → program converged
+
+The frozen §8 prereg (FINAL experiment, pre-declared stopping rule, Adam signed §8.9) ran to completion
+on real data. Full log: `results/tailhazard_stage1_run.log`; outputs `results/tailhazard_stage1.csv` +
+`_preds.csv`. Eligible N=16747, 530 events (1960-01-04..2026-07-21); OOS N=10049, 352 events
+(1986-08-28..2026-07-21), 40 annual refits.
+
+**PRIMARY (frozen falsifier): dlogscore(D−C) = −0.00039, block-boot 90% CI [−0.00097, +0.00012],
+P(>0)=0.11 → NULL.** C (splines+ridge on the leverage-aware set) beats D (+excitation state H_t) on
+point estimate. Increment curve: D−A −0.00009, D−B_vol +0.00053, D−B_lev +0.00053, D−C −0.00039 —
+the spline rung C absorbs everything; excitation adds nothing anywhere on the ladder.
+
+Supporting evidence, all consistent:
+- **LOTO**: pooled dLS(D−C) negative with every crisis removed (−0.00024..−0.00047); dropping dot-com
+  makes D *worse* — no single-episode rescue.
+- **b decays**: training-MLE excitation coefficient mean −0.144, early-half −0.248 vs late-half −0.041 —
+  and NEGATIVE (mild inhibition, not excitation); chosen half-life unstable across refits
+  (1d×15, 21d×14, scattered).
+- **Christoffersen screen** (in-sample): P(event|event)=4.15% vs P(event|no-event)=3.13%, LR=1.59,
+  p=0.21 — cannot even reject first-order independence in-sample. Hazard-shape non-monotone
+  (1.31x, 1.37x, 0.60x at τ=1,2,3).
+- **Controls**: shifted-history surrogates ≈ 0 (mean −0.00008 ✓); positive-tail placebo +0.00056
+  (no crash-specific asymmetry story survives); **simulation calibration under H0 (no excitation)
+  spans [−0.00053, +0.00006] — the primary sits INSIDE the no-excitation false-positive band.**
+- **VIX-era kill-check** (1990+, prior-day VIX in every rung): dLS(D−C) = −0.00045, CI [−0.00115,
+  +0.00016] — independently null.
+
+**Interpretation.** After conditioning on a leverage-aware causal vol model (GJR-GARCH(1,1)-t) plus
+signed-return covariates and splines, standardized tail events carry no exploitable self-excitation.
+Volatility clustering fully explains tail clustering at daily frequency in this 66-year sample. The NFCI
+variant was skipped (not in panel) — immaterial: the primary and every control agree.
+
+**The stopping rule fires.** Per the signed pre-declaration: null → accept convergence of the program.
+Five formulations of "latent market structure beyond volatility" — discrete HDP-HMM states, macro/rates
+axis, covariance/eigenstructure conditioning, self-exciting tail hazard, continuous OU/Kalman correlation
+factor (below) — all preregistered or pre-specified, all null, all causally clean. The program's answer:
+**index-level daily regime structure beyond volatility is not recoverable from these observables, and the
+volatility structure that IS recoverable is already priced.** Adam's decision 2026-07-22: no formal paper;
+this record is the durable artifact. Repo is repositioned for a successor question (new information
+source required — see NOTES.md); the v1 program is sealed at tag `v1-convergence`.
+
+---
+
+## 2026-07-22 — OU/Kalman latent correlation state: NULL on both lenses; the model degenerates
+
+Exploratory-but-disciplined (not prereg-frozen; primary test pre-specified in the script docstring
+before running). Question: after the discrete-HMM rejection, does a **continuous** latent state — an
+OU/AR(1) factor Kalman-filtered from Fisher-z mean pairwise correlation (13-ETF universe, 21d window) —
+carry information? Tested under BOTH lenses, in order:
+
+**Lens 1 — forecasting (`scripts/corrfactor_stage1.py`).** Filtered x_t forecasting z_{t+21}.
+First pass looked positive vs raw persistence (dMSE +0.0012, CI clear, P=0.991) but this was entirely
+the smoothing confound: a **fixed, zero-parameter EWMA(λ=0.97) beats the Kalman filter outright**
+(MSE 0.0204 vs 0.0247, CI clear the wrong way, P(Kalman better)=0.000). Lesson recorded: raw-persistence
+is a straw-man baseline for a noisy series; any smoother beats it. Forecasting lens: NULL (worse than null —
+Kalman loses to the dumbest smoother).
+
+**Lens 2 — contemporaneous/incremental information (`scripts/corrfactor_stage2_contemporaneous.py`).**
+Adam's reframe: regime value = knowing the state we're IN, not predicting flips. Reused the Chapter-3
+architecture byte-for-byte (same universe/kernel/burn/costs/metrics/inference) so results are directly
+comparable. Pre-specified: Model A = Bm (vol-only kernel) vs Model B = SK (vol + Kalman x_t); support
+requires BOTH M1 (GMV var ratio <1, CI excl 1) and M2 (dQLIK & dcorrFrob <0, CI excl 0).
+Results (`results/corrfactor_stage2.csv`, log `results/corrfactor_stage2_run.log`):
+- PRIMARY: M1 = 0.9967 CI [0.978, 1.016]; dQLIK = +0.016 CI incl 0; dFrob = −0.015 CI incl 0 → **NULL**.
+- Placebo (vol + phase-randomized surrogate): M1 = 0.9945, dQLIK = −0.045 — the **noise coordinate does
+  as well or better** than the state; SK's point improvement is within the extra-kernel-dimension artifact.
+- Partial corr(x_t, hold-period corr | vol, raw z) = +0.096, CI [−0.007, +0.218] → no incremental
+  contemporaneous information beyond raw observables (FWL residual test).
+- Subperiods: early-half M1 1.011 vs late-half 0.992 (sign flips); high/low-vol dQLIK −0.015/+0.047 —
+  no stable regime of usefulness.
+
+**The diagnostic finding (why it's null): the Kalman model degenerates.** The expanding MLE drives
+observation noise r → 0 (from refit ~20 onward), so the Kalman gain → 1 and **x_t ≡ z_t exactly**
+(corr(x_kal, z_raw) = 1.000 in the state matrix; the SR "vol + raw z" rung and SK rung produce nearly
+identical rows). The MLE itself is saying: there is no latent state distinct from the observable.
+Root cause is misspecification — z_t is a 21d overlapping-window average, so its measurement error is
+serially correlated (MA structure from overlap), violating the KF's iid-observation-noise assumption;
+the likelihood therefore attributes all variation to the state. φ ≈ 0.995 (near unit root) throughout.
+No rescue path: fixing the measurement-error model would only re-derive some smoother of z, and the
+EWMA rung (SE) already shows smoothed versions add nothing contemporaneously (M1 = 1.002, dQLIK −0.029, ns).
+
+**Independent corroboration of the Chapter-3 M1 blowup:** the rolling-252d correlation rung (SW) gives
+M1 = 2.23 — almost exactly the absorption ratio's 2.24. Long-window correlation-structure coordinates
+per se destabilize the similarity kernel's GMV (weight concentration → noisier Σ̂), regardless of which
+summary is used. Useful methods-paper point: the prior null was architecture-systematic, not
+absorption-ratio-specific.
+
+**Classification (per the pre-declared decision framework): Outcomes C + E + F.** No incremental value;
+state redundant with raw observables (in the strongest sense — it IS the raw observable); and with
+forecasting, contemporaneous conditioning, and incremental decision value all failed, the OU/Kalman
+latent-state formulation has not demonstrated practical value. Consistent with the standing principle
+from the jump-diffusion decision: *a filtered state is a function of the same observables —
+representation cannot create information.* Do not keep switching evaluation lenses for this formulation.
+
+---
+
+## 2026-07-22 — Chapter 3 (covariance conditioning): NULL/negative, scoped closure
 
 Frozen, pre-registered reframe (`.planning/COVARIANCE-CONDITIONING-PREREG.md`): new object (covariance
 matrix + eigenstructure), new lens (OOS portfolio risk + covariance forecast loss, not predictive R²). Test
@@ -50,7 +146,7 @@ liquidity/funding, other portfolio-specific dependence). Program status: three c
 macro→stock-bond-corr Case C; covariance conditioning), all null — genuine narrowing of where useful
 structure beyond volatility could live.
 
-## 2026-07-22 (latest) — Stage-1 result: macro/rates axis is a non-stationary co-trend (Case C)
+## 2026-07-22 — Stage-1 result: macro/rates axis is a non-stationary co-trend (Case C)
 
 Pre-registered, frozen test (`.planning/STOCKBOND-MACRO-PREREG.md`) of a *separate* hypothesis (does NOT
 reopen the HMM): does the observable macro/rates axis carry stable, incremental OOS information about

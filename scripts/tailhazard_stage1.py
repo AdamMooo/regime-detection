@@ -102,7 +102,8 @@ def logscore(y, p):
     return -(y * np.log(p) + (1 - y) * np.log(1 - p))
 
 
-def oos_run(F_vol, F_lev, e_hist, y, idx, alphas_fixed=None, rungs=("A", "B_vol", "B_lev", "C", "D")):
+def oos_run(F_vol, F_lev, e_hist, y, idx, alphas_fixed=None, rungs=("A", "B_vol", "B_lev", "C", "D"),
+            label=None):
     """Rolling-origin expanding OOS. e_hist = event series used to build H (the surrogate
     control passes a shifted copy); y = target (event at t+1). Returns preds + refit log."""
     n = len(idx)
@@ -111,7 +112,10 @@ def oos_run(F_vol, F_lev, e_hist, y, idx, alphas_fixed=None, rungs=("A", "B_vol"
     H_by_hl = {hl: excitation_state(e_hist, np.log(2) / hl) for hl in HALF_LIVES}
     preds = {k: np.full(len(y), np.nan) for k in rungs}
     log = []
-    for r in range(len(refits) - 1):
+    n_refits = len(refits) - 1
+    for r in range(n_refits):
+        if label is not None:
+            print(f"  [{label}] refit {r + 1}/{n_refits}", flush=True)
         R, Rn = refits[r], refits[r + 1]
         gR = idx[R]
         tr = idx[:R]
@@ -207,7 +211,7 @@ def main():
           + ("   [QUICK]" if quick else ""))
     print("=" * 78)
 
-    preds, log = oos_run(F_vol, F_lev, e, y, idx)
+    preds, log = oos_run(F_vol, F_lev, e, y, idx, label="PRIMARY")
     logdf = pd.DataFrame(log)
     mask = np.zeros(len(y), bool)
     mask[idx] = True
@@ -260,7 +264,7 @@ def main():
     ep = np.where(ok, (df["z"].values > 2.0).astype(float), 0.0)
     yp = np.full(len(y), np.nan)
     yp[idx[:-1]] = ep[idx[1:]]
-    pp, _ = oos_run(F_vol, F_lev, ep, yp, idx[:-1], alphas_fixed, rungs=("C", "D"))
+    pp, _ = oos_run(F_vol, F_lev, ep, yp, idx[:-1], alphas_fixed, rungs=("C", "D"), label="PLACEBO")
     mp = np.zeros(len(y), bool); mp[idx[:-1]] = True
     mp &= np.isfinite(pp["C"]) & np.isfinite(pp["D"]) & np.isfinite(yp)
     dp = logscore(yp[mp], pp["C"][mp]) - logscore(yp[mp], pp["D"][mp])
@@ -271,7 +275,8 @@ def main():
     for s in range(N_SURR):
         shift = int(RNG.integers(500, len(e) - 500))
         es = np.roll(e, shift)
-        ps, _ = oos_run(F_vol, F_lev, es, y, idx, alphas_fixed, rungs=("C", "D"))
+        ps, _ = oos_run(F_vol, F_lev, es, y, idx, alphas_fixed, rungs=("C", "D"),
+                         label=f"SURROGATE {s + 1}/{N_SURR}")
         ms = np.zeros(len(y), bool); ms[idx] = True
         ms &= np.isfinite(ps["C"]) & np.isfinite(ps["D"])
         surr.append((logscore(y[ms], ps["C"][ms]) - logscore(y[ms], ps["D"][ms])).mean())
@@ -285,7 +290,8 @@ def main():
         ysim = np.where(ok, (RNG.random(len(y)) < pC_full).astype(float), np.nan)
         esim = np.where(ok, ysim, 0.0)
         esim_hist = np.roll(esim, 1)  # simulated event known end-of-day: history shifts by one
-        psim, _ = oos_run(F_vol, F_lev, esim_hist, ysim, idx, alphas_fixed, rungs=("C", "D"))
+        psim, _ = oos_run(F_vol, F_lev, esim_hist, ysim, idx, alphas_fixed, rungs=("C", "D"),
+                           label=f"SIM {s + 1}/{N_SIM}")
         msim = np.zeros(len(y), bool); msim[idx] = True
         msim &= np.isfinite(psim["C"]) & np.isfinite(psim["D"]) & np.isfinite(ysim)
         sims.append((logscore(ysim[msim], psim["C"][msim])
@@ -301,7 +307,7 @@ def main():
     idxv = np.where(okv)[0]
     Fv_vol = np.column_stack([F_vol, vix])
     Fv_lev = np.column_stack([F_lev, vix])
-    pv, _ = oos_run(Fv_vol, Fv_lev, e, y, idxv, rungs=("C", "D"))
+    pv, _ = oos_run(Fv_vol, Fv_lev, e, y, idxv, rungs=("C", "D"), label="VIX-KILL-CHECK")
     mv = np.zeros(len(y), bool); mv[idxv] = True
     mv &= np.isfinite(pv["C"]) & np.isfinite(pv["D"])
     dv = logscore(y[mv], pv["C"][mv]) - logscore(y[mv], pv["D"][mv])

@@ -5,6 +5,40 @@ Architecture: stripped HDP-HMM, paper-first
 Branch: main
 Last updated: 2026-07-22
 
+## Session 2026-07-22 (evening) — tail-hazard primary NULL; OU/Kalman correlation state NULL on both lenses
+
+**Tail-hazard stage 1 (frozen prereg §8) — primary result is in and it is NULL.** OOS N=10049
+(1986-08-28..2026-07-21), 352 events. dlogscore(D−C) = −0.00039, block-boot 90% CI [−0.00097, +0.00012],
+P(>0)=0.11 — C (splines on leverage-aware set) beats D (+excitation) on point estimate; CI includes 0.
+b: early-half mean −0.248 vs late-half −0.041 — whatever excitation existed is decaying toward zero in
+the modern sample. LOTO: dropping dot-com makes D look *worse* (−0.00047) — no single-crisis rescue.
+Full log: `results/tailhazard_stage1_run.log`. **Controls finished 21:09 — all clean and consistent:**
+surrogates ≈0 (−0.00008), no-excitation simulation band [−0.00053, +0.00006] CONTAINS the primary,
+VIX kill-check independently null (−0.00045, CI incl 0). **Formally CLOSED same night** —
+RESEARCH-RECORD.md top section. Per the pre-declared stopping rule (§8.9/§9): null → program converged.
+
+**Post-null exploration (Adam-directed): continuous latent correlation state, OU/Kalman.**
+Direction: keep regime detection, drop HMMs, lens = "know the state we're in" (filtering quality),
+NOT flip prediction. Built `scripts/corrfactor_stage1.py` (forecasting) and
+`scripts/corrfactor_stage2_contemporaneous.py` (contemporaneous incremental info, stage1p architecture
+reused byte-for-byte). Verdict: **NULL on both lenses, and diagnostically dead** — the MLE drives
+observation noise → 0, Kalman gain → 1, so x_t ≡ raw z_t exactly (corr 1.000): the model itself says
+there is no latent state distinct from the observable. EWMA(0.97) beats the Kalman on forecasting;
+placebo noise coordinate matches it contemporaneously; partial corr given baseline CI includes 0.
+Bonus finding: rolling-252d corr coordinate reproduces the absorption ratio's M1 blowup (2.23 vs 2.24) —
+Chapter-3's GMV degradation is systematic to long-window correlation coordinates in this kernel
+architecture. Full write-up: RESEARCH-RECORD.md top section; results in `results/corrfactor_stage2.csv`
++ `results/corrfactor_stage2_run.log`.
+
+**Decisions (Adam, late session):** NO formal paper — RESEARCH-RECORD.md is the durable artifact.
+Repo is KEPT and repositioned for a successor regime-detection question; v1 program sealed at tag
+`v1-convergence`; converged-program research scripts archived (see `archive/`).
+
+**Next action (the open question — everything else is done):** choose the new information source.
+The v1 record constrains the choice: another representation of the same daily index-level features is
+pre-refuted; a successor must tap NEW information (cross-sectional breadth, intraday, positioning/flows,
+options surface, …). New thesis → then rewrite CLAUDE.md constraints + data layer around it.
+
 ## Session 2026-07-22 (direction decision) — "Continuous state + jumps" proposal evaluated → reduced to a tail-hazard MVE
 
 Adam proposed reframing to a continuous-time latent state with jumps (dX = μdt + σdW + JdN),

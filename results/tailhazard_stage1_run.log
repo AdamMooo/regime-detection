@@ -1,0 +1,953 @@
+==============================================================================
+TAIL-HAZARD STAGE 1 (frozen prereg ┬º8)   eligible N=16747  events=530  1960-01-04..2026-07-21
+==============================================================================
+  [PRIMARY] refit 1/40
+  [PRIMARY] refit 2/40
+  [PRIMARY] refit 3/40
+  [PRIMARY] refit 4/40
+  [PRIMARY] refit 5/40
+  [PRIMARY] refit 6/40
+  [PRIMARY] refit 7/40
+  [PRIMARY] refit 8/40
+  [PRIMARY] refit 9/40
+  [PRIMARY] refit 10/40
+  [PRIMARY] refit 11/40
+  [PRIMARY] refit 12/40
+  [PRIMARY] refit 13/40
+  [PRIMARY] refit 14/40
+  [PRIMARY] refit 15/40
+  [PRIMARY] refit 16/40
+  [PRIMARY] refit 17/40
+  [PRIMARY] refit 18/40
+  [PRIMARY] refit 19/40
+  [PRIMARY] refit 20/40
+  [PRIMARY] refit 21/40
+  [PRIMARY] refit 22/40
+  [PRIMARY] refit 23/40
+  [PRIMARY] refit 24/40
+  [PRIMARY] refit 25/40
+  [PRIMARY] refit 26/40
+  [PRIMARY] refit 27/40
+  [PRIMARY] refit 28/40
+  [PRIMARY] refit 29/40
+  [PRIMARY] refit 30/40
+  [PRIMARY] refit 31/40
+  [PRIMARY] refit 32/40
+  [PRIMARY] refit 33/40
+  [PRIMARY] refit 34/40
+  [PRIMARY] refit 35/40
+  [PRIMARY] refit 36/40
+  [PRIMARY] refit 37/40
+  [PRIMARY] refit 38/40
+  [PRIMARY] refit 39/40
+  [PRIMARY] refit 40/40
+OOS days N=10049 (1986-08-28..2026-07-21), OOS events=352
+
+Mean OOS log-score (nats/day, lower better) and increment vs D (+ = D better):
+  A      LS=0.15234  Brier=0.03383  dLS(D-A)=-0.00009
+  B_vol  LS=0.15296  Brier=0.03385  dLS(D-B_vol)=+0.00053
+  B_lev  LS=0.15296  Brier=0.03394  dLS(D-B_lev)=+0.00053
+  C      LS=0.15204  Brier=0.03380  dLS(D-C)=-0.00039
+  D      LS=0.15243  Brier=0.03380  dLS(D-D)=+0.00000
+
+PRIMARY dlogscore(D-C) = -0.00039  block-boot 90% CI [-0.00097, +0.00012]  P(>0)=0.11
+
+Leave-one-crisis-out (pooled dLS(D-C) with that episode's OOS days removed):
+  drop 1987 (Black Monday)        dLS=-0.00025  (removed 64 days)
+  drop 1998 (LTCM/Russia)         dLS=-0.00033  (removed 64 days)
+  drop 2000-02 (dot-com)          dLS=-0.00047  (removed 712 days)
+  drop 2008-09 (GFC)              dLS=-0.00024  (removed 146 days)
+  drop 2011 (US downgrade)        dLS=-0.00038  (removed 65 days)
+  drop 2015 (China deval)         dLS=-0.00036  (removed 42 days)
+  drop 2018 (Volmageddon/Q4)      dLS=-0.00041  (removed 230 days)
+  drop 2020 (COVID)               dLS=-0.00041  (removed 52 days)
+  drop 2022 (inflation bear)      dLS=-0.00040  (removed 251 days)
+
+Per-refit rung-D estimates (b = excitation coefficient, training MLE):
+  b: mean=-0.144  early-half mean=-0.248  late-half mean=-0.041  sign-consistent=True
+  chosen half-life (days): [(1, 15), (2, 6), (5, 1), (10, 2), (21, 14), (63, 2)]
+
+Case-D screen (in-sample, eligible span): Christoffersen first-order independence
+  P(event|no event)=0.0313  P(event|event)=0.0415  LR=1.59  p=0.2074
+  (screen only ΓÇö the frozen falsifier is the OOS D-C primary, not this)
+
+Hazard-shape diagnostic (in-sample): P(event at lag tau | event at 0) / base rate
+  tau=1: 1.31x  tau=2: 1.37x  tau=3: 0.60x  tau=5: 0.89x  tau=10: 1.31x  tau=21: 0.89x
+
+==============================================================================
+CONTROLS
+==============================================================================
+  [PLACEBO] refit 1/40
+  [PLACEBO] refit 2/40
+  [PLACEBO] refit 3/40
+  [PLACEBO] refit 4/40
+  [PLACEBO] refit 5/40
+  [PLACEBO] refit 6/40
+  [PLACEBO] refit 7/40
+  [PLACEBO] refit 8/40
+  [PLACEBO] refit 9/40
+  [PLACEBO] refit 10/40
+  [PLACEBO] refit 11/40
+  [PLACEBO] refit 12/40
+  [PLACEBO] refit 13/40
+  [PLACEBO] refit 14/40
+  [PLACEBO] refit 15/40
+  [PLACEBO] refit 16/40
+  [PLACEBO] refit 17/40
+  [PLACEBO] refit 18/40
+  [PLACEBO] refit 19/40
+  [PLACEBO] refit 20/40
+  [PLACEBO] refit 21/40
+  [PLACEBO] refit 22/40
+  [PLACEBO] refit 23/40
+  [PLACEBO] refit 24/40
+  [PLACEBO] refit 25/40
+  [PLACEBO] refit 26/40
+  [PLACEBO] refit 27/40
+  [PLACEBO] refit 28/40
+  [PLACEBO] refit 29/40
+  [PLACEBO] refit 30/40
+  [PLACEBO] refit 31/40
+  [PLACEBO] refit 32/40
+  [PLACEBO] refit 33/40
+  [PLACEBO] refit 34/40
+  [PLACEBO] refit 35/40
+  [PLACEBO] refit 36/40
+  [PLACEBO] refit 37/40
+  [PLACEBO] refit 38/40
+  [PLACEBO] refit 39/40
+  [PLACEBO] refit 40/40
+positive-tail placebo (z>+2 events): dLS(D-C)=+0.00056  (expect weaker than primary if mechanism is crash-specific)
+  [SURROGATE 1/10] refit 1/40
+  [SURROGATE 1/10] refit 2/40
+  [SURROGATE 1/10] refit 3/40
+  [SURROGATE 1/10] refit 4/40
+  [SURROGATE 1/10] refit 5/40
+  [SURROGATE 1/10] refit 6/40
+  [SURROGATE 1/10] refit 7/40
+  [SURROGATE 1/10] refit 8/40
+  [SURROGATE 1/10] refit 9/40
+  [SURROGATE 1/10] refit 10/40
+  [SURROGATE 1/10] refit 11/40
+  [SURROGATE 1/10] refit 12/40
+  [SURROGATE 1/10] refit 13/40
+  [SURROGATE 1/10] refit 14/40
+  [SURROGATE 1/10] refit 15/40
+  [SURROGATE 1/10] refit 16/40
+  [SURROGATE 1/10] refit 17/40
+  [SURROGATE 1/10] refit 18/40
+  [SURROGATE 1/10] refit 19/40
+  [SURROGATE 1/10] refit 20/40
+  [SURROGATE 1/10] refit 21/40
+  [SURROGATE 1/10] refit 22/40
+  [SURROGATE 1/10] refit 23/40
+  [SURROGATE 1/10] refit 24/40
+  [SURROGATE 1/10] refit 25/40
+  [SURROGATE 1/10] refit 26/40
+  [SURROGATE 1/10] refit 27/40
+  [SURROGATE 1/10] refit 28/40
+  [SURROGATE 1/10] refit 29/40
+  [SURROGATE 1/10] refit 30/40
+  [SURROGATE 1/10] refit 31/40
+  [SURROGATE 1/10] refit 32/40
+  [SURROGATE 1/10] refit 33/40
+  [SURROGATE 1/10] refit 34/40
+  [SURROGATE 1/10] refit 35/40
+  [SURROGATE 1/10] refit 36/40
+  [SURROGATE 1/10] refit 37/40
+  [SURROGATE 1/10] refit 38/40
+  [SURROGATE 1/10] refit 39/40
+  [SURROGATE 1/10] refit 40/40
+  [SURROGATE 2/10] refit 1/40
+  [SURROGATE 2/10] refit 2/40
+  [SURROGATE 2/10] refit 3/40
+  [SURROGATE 2/10] refit 4/40
+  [SURROGATE 2/10] refit 5/40
+  [SURROGATE 2/10] refit 6/40
+  [SURROGATE 2/10] refit 7/40
+  [SURROGATE 2/10] refit 8/40
+  [SURROGATE 2/10] refit 9/40
+  [SURROGATE 2/10] refit 10/40
+  [SURROGATE 2/10] refit 11/40
+  [SURROGATE 2/10] refit 12/40
+  [SURROGATE 2/10] refit 13/40
+  [SURROGATE 2/10] refit 14/40
+  [SURROGATE 2/10] refit 15/40
+  [SURROGATE 2/10] refit 16/40
+  [SURROGATE 2/10] refit 17/40
+  [SURROGATE 2/10] refit 18/40
+  [SURROGATE 2/10] refit 19/40
+  [SURROGATE 2/10] refit 20/40
+  [SURROGATE 2/10] refit 21/40
+  [SURROGATE 2/10] refit 22/40
+  [SURROGATE 2/10] refit 23/40
+  [SURROGATE 2/10] refit 24/40
+  [SURROGATE 2/10] refit 25/40
+  [SURROGATE 2/10] refit 26/40
+  [SURROGATE 2/10] refit 27/40
+  [SURROGATE 2/10] refit 28/40
+  [SURROGATE 2/10] refit 29/40
+  [SURROGATE 2/10] refit 30/40
+  [SURROGATE 2/10] refit 31/40
+  [SURROGATE 2/10] refit 32/40
+  [SURROGATE 2/10] refit 33/40
+  [SURROGATE 2/10] refit 34/40
+  [SURROGATE 2/10] refit 35/40
+  [SURROGATE 2/10] refit 36/40
+  [SURROGATE 2/10] refit 37/40
+  [SURROGATE 2/10] refit 38/40
+  [SURROGATE 2/10] refit 39/40
+  [SURROGATE 2/10] refit 40/40
+  [SURROGATE 3/10] refit 1/40
+  [SURROGATE 3/10] refit 2/40
+  [SURROGATE 3/10] refit 3/40
+  [SURROGATE 3/10] refit 4/40
+  [SURROGATE 3/10] refit 5/40
+  [SURROGATE 3/10] refit 6/40
+  [SURROGATE 3/10] refit 7/40
+  [SURROGATE 3/10] refit 8/40
+  [SURROGATE 3/10] refit 9/40
+  [SURROGATE 3/10] refit 10/40
+  [SURROGATE 3/10] refit 11/40
+  [SURROGATE 3/10] refit 12/40
+  [SURROGATE 3/10] refit 13/40
+  [SURROGATE 3/10] refit 14/40
+  [SURROGATE 3/10] refit 15/40
+  [SURROGATE 3/10] refit 16/40
+  [SURROGATE 3/10] refit 17/40
+  [SURROGATE 3/10] refit 18/40
+  [SURROGATE 3/10] refit 19/40
+  [SURROGATE 3/10] refit 20/40
+  [SURROGATE 3/10] refit 21/40
+  [SURROGATE 3/10] refit 22/40
+  [SURROGATE 3/10] refit 23/40
+  [SURROGATE 3/10] refit 24/40
+  [SURROGATE 3/10] refit 25/40
+  [SURROGATE 3/10] refit 26/40
+  [SURROGATE 3/10] refit 27/40
+  [SURROGATE 3/10] refit 28/40
+  [SURROGATE 3/10] refit 29/40
+  [SURROGATE 3/10] refit 30/40
+  [SURROGATE 3/10] refit 31/40
+  [SURROGATE 3/10] refit 32/40
+  [SURROGATE 3/10] refit 33/40
+  [SURROGATE 3/10] refit 34/40
+  [SURROGATE 3/10] refit 35/40
+  [SURROGATE 3/10] refit 36/40
+  [SURROGATE 3/10] refit 37/40
+  [SURROGATE 3/10] refit 38/40
+  [SURROGATE 3/10] refit 39/40
+  [SURROGATE 3/10] refit 40/40
+  [SURROGATE 4/10] refit 1/40
+  [SURROGATE 4/10] refit 2/40
+  [SURROGATE 4/10] refit 3/40
+  [SURROGATE 4/10] refit 4/40
+  [SURROGATE 4/10] refit 5/40
+  [SURROGATE 4/10] refit 6/40
+  [SURROGATE 4/10] refit 7/40
+  [SURROGATE 4/10] refit 8/40
+  [SURROGATE 4/10] refit 9/40
+  [SURROGATE 4/10] refit 10/40
+  [SURROGATE 4/10] refit 11/40
+  [SURROGATE 4/10] refit 12/40
+  [SURROGATE 4/10] refit 13/40
+  [SURROGATE 4/10] refit 14/40
+  [SURROGATE 4/10] refit 15/40
+  [SURROGATE 4/10] refit 16/40
+  [SURROGATE 4/10] refit 17/40
+  [SURROGATE 4/10] refit 18/40
+  [SURROGATE 4/10] refit 19/40
+  [SURROGATE 4/10] refit 20/40
+  [SURROGATE 4/10] refit 21/40
+  [SURROGATE 4/10] refit 22/40
+  [SURROGATE 4/10] refit 23/40
+  [SURROGATE 4/10] refit 24/40
+  [SURROGATE 4/10] refit 25/40
+  [SURROGATE 4/10] refit 26/40
+  [SURROGATE 4/10] refit 27/40
+  [SURROGATE 4/10] refit 28/40
+  [SURROGATE 4/10] refit 29/40
+  [SURROGATE 4/10] refit 30/40
+  [SURROGATE 4/10] refit 31/40
+  [SURROGATE 4/10] refit 32/40
+  [SURROGATE 4/10] refit 33/40
+  [SURROGATE 4/10] refit 34/40
+  [SURROGATE 4/10] refit 35/40
+  [SURROGATE 4/10] refit 36/40
+  [SURROGATE 4/10] refit 37/40
+  [SURROGATE 4/10] refit 38/40
+  [SURROGATE 4/10] refit 39/40
+  [SURROGATE 4/10] refit 40/40
+  [SURROGATE 5/10] refit 1/40
+  [SURROGATE 5/10] refit 2/40
+  [SURROGATE 5/10] refit 3/40
+  [SURROGATE 5/10] refit 4/40
+  [SURROGATE 5/10] refit 5/40
+  [SURROGATE 5/10] refit 6/40
+  [SURROGATE 5/10] refit 7/40
+  [SURROGATE 5/10] refit 8/40
+  [SURROGATE 5/10] refit 9/40
+  [SURROGATE 5/10] refit 10/40
+  [SURROGATE 5/10] refit 11/40
+  [SURROGATE 5/10] refit 12/40
+  [SURROGATE 5/10] refit 13/40
+  [SURROGATE 5/10] refit 14/40
+  [SURROGATE 5/10] refit 15/40
+  [SURROGATE 5/10] refit 16/40
+  [SURROGATE 5/10] refit 17/40
+  [SURROGATE 5/10] refit 18/40
+  [SURROGATE 5/10] refit 19/40
+  [SURROGATE 5/10] refit 20/40
+  [SURROGATE 5/10] refit 21/40
+  [SURROGATE 5/10] refit 22/40
+  [SURROGATE 5/10] refit 23/40
+  [SURROGATE 5/10] refit 24/40
+  [SURROGATE 5/10] refit 25/40
+  [SURROGATE 5/10] refit 26/40
+  [SURROGATE 5/10] refit 27/40
+  [SURROGATE 5/10] refit 28/40
+  [SURROGATE 5/10] refit 29/40
+  [SURROGATE 5/10] refit 30/40
+  [SURROGATE 5/10] refit 31/40
+  [SURROGATE 5/10] refit 32/40
+  [SURROGATE 5/10] refit 33/40
+  [SURROGATE 5/10] refit 34/40
+  [SURROGATE 5/10] refit 35/40
+  [SURROGATE 5/10] refit 36/40
+  [SURROGATE 5/10] refit 37/40
+  [SURROGATE 5/10] refit 38/40
+  [SURROGATE 5/10] refit 39/40
+  [SURROGATE 5/10] refit 40/40
+  [SURROGATE 6/10] refit 1/40
+  [SURROGATE 6/10] refit 2/40
+  [SURROGATE 6/10] refit 3/40
+  [SURROGATE 6/10] refit 4/40
+  [SURROGATE 6/10] refit 5/40
+  [SURROGATE 6/10] refit 6/40
+  [SURROGATE 6/10] refit 7/40
+  [SURROGATE 6/10] refit 8/40
+  [SURROGATE 6/10] refit 9/40
+  [SURROGATE 6/10] refit 10/40
+  [SURROGATE 6/10] refit 11/40
+  [SURROGATE 6/10] refit 12/40
+  [SURROGATE 6/10] refit 13/40
+  [SURROGATE 6/10] refit 14/40
+  [SURROGATE 6/10] refit 15/40
+  [SURROGATE 6/10] refit 16/40
+  [SURROGATE 6/10] refit 17/40
+  [SURROGATE 6/10] refit 18/40
+  [SURROGATE 6/10] refit 19/40
+  [SURROGATE 6/10] refit 20/40
+  [SURROGATE 6/10] refit 21/40
+  [SURROGATE 6/10] refit 22/40
+  [SURROGATE 6/10] refit 23/40
+  [SURROGATE 6/10] refit 24/40
+  [SURROGATE 6/10] refit 25/40
+  [SURROGATE 6/10] refit 26/40
+  [SURROGATE 6/10] refit 27/40
+  [SURROGATE 6/10] refit 28/40
+  [SURROGATE 6/10] refit 29/40
+  [SURROGATE 6/10] refit 30/40
+  [SURROGATE 6/10] refit 31/40
+  [SURROGATE 6/10] refit 32/40
+  [SURROGATE 6/10] refit 33/40
+  [SURROGATE 6/10] refit 34/40
+  [SURROGATE 6/10] refit 35/40
+  [SURROGATE 6/10] refit 36/40
+  [SURROGATE 6/10] refit 37/40
+  [SURROGATE 6/10] refit 38/40
+  [SURROGATE 6/10] refit 39/40
+  [SURROGATE 6/10] refit 40/40
+  [SURROGATE 7/10] refit 1/40
+  [SURROGATE 7/10] refit 2/40
+  [SURROGATE 7/10] refit 3/40
+  [SURROGATE 7/10] refit 4/40
+  [SURROGATE 7/10] refit 5/40
+  [SURROGATE 7/10] refit 6/40
+  [SURROGATE 7/10] refit 7/40
+  [SURROGATE 7/10] refit 8/40
+  [SURROGATE 7/10] refit 9/40
+  [SURROGATE 7/10] refit 10/40
+  [SURROGATE 7/10] refit 11/40
+  [SURROGATE 7/10] refit 12/40
+  [SURROGATE 7/10] refit 13/40
+  [SURROGATE 7/10] refit 14/40
+  [SURROGATE 7/10] refit 15/40
+  [SURROGATE 7/10] refit 16/40
+  [SURROGATE 7/10] refit 17/40
+  [SURROGATE 7/10] refit 18/40
+  [SURROGATE 7/10] refit 19/40
+  [SURROGATE 7/10] refit 20/40
+  [SURROGATE 7/10] refit 21/40
+  [SURROGATE 7/10] refit 22/40
+  [SURROGATE 7/10] refit 23/40
+  [SURROGATE 7/10] refit 24/40
+  [SURROGATE 7/10] refit 25/40
+  [SURROGATE 7/10] refit 26/40
+  [SURROGATE 7/10] refit 27/40
+  [SURROGATE 7/10] refit 28/40
+  [SURROGATE 7/10] refit 29/40
+  [SURROGATE 7/10] refit 30/40
+  [SURROGATE 7/10] refit 31/40
+  [SURROGATE 7/10] refit 32/40
+  [SURROGATE 7/10] refit 33/40
+  [SURROGATE 7/10] refit 34/40
+  [SURROGATE 7/10] refit 35/40
+  [SURROGATE 7/10] refit 36/40
+  [SURROGATE 7/10] refit 37/40
+  [SURROGATE 7/10] refit 38/40
+  [SURROGATE 7/10] refit 39/40
+  [SURROGATE 7/10] refit 40/40
+  [SURROGATE 8/10] refit 1/40
+  [SURROGATE 8/10] refit 2/40
+  [SURROGATE 8/10] refit 3/40
+  [SURROGATE 8/10] refit 4/40
+  [SURROGATE 8/10] refit 5/40
+  [SURROGATE 8/10] refit 6/40
+  [SURROGATE 8/10] refit 7/40
+  [SURROGATE 8/10] refit 8/40
+  [SURROGATE 8/10] refit 9/40
+  [SURROGATE 8/10] refit 10/40
+  [SURROGATE 8/10] refit 11/40
+  [SURROGATE 8/10] refit 12/40
+  [SURROGATE 8/10] refit 13/40
+  [SURROGATE 8/10] refit 14/40
+  [SURROGATE 8/10] refit 15/40
+  [SURROGATE 8/10] refit 16/40
+  [SURROGATE 8/10] refit 17/40
+  [SURROGATE 8/10] refit 18/40
+  [SURROGATE 8/10] refit 19/40
+  [SURROGATE 8/10] refit 20/40
+  [SURROGATE 8/10] refit 21/40
+  [SURROGATE 8/10] refit 22/40
+  [SURROGATE 8/10] refit 23/40
+  [SURROGATE 8/10] refit 24/40
+  [SURROGATE 8/10] refit 25/40
+  [SURROGATE 8/10] refit 26/40
+  [SURROGATE 8/10] refit 27/40
+  [SURROGATE 8/10] refit 28/40
+  [SURROGATE 8/10] refit 29/40
+  [SURROGATE 8/10] refit 30/40
+  [SURROGATE 8/10] refit 31/40
+  [SURROGATE 8/10] refit 32/40
+  [SURROGATE 8/10] refit 33/40
+  [SURROGATE 8/10] refit 34/40
+  [SURROGATE 8/10] refit 35/40
+  [SURROGATE 8/10] refit 36/40
+  [SURROGATE 8/10] refit 37/40
+  [SURROGATE 8/10] refit 38/40
+  [SURROGATE 8/10] refit 39/40
+  [SURROGATE 8/10] refit 40/40
+  [SURROGATE 9/10] refit 1/40
+  [SURROGATE 9/10] refit 2/40
+  [SURROGATE 9/10] refit 3/40
+  [SURROGATE 9/10] refit 4/40
+  [SURROGATE 9/10] refit 5/40
+  [SURROGATE 9/10] refit 6/40
+  [SURROGATE 9/10] refit 7/40
+  [SURROGATE 9/10] refit 8/40
+  [SURROGATE 9/10] refit 9/40
+  [SURROGATE 9/10] refit 10/40
+  [SURROGATE 9/10] refit 11/40
+  [SURROGATE 9/10] refit 12/40
+  [SURROGATE 9/10] refit 13/40
+  [SURROGATE 9/10] refit 14/40
+  [SURROGATE 9/10] refit 15/40
+  [SURROGATE 9/10] refit 16/40
+  [SURROGATE 9/10] refit 17/40
+  [SURROGATE 9/10] refit 18/40
+  [SURROGATE 9/10] refit 19/40
+  [SURROGATE 9/10] refit 20/40
+  [SURROGATE 9/10] refit 21/40
+  [SURROGATE 9/10] refit 22/40
+  [SURROGATE 9/10] refit 23/40
+  [SURROGATE 9/10] refit 24/40
+  [SURROGATE 9/10] refit 25/40
+  [SURROGATE 9/10] refit 26/40
+  [SURROGATE 9/10] refit 27/40
+  [SURROGATE 9/10] refit 28/40
+  [SURROGATE 9/10] refit 29/40
+  [SURROGATE 9/10] refit 30/40
+  [SURROGATE 9/10] refit 31/40
+  [SURROGATE 9/10] refit 32/40
+  [SURROGATE 9/10] refit 33/40
+  [SURROGATE 9/10] refit 34/40
+  [SURROGATE 9/10] refit 35/40
+  [SURROGATE 9/10] refit 36/40
+  [SURROGATE 9/10] refit 37/40
+  [SURROGATE 9/10] refit 38/40
+  [SURROGATE 9/10] refit 39/40
+  [SURROGATE 9/10] refit 40/40
+  [SURROGATE 10/10] refit 1/40
+  [SURROGATE 10/10] refit 2/40
+  [SURROGATE 10/10] refit 3/40
+  [SURROGATE 10/10] refit 4/40
+  [SURROGATE 10/10] refit 5/40
+  [SURROGATE 10/10] refit 6/40
+  [SURROGATE 10/10] refit 7/40
+  [SURROGATE 10/10] refit 8/40
+  [SURROGATE 10/10] refit 9/40
+  [SURROGATE 10/10] refit 10/40
+  [SURROGATE 10/10] refit 11/40
+  [SURROGATE 10/10] refit 12/40
+  [SURROGATE 10/10] refit 13/40
+  [SURROGATE 10/10] refit 14/40
+  [SURROGATE 10/10] refit 15/40
+  [SURROGATE 10/10] refit 16/40
+  [SURROGATE 10/10] refit 17/40
+  [SURROGATE 10/10] refit 18/40
+  [SURROGATE 10/10] refit 19/40
+  [SURROGATE 10/10] refit 20/40
+  [SURROGATE 10/10] refit 21/40
+  [SURROGATE 10/10] refit 22/40
+  [SURROGATE 10/10] refit 23/40
+  [SURROGATE 10/10] refit 24/40
+  [SURROGATE 10/10] refit 25/40
+  [SURROGATE 10/10] refit 26/40
+  [SURROGATE 10/10] refit 27/40
+  [SURROGATE 10/10] refit 28/40
+  [SURROGATE 10/10] refit 29/40
+  [SURROGATE 10/10] refit 30/40
+  [SURROGATE 10/10] refit 31/40
+  [SURROGATE 10/10] refit 32/40
+  [SURROGATE 10/10] refit 33/40
+  [SURROGATE 10/10] refit 34/40
+  [SURROGATE 10/10] refit 35/40
+  [SURROGATE 10/10] refit 36/40
+  [SURROGATE 10/10] refit 37/40
+  [SURROGATE 10/10] refit 38/40
+  [SURROGATE 10/10] refit 39/40
+  [SURROGATE 10/10] refit 40/40
+shifted-history surrogate (x10): dLS(D-C) mean=-0.00008 range [-0.00033, +0.00009]  (must be ~0)
+  [SIM 1/10] refit 1/40
+  [SIM 1/10] refit 2/40
+  [SIM 1/10] refit 3/40
+  [SIM 1/10] refit 4/40
+  [SIM 1/10] refit 5/40
+  [SIM 1/10] refit 6/40
+  [SIM 1/10] refit 7/40
+  [SIM 1/10] refit 8/40
+  [SIM 1/10] refit 9/40
+  [SIM 1/10] refit 10/40
+  [SIM 1/10] refit 11/40
+  [SIM 1/10] refit 12/40
+  [SIM 1/10] refit 13/40
+  [SIM 1/10] refit 14/40
+  [SIM 1/10] refit 15/40
+  [SIM 1/10] refit 16/40
+  [SIM 1/10] refit 17/40
+  [SIM 1/10] refit 18/40
+  [SIM 1/10] refit 19/40
+  [SIM 1/10] refit 20/40
+  [SIM 1/10] refit 21/40
+  [SIM 1/10] refit 22/40
+  [SIM 1/10] refit 23/40
+  [SIM 1/10] refit 24/40
+  [SIM 1/10] refit 25/40
+  [SIM 1/10] refit 26/40
+  [SIM 1/10] refit 27/40
+  [SIM 1/10] refit 28/40
+  [SIM 1/10] refit 29/40
+  [SIM 1/10] refit 30/40
+  [SIM 1/10] refit 31/40
+  [SIM 1/10] refit 32/40
+  [SIM 1/10] refit 33/40
+  [SIM 1/10] refit 34/40
+  [SIM 1/10] refit 35/40
+  [SIM 1/10] refit 36/40
+  [SIM 1/10] refit 37/40
+  [SIM 1/10] refit 38/40
+  [SIM 1/10] refit 39/40
+  [SIM 1/10] refit 40/40
+  [SIM 2/10] refit 1/40
+  [SIM 2/10] refit 2/40
+  [SIM 2/10] refit 3/40
+  [SIM 2/10] refit 4/40
+  [SIM 2/10] refit 5/40
+  [SIM 2/10] refit 6/40
+  [SIM 2/10] refit 7/40
+  [SIM 2/10] refit 8/40
+  [SIM 2/10] refit 9/40
+  [SIM 2/10] refit 10/40
+  [SIM 2/10] refit 11/40
+  [SIM 2/10] refit 12/40
+  [SIM 2/10] refit 13/40
+  [SIM 2/10] refit 14/40
+  [SIM 2/10] refit 15/40
+  [SIM 2/10] refit 16/40
+  [SIM 2/10] refit 17/40
+  [SIM 2/10] refit 18/40
+  [SIM 2/10] refit 19/40
+  [SIM 2/10] refit 20/40
+  [SIM 2/10] refit 21/40
+  [SIM 2/10] refit 22/40
+  [SIM 2/10] refit 23/40
+  [SIM 2/10] refit 24/40
+  [SIM 2/10] refit 25/40
+  [SIM 2/10] refit 26/40
+  [SIM 2/10] refit 27/40
+  [SIM 2/10] refit 28/40
+  [SIM 2/10] refit 29/40
+  [SIM 2/10] refit 30/40
+  [SIM 2/10] refit 31/40
+  [SIM 2/10] refit 32/40
+  [SIM 2/10] refit 33/40
+  [SIM 2/10] refit 34/40
+  [SIM 2/10] refit 35/40
+  [SIM 2/10] refit 36/40
+  [SIM 2/10] refit 37/40
+  [SIM 2/10] refit 38/40
+  [SIM 2/10] refit 39/40
+  [SIM 2/10] refit 40/40
+  [SIM 3/10] refit 1/40
+  [SIM 3/10] refit 2/40
+  [SIM 3/10] refit 3/40
+  [SIM 3/10] refit 4/40
+  [SIM 3/10] refit 5/40
+  [SIM 3/10] refit 6/40
+  [SIM 3/10] refit 7/40
+  [SIM 3/10] refit 8/40
+  [SIM 3/10] refit 9/40
+  [SIM 3/10] refit 10/40
+  [SIM 3/10] refit 11/40
+  [SIM 3/10] refit 12/40
+  [SIM 3/10] refit 13/40
+  [SIM 3/10] refit 14/40
+  [SIM 3/10] refit 15/40
+  [SIM 3/10] refit 16/40
+  [SIM 3/10] refit 17/40
+  [SIM 3/10] refit 18/40
+  [SIM 3/10] refit 19/40
+  [SIM 3/10] refit 20/40
+  [SIM 3/10] refit 21/40
+  [SIM 3/10] refit 22/40
+  [SIM 3/10] refit 23/40
+  [SIM 3/10] refit 24/40
+  [SIM 3/10] refit 25/40
+  [SIM 3/10] refit 26/40
+  [SIM 3/10] refit 27/40
+  [SIM 3/10] refit 28/40
+  [SIM 3/10] refit 29/40
+  [SIM 3/10] refit 30/40
+  [SIM 3/10] refit 31/40
+  [SIM 3/10] refit 32/40
+  [SIM 3/10] refit 33/40
+  [SIM 3/10] refit 34/40
+  [SIM 3/10] refit 35/40
+  [SIM 3/10] refit 36/40
+  [SIM 3/10] refit 37/40
+  [SIM 3/10] refit 38/40
+  [SIM 3/10] refit 39/40
+  [SIM 3/10] refit 40/40
+  [SIM 4/10] refit 1/40
+  [SIM 4/10] refit 2/40
+  [SIM 4/10] refit 3/40
+  [SIM 4/10] refit 4/40
+  [SIM 4/10] refit 5/40
+  [SIM 4/10] refit 6/40
+  [SIM 4/10] refit 7/40
+  [SIM 4/10] refit 8/40
+  [SIM 4/10] refit 9/40
+  [SIM 4/10] refit 10/40
+  [SIM 4/10] refit 11/40
+  [SIM 4/10] refit 12/40
+  [SIM 4/10] refit 13/40
+  [SIM 4/10] refit 14/40
+  [SIM 4/10] refit 15/40
+  [SIM 4/10] refit 16/40
+  [SIM 4/10] refit 17/40
+  [SIM 4/10] refit 18/40
+  [SIM 4/10] refit 19/40
+  [SIM 4/10] refit 20/40
+  [SIM 4/10] refit 21/40
+  [SIM 4/10] refit 22/40
+  [SIM 4/10] refit 23/40
+  [SIM 4/10] refit 24/40
+  [SIM 4/10] refit 25/40
+  [SIM 4/10] refit 26/40
+  [SIM 4/10] refit 27/40
+  [SIM 4/10] refit 28/40
+  [SIM 4/10] refit 29/40
+  [SIM 4/10] refit 30/40
+  [SIM 4/10] refit 31/40
+  [SIM 4/10] refit 32/40
+  [SIM 4/10] refit 33/40
+  [SIM 4/10] refit 34/40
+  [SIM 4/10] refit 35/40
+  [SIM 4/10] refit 36/40
+  [SIM 4/10] refit 37/40
+  [SIM 4/10] refit 38/40
+  [SIM 4/10] refit 39/40
+  [SIM 4/10] refit 40/40
+  [SIM 5/10] refit 1/40
+  [SIM 5/10] refit 2/40
+  [SIM 5/10] refit 3/40
+  [SIM 5/10] refit 4/40
+  [SIM 5/10] refit 5/40
+  [SIM 5/10] refit 6/40
+  [SIM 5/10] refit 7/40
+  [SIM 5/10] refit 8/40
+  [SIM 5/10] refit 9/40
+  [SIM 5/10] refit 10/40
+  [SIM 5/10] refit 11/40
+  [SIM 5/10] refit 12/40
+  [SIM 5/10] refit 13/40
+  [SIM 5/10] refit 14/40
+  [SIM 5/10] refit 15/40
+  [SIM 5/10] refit 16/40
+  [SIM 5/10] refit 17/40
+  [SIM 5/10] refit 18/40
+  [SIM 5/10] refit 19/40
+  [SIM 5/10] refit 20/40
+  [SIM 5/10] refit 21/40
+  [SIM 5/10] refit 22/40
+  [SIM 5/10] refit 23/40
+  [SIM 5/10] refit 24/40
+  [SIM 5/10] refit 25/40
+  [SIM 5/10] refit 26/40
+  [SIM 5/10] refit 27/40
+  [SIM 5/10] refit 28/40
+  [SIM 5/10] refit 29/40
+  [SIM 5/10] refit 30/40
+  [SIM 5/10] refit 31/40
+  [SIM 5/10] refit 32/40
+  [SIM 5/10] refit 33/40
+  [SIM 5/10] refit 34/40
+  [SIM 5/10] refit 35/40
+  [SIM 5/10] refit 36/40
+  [SIM 5/10] refit 37/40
+  [SIM 5/10] refit 38/40
+  [SIM 5/10] refit 39/40
+  [SIM 5/10] refit 40/40
+  [SIM 6/10] refit 1/40
+  [SIM 6/10] refit 2/40
+  [SIM 6/10] refit 3/40
+  [SIM 6/10] refit 4/40
+  [SIM 6/10] refit 5/40
+  [SIM 6/10] refit 6/40
+  [SIM 6/10] refit 7/40
+  [SIM 6/10] refit 8/40
+  [SIM 6/10] refit 9/40
+  [SIM 6/10] refit 10/40
+  [SIM 6/10] refit 11/40
+  [SIM 6/10] refit 12/40
+  [SIM 6/10] refit 13/40
+  [SIM 6/10] refit 14/40
+  [SIM 6/10] refit 15/40
+  [SIM 6/10] refit 16/40
+  [SIM 6/10] refit 17/40
+  [SIM 6/10] refit 18/40
+  [SIM 6/10] refit 19/40
+  [SIM 6/10] refit 20/40
+  [SIM 6/10] refit 21/40
+  [SIM 6/10] refit 22/40
+  [SIM 6/10] refit 23/40
+  [SIM 6/10] refit 24/40
+  [SIM 6/10] refit 25/40
+  [SIM 6/10] refit 26/40
+  [SIM 6/10] refit 27/40
+  [SIM 6/10] refit 28/40
+  [SIM 6/10] refit 29/40
+  [SIM 6/10] refit 30/40
+  [SIM 6/10] refit 31/40
+  [SIM 6/10] refit 32/40
+  [SIM 6/10] refit 33/40
+  [SIM 6/10] refit 34/40
+  [SIM 6/10] refit 35/40
+  [SIM 6/10] refit 36/40
+  [SIM 6/10] refit 37/40
+  [SIM 6/10] refit 38/40
+  [SIM 6/10] refit 39/40
+  [SIM 6/10] refit 40/40
+  [SIM 7/10] refit 1/40
+  [SIM 7/10] refit 2/40
+  [SIM 7/10] refit 3/40
+  [SIM 7/10] refit 4/40
+  [SIM 7/10] refit 5/40
+  [SIM 7/10] refit 6/40
+  [SIM 7/10] refit 7/40
+  [SIM 7/10] refit 8/40
+  [SIM 7/10] refit 9/40
+  [SIM 7/10] refit 10/40
+  [SIM 7/10] refit 11/40
+  [SIM 7/10] refit 12/40
+  [SIM 7/10] refit 13/40
+  [SIM 7/10] refit 14/40
+  [SIM 7/10] refit 15/40
+  [SIM 7/10] refit 16/40
+  [SIM 7/10] refit 17/40
+  [SIM 7/10] refit 18/40
+  [SIM 7/10] refit 19/40
+  [SIM 7/10] refit 20/40
+  [SIM 7/10] refit 21/40
+  [SIM 7/10] refit 22/40
+  [SIM 7/10] refit 23/40
+  [SIM 7/10] refit 24/40
+  [SIM 7/10] refit 25/40
+  [SIM 7/10] refit 26/40
+  [SIM 7/10] refit 27/40
+  [SIM 7/10] refit 28/40
+  [SIM 7/10] refit 29/40
+  [SIM 7/10] refit 30/40
+  [SIM 7/10] refit 31/40
+  [SIM 7/10] refit 32/40
+  [SIM 7/10] refit 33/40
+  [SIM 7/10] refit 34/40
+  [SIM 7/10] refit 35/40
+  [SIM 7/10] refit 36/40
+  [SIM 7/10] refit 37/40
+  [SIM 7/10] refit 38/40
+  [SIM 7/10] refit 39/40
+  [SIM 7/10] refit 40/40
+  [SIM 8/10] refit 1/40
+  [SIM 8/10] refit 2/40
+  [SIM 8/10] refit 3/40
+  [SIM 8/10] refit 4/40
+  [SIM 8/10] refit 5/40
+  [SIM 8/10] refit 6/40
+  [SIM 8/10] refit 7/40
+  [SIM 8/10] refit 8/40
+  [SIM 8/10] refit 9/40
+  [SIM 8/10] refit 10/40
+  [SIM 8/10] refit 11/40
+  [SIM 8/10] refit 12/40
+  [SIM 8/10] refit 13/40
+  [SIM 8/10] refit 14/40
+  [SIM 8/10] refit 15/40
+  [SIM 8/10] refit 16/40
+  [SIM 8/10] refit 17/40
+  [SIM 8/10] refit 18/40
+  [SIM 8/10] refit 19/40
+  [SIM 8/10] refit 20/40
+  [SIM 8/10] refit 21/40
+  [SIM 8/10] refit 22/40
+  [SIM 8/10] refit 23/40
+  [SIM 8/10] refit 24/40
+  [SIM 8/10] refit 25/40
+  [SIM 8/10] refit 26/40
+  [SIM 8/10] refit 27/40
+  [SIM 8/10] refit 28/40
+  [SIM 8/10] refit 29/40
+  [SIM 8/10] refit 30/40
+  [SIM 8/10] refit 31/40
+  [SIM 8/10] refit 32/40
+  [SIM 8/10] refit 33/40
+  [SIM 8/10] refit 34/40
+  [SIM 8/10] refit 35/40
+  [SIM 8/10] refit 36/40
+  [SIM 8/10] refit 37/40
+  [SIM 8/10] refit 38/40
+  [SIM 8/10] refit 39/40
+  [SIM 8/10] refit 40/40
+  [SIM 9/10] refit 1/40
+  [SIM 9/10] refit 2/40
+  [SIM 9/10] refit 3/40
+  [SIM 9/10] refit 4/40
+  [SIM 9/10] refit 5/40
+  [SIM 9/10] refit 6/40
+  [SIM 9/10] refit 7/40
+  [SIM 9/10] refit 8/40
+  [SIM 9/10] refit 9/40
+  [SIM 9/10] refit 10/40
+  [SIM 9/10] refit 11/40
+  [SIM 9/10] refit 12/40
+  [SIM 9/10] refit 13/40
+  [SIM 9/10] refit 14/40
+  [SIM 9/10] refit 15/40
+  [SIM 9/10] refit 16/40
+  [SIM 9/10] refit 17/40
+  [SIM 9/10] refit 18/40
+  [SIM 9/10] refit 19/40
+  [SIM 9/10] refit 20/40
+  [SIM 9/10] refit 21/40
+  [SIM 9/10] refit 22/40
+  [SIM 9/10] refit 23/40
+  [SIM 9/10] refit 24/40
+  [SIM 9/10] refit 25/40
+  [SIM 9/10] refit 26/40
+  [SIM 9/10] refit 27/40
+  [SIM 9/10] refit 28/40
+  [SIM 9/10] refit 29/40
+  [SIM 9/10] refit 30/40
+  [SIM 9/10] refit 31/40
+  [SIM 9/10] refit 32/40
+  [SIM 9/10] refit 33/40
+  [SIM 9/10] refit 34/40
+  [SIM 9/10] refit 35/40
+  [SIM 9/10] refit 36/40
+  [SIM 9/10] refit 37/40
+  [SIM 9/10] refit 38/40
+  [SIM 9/10] refit 39/40
+  [SIM 9/10] refit 40/40
+  [SIM 10/10] refit 1/40
+  [SIM 10/10] refit 2/40
+  [SIM 10/10] refit 3/40
+  [SIM 10/10] refit 4/40
+  [SIM 10/10] refit 5/40
+  [SIM 10/10] refit 6/40
+  [SIM 10/10] refit 7/40
+  [SIM 10/10] refit 8/40
+  [SIM 10/10] refit 9/40
+  [SIM 10/10] refit 10/40
+  [SIM 10/10] refit 11/40
+  [SIM 10/10] refit 12/40
+  [SIM 10/10] refit 13/40
+  [SIM 10/10] refit 14/40
+  [SIM 10/10] refit 15/40
+  [SIM 10/10] refit 16/40
+  [SIM 10/10] refit 17/40
+  [SIM 10/10] refit 18/40
+  [SIM 10/10] refit 19/40
+  [SIM 10/10] refit 20/40
+  [SIM 10/10] refit 21/40
+  [SIM 10/10] refit 22/40
+  [SIM 10/10] refit 23/40
+  [SIM 10/10] refit 24/40
+  [SIM 10/10] refit 25/40
+  [SIM 10/10] refit 26/40
+  [SIM 10/10] refit 27/40
+  [SIM 10/10] refit 28/40
+  [SIM 10/10] refit 29/40
+  [SIM 10/10] refit 30/40
+  [SIM 10/10] refit 31/40
+  [SIM 10/10] refit 32/40
+  [SIM 10/10] refit 33/40
+  [SIM 10/10] refit 34/40
+  [SIM 10/10] refit 35/40
+  [SIM 10/10] refit 36/40
+  [SIM 10/10] refit 37/40
+  [SIM 10/10] refit 38/40
+  [SIM 10/10] refit 39/40
+  [SIM 10/10] refit 40/40
+simulation calibration (x10, y*~Bern(p_C), no excitation): dLS(D-C) mean=-0.00012 range [-0.00053, +0.00006]  (false-positive scale for the primary)
+
+==============================================================================
+VIX-ERA KILL-CHECK (1990+, prior-day VIX close in every rung)
+==============================================================================
+  [VIX-KILL-CHECK] refit 1/22
+  [VIX-KILL-CHECK] refit 2/22
+  [VIX-KILL-CHECK] refit 3/22
+  [VIX-KILL-CHECK] refit 4/22
+  [VIX-KILL-CHECK] refit 5/22
+  [VIX-KILL-CHECK] refit 6/22
+  [VIX-KILL-CHECK] refit 7/22
+  [VIX-KILL-CHECK] refit 8/22
+  [VIX-KILL-CHECK] refit 9/22
+  [VIX-KILL-CHECK] refit 10/22
+  [VIX-KILL-CHECK] refit 11/22
+  [VIX-KILL-CHECK] refit 12/22
+  [VIX-KILL-CHECK] refit 13/22
+  [VIX-KILL-CHECK] refit 14/22
+  [VIX-KILL-CHECK] refit 15/22
+  [VIX-KILL-CHECK] refit 16/22
+  [VIX-KILL-CHECK] refit 17/22
+  [VIX-KILL-CHECK] refit 18/22
+  [VIX-KILL-CHECK] refit 19/22
+  [VIX-KILL-CHECK] refit 20/22
+  [VIX-KILL-CHECK] refit 21/22
+  [VIX-KILL-CHECK] refit 22/22
+  dLS(D-C)=-0.00045  90% CI [-0.00115, +0.00016]  N=5522  (kill-check: primary must independently hold here)
+
+NFCI-added variant (1971+): SKIPPED ΓÇö NFCI not yet in panel (session-3 item).
+
+Wrote results\tailhazard_stage1.csv (+ _preds.csv)
