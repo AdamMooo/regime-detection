@@ -76,11 +76,27 @@ synthetic 10y bond TR (IEF corr 0.962, ann vol 7.1% — fixed a duration bug tha
 vol: half-year periods vs years), gold via GC=F (2000+, GLD corr 0.888, non-synchronous
 closes documented; FRED London-fix series unavailable).
 
-## Next action
+## The atlas — DONE (2026-07-23) — IT FOUND STABLE STRUCTURE
 
-**The atlas** (program step 3): per-state conditional stats (ann ret / vol / Sharpe /
-corr-with-market) for every asset, industry, and factor, with leave-one-episode-out
-stability counts (the confidence meter) + block-bootstrap CIs → new pages in
-`results/report.html`. Descriptive, in-sample, labeled as such; informs (never gates) the
-step-4 allocation prereg. Confidence upgrades alongside: calibrated P(state) from the filter
-evidence gap; K=3 crash/rebound split exploration (entry-lag confound check included).
+`scripts/atlas.py` → `results/atlas.csv` (+ run log). Cross-ASSET conditional structure is
+real and 30/30 LOEO-stable: **bonds** corr −0.10→−0.30 in stressed states (flight-to-quality),
+ret +4.4→+7.2%, vol ratio 1.35 vs mkt 1.75; **gold** uncorrelated both states (2000+ only);
+**momentum factor** corr FLIPS +0.25→−0.52, premium evaporates (Daniel-Moskowitz crash
+dynamic — anti-hedge, design knowledge not a position). **Industries: correlations converge
+0.83–0.92 in stress — within-equity rotation is cosmetic** (Page diversification-failure).
+Conclusion: conditional value lives in cross-asset SECOND MOMENTS only.
+
+## Next action — CHAPTER 2 (blocked on Adam's freeze)
+
+`.planning/ALLOCATION-PREREG.md` is DRAFTED: state-conditional ERC over equity/bond/gold+cash
+(covariances only, NO return forecasts), 8% vol target, vs the IDENTICAL unconditional ERC
+(B_match). Primary = FKO fee, γ=10, CI; mechanism falsifier F2 = must track the vol target
+better; controls C1-C3. **Adam to review the four pinned judgment calls (8% target, caps
+75/75/25, shrinkage 0.5, monthly rebalance) and sign the freeze.** Then: build
+`scripts/run_allocation.py` (mirror run_backtest idioms, --confirm-frozen guard), synthetic
+smoke, real one-look run. Atlas findings may inform review but the confirmatory result does
+not exist — blind intact.
+
+Also queued (not blocking): calibrated P(state) from the filter evidence gap (needed by the
+graded variant — calibrate on SYNTHETIC panels pre-freeze); K=3 crash/rebound exploration
+(entry-lag confound check); atlas pages in report.html; λ lag-vs-whipsaw frontier.
