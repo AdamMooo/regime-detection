@@ -141,6 +141,15 @@ Phase 4: <1 session. Total ≈ 5–6 sessions.
   2. **Speed, quantified** — map the lag-vs-whipsaw frontier across λ; try asymmetric jump
      penalties (fast into bear, slow out); pay for speed only with measured stability.
   3. **Downstream wiring (Portfolio-Manager) PARKED** until track 1 done and Adam signs off.
+  4. **Candidate Phase-5 research question (Adam, 2026-07-23): state-conditional asset menu.**
+     Given the trusted label, model what to HOLD within each state (duration, credit, gold,
+     defensive-vs-cyclical sectors) — the lag-tolerant use (episodes 60-200d vs ~8d detection
+     lag). Framing: disciplined conditional playbook evaluated on portfolio outcomes, NOT
+     "information beyond vol" (settled null in v1). Mandatory: exposure-matched placebo
+     controls (the C1 lesson); soft-exposure variant from the filter's evidence gap is the
+     companion Track-2 idea (hypothesis: it interpolates toward vol targeting). Data: French
+     daily industry portfolios (1926+, same validated source) + v1's synthetic long-history
+     bond TR. Prereg before any real-data result, as always.
 
 ## Sources (key)
 - Bemporad, Breschi, Piga & Boyd, "Fitting Jump Models," Automatica 2018.
