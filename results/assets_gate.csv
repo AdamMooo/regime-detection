@@ -1,0 +1,5 @@
+gate,passed,detail
+A1_industries,True,ew_composite_corr=0.9249 min_ind_corr=0.64 start=1963-01-02
+A2_bond,True,ief_corr=0.9616 ann_vol=7.09%
+A3_gold,True,gld_corr=0.8883 start=2000-08-31
+A4_factors,True,factors complete-case from 1963-01-02
