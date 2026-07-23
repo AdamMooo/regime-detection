@@ -68,8 +68,19 @@ graded tilts, never 0/100 — goal set 2026-07-23).
   gate PASS (corr 0.9957), label runs to TODAY; 1.0000 agreement with frozen labels on all
   9120 overlap days. Current state: CALM since 2026-04-23.
 
+## Panel expansion — DONE (2026-07-23)
+
+`scripts/build_assets.py` → `data/processed/assets_daily.csv` (regenerable, gitignored),
+gates PASS (`results/assets_gate.csv`): 10 FF industries + SMB/HML/MOM (complete-case 1963+),
+synthetic 10y bond TR (IEF corr 0.962, ann vol 7.1% — fixed a duration bug that had doubled
+vol: half-year periods vs years), gold via GC=F (2000+, GLD corr 0.888, non-synchronous
+closes documented; FRED London-fix series unavailable).
+
 ## Next action
 
-Program step 2-3: expand the panel (French 10 industries + SMB/HML/MOM, synthetic bond TR,
-gold + gates in `build_panel.py`), then the state-conditional atlas with per-episode
-(leave-one-episode-out) stability checks → new report pages.
+**The atlas** (program step 3): per-state conditional stats (ann ret / vol / Sharpe /
+corr-with-market) for every asset, industry, and factor, with leave-one-episode-out
+stability counts (the confidence meter) + block-bootstrap CIs → new pages in
+`results/report.html`. Descriptive, in-sample, labeled as such; informs (never gates) the
+step-4 allocation prereg. Confidence upgrades alongside: calibrated P(state) from the filter
+evidence gap; K=3 crash/rebound split exploration (entry-lag confound check included).
