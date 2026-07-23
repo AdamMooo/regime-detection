@@ -124,7 +124,14 @@ chapter 2). State-conditioning loses detection-lag races at daily horizons.** Op
 2. **Chapter 3 only if a use is named where lag-tolerance is STRUCTURAL** (the gate from
    the information-gate discipline) — candidates would need horizon >> detection lag
    (e.g., monthly/quarterly decision cadences where EWMA's speed advantage dies), argued
-   in a prereg BEFORE any data touch.
+   in a prereg BEFORE any data touch. **Named candidate (Adam, 2026-07-23): factor
+   exposure conditioning** — the atlas's strongest conditional structure is momentum's
+   stress behavior (corr flip +0.25→−0.52, premium evaporates; Daniel–Moskowitz crashes).
+   Gate to clear in the prereg: the incumbent there is realized-vol scaling
+   (Moreira–Muir 2017 vol-managed portfolios; Barroso–Santa-Clara 2015 momentum risk
+   management) — the SAME reactive-estimator class that won chapters 1 and 2. A factor
+   chapter must be monthly-cadence (where EWMA's speed edge compresses), long-short
+   costs included, with the vol-scaled incumbent as the B_react-analog co-primary.
 3. Instrument-track continuation regardless: λ frontier / asymmetric penalties (Track 2)
    are about the SENSOR, not allocation, and remain legitimate.
 

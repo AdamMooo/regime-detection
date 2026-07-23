@@ -292,27 +292,29 @@ details { margin: 8px 0; } summary { cursor: pointer; color: var(--ink2); font-s
 
 <div class="tiles" id="tiles"></div>
 
+<p class="note"><strong>Plain English:</strong> the model's "beating the market" is really just
+holding less stock — random signals with the same average exposure score the same, and a cheap
+vol-target rule beats it outright. The one genuinely good result: the regime label itself is
+unusually stable — a solid sensor, not a trading edge.</p>
+
 <h2>The verdict in one picture — the fee against its null bands</h2>
-<p class="note">The FKO fee (γ=10) measures what a risk-averse investor would pay to hold the
-strategy instead of the benchmark. The jump-model overlay earns a big fee vs buy-and-hold — but
-so do random persistent signals with the same average exposure (placebo), timing-destroyed
-surrogates, and pure iid-noise pipelines. The point sits inside every null band, and vs vol
-targeting the fee is significantly negative. The fee is exposure, not timing.</p>
+<p class="note">The fee = what a cautious investor (γ=10) would pay per year to switch. The dot
+must clear the shaded bands (what fake signals score) to mean anything. It doesn't — and vs vol
+targeting it's significantly negative.</p>
 <div class="card"><div id="intervals"></div></div>
 
 <h2>Equity curves, 1990&ndash;2026 (log scale)</h2>
-<p class="note">Shaded bands are the model's OOS bear states, called causally. The overlay
-(JM) sidesteps the big drawdowns — but vol targeting rides the same information with less lag,
-and buy-and-hold's terminal wealth is higher: the overlay's value is risk reduction, priced by
-the fee, not extra return.</p>
+<p class="note">Shaded = the model's bear calls. JM sidesteps the crashes, but vol targeting
+does the same job with less lag, and buy-and-hold ends richer. The overlay's value is risk
+reduction, not extra return.</p>
 <div class="legend" id="eqlegend"></div>
 <div class="card"><div id="equity"></div></div>
 <details><summary>Table view — annual returns by strategy (%)</summary>
 <div class="card"><table id="annual"></table></div></details>
 
 <h2>Drawdowns</h2>
-<p class="note">Where the overlay earns its fee: max drawdown &minus;27.5% vs buy-and-hold's
-&minus;54.6%. Note how closely vol targeting tracks the same protection.</p>
+<p class="note">Max drawdown: JM &minus;27.5% vs buy-and-hold &minus;54.6% — but vol targeting
+gets nearly identical protection.</p>
 <div class="legend" id="ddlegend"></div>
 <div class="card"><div id="drawdown"></div></div>
 
@@ -321,15 +323,13 @@ the fee, not extra return.</p>
 <div class="card"><table id="episodes"></table></div>
 
 <h2>The speed/stability dial — selected &lambda; per refit</h2>
-<p class="note">&lambda; is the jump penalty: the switch cost the causal cross-validation chose
-each year (grid 10&ndash;800, log scale). It stays off the grid edges (falsifier F2 clear) and
-drifts lower in the modern era — the data asking for a slightly faster dial.</p>
+<p class="note">&lambda; = the model's switch-resistance dial, re-chosen each year by
+cross-validation. Healthy: it stays inside the grid and drifts faster in the modern era.</p>
 <div class="card"><div id="lambda"></div></div>
 
 <h2>Robustness — fee vs B&amp;H by era and with each crisis removed</h2>
-<p class="note">The fee is positive in both era halves and under every leave-one-crisis-out —
-consistent with an exposure effect that is always present, rather than skill concentrated in
-one lucky episode.</p>
+<p class="note">Positive in both halves and with any single crisis removed — an always-on
+exposure effect, not one lucky call.</p>
 <div class="card"><div id="robust"></div></div>
 
 <h2>Strategy comparison</h2>
@@ -341,14 +341,23 @@ one lucky episode.</p>
 <h1 id="ch2" style="font-size:20px;margin-top:48px">Chapter 2 — State-Conditional Allocation (covariance only)</h1>
 <p class="sub" id="ch2subtitle"></p>
 
+<p class="note"><strong>Plain English:</strong> telling the portfolio "we're in a storm"
+didn't help — a simple estimator that just watches the last few weeks (EWMA) reacts faster
+and does better. The structure the atlas found is real; it's just already harvested by
+being reactive. The storm detector itself still works.</p>
+
 <div class="tiles" id="ch2tiles"></div>
 
+<h2>The map — risk taken vs return earned</h2>
+<p class="note">Every arm is one dot. The dashed line shows what cash or leverage does to the
+best diversified arm — anything below that line is beaten at equal risk. 60/40 and buy-and-hold
+earn more only by taking more risk; per unit of risk they lose.</p>
+<div class="card"><div id="ch2scatter"></div></div>
+
 <h2>The two fees against their null bands</h2>
-<p class="note">fee_A asks whether conditioning beats the identical allocator on
-unconditional expanding covariance (full window; the arms are identical before
-activation). fee_B asks the harder question — does the state label beat a reactive
-EWMA covariance that adapts on its own (scored from activation)? Bands are the 5th–95th
-of the preregistered control distributions run through the full pipeline.</p>
+<p class="note">fee_A: does the label beat the same allocator with a slow "use all history"
+covariance? fee_B (the honest bar): does it beat a fast EWMA covariance? Shaded = what fake
+labels score. Verdict: fee_A inside the bands, fee_B negative — the fast simple estimate wins.</p>
 <div class="card"><div id="ch2intervals"></div></div>
 
 <h2>Equity curves (log scale)</h2>
@@ -359,16 +368,15 @@ of the preregistered control distributions run through the full pipeline.</p>
 <div class="card"><table id="ch2annual"></table></div></details>
 
 <h2>What the conditional arm holds</h2>
-<p class="note">Executed weights of the conditional ERC arm (equity, bond, gold, cash
-residual). Shaded bands are the stressed states. The visible moves are the mechanism:
-in stress the conditional covariance is larger, the vol target binds, cash rises.</p>
+<p class="note">Weights of the conditional arm. In stress the estimated risk rises, the 8%
+vol target binds, and cash rises — that's the whole mechanism.</p>
 <div class="legend" id="ch2wlegend"></div>
 <div class="card"><div id="ch2weights"></div></div>
 
 <h2>Era-split diagnostics (pre-declared)</h2>
-<p class="note">The named failure mode is a stock-bond correlation-regime break: the
-1990s (bonds anti-hedge in stress) and the 2022 inflation bear. If the headline fee
-only exists in one era, this table says so.</p>
+<p class="note">Does the result depend on the era? fee_A is ~0 everywhere; fee_B: the EWMA
+wins big after 2000 (and the 2022 inflation bear is the known worst case for bond-hedge
+assumptions).</p>
 <div class="card"><table id="ch2splits"></table></div>
 
 <h2>Arm comparison</h2>
@@ -623,10 +631,8 @@ function table(id, headers, rows, numFrom) {
     yfmt: v => fmt(v) + "%", label: "Drawdowns", height: 280});
 
   document.getElementById("epnote").textContent =
-    `The model spent ${M.bear_frac}% of days in its bear state across ` +
-    `${DATA.episodes.length} episodes. Within-episode annualized volatility runs far above ` +
-    `the calm-state ${M.calm_vol}% — the states are real volatility environments; ` +
-    `what they are not is a tradable return edge.`;
+    `${DATA.episodes.length} bear calls covering ${M.bear_frac}% of days — all genuinely ` +
+    `high-volatility stretches (calm-state vol is ${M.calm_vol}%). Real weather, no return edge.`;
   table("episodes", ["#", "Start", "End", "Days", "Market return", "Ann. vol in episode"],
     DATA.episodes.map((e, i) => [String(i + 1), e.start, e.end, fmt(e.days),
       {text: `${e.mkt_ret > 0 ? "+" : ""}${e.mkt_ret.toFixed(1)}%`,
@@ -671,6 +677,55 @@ function mkLegend(id, entries, bandLabel) {
     const sw = document.createElement("span"); sw.className = "item";
     const s = document.createElement("span"); s.className = "swatch"; sw.appendChild(s);
     sw.appendChild(document.createTextNode(bandLabel)); lg.appendChild(sw); }
+}
+
+function scatterChart(mount, pts, refLine) {
+  const W = 1040, H = 360, m = {t: 16, r: 40, b: 42, l: 56};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const xmax = Math.max(...pts.map(p => p.x)) * 1.12;
+  const ymax = Math.max(...pts.map(p => p.y)) * 1.18;
+  const X = v => m.l + v / xmax * iw;
+  const Y = v => m.t + ih - v / ymax * ih;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img",
+    "aria-label": "Risk vs return by arm"});
+  mount.appendChild(svg);
+  for (let v = 0; v <= ymax; v += 2) {
+    svg.appendChild(el("line", {x1: m.l, x2: m.l + iw, y1: Y(v), y2: Y(v),
+      stroke: "var(--grid)", "stroke-width": 1}));
+    const t = el("text", {x: m.l - 8, y: Y(v) + 4, "text-anchor": "end"});
+    t.textContent = v + "%"; svg.appendChild(t); }
+  for (let v = 0; v <= xmax; v += 2) {
+    const t = el("text", {x: X(v), y: H - 20, "text-anchor": "middle"});
+    t.textContent = v + "%"; svg.appendChild(t); }
+  const xl = el("text", {x: m.l + iw / 2, y: H - 4, "text-anchor": "middle"});
+  xl.textContent = "risk (annualized volatility)"; svg.appendChild(xl);
+  svg.appendChild(el("line", {x1: m.l, x2: m.l + iw, y1: m.t + ih, y2: m.t + ih,
+    stroke: "var(--axis)", "stroke-width": 1}));
+  // leverage line through the reference arm: y = intercept + sharpe * x
+  const yEnd = refLine.intercept + refLine.sharpe * xmax;
+  svg.appendChild(el("line", {x1: X(0), y1: Y(Math.max(refLine.intercept, 0)),
+    x2: yEnd > ymax ? X((ymax - refLine.intercept) / refLine.sharpe) : X(xmax),
+    y2: yEnd > ymax ? Y(ymax) : Y(yEnd),
+    stroke: `var(${refLine.colorVar})`, "stroke-width": 1.5,
+    "stroke-dasharray": "6 5", opacity: 0.7}));
+  const ll = el("text", {x: X(xmax * 0.55), y: Y(refLine.intercept + refLine.sharpe * xmax * 0.55) - 8,
+    class: "dirlab"});
+  ll.textContent = refLine.label; ll.style.fill = `var(${refLine.colorVar})`;
+  svg.appendChild(ll);
+  for (const p of pts) {
+    svg.appendChild(el("circle", {cx: X(p.x), cy: Y(p.y), r: 6,
+      fill: `var(${p.colorVar})`, stroke: "var(--surface)", "stroke-width": 2}));
+    const t = el("text", {x: X(p.x) + 10, y: Y(p.y) + 4, class: "dirlab"});
+    t.textContent = p.name; t.style.fill = "var(--ink2)"; svg.appendChild(t);
+    const hit = el("rect", {x: X(p.x) - 12, y: Y(p.y) - 12, width: 24, height: 24,
+      fill: "transparent"});
+    svg.appendChild(hit);
+    hit.addEventListener("pointermove", ev => showTT(ev.clientX, ev.clientY,
+      ttRows(p.name, [
+        {colorVar: p.colorVar, name: "return / vol", value: `${p.y.toFixed(1)}% / ${p.x.toFixed(1)}%`},
+        {colorVar: p.colorVar, name: "Sharpe", value: p.sharpe.toFixed(2)},
+        {colorVar: p.colorVar, name: "max drawdown", value: p.maxdd.toFixed(0) + "%"}])));
+    hit.addEventListener("pointerleave", hideTT); }
 }
 
 function intervalChart2(mount, A) {
@@ -764,13 +819,22 @@ function intervalChart2(mount, A) {
   tile(tiles, `${A.turnover.cond.toFixed(2)}×`, "turnover/yr (cond)",
     `B_match ${A.turnover.match.toFixed(2)} · B_react ${A.turnover.react.toFixed(2)} · bar 5× B_match`);
 
+  const scatterColors = {"Cond": "--s1", "B_match": "--s2", "B_react": "--s3",
+    "60/40": "--s4", "VT equity": "--s4", "B&H equity": "--s4"};
+  const pts = Object.entries(A.arm_stats).map(([name, s]) => ({name,
+    x: s.ann_vol, y: s.ann_ret, sharpe: s.sharpe, maxdd: s.maxdd,
+    colorVar: scatterColors[name]}));
+  const best = A.arm_stats["B_react"];
+  scatterChart(document.getElementById("ch2scatter"), pts,
+    {sharpe: best.sharpe, intercept: best.ann_ret - best.sharpe * best.ann_vol,
+     colorVar: "--s3", label: "B_react + cash/leverage"});
+
   intervalChart2(document.getElementById("ch2intervals"), A);
 
   const armColors = {"Cond": "--s1", "B_match": "--s2", "B_react": "--s3", "60/40": "--s4"};
   document.getElementById("ch2eqnote").textContent =
-    `All ERC arms share caps, the 8% vol target, costs and delay — the only difference ` +
-    `is the covariance estimate. Shaded bands are the stressed states. dSharpe(cond−match) ` +
-    `90% CI [${A.dsr[0].toFixed(3)}, ${A.dsr[1].toFixed(3)}]; dMaxDD ${A.dmaxdd.toFixed(2)}pp.`;
+    `Same caps, same 8% target, same costs — only the covariance estimate differs, and the ` +
+    `three ERC lines barely separate: the label adds nothing here. Shaded = stressed states.`;
   mkLegend("ch2eqlegend", Object.entries(armColors).map(([name, colorVar]) =>
     ({name, colorVar})), "stressed state");
   const eqmax = Math.max(...Object.values(A.equity).flat());
