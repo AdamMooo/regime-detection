@@ -1,0 +1,6 @@
+gate,passed,detail
+G1_coverage,True,start=1926-09-17 end=2026-05-29
+G2_overlap_corr,True,corr_2010+=0.9951 corr_full=0.9786 n=8388
+G3_overlap_drift,True,ann_ret_diff=+0.1139%
+G4_crisis_coverage,True,misses=none
+G5_episode_count,True,episodes=51

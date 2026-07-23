@@ -1,9 +1,53 @@
 # Regime-Detection — Session Notes
 
 ## Status
-Architecture: stripped HDP-HMM, paper-first
+Architecture: v2 = statistical jump model program (v1 HDP-HMM sealed at `v1-convergence`)
 Branch: main
-Last updated: 2026-07-22
+Last updated: 2026-07-22 (night)
+
+## Session 2026-07-22 (night) — V2 DIRECTION CHOSEN + Phases 0-1 executed; battery falsifies fee-vs-VT capability in silico
+
+**Direction (Adam-driven reframe):** Adam rejected successor-question candidates derived from the
+repo's own record and demanded outward grounding. A 3-agent methodology sweep (academic SOTA /
+practitioner systems / data+stats standards) produced a 10-point gap list vs field practice — key
+items: estimator was 2011-era (K-saturation + window sensitivity are DOCUMENTED HDP pathologies with
+known remedies — Miller-Harrison 2013, Pohle et al. 2017; the 2020s standard is the statistical jump
+model), NFCI carries real embedded lookahead (Chicago Fed refits its factor model full-sample weekly;
+our 7d lag fixed availability only — Amburgey-McCracken 2023), features nonstandard (field uses
+downside-dev/Sortino EWMs, log-VIX), training sample below field floor, home-rolled stats where
+Clark-West/Giacomini-White/tail-weighted Amisano-Giacomini are standard, and the FKO economic-value
+lens never run. Where we're AHEAD: causal discipline, matched baselines, prereg. Full plan:
+`.planning/V2-JUMPMODEL-PLAN.md` (with execution status), gap sources cited there.
+
+**V2 = build the field-standard instrument (K=2 weighted jump model, return-only features, 1926+
+French data) under v1 discipline; test the field's own economic claims.** Adam approved autonomous
+execution; Learning-Mode core-writing waived (precedent: tailhazard core).
+
+**Phase 0 DONE, gate PASS** — `scripts/v2_build.py` → `data/processed/v2_daily.csv` (NOT committed;
+regenerate via the script): French daily mkt TR + RF 1926-2026, 51 stress episodes, SPY cross-check
+clean (corr 0.995 modern era; full-overlap 0.979 diagnosed as universe difference + 90s SPY noise).
+French publishes ~1-2mo lagged → live instrument needs SPY-splice tail (Phase-4 item).
+
+**Phase 1 DONE** — `scripts/v2_core.py` (weighted JM: coordinate descent, exact DP assignment with
+k=2 fast path, sparse-JM-style feature weights, dd-quantile init; **causal filter = endpoint of the
+forward DP value recursion** — greedy one-step rule was built first and FAILED the battery: it can
+only switch on single-day evidence > lambda), `v2_eval.py` (FKO fee closed-form, VT/SMA/B&H baselines,
+stationary bootstrap), `v2_pipeline.py` (shared walk-forward: annual refits, lambda from grid by
+validation Sharpe, frozen params, byte-identical for synthetic and real runs), 20 passing tests incl.
+causality invariants + DP-vs-brute-force + filter chaining equivalence.
+
+**Phase 1 finding (the load-bearing one):** synthetic battery (`results/v2_synthetic_validation.csv`,
+bars in-script) — B3 null-calibration PASS; B1/B2 capability FAIL. Oracle decomposition: perfect
+regime knowledge beats vol targeting by +136..+1090 bps/yr, but lagging the oracle 10-21d erases
+most/all of it, and causal filters intrinsically lag ~5-20d. The pipeline DOES beat B&H when regimes
+exist (= the literature's actual claim, Shu/Mulvey 2024). **In-silico: VT subsumes persistent-regime
+value at daily frequency up to detection lag** — v1's "vol absorbs everything" re-derived from first
+principles, now with a mechanism (reaction-speed race, not information content).
+
+**NEXT ACTION (Adam decision, blocks Phase-2 freeze):** re-decide the prereg primary — see banner in
+`.planning/V2-JUMPMODEL-PREREG.md`. Recommended: primary = fee(JM−B&H) replication claim, co-primary
+deflation exhibit fee(JM−VT) expected ≤0. Then sign freeze; real run = `scripts/v2_stage1.py
+--confirm-frozen` (~4-5h, one look). Blind fully intact — no real-data model result exists.
 
 ## Session 2026-07-22 (evening) — tail-hazard primary NULL; OU/Kalman correlation state NULL on both lenses
 

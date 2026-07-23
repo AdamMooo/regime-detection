@@ -1,0 +1,14 @@
+{'config': 'R', 'seed': 11, 'oos_days': 3213, 'bac': 0.633, 'bear_frac': 0.674, 'switches_yr': 1.33, 'lam_median': 25.0, 'sharpe_jm': -0.202, 'sharpe_vt': -0.034, 'sharpe_bh': -0.427, 'fee_jm_vs_vt_bps': -101.6, 'fee_ci_lo': -672.5, 'fee_ci_hi': 416.9, 'fee_oracle': 1089.6, 'fee_oracle_lag10': 540.5, 'runtime_s': 23.7}
+{'config': 'R', 'seed': 12, 'oos_days': 3213, 'bac': 0.587, 'bear_frac': 0.544, 'switches_yr': 2.35, 'lam_median': 50.0, 'sharpe_jm': 0.129, 'sharpe_vt': 0.964, 'sharpe_bh': 0.578, 'fee_jm_vs_vt_bps': -1027.4, 'fee_ci_lo': -1531.1, 'fee_ci_hi': -561.3, 'fee_oracle': 135.8, 'fee_oracle_lag10': 139.6, 'runtime_s': 21.8}
+{'config': 'R', 'seed': 13, 'oos_days': 3213, 'bac': 0.699, 'bear_frac': 0.474, 'switches_yr': 2.35, 'lam_median': 25.0, 'sharpe_jm': 0.004, 'sharpe_vt': 0.343, 'sharpe_bh': 0.133, 'fee_jm_vs_vt_bps': -479.2, 'fee_ci_lo': -991.3, 'fee_ci_hi': 51.0, 'fee_oracle': 494.6, 'fee_oracle_lag10': 231.0, 'runtime_s': 23.2}
+{'config': 'S', 'seed': 11, 'oos_days': 3213, 'bac': 0.816, 'bear_frac': 0.115, 'switches_yr': 0.47, 'lam_median': 10.0, 'sharpe_jm': 0.891, 'sharpe_vt': 1.148, 'sharpe_bh': 0.3, 'fee_jm_vs_vt_bps': -301.4, 'fee_ci_lo': -749.3, 'fee_ci_hi': 57.2, 'fee_oracle': 464.6, 'fee_oracle_lag10': -50.6, 'runtime_s': 23.3}
+{'config': 'S', 'seed': 12, 'oos_days': 3213, 'bac': 0.818, 'bear_frac': 0.445, 'switches_yr': 1.25, 'lam_median': 10.0, 'sharpe_jm': 1.005, 'sharpe_vt': 0.759, 'sharpe_bh': -0.318, 'fee_jm_vs_vt_bps': 184.1, 'fee_ci_lo': -458.2, 'fee_ci_hi': 721.3, 'fee_oracle': 764.4, 'fee_oracle_lag10': 1072.9, 'runtime_s': 22.7}
+{'config': 'S', 'seed': 13, 'oos_days': 3213, 'bac': 0.588, 'bear_frac': 0.02, 'switches_yr': 0.16, 'lam_median': 25.0, 'sharpe_jm': 1.169, 'sharpe_vt': 1.396, 'sharpe_bh': 1.019, 'fee_jm_vs_vt_bps': -204.7, 'fee_ci_lo': -542.6, 'fee_ci_hi': 30.5, 'fee_oracle': 404.9, 'fee_oracle_lag10': 1.3, 'runtime_s': 26.2}
+{'config': 'N', 'seed': 11, 'oos_days': 3213, 'bac': nan, 'bear_frac': 0.433, 'switches_yr': 1.33, 'lam_median': 800.0, 'sharpe_jm': 0.848, 'sharpe_vt': 0.835, 'sharpe_bh': 0.909, 'fee_jm_vs_vt_bps': -92.8, 'fee_ci_lo': -518.4, 'fee_ci_hi': 252.2, 'fee_oracle': nan, 'fee_oracle_lag10': nan, 'runtime_s': 21.4}
+{'config': 'N', 'seed': 12, 'oos_days': 3213, 'bac': nan, 'bear_frac': 0.52, 'switches_yr': 3.22, 'lam_median': 100.0, 'sharpe_jm': 0.172, 'sharpe_vt': 0.685, 'sharpe_bh': 0.73, 'fee_jm_vs_vt_bps': -693.8, 'fee_ci_lo': -1032.6, 'fee_ci_hi': -272.9, 'fee_oracle': nan, 'fee_oracle_lag10': nan, 'runtime_s': 22.5}
+{'config': 'N', 'seed': 13, 'oos_days': 3213, 'bac': nan, 'bear_frac': 0.531, 'switches_yr': 2.9, 'lam_median': 100.0, 'sharpe_jm': 0.42, 'sharpe_vt': 0.565, 'sharpe_bh': 0.641, 'fee_jm_vs_vt_bps': -263.7, 'fee_ci_lo': -690.7, 'fee_ci_hi': 183.3, 'fee_oracle': nan, 'fee_oracle_lag10': nan, 'runtime_s': 24.1}
+
+B1 (S capability): FAIL
+B2 (R realistic): FAIL
+B3 (N calibration): PASS
+SYNTHETIC VALIDATION: FAIL
