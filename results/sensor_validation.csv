@@ -1,0 +1,5 @@
+variant,precision,recall,bac,episodes,detected,median_lag_days,ann_ret,ann_vol,sharpe,skew,kurt,worst_day,days
+LT20,0.289,0.564,0.66,11.0,9.0,56.0,,,,,,,
+LT15,0.321,0.593,0.679,18.0,15.0,20.0,,,,,,,
+state_calm/bull,,,,,,,0.1158,0.1434,0.808,-0.439,4.6,-0.0696,6467.0
+state_stressed,,,,,,,0.1407,0.2501,0.563,-0.086,7.28,-0.12,2653.0
