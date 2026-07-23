@@ -105,6 +105,28 @@ economically dominated at daily horizons.
 4. Lag-race schematic from synthetic oracle-lag curves.
 5. Stability exhibit: ±2y label agreement (1.000 vs 0.809).
 
+## Defensibility requirements (pinned 2026-07-23 — Adam's "no rushing" directive)
+
+The pushback we must survive, addressed in the manuscript itself:
+
+1. **"Your variant differs from ours."** Document protocol equivalence with Shu–Yu–Mulvey
+   meticulously: same features (dd10/sortino20/sortino60), same estimator family, same
+   execution conventions; a dedicated appendix table mapping our choices to theirs, with
+   every divergence justified. Their claims must be tested on THEIR terms.
+2. **"Your costs/delay are too harsh."** Sensitivity exhibits already exist (delay=1
+   chapter 1; break-even cost 305.6 bps) — surface them prominently; add chapter-2 cost
+   scaling from turnover in the appendix.
+3. **"So you recommend EWMA/vol targeting?"** No — comparative-negative claims ONLY.
+   B_react and VT won matched races; Cederburg et al. 2020 shows vol-managed strategies
+   are themselves fragile OOS. The paper deflates a claim; it prescribes nothing.
+4. **Selection-contamination honesty:** state plainly that the atlas/anatomy are
+   descriptive and hypothesis-generating, that chapter hypotheses born from them require
+   out-of-sample confirmation (international panels), and that chapter 2's H2 was
+   reframed pre-freeze with the audit trail in git. Our discipline is the contribution —
+   exhibit it, don't bury it.
+5. **Priority:** SSRN preprint as soon as §§1–6 are drafted — the timestamp matters more
+   than polish; the 2024–25 literature window is open now.
+
 ## Next actions (in order)
 1. [ ] Assemble exact-numbers appendix tables from stage1.csv + allocation_summary.csv.
 2. [ ] Draft §2 (discipline) and §6 (mechanism) — they carry the paper's identity.

@@ -113,6 +113,21 @@ synthetic capability check, PASSED: structured fee_a 7.0 vs unstructured 0.5). O
   conditional weights, era splits). Evidence: `results/allocation_*.{csv,log}` — frozen,
   do not overwrite.
 
+## Operating rules (Adam's directive 2026-07-23: "no rushing — address every concern")
+
+Four rules from the end-of-day audit, now institutionalized:
+1. **Cooling-off** — overnight gap freeze→run + explicit named sign-off for anything that
+   could yield a positive claim (now in CLAUDE.md discipline).
+2. **Out-of-hypothesis-sample confirmation** — anatomy/atlas-born hypotheses must confirm
+   on international panels before SUPPORT (now in CLAUDE.md discipline; binds chapter 3).
+3. **Paper-first ordering** — the paper is the decaying asset (2024-25 JM literature is the
+   live target); instrument work (K=3, asymmetric λ) runs in the BACKGROUND, paper drafting
+   in the foreground. If a session only has energy for one thing, it's the paper.
+4. **Comparative-negative claims only** — B_react/VT won matched races; they are baselines,
+   not recommendations (Cederburg cuts at them too). The paper must document protocol
+   equivalence with Shu-Yu-Mulvey meticulously and never turn prescriptive
+   (defensibility section now in paper/OUTLINE.md).
+
 ## DECISION (Adam, 2026-07-23): write the paper — option 1, with option 3 in parallel
 
 **The paper is the deliverable.** `paper/OUTLINE.md` is written (full skeleton, real
