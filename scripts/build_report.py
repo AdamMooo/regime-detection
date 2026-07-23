@@ -361,13 +361,15 @@ only by taking more risk; per unit of risk they lose.</p>
 
 <h2>The two fees against their null bands</h2>
 <p class="note">fee_A: does the label beat the same allocator on a slow "all history"
-covariance? fee_B (the honest bar): does it beat a fast EWMA covariance? Shaded = what fake
-labels score. fee_A sits inside the bands; fee_B is negative — the fast simple estimate wins.</p>
+covariance? fee_B (the honest bar): does it beat a fast EWMA covariance? Shaded band =
+episode-shuffled labels (5–95th); dashed tick = placebo 95th; iid band in the tooltip.
+fee_A sits inside the bands; fee_B is negative — the fast simple estimate wins.</p>
 <div class="card"><div id="ch2intervals"></div></div>
 
 <h2>What the conditional arm held</h2>
-<p class="note">In stress the estimated risk rises, the 8% vol target binds, cash rises —
-that's the whole mechanism, visible.</p>
+<p class="note">Bond-heavy throughout, with only modest shifts inside the stressed bands —
+the 8% target rarely binds, so there was little for conditioning to do that the
+unconditional mix wasn't already doing. The modesty of these moves <em>is</em> the result.</p>
 <div class="legend" id="ch2wlegend"></div>
 <div class="card"><div id="ch2weights"></div></div>
 
@@ -471,6 +473,7 @@ function lineChart(mount, cfg) {
   svg.appendChild(el("line", {x1: m.l, x2: m.l + iw, y1: m.t + ih, y2: m.t + ih,
     stroke: "var(--axis)", "stroke-width": 1}));
   // series
+  const endLabels = [];
   cfg.series.forEach(s => {
     let dstr = "";
     s.values.forEach((v, i) => {
@@ -479,10 +482,15 @@ function lineChart(mount, cfg) {
         `L${px.toFixed(1)} ${py.toFixed(1)}`) : `M${px.toFixed(1)} ${py.toFixed(1)}`); });
     svg.appendChild(el("path", {d: dstr, fill: "none", stroke: `var(${s.colorVar})`,
       "stroke-width": 2, "stroke-linejoin": "round"}));
-    const last = s.values[s.values.length - 1];
-    const lab = el("text", {x: m.l + iw + 6, y: Y(last) + 4, class: "dirlab",
-      fill: `var(${s.colorVar})`});
-    lab.textContent = s.name; lab.style.fill = `var(${s.colorVar})`; svg.appendChild(lab); });
+    endLabels.push({name: s.name, colorVar: s.colorVar,
+      y: Y(s.values[s.values.length - 1]) + 4}); });
+  // de-collide the direct end labels (min 14px apart, preserve order)
+  endLabels.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < endLabels.length; i++)
+    if (endLabels[i].y - endLabels[i - 1].y < 14) endLabels[i].y = endLabels[i - 1].y + 14;
+  for (const L of endLabels) {
+    const lab = el("text", {x: m.l + iw + 6, y: L.y, class: "dirlab"});
+    lab.textContent = L.name; lab.style.fill = `var(${L.colorVar})`; svg.appendChild(lab); }
   // crosshair + tooltip
   const cross = el("line", {y1: m.t, y2: m.t + ih, stroke: "var(--axis)",
     "stroke-width": 1, "stroke-dasharray": "3 3", visibility: "hidden"});
@@ -528,10 +536,10 @@ function intervalChart(mount) {
   // zero line
   svg.appendChild(el("line", {x1: X(0), x2: X(0), y1: bandY, y2: bandY + bandH,
     stroke: "var(--axis)", "stroke-width": 1}));
-  // placebo 95th
+  // placebo 95th (label at the bottom, clear of the band labels at the top)
   svg.appendChild(el("line", {x1: X(F.c1), x2: X(F.c1), y1: bandY, y2: bandY + bandH,
     stroke: "var(--muted)", "stroke-width": 1.5, "stroke-dasharray": "5 4"}));
-  const pl = el("text", {x: X(F.c1) + 4, y: bandY + 12});
+  const pl = el("text", {x: X(F.c1) + 4, y: bandY + bandH - 6});
   pl.textContent = "placebo 95th"; svg.appendChild(pl);
   // axis ticks
   for (const v of [-500, 0, 500, 1000]) {
@@ -796,6 +804,9 @@ function scatterChart(mount, pts, refLine) {
     t.textContent = v + "%"; svg.appendChild(t); }
   const xl = el("text", {x: m.l + iw / 2, y: H - 4, "text-anchor": "middle"});
   xl.textContent = "risk (annualized volatility)"; svg.appendChild(xl);
+  const yl = el("text", {x: 14, y: m.t + ih / 2, "text-anchor": "middle",
+    transform: `rotate(-90 14 ${m.t + ih / 2})`});
+  yl.textContent = "return (annualized)"; svg.appendChild(yl);
   svg.appendChild(el("line", {x1: m.l, x2: m.l + iw, y1: m.t + ih, y2: m.t + ih,
     stroke: "var(--axis)", "stroke-width": 1}));
   // leverage line through the reference arm: y = intercept + sharpe * x
@@ -809,10 +820,28 @@ function scatterChart(mount, pts, refLine) {
     class: "dirlab"});
   ll.textContent = refLine.label; ll.style.fill = `var(${refLine.colorVar})`;
   svg.appendChild(ll);
-  for (const p of pts) {
+  // labels: default right of the dot; de-collide clustered ones by stacking them
+  // above the cluster with short leader lines
+  const labels = pts.map(p => ({p, lx: X(p.x) + 10, ly: Y(p.y) + 4, leader: false}));
+  labels.sort((a, b) => a.ly - b.ly);
+  const placed = [];
+  for (const cur of labels) {
+    const collides = () => placed.some(q =>
+      Math.abs(cur.ly - q.ly) < 15 && Math.abs(cur.lx - q.lx) < 110);
+    let guard = 0;
+    while (collides() && guard++ < 20) {
+      cur.ly -= 18;
+      cur.leader = true;
+      if (cur.ly < m.t + 10) { cur.ly = Math.max(...placed.map(q => q.ly)) + 18; } }
+    placed.push(cur); }
+  for (const L of labels) {
+    const p = L.p;
     svg.appendChild(el("circle", {cx: X(p.x), cy: Y(p.y), r: 6,
       fill: `var(${p.colorVar})`, stroke: "var(--surface)", "stroke-width": 2}));
-    const t = el("text", {x: X(p.x) + 10, y: Y(p.y) + 4, class: "dirlab"});
+    if (L.leader)
+      svg.appendChild(el("line", {x1: X(p.x) + 6, y1: Y(p.y),
+        x2: L.lx - 3, y2: L.ly - 4, stroke: "var(--axis)", "stroke-width": 1}));
+    const t = el("text", {x: L.lx, y: L.ly, class: "dirlab"});
     t.textContent = p.name; t.style.fill = "var(--ink2)"; svg.appendChild(t);
     const hit = el("rect", {x: X(p.x) - 12, y: Y(p.y) - 12, width: 24, height: 24,
       fill: "transparent"});
@@ -856,14 +885,11 @@ function intervalChart2(mount, A) {
     const lab = el("text", {x: m.l - 10, y: r.y + 4, "text-anchor": "end",
       class: "dirlab"});
     lab.textContent = r.name; lab.style.fill = "var(--ink2)"; svg.appendChild(lab);
-    svg.appendChild(el("rect", {x: X(r.shuffle[0]), y: r.y - 20,
-      width: Math.max(X(r.shuffle[1]) - X(r.shuffle[0]), 1.5), height: 40,
+    svg.appendChild(el("rect", {x: X(r.shuffle[0]), y: r.y - 18,
+      width: Math.max(X(r.shuffle[1]) - X(r.shuffle[0]), 1.5), height: 36,
       fill: "var(--band)"}));
-    svg.appendChild(el("rect", {x: X(r.iid[0]), y: r.y - 10,
-      width: Math.max(X(r.iid[1]) - X(r.iid[0]), 1.5), height: 20,
-      fill: "none", stroke: "var(--axis)", "stroke-dasharray": "2 2"}));
-    svg.appendChild(el("line", {x1: X(r.placebo), x2: X(r.placebo), y1: r.y - 22,
-      y2: r.y + 22, stroke: "var(--muted)", "stroke-width": 1.5,
+    svg.appendChild(el("line", {x1: X(r.placebo), x2: X(r.placebo), y1: r.y - 16,
+      y2: r.y + 16, stroke: "var(--muted)", "stroke-width": 1.5,
       "stroke-dasharray": "5 4"}));
     svg.appendChild(el("line", {x1: X(r.lo), x2: X(r.hi), y1: r.y, y2: r.y,
       stroke: `var(${r.colorVar})`, "stroke-width": 2}));
