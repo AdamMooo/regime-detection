@@ -104,12 +104,23 @@ def build_data():
 
     refit_years = list(range(idx_o[0].year, idx_o[0].year + len(lam_path)))
 
+    live_state, live_since, live_date = None, None, None
+    live_p = ROOT / "results" / "label_live.csv"
+    if live_p.exists():
+        lv = pd.read_csv(live_p, parse_dates=["date"])
+        sl = lv["state"].to_numpy()
+        sw = np.flatnonzero(sl[1:] != sl[:-1])
+        live_state = "STRESSED" if sl[-1] == 1 else "CALM"
+        live_since = str(lv["date"].iloc[sw[-1] + 1].date()) if len(sw) else str(lv["date"].iloc[0].date())
+        live_date = str(lv["date"].iloc[-1].date())
+
     return dict(
         meta=dict(oos_start=str(idx_o[0].date()), oos_end=str(idx_o[-1].date()),
                   n=int(len(idx_o)), case=str(stats["case"]),
                   bear_frac=round(float((s_o == 1).mean()) * 100, 1),
                   switches_yr=round(float(stats["switches_yr"]), 2), calm_vol=round(calm_vol, 1),
-                  delay=DELAY, cost=COST),
+                  delay=DELAY, cost=COST,
+                  live_state=live_state, live_since=live_since, live_date=live_date),
         fees=dict(bh=round(float(stats["fee"]), 1), bh_lo=round(float(stats["ci_lo"]), 1),
                   bh_hi=round(float(stats["ci_hi"]), 1), vt=round(float(stats["fee_vt"]), 1),
                   vt_lo=round(float(stats["ci_vt_lo"]), 1), vt_hi=round(float(stats["ci_vt_hi"]), 1),
@@ -283,107 +294,113 @@ details { margin: 8px 0; } summary { cursor: pointer; color: var(--ink2); font-s
 </head>
 <body>
 <div class="wrap">
-<h1>Regime Program — One-Look Results</h1>
-<p class="sub"><a href="#ch1">Chapter 1 · jump-model overlay</a> &nbsp;·&nbsp;
-<a href="#ch2">Chapter 2 · state-conditional allocation</a></p>
-
-<h1 id="ch1" style="font-size:20px;margin-top:28px">Chapter 1 — Jump-Model Overlay vs Buy-and-Hold</h1>
+<h1>Regime Program — Living Results</h1>
 <p class="sub" id="subtitle"></p>
 
 <div class="tiles" id="tiles"></div>
 
-<p class="note"><strong>Plain English:</strong> the model's "beating the market" is really just
-holding less stock — random signals with the same average exposure score the same, and a cheap
-vol-target rule beats it outright. The one genuinely good result: the regime label itself is
-unusually stable — a solid sensor, not a trading edge.</p>
+<h2>Every claim, against its honest bar</h2>
+<p class="note">One rule keeps this program honest: a claim counts only if it beats the best
+<em>simple</em> alternative — not just buy-and-hold. Four claims tested under frozen
+preregistration; the dot must sit right of zero with its whole whisker. None does.</p>
+<div class="card"><div id="ladder"></div></div>
 
-<h2>The verdict in one picture — the fee against its null bands</h2>
-<p class="note">The fee = what a cautious investor (γ=10) would pay per year to switch. The dot
-must clear the shaded bands (what fake signals score) to mean anything. It doesn't — and vs vol
-targeting it's significantly negative.</p>
-<div class="card"><div id="intervals"></div></div>
-
-<h2>Equity curves, 1990&ndash;2026 (log scale)</h2>
-<p class="note">Shaded = the model's bear calls. JM sidesteps the crashes, but vol targeting
-does the same job with less lag, and buy-and-hold ends richer. The overlay's value is risk
-reduction, not extra return.</p>
+<h2>The sensor — the asset this program produced</h2>
+<p class="note" id="sensornote"></p>
 <div class="legend" id="eqlegend"></div>
 <div class="card"><div id="equity"></div></div>
-<details><summary>Table view — annual returns by strategy (%)</summary>
-<div class="card"><table id="annual"></table></div></details>
+<details><summary>The 30 bear episodes it called</summary>
+<p class="note" id="epnote"></p>
+<div class="card"><table id="episodes"></table></div></details>
+<details><summary>The speed/stability dial — &lambda; per refit</summary>
+<p class="note">&lambda; = switch-resistance, re-chosen yearly by causal cross-validation.
+Healthy: inside the grid, drifting faster in the modern era.</p>
+<div class="card"><div id="lambda"></div></div></details>
 
-<h2>Drawdowns</h2>
+<h1 id="ch1" style="font-size:20px;margin-top:44px">Chapter 1 — Trading the label · Case B</h1>
+<p class="note"><strong>Plain English:</strong> the overlay's "beating the market" is just
+holding less stock — random signals with the same average exposure score the same, and a cheap
+vol-target rule beats it outright. Value = risk reduction, available cheaper elsewhere.</p>
+
+<h2>The fee against its null bands</h2>
+<p class="note">The fee = what a cautious investor (γ=10) would pay per year to switch. The dot
+must clear the shaded bands (what fake signals score). It doesn't — and vs vol targeting it's
+significantly negative.</p>
+<div class="card"><div id="intervals"></div></div>
+
+<details><summary>Drawdowns — where the overlay earns its keep (and VT matches it)</summary>
 <p class="note">Max drawdown: JM &minus;27.5% vs buy-and-hold &minus;54.6% — but vol targeting
 gets nearly identical protection.</p>
 <div class="legend" id="ddlegend"></div>
-<div class="card"><div id="drawdown"></div></div>
+<div class="card"><div id="drawdown"></div></div></details>
 
-<h2>What the model is doing — bear episodes it called</h2>
-<p class="note" id="epnote"></p>
-<div class="card"><table id="episodes"></table></div>
-
-<h2>The speed/stability dial — selected &lambda; per refit</h2>
-<p class="note">&lambda; = the model's switch-resistance dial, re-chosen each year by
-cross-validation. Healthy: it stays inside the grid and drifts faster in the modern era.</p>
-<div class="card"><div id="lambda"></div></div>
-
-<h2>Robustness — fee vs B&amp;H by era and with each crisis removed</h2>
+<details><summary>Robustness — era halves, leave-one-crisis-out</summary>
 <p class="note">Positive in both halves and with any single crisis removed — an always-on
 exposure effect, not one lucky call.</p>
-<div class="card"><div id="robust"></div></div>
+<div class="card"><div id="robust"></div></div></details>
 
-<h2>Strategy comparison</h2>
+<details><summary>Strategy table + annual returns</summary>
 <div class="card"><table id="arms"></table></div>
+<div class="card"><table id="annual"></table></div></details>
 
 <p class="footer" id="footer"></p>
 
 <div id="ch2block" style="display:none">
-<h1 id="ch2" style="font-size:20px;margin-top:48px">Chapter 2 — State-Conditional Allocation (covariance only)</h1>
-<p class="sub" id="ch2subtitle"></p>
-
-<p class="note"><strong>Plain English:</strong> telling the portfolio "we're in a storm"
-didn't help — a simple estimator that just watches the last few weeks (EWMA) reacts faster
-and does better. The structure the atlas found is real; it's just already harvested by
-being reactive. The storm detector itself still works.</p>
+<h1 id="ch2" style="font-size:20px;margin-top:44px">Chapter 2 — Feeding the label to an allocator · NULL</h1>
+<p class="note"><strong>Plain English:</strong> telling the portfolio "we're in a storm" didn't
+help — a simple estimator that just watches the last few weeks (EWMA) reacts faster and does
+better. The cross-asset structure is real; being reactive already harvests it.</p>
 
 <div class="tiles" id="ch2tiles"></div>
 
 <h2>The map — risk taken vs return earned</h2>
-<p class="note">Every arm is one dot. The dashed line shows what cash or leverage does to the
-best diversified arm — anything below that line is beaten at equal risk. 60/40 and buy-and-hold
-earn more only by taking more risk; per unit of risk they lose.</p>
+<p class="note">Every arm is one dot. The dashed line is what cash or leverage does to the best
+diversified arm — anything below it is beaten at equal risk. 60/40 and buy-and-hold earn more
+only by taking more risk; per unit of risk they lose.</p>
 <div class="card"><div id="ch2scatter"></div></div>
 
 <h2>The two fees against their null bands</h2>
-<p class="note">fee_A: does the label beat the same allocator with a slow "use all history"
+<p class="note">fee_A: does the label beat the same allocator on a slow "all history"
 covariance? fee_B (the honest bar): does it beat a fast EWMA covariance? Shaded = what fake
-labels score. Verdict: fee_A inside the bands, fee_B negative — the fast simple estimate wins.</p>
+labels score. fee_A sits inside the bands; fee_B is negative — the fast simple estimate wins.</p>
 <div class="card"><div id="ch2intervals"></div></div>
 
-<h2>Equity curves (log scale)</h2>
-<p class="note" id="ch2eqnote"></p>
-<div class="legend" id="ch2eqlegend"></div>
-<div class="card"><div id="ch2equity"></div></div>
-<details><summary>Table view — annual returns by arm (%)</summary>
-<div class="card"><table id="ch2annual"></table></div></details>
-
-<h2>What the conditional arm holds</h2>
-<p class="note">Weights of the conditional arm. In stress the estimated risk rises, the 8%
-vol target binds, and cash rises — that's the whole mechanism.</p>
+<h2>What the conditional arm held</h2>
+<p class="note">In stress the estimated risk rises, the 8% vol target binds, cash rises —
+that's the whole mechanism, visible.</p>
 <div class="legend" id="ch2wlegend"></div>
 <div class="card"><div id="ch2weights"></div></div>
 
-<h2>Era-split diagnostics (pre-declared)</h2>
-<p class="note">Does the result depend on the era? fee_A is ~0 everywhere; fee_B: the EWMA
-wins big after 2000 (and the 2022 inflation bear is the known worst case for bond-hedge
-assumptions).</p>
-<div class="card"><table id="ch2splits"></table></div>
+<details><summary>Equity curves of the arms + annual returns</summary>
+<p class="note" id="ch2eqnote"></p>
+<div class="legend" id="ch2eqlegend"></div>
+<div class="card"><div id="ch2equity"></div></div>
+<div class="card"><table id="ch2annual"></table></div></details>
 
-<h2>Arm comparison</h2>
-<div class="card"><table id="ch2arms"></table></div>
+<details><summary>Era splits + arm table</summary>
+<p class="note">fee_A is ~0 in every era; fee_B: the EWMA wins big after 2000, and the 2022
+inflation bear is the known worst case for bond-hedge assumptions.</p>
+<div class="card"><table id="ch2splits"></table></div>
+<div class="card"><table id="ch2arms"></table></div></details>
 
 <p class="footer" id="ch2footer"></p>
 </div>
+
+<h2 style="margin-top:44px">What's next — the fork</h2>
+<p class="note"><strong>1 · Write the paper (default).</strong> The 2024–25 jump-model
+literature (Shu–Yu–Mulvey; Nystrup et al.) claims regime-aware allocation adds value — tested
+against buy-and-hold-grade baselines. Two preregistered chapters here show the claims dissolve
+against honest bars (exposure-matched placebos; reactive estimators). That negative result is
+publishable and timely.</p>
+<p class="note"><strong>2 · Chapter 3 only through the gate.</strong> Any new economic use must
+name why it survives a lag race that VT and EWMA have now won twice. The one candidate with a
+literature foothold: momentum at monthly cadence (Barroso–Santa-Clara vol-scaling is the strong
+incumbent to beat; Cederburg et al. 2020 warn that even vol-scaling fails out-of-sample for
+most factors — momentum is the exception).</p>
+<p class="note"><strong>3 · Sensor track continues regardless.</strong> λ frontier, asymmetric
+jump penalties, calibrated P(state) — instrument work, not allocation claims.</p>
+
+<p class="footer" id="mainfooter"></p>
 </div>
 <div class="tooltip" id="tt"></div>
 <script>
@@ -593,18 +610,98 @@ function table(id, headers, rows, numFrom) {
       if (c.cls) td.className += " " + c.cls; trr.appendChild(td); });
     tb.appendChild(trr); } }
 
+function ladderChart(mount, panels) {
+  const W = 1040, rowH = 46, panelPad = 34;
+  let H = 8;
+  for (const p of panels) H += panelPad + p.rows.length * rowH + 20;
+  const m = {l: 230, r: 190};
+  const iw = W - m.l - m.r;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img",
+    "aria-label": "Every claim vs its honest bar"});
+  mount.appendChild(svg);
+  let y = 8;
+  for (const p of panels) {
+    const title = el("text", {x: 0, y: y + 14, class: "dirlab"});
+    title.textContent = p.title; title.style.fill = "var(--ink)"; svg.appendChild(title);
+    y += panelPad;
+    let vmin = 0, vmax = 0;
+    for (const r of p.rows) { vmin = Math.min(vmin, r.lo); vmax = Math.max(vmax, r.hi); }
+    const pad = (vmax - vmin) * 0.10 || 10;
+    vmin -= pad; vmax += pad;
+    const X = v => m.l + (v - vmin) / (vmax - vmin) * iw;
+    const y0 = y, y1 = y + p.rows.length * rowH;
+    svg.appendChild(el("line", {x1: X(0), x2: X(0), y1: y0 - 6, y2: y1,
+      stroke: "var(--axis)", "stroke-width": 1}));
+    const zl = el("text", {x: X(0), y: y1 + 14, "text-anchor": "middle"});
+    zl.textContent = "0 bps/yr"; svg.appendChild(zl);
+    for (const r of p.rows) {
+      const cy = y + rowH / 2;
+      const lab = el("text", {x: m.l - 10, y: cy + 4, "text-anchor": "end", class: "dirlab"});
+      lab.textContent = r.name; lab.style.fill = "var(--ink2)"; svg.appendChild(lab);
+      svg.appendChild(el("line", {x1: X(r.lo), x2: X(r.hi), y1: cy, y2: cy,
+        stroke: `var(${r.colorVar})`, "stroke-width": 2}));
+      for (const e of [r.lo, r.hi])
+        svg.appendChild(el("line", {x1: X(e), x2: X(e), y1: cy - 5, y2: cy + 5,
+          stroke: `var(${r.colorVar})`, "stroke-width": 2}));
+      svg.appendChild(el("circle", {cx: X(r.v), cy, r: 5, fill: `var(${r.colorVar})`,
+        stroke: "var(--surface)", "stroke-width": 2}));
+      const vl = el("text", {x: X(r.v), y: cy - 11, "text-anchor": "middle", class: "dirlab"});
+      vl.textContent = `${r.v > 0 ? "+" : ""}${fmt(r.v)}`;
+      vl.style.fill = `var(${r.colorVar})`; svg.appendChild(vl);
+      const tag = el("text", {x: W - m.r + 10, y: cy + 4});
+      tag.textContent = r.tag; svg.appendChild(tag);
+      const hit = el("rect", {x: m.l, y: cy - rowH / 2, width: iw, height: rowH,
+        fill: "transparent"});
+      svg.appendChild(hit);
+      hit.addEventListener("pointermove", ev => showTT(ev.clientX, ev.clientY,
+        ttRows(r.name, [{colorVar: r.colorVar, name: "fee, 90% CI (bps/yr)",
+          value: `${fmt(r.v)} [${fmt(r.lo)}, ${fmt(r.hi)}]`}])));
+      hit.addEventListener("pointerleave", hideTT);
+      y += rowH; }
+    y += 20; }
+}
+
 (function render() {
-  const M = DATA.meta, F = DATA.fees;
+  const M = DATA.meta, F = DATA.fees, A = DATA.alloc;
   document.getElementById("subtitle").textContent =
-    `OOS ${M.oos_start} → ${M.oos_end} · ${fmt(M.n)} trading days · next-close execution ` +
-    `(delay ${M.delay}d) · ${M.cost} bps one-way costs · frozen prereg, one look · Case ${M.case}`;
+    `Preregistered · causal · one look per claim · OOS ${M.oos_start} → ${M.oos_end} ` +
+    `(${fmt(M.n)} trading days) · next-close execution, ${M.cost} bps costs`;
   const tiles = document.getElementById("tiles");
-  tile(tiles, `Case ${M.case}`, "frozen verdict", "fee>0 but CI includes 0; controls not clean");
-  tile(tiles, `+${fmt(F.bh)}`, "fee vs B&H (bps/yr, γ=10)", `90% CI [${fmt(F.bh_lo)}, ${fmt(F.bh_hi)}] — inside all null bands`);
-  tile(tiles, `${fmt(F.vt)}`, "fee vs VolTarget (bps/yr)", `90% CI [${fmt(F.vt_lo)}, ${fmt(F.vt_hi)}] — significantly negative`, "negv");
-  tile(tiles, `${(F.stab_p * 100).toFixed(1)}%`, "label stability (±2y window)", "incumbent ensemble: 80.9%", "posv");
-  tile(tiles, `${M.switches_yr}`, "regime switches / year", "falsifier bar: 12");
-  tile(tiles, `${M.bear_frac}%`, "of OOS days in bear state", `${DATA.episodes.length} episodes`);
+  if (M.live_state)
+    tile(tiles, M.live_state, "sensor state, live", `since ${M.live_since} · as of ${M.live_date}`,
+      M.live_state === "CALM" ? "posv" : "negv");
+  tile(tiles, `${(F.stab_p * 100).toFixed(0)}%`, "sensor stability (±2y shifts)",
+    "the program's real asset · incumbent 80.9%", "posv");
+  tile(tiles, `Case ${M.case}`, "chapter 1 · trading the label",
+    "exposure artifact — vol targeting beats it");
+  if (A) tile(tiles, A.verdict.replace(/_/g, " "), "chapter 2 · conditioning covariance",
+    "a plain EWMA estimate beats the label");
+  tile(tiles, "reactive wins", "the program lesson so far",
+    "daily-horizon lag races go to simple reactive estimators (VT, EWMA)");
+
+  const panels = [{title: "Chapter 1 — overlay on equity (own scale)", rows: [
+    {name: "JM − Buy&Hold", v: F.bh, lo: F.bh_lo, hi: F.bh_hi, colorVar: "--s1",
+     tag: "inside all null bands"},
+    {name: "JM − VolTarget · honest bar", v: F.vt, lo: F.vt_lo, hi: F.vt_hi,
+     colorVar: "--s2", tag: "loses, significantly"}]}];
+  if (A) panels.push({title: "Chapter 2 — conditional allocation (own scale)", rows: [
+    {name: "Cond − B_match", v: A.fees.a, lo: A.fees.a_lo, hi: A.fees.a_hi,
+     colorVar: "--s1", tag: "inside all null bands"},
+    {name: "Cond − B_react · honest bar", v: A.fees.b, lo: A.fees.b_lo, hi: A.fees.b_hi,
+     colorVar: "--s2", tag: "loses — EWMA wins"}]});
+  ladderChart(document.getElementById("ladder"), panels);
+
+  document.getElementById("sensornote").textContent =
+    `A K=2 statistical jump model on daily downside features, run causally since 1990. ` +
+    `Label stability ${(F.stab_p * 100).toFixed(1)}% under ±2y training shifts (incumbent ` +
+    `80.9%), ${M.switches_yr} switches/yr, ${M.bear_frac}% of days stressed` +
+    (M.live_state ? `; live today: ${M.live_state} since ${M.live_since}.` : `.`) +
+    ` Shaded bands = its bear calls, drawn over the strategy equity curves.`;
+
+  document.getElementById("mainfooter").textContent =
+    `Living report — regenerate: scripts/build_report.py · frozen evidence: results/stage1.csv, ` +
+    `oos_labels.csv, allocation_*.csv (+ run logs) · preregs in .planning/ (freeze precedes ` +
+    `each run in git history) · tests 24/24 green.`;
 
   intervalChart(document.getElementById("intervals"));
 
@@ -799,10 +896,6 @@ function intervalChart2(mount, A) {
   if (!A) return;
   document.getElementById("ch2block").style.display = "";
   const M = DATA.meta, F = A.fees;
-  document.getElementById("ch2subtitle").textContent =
-    `Conditional ERC over equity / 10y Treasury / gold / cash · covariance only, no ` +
-    `return forecasts · scored ${M.oos_start} → ${M.oos_end} · conditioning active ` +
-    `${A.activation} · frozen prereg Rev 2.1, one look · verdict ${A.verdict}`;
 
   const tiles = document.getElementById("ch2tiles");
   tile(tiles, A.verdict.replace(/_/g, " "), "frozen verdict",
@@ -869,11 +962,12 @@ function intervalChart2(mount, A) {
       ({text: (a[k] > 0 ? "+" : "") + a[k].toFixed(1), cls: a[k] < 0 ? "negv" : ""}))]), 1);
 
   document.getElementById("ch2footer").textContent =
-    `Preregistered (.planning/ALLOCATION-PREREG.md Rev 2.1, frozen 2026-07-23) · ` +
-    `hard-state conditional covariance (expanding per state, min 500 days, 0.5 shrink to ` +
-    `unconditional) · ERC by log-barrier CCD, caps 75/75/25, 8% vol target scale-down only · ` +
-    `monthly + state-flip rebalance, next-close, 10 bps · baselines: identical ERC on ` +
-    `unconditional expanding (B_match) and EWMA λ=0.97 (B_react) covariance · ` +
+    `Preregistered (.planning/ALLOCATION-PREREG.md Rev 2.1, frozen 2026-07-23) · conditional ` +
+    `ERC over equity/10y Treasury/gold/cash, covariance only, no return forecasts · scored ` +
+    `${M.oos_start} → ${M.oos_end}, conditioning active ${A.activation} · hard-state expanding ` +
+    `per-state cov (min 500 days, 0.5 shrink) · ERC by log-barrier CCD, caps 75/75/25, 8% vol ` +
+    `target scale-down only · monthly + state-flip rebalance, next-close, 10 bps · baselines: ` +
+    `identical ERC on unconditional expanding (B_match) and EWMA λ=0.97 (B_react) covariance · ` +
     `secondary fees γ=1: A ${fmt(F.a_g1)}, B ${fmt(F.b_g1)} · run log: results/allocation_run.log.`;
 })();
 </script>
