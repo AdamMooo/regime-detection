@@ -1,20 +1,5 @@
-# Exact pinning required for regime reproducibility (see CLAUDE.md hard constraints).
-# Breaking changes in JAX/NumPyro silently corrupt regime assignments.
-yfinance==1.2.0
-hmmlearn==0.3.3
-scikit-learn==1.8.0
-pandas==3.0.1
 numpy==2.4.3
-joblib==1.5.3
-arch==8.0.0
-scipy==1.17.1
-statsmodels==0.14.6
-numpyro==0.20.0
-jax==0.9.1
-jaxlib==0.9.1
-plotly==6.6.0
+pandas==3.0.1
+requests>=2.31
+yfinance==1.2.0
 pytest==9.0.2
-matplotlib==3.9.2
-python-dotenv>=1.0
-fredapi>=0.5
-pandas_datareader>=0.10

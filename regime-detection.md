@@ -26,9 +26,8 @@ files deleted (recoverable at the tag).
 
 Track 1 — prove the sensor: benchmark bear calls vs ex-post bull/bear datings
 (Pagan–Sossounov / Lunde–Timmermann), characterize the states, build the SPY-splice live tail.
-Then: λ speed/stability frontier (Track 2), state-conditional asset menu (Phase-5 candidate,
-French industry portfolios), and — only after Track 1 + sign-off — the Portfolio-Manager label
-swap. Full roadmap: `.planning/V2-JUMPMODEL-PLAN.md`.
+Then: λ speed/stability frontier (Track 2) and the state-conditional asset menu (Phase-5
+candidate, French industry portfolios). Full roadmap: `.planning/V2-JUMPMODEL-PLAN.md`.
 
 ## Memory
 
@@ -38,10 +37,8 @@ swap. Full roadmap: `.planning/V2-JUMPMODEL-PLAN.md`.
 
 ## Known Issues
 
-- The LIVE Portfolio-Manager label is still the v1 HDP 3-window ensemble with its documented
-  training-window sensitivity (80.9% mean agreement) — superseded in quality by the jump-model
-  label but not yet swapped (needs the 2-state→3-label mapping + Adam's sign-off).
 - French data publishes with a 1–2 month lag → the jump-model label is not yet live-capable
   (SPY-splice tail is Track 1 work).
-- `requirements.txt` still carries v1 deps (JAX/NumPyro pinned — required by the live label
-  pipeline; do not remove while it runs).
+- HDP pipeline fully retired 2026-07-23 (its label was never consumed by anything — the
+  Portfolio-Manager integration was only an idea in notes). Recoverable in git history if ever
+  needed.

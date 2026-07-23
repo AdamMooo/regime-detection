@@ -30,20 +30,17 @@ and sealed at git tag `v1-convergence`; narrative in `RESEARCH-RECORD.md` (newes
   secondaries) → `results/backtest_*.csv`
 - `synthetic_validation.py` — capability battery on simulated panels (known truth)
 - `build_report.py` — regenerates `results/report.html` (visual results dashboard)
-- `run.py` — the v1 live-label CLI (still the production path; see below)
 
-Tests: `tests/test_jumpmodel.py`, `tests/test_backtest.py` (CI), plus
-`test_causality_invariants.py`, `test_cli_runner.py` (local, guard the live tool).
-venv: `.venv` (numpy/pandas for the jump-model stack; JAX 0.9.1/NumPyro 0.20.0 for v1 src/).
+Tests: `tests/test_jumpmodel.py`, `tests/test_backtest.py`. venv: `.venv` (numpy/pandas stack;
+requirements.txt is the slim jump-model set — the v1 JAX/NumPyro stack was retired 2026-07-23).
 
-## Live vs Frozen vs Archived
+## Frozen vs Archived
 
-**Live (do not break):** the practical vol-regime ensemble label — `data/oos_regime_labels*.csv`
-(3-window HDP ensemble, consumed by Portfolio-Manager; mapping Low→`LOW_VOL`, Moderate→`MED_VOL`,
-High→`HIGH_VOL`) and the `src/` + `scripts/run.py` pipeline + cached artifacts
-(`data/processed/spx_data.csv`, `features_train/test.csv`, `train/test.csv`,
-`models/hdp_checkpoint.pkl`, `results/regime_labels_train.csv`) that produce it. This stays the
-production label until the Phase-4 swap is designed and Adam approves it.
+**The HDP-HMM pipeline is GONE (retired 2026-07-23, Adam's direction).** Its label was never
+consumed by anything — the Portfolio-Manager integration was only ever an idea in notes
+(verified by grep of that repo, 2026-07-23). The jump-model label
+(`results/v2_oos_labels.csv` frozen; `results/backtest_labels.csv` from future runs) is the
+repo's label artifact; any downstream integration is a future project designed fresh.
 
 **Frozen evidence (never overwrite, never rename):** `RESEARCH-RECORD.md` sealed sections;
 `.planning/V2-JUMPMODEL-PREREG.md` (+ all earlier frozen preregs); the chapter-1 one-look
@@ -74,7 +71,6 @@ v1 result files are recoverable at that tag.
 
 ## Do Not
 
-- Break the live label contract or delete its cached inputs (list above).
 - Edit sealed RESEARCH-RECORD sections, frozen preregs, `archive/research-v1/`, or the frozen
   v2_* evidence files.
 - Rerun `run_backtest.py` casually — the one-look is spent.

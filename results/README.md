@@ -10,6 +10,5 @@
 - `construction_gate.csv`, `backtest_*.csv`, `synthetic_validation.csv` — written by future runs
   of the renamed pipeline (no collision with frozen names)
 
-**Live-tool artifact (do not delete):** `regime_labels_train.csv` — read by `scripts/run.py`.
-
-v1-era result files were removed 2026-07-23; recover them at git tag `v1-convergence`.
+v1-era result files (and the entire HDP pipeline) were removed 2026-07-23; recover them at git
+tag `v1-convergence` or in history.

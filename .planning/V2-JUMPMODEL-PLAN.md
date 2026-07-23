@@ -140,7 +140,9 @@ Phase 4: <1 session. Total ≈ 5–6 sessions.
      live tail (French lags 1-2mo → SPY-splice), decide the 2-state → LOW/MED/HIGH_VOL mapping.
   2. **Speed, quantified** — map the lag-vs-whipsaw frontier across λ; try asymmetric jump
      penalties (fast into bear, slow out); pay for speed only with measured stability.
-  3. **Downstream wiring (Portfolio-Manager) PARKED** until track 1 done and Adam signs off.
+  3. ~~Downstream wiring (Portfolio-Manager)~~ — dissolved 2026-07-23: nothing ever consumed
+     the v1 label (integration was an idea in notes only; verified by grep + Adam). HDP retired.
+     Future integrations designed fresh against the jump-model label.
   4. **Candidate Phase-5 research question (Adam, 2026-07-23): state-conditional asset menu.**
      Given the trusted label, model what to HOLD within each state (duration, credit, gold,
      defensive-vs-cyclical sectors) — the lag-tolerant use (episodes 60-200d vs ~8d detection
@@ -167,5 +169,5 @@ Phase 4: <1 session. Total ≈ 5–6 sessions.
 ---
 <!-- LINKS:AUTO -->
 ## Related
-**Project:** [[_planning/regime-detection/ROADMAP|ROADMAP]] · [[regime-detection/regime-detection|Hub]]
+**Project:** [[regime-detection/regime-detection|Hub]]
 <!-- LINKS:END -->

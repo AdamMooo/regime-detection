@@ -42,8 +42,11 @@ see CLAUDE.md "Live vs Frozen vs Archived".
    credit, gold, French daily industry portfolios 1926+) — the lag-tolerant use. Framed as a
    conditional playbook on portfolio outcomes, NOT "info beyond vol" (settled v1 null).
    Exposure-matched controls mandatory. Prereg before running.
-4. **Parked:** Portfolio-Manager label swap (needs Track 1 + the 2-state→LOW/MED/HIGH_VOL
-   mapping decision + Adam's sign-off). Do NOT touch `data/oos_regime_labels*.csv` until then.
+4. ~~Portfolio-Manager label swap~~ — DISSOLVED 2026-07-23: grep of portfolio-manager confirmed
+   (and Adam confirmed) nothing ever consumed the v1 label; the integration was only an idea in
+   notes. **HDP pipeline fully retired same day** (src/, run.py, models/, label CSVs, cached
+   inputs, v1 deps — all deleted; recoverable in git history). Any future downstream integration
+   is designed fresh against the jump-model label.
 
 ## Next action
 
