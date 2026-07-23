@@ -1,9 +1,11 @@
 # Allocation Prereg — State-Conditional Covariance, Multi-Asset Allocation (Chapter 2)
 
-Status: **DRAFT Rev 2 — awaiting Adam's review + freeze sign-off. No real-data allocation
-backtest has been run.** Rev 1 written 2026-07-23, informed by the descriptive atlas
-(`results/atlas.csv`); Rev 2 same day after the pre-freeze outside audit (changes in §10).
-The atlas informs the design; it does not constitute a look at the confirmatory result.
+Status: **FROZEN Rev 2.1 (2026-07-23).** Rev 1 written 2026-07-23, informed by the
+descriptive atlas (`results/atlas.csv`); Rev 2 same day after the pre-freeze outside
+audit; Rev 2.1 same day from synthetic-smoke findings (changes in §10 — all made
+BEFORE any real-data allocation backtest was run; the smoke used synthetic panels
+only, blind intact). The atlas informs the design; it does not constitute a look at
+the confirmatory result.
 
 ## §1 Hypothesis
 
@@ -51,11 +53,13 @@ estimation" is a pre-declared verdict (§7 F1b), not a post-hoc escape.
   σ̂_p = sqrt(w_ERC' Σ̂ w_ERC) uses the arm's own Σ̂; cash = 1 − Σw. Scale-down only.
   Known slack: the unlevered two-asset ERC runs ~6.9% ann vol, so the target rarely binds
   pre-2000; vol-tracking comparisons (§5, F2) are therefore evaluated post-activation.
-- **ERC solver (pinned, pure numpy, deterministic):** fixed-point iteration
-  w ← normalize(1/(Σ̂w)) with 0.5 damping, tol 1e-10, max 10k iters; caps by
-  cap-and-redistribute (clip binding weights at caps, freeze them, re-iterate over the
-  unclipped set on the residual budget, repeat until no new cap binds). Tests must assert
-  convergence and equal risk contributions (within 1e-6) among uncapped assets.
+- **ERC solver (pinned, pure numpy, deterministic — Rev 2.1):** log-barrier cyclical
+  coordinate descent (Griveau-Billion–Richard–Roncalli 2013; per-coordinate closed
+  form, every free asset's risk contribution equals the barrier multiplier exactly;
+  the uncapped system is homogeneous of degree 2 so one solve rescales to the budget);
+  caps by cap-and-redistribute (clip binding weights at caps, freeze them, re-solve
+  the free set with the multiplier set by bisection to the residual budget). Tests
+  must assert convergence and equal risk contributions among uncapped assets.
 - **Covariance construction (pinned, identical across arms):** two eras.
   Era-1 (from 1963): {equity, bond}, expanding complete-case windows.
   Era-2 begins at the first date with ≥250 complete-case {equity, bond, gold} days
@@ -105,8 +109,12 @@ pre-declared secondary.
 At γ=10, annualized bps, 90% CI from the paired stationary bootstrap (mean block 126d,
 B=2000, seed=0):
 
-- **fee_A = fee(conditional ERC − B_match)**
-- **fee_B = fee(conditional ERC − B_react)**
+- **fee_A = fee(conditional ERC − B_match)** — full scored window (pre-activation the
+  arms are identical, so the early stretch is pure dilution, never bias).
+- **fee_B = fee(conditional ERC − B_react)** — FROM-ACTIVATION window (pre-activation
+  cond ≡ B_match, so a full-window fee_B would measure match-vs-react — an
+  expanding-vs-EWMA comparison unrelated to conditioning; smoke-run finding, Rev 2.1).
+  Control distributions for fee_B use the same real-label activation window.
 
 SUPPORT requires **fee_A > 0 with CI excluding 0, AND fee_B > 0 with CI excluding 0**, and
 §6 controls clean. Secondaries: γ=1 fees; ΔMaxDD; ΔSharpe bootstrap CI; realized-vol
@@ -134,9 +142,16 @@ corr-regime failure mode).
 - **F1b (Rev 2): fee_A supported but fee_B ≤ 0 or CI includes 0 → conditioning replicates
   reactive estimation** — the v1-chapter-3 outcome on a new object; recorded as a null for
   the LABEL's incremental allocation value.
-- F2: conditional arm's realized portfolio vol tracks the 8% target WORSE than B_match over
-  the post-activation window → mechanism failure regardless of fee.
+- F2 (risk stabilization, Rev 2.1): the conditional arm's vol-of-vol (std of rolling
+  63d realized annualized vol) over the post-activation window exceeds B_match's →
+  mechanism failure regardless of fee. (Replaces RMSE-vs-target: when the 8% target
+  is slack both arms share the same shortfall and the RMSE comparison is noise —
+  smoke-run finding. RMSE-vs-target is still reported as a diagnostic.)
 - F3: turnover > 5× B_match → untradeable conditioning.
+
+Verdict precedence: SUPPORT requires all of F1/F1b/F2/F3 clean AND controls clean;
+otherwise F1 → NULL; else F1b → NULL (replicates reactive); else F2/F3 →
+MECHANISM_FAIL; else controls dirty → NULL.
 
 ## §8 One look
 
@@ -170,12 +185,27 @@ Runner will be `scripts/run_allocation.py` requiring `--confirm-frozen`.
 6. C2 10→50 draws, C3 10→20 panels.
 7. §9 limitations and §5 era-split diagnostics added.
 
+Rev 2.1 (same day, synthetic smoke findings — blind intact, smoke used synthetic
+panels only):
+8. fee_B scored from activation (full-window fee_B measures match-vs-react, not
+   conditioning); fee_A unchanged (its pre-activation difference is exactly zero).
+9. F2 redefined as vol-of-vol (risk stabilization); RMSE-vs-target demoted to
+   diagnostic (noise-dominated when the target is slack).
+10. Verdict precedence pinned (F1 → F1b → F2/F3); ERC solver pin upgraded to
+    log-barrier cyclical coordinate descent (Griveau-Billion–Richard–Roncalli 2013)
+    with cap-and-redistribute — the drafted naive fixed point provably fails to
+    converge under strong negative correlations (caught by tests).
+
 ---
 **FREEZE CHECKLIST (Adam):**
-- [ ] Re-review Rev 2 calls: hard-state primary, B_react co-primary + F1b, monthly+flip
+- [x] Rev 2 calls reviewed: hard-state primary, B_react co-primary + F1b, monthly+flip
       rebalance, EWMA λ=0.97, activation thresholds, C2/C3 counts
-- [ ] (only if the graded secondary is wanted) synthetic logistic constants appended
-- [ ] **FREEZE SIGN-OFF:** ______________  date: __________
+- [x] Graded secondary NOT run this chapter (calibration not built; per §2 it is
+      simply not run — hard-state primary carries the chapter)
+- [x] **FREEZE SIGN-OFF:** Adam, via session directive to run the backtest
+      ("lets get going", after reviewing the Rev 2 audit amendments) — 2026-07-23.
+      Synthetic smoke: CAPABILITY PASS (structured fee_a 7.0 vs unstructured 0.5;
+      risk stabilization detected; controls clean on structure).
 
 ---
 <!-- LINKS:AUTO -->
