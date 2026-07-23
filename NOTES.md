@@ -94,21 +94,39 @@ distinguish growth-scare from inflation/rates stress (v1 stock-bond lesson: macr
 axis is a non-stationary co-trend). The VOL-RATIO structure is era-consistent and survives;
 the corr tilt is era-fragile → chapter-2 prereg reframed around scale, not corr.
 
-## Next action — CHAPTER 2 (blocked on Adam's freeze of Rev 2)
+## CHAPTER 2 — RUN AND CLOSED (2026-07-23): NULL
 
-`.planning/ALLOCATION-PREREG.md` is at **DRAFT Rev 2** after the pre-freeze outside audit
-(changelog in §10): H2 reframed around state-conditional SCALE (corr tilt demoted,
-era-fragile — see atlas correction above); **B_react (EWMA λ=0.97 ERC) added as co-primary
-baseline** with partial-verdict falsifier F1b (v1 chapter-3 lesson made structural);
-hard-state promoted to primary (graded variant = secondary, contingent on pre-run synthetic
-calibration); rebalancing = monthly + state-flip event; pinned: vol-target formula
-(scale-down only), pure-numpy ERC solver + cap-and-redistribute, two-era covariance
-construction + NaN policy, per-era/per-state 500-day activation (era-1 stressed clears
-1993-12-31), costs exclude cash, primary window = full 1990+; C2 50 draws / C3 20 panels.
-**Adam to re-review the Rev 2 calls (freeze checklist at doc bottom) and sign.** Then:
-build `scripts/run_allocation.py` (mirror run_backtest idioms, --confirm-frozen guard),
-synthetic smoke, real one-look run. Blind intact — no allocation backtest has been run;
-audit checks touched only descriptive moments (corr/vol by state/era), never arm returns.
+Prereg frozen at **Rev 2.1** (audit Rev 2 + synthetic-smoke Rev 2.1 fixes: fee_B scored
+from activation, F2 = vol-of-vol, verdict precedence, CCD ERC solver; freeze commit
+3c3c419 precedes the run). Runner `scripts/run_allocation.py` (--confirm-frozen; --smoke =
+synthetic capability check, PASSED: structured fee_a 7.0 vs unstructured 0.5). One look:
+
+- **fee_A(cond−B_match) = +2.8 bps [−3.2, +8.4]** — F1 fires; below placebo 95th (5.8).
+- **fee_B(cond−B_react) = −29.1 [−66.8, +8.5]** — F1b fires: **plain EWMA λ=0.97
+  covariance beats the state-conditioned estimate**; B_react is the best ERC arm outright
+  (Sharpe 0.878 vs 0.826). Era split: +8.4 pre-2000, −37.7 post-2000.
+- F2 CLEAR (vol-of-vol 2.11 vs 2.15pp): the mechanism exists — conditioning stabilizes
+  risk vs static — it is just dominated by reactive estimation. v1 chapter-3 lesson
+  replicated on a new object, preregistered this time.
+- Chapter written: RESEARCH-RECORD.md (2026-07-23 latest section). Dashboard:
+  `results/report.html` now has the chapter-2 section (equity curves, fee-vs-bands,
+  conditional weights, era splits). Evidence: `results/allocation_*.{csv,log}` — frozen,
+  do not overwrite.
+
+## Next action — the fork (Adam's call)
+
+The program lesson is now sharp: **the vol axis is real; every economic use tested is
+dominated by a simple reactive estimator (VT for exposure, chapter 1; EWMA for covariance,
+chapter 2). State-conditioning loses detection-lag races at daily horizons.** Options:
+
+1. **Close the economic track** → write the methods/negative paper (the long-standing
+   default; now with two preregistered chapters of ammunition + the instrument result).
+2. **Chapter 3 only if a use is named where lag-tolerance is STRUCTURAL** (the gate from
+   the information-gate discipline) — candidates would need horizon >> detection lag
+   (e.g., monthly/quarterly decision cadences where EWMA's speed advantage dies), argued
+   in a prereg BEFORE any data touch.
+3. Instrument-track continuation regardless: λ frontier / asymmetric penalties (Track 2)
+   are about the SENSOR, not allocation, and remain legitimate.
 
 Also queued (not blocking): calibrated P(state) from the filter evidence gap (needed by the
 graded variant — calibrate on SYNTHETIC panels pre-freeze); K=3 crash/rebound exploration

@@ -3,7 +3,7 @@ type: research-record
 project: regime-detection
 created: 2026-07-21
 last_updated: 2026-07-23
-status: v1 CONVERGED (five nulls, sealed at v1-convergence). v2 Chapter 1 (jump model, 2026-07-23): Case B — literature's beat-B&H claim is an exposure artifact under risk-averse utility; vol targeting significantly dominates the overlay; the JM label itself is an exceptional instrument (stability 1.00 vs incumbent 0.809)
+status: v1 CONVERGED (five nulls, sealed at v1-convergence). v2 Chapter 1 (2026-07-23): Case B — beat-B&H claim is an exposure artifact; VT dominates; the JM label is an exceptional instrument (stability 1.00). v2 Chapter 2 (2026-07-23): NULL — state-conditional covariance adds no allocation value (fee_A +2.8 inside all bands) and a reactive EWMA covariance beats it outright (fee_B −29.1); risk-stabilization mechanism exists (F2 clear) but reactive estimation harvests it better
 detailed_audit: .planning/RESEARCH-AUDIT.md (full 25-section research audit — retained as evidence)
 code_review: .planning/DEEP-REVIEW.md (code-level causality review, 5 fixed bugs)
 ---
@@ -23,7 +23,60 @@ the full version is in `RESEARCH-AUDIT.md`. Nothing from the audit has been disc
 
 ---
 
-## 2026-07-23 (latest) — V2 CHAPTER 1: jump-model overlay, Case B — the field's beat-B&H claim deflates to an exposure artifact; the label itself is an exceptional instrument
+## 2026-07-23 (latest) — V2 CHAPTER 2: state-conditional allocation, NULL — the atlas structure is real but a plain EWMA covariance harvests it better than the state label
+
+Second v2 experiment (frozen prereg `.planning/ALLOCATION-PREREG.md` **Rev 2.1** — Rev 2 from
+the same-day pre-freeze outside audit, Rev 2.1 from synthetic-smoke findings; all design changes
+made before the run, blind intact; freeze commit 3c3c419 precedes the one-look in git history).
+Object: long-only ERC over {French mkt TR, synthetic 10y Treasury TR, gold GC=F, cash}, caps
+75/75/25, 8% vol target (scale-down only), covariance ONLY (no return forecasts anywhere),
+conditioned on the frozen chapter-1 vol-state label (hard state, expanding per-state windows,
+≥500-day activation, 0.5 shrink to unconditional), monthly + state-flip rebalance, next-close,
+10 bps. Scored 1990-03-13..2026-05-29 (n=9120; conditioning active 1994-03-29; gold era-2 from
+2001-08-30). Baselines: the IDENTICAL allocator on unconditional expanding covariance (B_match)
+and on reactive EWMA λ=0.97 covariance (B_react — added by the audit; the honest incumbent).
+Run: `results/allocation_run.log` (3.2 min), outputs `results/allocation_summary.csv`,
+`allocation_controls.csv`, `allocation_arms.csv`. One look; frozen classification: **NULL**.
+
+**PRIMARY: fee_A(cond−B_match) γ=10 = +2.8 bps/yr, 90% CI [−3.2, +8.4] → F1 fires.** Controls
+not clean either: placebo 95th = 5.8, shuffle 95th = 4.9 — random persistent labels through the
+same pipeline do this well. **CO-PRIMARY: fee_B(cond−B_react, from activation) = −29.1
+[−66.8, +8.5] → F1b fires: the reactive EWMA covariance BEATS the state-conditioned one.**
+B_react is the best ERC arm outright (Sharpe 0.878 vs cond 0.826; MaxDD −16.2% vs −18.3%) at
+higher turnover (0.88×/yr vs 0.11) that costs less than its edge earns. Era split of fee_B:
++8.4 pre-2000, **−37.7 post-2000** — the more regime-y the era, the more the EWMA wins, because
+it re-estimates the WHOLE covariance in weeks while the expanding state-conditional estimate
+drags decades of stale mixture.
+
+**The mechanism is real but second-best: F2 (risk stabilization) CLEAR** — vol-of-vol cond
+2.11pp < B_match 2.15pp: conditioning does stabilize portfolio risk vs a static estimate. It is
+simply dominated by reactive estimation at doing the same job. This is the v1 chapter-3 lesson
+(covariance conditioning adds nothing vs a matched vol-only estimator) replicated on a new
+object — cross-asset-class covariance, 36y, 2-state vol label — with the comparison
+preregistered this time instead of discovered post-hoc.
+
+**Pre-freeze audit corrections that shaped this chapter (same day, before the run):** the
+atlas's "30/30 LOEO-stable" stock-bond corr deepening was pooled-estimate robustness, NOT a
+per-episode fact — per-episode it holds in 11/23 episodes ≥15d; the 1990s stressed shift is
++0.07 (bonds anti-hedge) and the 2022 inflation bear ran at stress corr +0.11. The vol state
+cannot separate growth-scare stress (bonds hedge) from inflation/rates stress (bonds
+anti-hedge) — the v1 stock-bond co-trend finding, re-encountered. H2 was reframed to the scale
+mechanism before freezing; the corr tilt was demoted to non-load-bearing. fee_A's era-split
+(+3.3 pre-2000 / +2.5 post-2000, +2.5 excl-2022) shows no era carried a hidden win.
+
+**What survives chapter 2:** (1) the label instrument (chapter-1 finding, untouched); (2) the
+descriptive atlas as design knowledge (industry correlation convergence in stress; momentum
+crash dynamic; gold's unconditional diversification); (3) a sharpened program lesson — **the
+vol axis is real but every economic use tested so far is dominated by simple reactive
+estimators (VT for exposure, EWMA for covariance): detection-lag races are lost by
+state-conditioning at daily horizons.** Any chapter 3 must name a use where lag-tolerance is
+structural, or the program's economic track closes and the methods/negative paper is the
+deliverable. Visual results: `results/report.html` chapter-2 section
+(`scripts/build_report.py`).
+
+---
+
+## 2026-07-23 — V2 CHAPTER 1: jump-model overlay, Case B — the field's beat-B&H claim deflates to an exposure artifact; the label itself is an exceptional instrument
 
 First v2 experiment (successor program; frozen prereg `.planning/V2-JUMPMODEL-PREREG.md` Rev 2,
 audit trail §11). Object: K=2 weighted statistical jump model (Bemporad/Boyd 2018; Nystrup et al.;

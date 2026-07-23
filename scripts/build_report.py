@@ -1,8 +1,11 @@
-"""Generate results/report.html — self-contained visual report of the chapter-1 backtest.
+"""Generate results/report.html — self-contained visual report of the program's
+one-look results (chapter 1: jump-model overlay; chapter 2: state-conditional ERC).
 
 Reads: data/processed/market_daily.csv, results/oos_labels.csv, results/stage1.csv,
-results/stage1_run.log (lambda path + LOTO parsed from the frozen one-look log).
-Recomputes strategy paths with the exact stage-1 code (deterministic; not a new look).
+results/stage1_run.log (lambda path + LOTO parsed from the frozen one-look log), and —
+when present — results/allocation_summary.csv / allocation_arms.csv /
+allocation_controls.csv (the chapter-2 one-look artifacts).
+Recomputes strategy paths with the exact frozen code (deterministic; not a new look).
 Regenerate any time: .venv/Scripts/python scripts/build_report.py
 """
 
@@ -126,12 +129,91 @@ def build_data():
     )
 
 
+def build_alloc_data():
+    p = ROOT / "results" / "allocation_summary.csv"
+    if not p.exists():
+        return None
+    # keep_default_na: the verdict string "NULL" is on pandas' default NA list
+    s = pd.read_csv(p, keep_default_na=False, na_values=[""]).iloc[0]
+    arms = pd.read_csv(ROOT / "results" / "allocation_arms.csv", parse_dates=["date"])
+    ctrl = pd.read_csv(ROOT / "results" / "allocation_controls.csv")
+
+    keep = np.arange(len(arms)) % 5 == 0
+    keep[-1] = True
+    dates_w = arms["date"].dt.strftime("%Y-%m-%d")[keep].tolist()
+    series_cols = {"Cond": "ret_cond", "B_match": "ret_match",
+                   "B_react": "ret_react", "60/40": "ret_6040"}
+    equity, drawdown = {}, {}
+    for k, c in series_cols.items():
+        eq = np.cumprod(1.0 + arms[c].to_numpy())
+        dd = eq / np.maximum.accumulate(eq) - 1.0
+        equity[k] = [round(float(v), 4) for v in eq[keep]]
+        drawdown[k] = [round(float(v) * 100, 2) for v in dd[keep]]
+
+    weights = {}
+    for k, c in (("Equity", "w_cond_eq"), ("Bond", "w_cond_bd"),
+                 ("Gold", "w_cond_au")):
+        weights[k] = [round(float(v) * 100, 1) for v in arms[c].to_numpy()[keep]]
+    cash = 1.0 - (arms["w_cond_eq"] + arms["w_cond_bd"] + arms["w_cond_au"])
+    weights["Cash"] = [round(float(v) * 100, 1) for v in cash.to_numpy()[keep]]
+
+    bands_ctl = {}
+    for name, key in (("C1_placebo", "placebo"), ("C2_shuffle", "shuffle"),
+                      ("C3_iid", "iid")):
+        sub = ctrl[ctrl["control"] == name]
+        bands_ctl[key] = dict(
+            a_lo=round(float(sub["fee_a"].quantile(0.05)), 1),
+            a_hi=round(float(sub["fee_a"].quantile(0.95)), 1),
+            b_lo=round(float(sub["fee_b"].quantile(0.05)), 1),
+            b_hi=round(float(sub["fee_b"].quantile(0.95)), 1), n=int(len(sub)))
+
+    arm_stats = {}
+    for nm, key in (("Cond", "cond"), ("B_match", "B_match"), ("B_react", "B_react"),
+                    ("60/40", "60_40"), ("VT equity", "VT_eq"), ("B&H equity", "BH_eq")):
+        arm_stats[nm] = dict(sharpe=round(float(s[f"{key}_sharpe"]), 3),
+                             maxdd=round(float(s[f"{key}_maxdd"]) * 100, 1),
+                             ann_ret=round(float(s[f"{key}_ann_ret"]) * 100, 2),
+                             ann_vol=round(float(s[f"{key}_ann_vol"]) * 100, 2))
+
+    years = sorted(set(arms["date"].dt.year))
+    annual = []
+    for y in years:
+        m = arms["date"].dt.year == y
+        row = {"year": int(y)}
+        for k, c in series_cols.items():
+            row[k] = round((float(np.prod(1.0 + arms.loc[m, c])) - 1.0) * 100, 1)
+        annual.append(row)
+
+    splits = {nm: [round(float(s[f"split_{key}_a"]), 1), round(float(s[f"split_{key}_b"]), 1)]
+              for nm, key in (("1990–1999", "pre2000"), ("2000–2026", "post2000"),
+                              ("excl. 2022 episode", "ex2022ep"),
+                              ("from activation", "from_act"))}
+
+    return dict(
+        verdict=str(s["verdict"]), activation=str(s["activation"]),
+        fees=dict(a=round(float(s["fee_a"]), 1), a_lo=round(float(s["ci_a_lo"]), 1),
+                  a_hi=round(float(s["ci_a_hi"]), 1), b=round(float(s["fee_b"]), 1),
+                  b_lo=round(float(s["ci_b_lo"]), 1), b_hi=round(float(s["ci_b_hi"]), 1),
+                  a_g1=round(float(s["fee_a_g1"]), 1), b_g1=round(float(s["fee_b_g1"]), 1)),
+        f=dict(f1=bool(s["f1"]), f1b=bool(s["f1b"]), f2=bool(s["f2"]), f3=bool(s["f3"]),
+               clean=bool(s["controls_clean"])),
+        volvol=dict(cond=round(float(s["volvol_cond"]) * 100, 2),
+                    match=round(float(s["volvol_match"]) * 100, 2)),
+        turnover=dict(cond=round(float(s["turnover_cond"]), 2),
+                      match=round(float(s["turnover_match"]), 2),
+                      react=round(float(s["turnover_react"]), 2)),
+        dsr=[round(float(s["dsr_lo"]), 3), round(float(s["dsr_hi"]), 3)],
+        dmaxdd=round(float(s["dmaxdd"]) * 100, 2),
+        bands_ctl=bands_ctl, dates=dates_w, equity=equity, drawdown=drawdown,
+        weights=weights, arm_stats=arm_stats, annual=annual, splits=splits)
+
+
 HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Regime Program — Jump-Model Backtest Results</title>
+<title>Regime Program — One-Look Results</title>
 <style>
 :root {
   color-scheme: light;
@@ -201,7 +283,11 @@ details { margin: 8px 0; } summary { cursor: pointer; color: var(--ink2); font-s
 </head>
 <body>
 <div class="wrap">
-<h1>V2 Jump-Model Backtest — One-Look Results</h1>
+<h1>Regime Program — One-Look Results</h1>
+<p class="sub"><a href="#ch1">Chapter 1 · jump-model overlay</a> &nbsp;·&nbsp;
+<a href="#ch2">Chapter 2 · state-conditional allocation</a></p>
+
+<h1 id="ch1" style="font-size:20px;margin-top:28px">Chapter 1 — Jump-Model Overlay vs Buy-and-Hold</h1>
 <p class="sub" id="subtitle"></p>
 
 <div class="tiles" id="tiles"></div>
@@ -250,6 +336,46 @@ one lucky episode.</p>
 <div class="card"><table id="arms"></table></div>
 
 <p class="footer" id="footer"></p>
+
+<div id="ch2block" style="display:none">
+<h1 id="ch2" style="font-size:20px;margin-top:48px">Chapter 2 — State-Conditional Allocation (covariance only)</h1>
+<p class="sub" id="ch2subtitle"></p>
+
+<div class="tiles" id="ch2tiles"></div>
+
+<h2>The two fees against their null bands</h2>
+<p class="note">fee_A asks whether conditioning beats the identical allocator on
+unconditional expanding covariance (full window; the arms are identical before
+activation). fee_B asks the harder question — does the state label beat a reactive
+EWMA covariance that adapts on its own (scored from activation)? Bands are the 5th–95th
+of the preregistered control distributions run through the full pipeline.</p>
+<div class="card"><div id="ch2intervals"></div></div>
+
+<h2>Equity curves (log scale)</h2>
+<p class="note" id="ch2eqnote"></p>
+<div class="legend" id="ch2eqlegend"></div>
+<div class="card"><div id="ch2equity"></div></div>
+<details><summary>Table view — annual returns by arm (%)</summary>
+<div class="card"><table id="ch2annual"></table></div></details>
+
+<h2>What the conditional arm holds</h2>
+<p class="note">Executed weights of the conditional ERC arm (equity, bond, gold, cash
+residual). Shaded bands are the stressed states. The visible moves are the mechanism:
+in stress the conditional covariance is larger, the vol target binds, cash rises.</p>
+<div class="legend" id="ch2wlegend"></div>
+<div class="card"><div id="ch2weights"></div></div>
+
+<h2>Era-split diagnostics (pre-declared)</h2>
+<p class="note">The named failure mode is a stock-bond correlation-regime break: the
+1990s (bonds anti-hedge in stress) and the 2022 inflation bear. If the headline fee
+only exists in one era, this table says so.</p>
+<div class="card"><table id="ch2splits"></table></div>
+
+<h2>Arm comparison</h2>
+<div class="card"><table id="ch2arms"></table></div>
+
+<p class="footer" id="ch2footer"></p>
+</div>
 </div>
 <div class="tooltip" id="tt"></div>
 <script>
@@ -533,6 +659,159 @@ function table(id, headers, rows, numFrom) {
     `secondary exhibits: fee γ=1 ${fmt(F.g1)}, vs SMA200 ${fmt(F.sma)}, vs matched static mix ` +
     `${fmt(F.mix)}, same-close sensitivity ${fmt(F.delay1)}, break-even cost ${fmt(F.breakeven)} bps.`;
 })();
+
+function mkLegend(id, entries, bandLabel) {
+  const lg = document.getElementById(id);
+  for (const e of entries) {
+    const it = document.createElement("span"); it.className = "item";
+    const key = document.createElement("span"); key.className = "key";
+    key.style.borderTopColor = CV(e.colorVar); it.appendChild(key);
+    it.appendChild(document.createTextNode(e.name)); lg.appendChild(it); }
+  if (bandLabel) {
+    const sw = document.createElement("span"); sw.className = "item";
+    const s = document.createElement("span"); s.className = "swatch"; sw.appendChild(s);
+    sw.appendChild(document.createTextNode(bandLabel)); lg.appendChild(sw); }
+}
+
+function intervalChart2(mount, A) {
+  const F = A.fees, B = A.bands_ctl;
+  const rows = [
+    {y: 64, name: "fee_A · Cond − B_match", v: F.a, lo: F.a_lo, hi: F.a_hi,
+     shuffle: [B.shuffle.a_lo, B.shuffle.a_hi], iid: [B.iid.a_lo, B.iid.a_hi],
+     placebo: B.placebo.a_hi, colorVar: "--s1"},
+    {y: 140, name: "fee_B · Cond − B_react", v: F.b, lo: F.b_lo, hi: F.b_hi,
+     shuffle: [B.shuffle.b_lo, B.shuffle.b_hi], iid: [B.iid.b_lo, B.iid.b_hi],
+     placebo: B.placebo.b_hi, colorVar: "--s3"}];
+  let vmin = 0, vmax = 0;
+  for (const r of rows) for (const v of [r.v, r.lo, r.hi, ...r.shuffle, ...r.iid, r.placebo]) {
+    if (v < vmin) vmin = v; if (v > vmax) vmax = v; }
+  const pad = (vmax - vmin) * 0.12 || 10; vmin -= pad; vmax += pad;
+  const W = 1040, H = 196, m = {l: 190, r: 30, t: 8, b: 30};
+  const iw = W - m.l - m.r;
+  const X = v => m.l + (v - vmin) / (vmax - vmin) * iw;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img",
+    "aria-label": "Chapter-2 fees vs null bands"});
+  mount.appendChild(svg);
+  svg.appendChild(el("line", {x1: X(0), x2: X(0), y1: m.t, y2: H - m.b,
+    stroke: "var(--axis)", "stroke-width": 1}));
+  const rawStep = (vmax - vmin) / 5;
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const step = [1, 2, 5, 10].map(s => s * mag).find(s => s >= rawStep) || 10 * mag;
+  for (let v = Math.ceil(vmin / step) * step; v <= vmax; v += step) {
+    const t = el("text", {x: X(v), y: H - 8, "text-anchor": "middle"});
+    t.textContent = fmt(v); svg.appendChild(t); }
+  for (const r of rows) {
+    const lab = el("text", {x: m.l - 10, y: r.y + 4, "text-anchor": "end",
+      class: "dirlab"});
+    lab.textContent = r.name; lab.style.fill = "var(--ink2)"; svg.appendChild(lab);
+    svg.appendChild(el("rect", {x: X(r.shuffle[0]), y: r.y - 20,
+      width: Math.max(X(r.shuffle[1]) - X(r.shuffle[0]), 1.5), height: 40,
+      fill: "var(--band)"}));
+    svg.appendChild(el("rect", {x: X(r.iid[0]), y: r.y - 10,
+      width: Math.max(X(r.iid[1]) - X(r.iid[0]), 1.5), height: 20,
+      fill: "none", stroke: "var(--axis)", "stroke-dasharray": "2 2"}));
+    svg.appendChild(el("line", {x1: X(r.placebo), x2: X(r.placebo), y1: r.y - 22,
+      y2: r.y + 22, stroke: "var(--muted)", "stroke-width": 1.5,
+      "stroke-dasharray": "5 4"}));
+    svg.appendChild(el("line", {x1: X(r.lo), x2: X(r.hi), y1: r.y, y2: r.y,
+      stroke: `var(${r.colorVar})`, "stroke-width": 2}));
+    for (const e of [r.lo, r.hi])
+      svg.appendChild(el("line", {x1: X(e), x2: X(e), y1: r.y - 5, y2: r.y + 5,
+        stroke: `var(${r.colorVar})`, "stroke-width": 2}));
+    svg.appendChild(el("circle", {cx: X(r.v), cy: r.y, r: 5,
+      fill: `var(${r.colorVar})`, stroke: "var(--surface)", "stroke-width": 2}));
+    const vl = el("text", {x: X(r.v), y: r.y - 26, "text-anchor": "middle",
+      class: "dirlab"});
+    vl.textContent = `${fmt(r.v)} bps`; vl.style.fill = `var(${r.colorVar})`;
+    svg.appendChild(vl);
+    const hitR = el("rect", {x: m.l, y: r.y - 24, width: iw, height: 48,
+      fill: "transparent"});
+    svg.appendChild(hitR);
+    hitR.addEventListener("pointermove", ev => showTT(ev.clientX, ev.clientY,
+      ttRows(r.name, [
+        {colorVar: r.colorVar, name: "fee (90% CI)",
+         value: `${fmt(r.v)} [${fmt(r.lo)}, ${fmt(r.hi)}]`},
+        {colorVar: "--s4", name: "placebo 95th", value: fmt(r.placebo)},
+        {colorVar: "--s4", name: "shuffle 5–95th",
+         value: `[${fmt(r.shuffle[0])}, ${fmt(r.shuffle[1])}]`},
+        {colorVar: "--s4", name: "iid 5–95th",
+         value: `[${fmt(r.iid[0])}, ${fmt(r.iid[1])}]`}])));
+    hitR.addEventListener("pointerleave", hideTT); }
+}
+
+(function renderAlloc() {
+  const A = DATA.alloc;
+  if (!A) return;
+  document.getElementById("ch2block").style.display = "";
+  const M = DATA.meta, F = A.fees;
+  document.getElementById("ch2subtitle").textContent =
+    `Conditional ERC over equity / 10y Treasury / gold / cash · covariance only, no ` +
+    `return forecasts · scored ${M.oos_start} → ${M.oos_end} · conditioning active ` +
+    `${A.activation} · frozen prereg Rev 2.1, one look · verdict ${A.verdict}`;
+
+  const tiles = document.getElementById("ch2tiles");
+  tile(tiles, A.verdict.replace(/_/g, " "), "frozen verdict",
+    `F1=${A.f.f1} F1b=${A.f.f1b} F2=${A.f.f2} F3=${A.f.f3} controls_clean=${A.f.clean}`);
+  tile(tiles, `${F.a > 0 ? "+" : ""}${fmt(F.a)}`, "fee_A vs B_match (bps/yr, γ=10)",
+    `90% CI [${fmt(F.a_lo)}, ${fmt(F.a_hi)}]`, F.a > 0 && F.a_lo > 0 ? "posv" : "");
+  tile(tiles, `${F.b > 0 ? "+" : ""}${fmt(F.b)}`, "fee_B vs B_react (bps/yr, γ=10)",
+    `90% CI [${fmt(F.b_lo)}, ${fmt(F.b_hi)}] · from activation`,
+    F.b > 0 && F.b_lo > 0 ? "posv" : "");
+  tile(tiles, `${A.volvol.cond.toFixed(2)} vs ${A.volvol.match.toFixed(2)}`,
+    "vol-of-vol, cond vs B_match (pp)",
+    A.volvol.cond < A.volvol.match ? "risk stabilization: holds" : "risk stabilization: FAILS",
+    A.volvol.cond < A.volvol.match ? "posv" : "negv");
+  tile(tiles, `${A.turnover.cond.toFixed(2)}×`, "turnover/yr (cond)",
+    `B_match ${A.turnover.match.toFixed(2)} · B_react ${A.turnover.react.toFixed(2)} · bar 5× B_match`);
+
+  intervalChart2(document.getElementById("ch2intervals"), A);
+
+  const armColors = {"Cond": "--s1", "B_match": "--s2", "B_react": "--s3", "60/40": "--s4"};
+  document.getElementById("ch2eqnote").textContent =
+    `All ERC arms share caps, the 8% vol target, costs and delay — the only difference ` +
+    `is the covariance estimate. Shaded bands are the stressed states. dSharpe(cond−match) ` +
+    `90% CI [${A.dsr[0].toFixed(3)}, ${A.dsr[1].toFixed(3)}]; dMaxDD ${A.dmaxdd.toFixed(2)}pp.`;
+  mkLegend("ch2eqlegend", Object.entries(armColors).map(([name, colorVar]) =>
+    ({name, colorVar})), "stressed state");
+  const eqmax = Math.max(...Object.values(A.equity).flat());
+  lineChart(document.getElementById("ch2equity"), {dates: A.dates,
+    series: Object.entries(armColors).map(([k, cv]) => ({name: k, colorVar: cv,
+      values: A.equity[k]})),
+    bands: DATA.bands, logY: true, ymin: 0.8, ymax: eqmax * 1.15,
+    yTicks: [1, 2, 5, 10, 20, 50].filter(v => v <= eqmax * 1.15),
+    yfmt: v => "×" + fmt(v), label: "Chapter-2 equity curves"});
+
+  const wColors = {"Equity": "--s1", "Bond": "--s2", "Gold": "--s4", "Cash": "--s3"};
+  mkLegend("ch2wlegend", Object.entries(wColors).map(([name, colorVar]) =>
+    ({name, colorVar})), "stressed state");
+  lineChart(document.getElementById("ch2weights"), {dates: A.dates,
+    series: Object.entries(wColors).map(([k, cv]) => ({name: k, colorVar: cv,
+      values: A.weights[k]})),
+    bands: DATA.bands, ymin: 0, ymax: 100, yTicks: [0, 25, 50, 75, 100],
+    yfmt: v => fmt(v) + "%", label: "Conditional arm weights", height: 260});
+
+  table("ch2splits", ["Window", "fee_A (bps/yr)", "fee_B (bps/yr)"],
+    Object.entries(A.splits).map(([k, v]) => [k,
+      {text: (v[0] > 0 ? "+" : "") + v[0].toFixed(1), cls: v[0] < 0 ? "negv" : "posv"},
+      {text: (v[1] > 0 ? "+" : "") + v[1].toFixed(1), cls: v[1] < 0 ? "negv" : "posv"}]), 1);
+
+  table("ch2arms", ["Arm", "Sharpe", "Max DD", "Ann. return", "Ann. vol"],
+    Object.entries(A.arm_stats).map(([k, s]) => [k, s.sharpe.toFixed(3),
+      {text: s.maxdd.toFixed(1) + "%", cls: "negv"}, s.ann_ret.toFixed(2) + "%",
+      s.ann_vol.toFixed(2) + "%"]), 1);
+
+  table("ch2annual", ["Year", "Cond", "B_match", "B_react", "60/40"],
+    A.annual.map(a => [String(a.year), ...["Cond", "B_match", "B_react", "60/40"].map(k =>
+      ({text: (a[k] > 0 ? "+" : "") + a[k].toFixed(1), cls: a[k] < 0 ? "negv" : ""}))]), 1);
+
+  document.getElementById("ch2footer").textContent =
+    `Preregistered (.planning/ALLOCATION-PREREG.md Rev 2.1, frozen 2026-07-23) · ` +
+    `hard-state conditional covariance (expanding per state, min 500 days, 0.5 shrink to ` +
+    `unconditional) · ERC by log-barrier CCD, caps 75/75/25, 8% vol target scale-down only · ` +
+    `monthly + state-flip rebalance, next-close, 10 bps · baselines: identical ERC on ` +
+    `unconditional expanding (B_match) and EWMA λ=0.97 (B_react) covariance · ` +
+    `secondary fees γ=1: A ${fmt(F.a_g1)}, B ${fmt(F.b_g1)} · run log: results/allocation_run.log.`;
+})();
 </script>
 </body>
 </html>
@@ -541,6 +820,7 @@ function table(id, headers, rows, numFrom) {
 
 def main():
     data = build_data()
+    data["alloc"] = build_alloc_data()
     html = HTML.replace("__DATA__", json.dumps(data, separators=(",", ":")))
     out = ROOT / "results" / "report.html"
     out.write_text(html, encoding="utf-8")
