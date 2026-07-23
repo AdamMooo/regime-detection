@@ -176,6 +176,31 @@ Next instrument steps this motivates (no prereg needed until an economic claim i
 K=3 crash/rebound/calm exploration (must re-clear K=2's stability bar; entry-lag confound
 check), asymmetric-λ exit dial, calibrated P(state) from the filter evidence gap.
 
+## K=3 probe — MACHINERY DONE, FULL RUN PENDING (2026-07-23)
+
+Built + committed (b1d5bab, 25/25 tests): scalar k=3 DP fast path in `jumpmodel.py`
+(tested exact vs the general DP), `k` param through `walkforward.py` (k=2 byte-identical;
+k=3 validation weights = (k−1−s)/(k−1)), probe script `scripts/explore_k3.py` (state
+characterization, K=2 partition, EX-POST crash/rebound alignment, ±2y stability bar).
+Smoke PASS. **Full run was interrupted by laptop shutdown (no partial state — the script
+writes only at the end). RERUN (~1-2h, background it):**
+
+    PYTHONIOENCODING=utf-8 .venv/Scripts/python scripts/explore_k3.py 2>&1 | tee results/k3_exploration_run.log
+
+Smoke hint to check against: on the short slice, the third state split stress by SEVERITY
+(rare ~44%-vol extreme state), and crash/rebound days got IDENTICAL k3 distributions —
+i.e. no phase separation. If the full run confirms: clean instrument finding ("vol features
+see levels, not phases"; the sortino coordinates weren't enough) → effort goes to
+asymmetric-λ (exit lag) + episode-age/hazard sizing (age is causally observable — the
+strongest ch3 candidate from the anatomy). If it DOES separate: phase-aware sensor →
+worth drafting the ch3 prereg around a rebound state, honest incumbent = VT.
+
+Also this session: the model math + learning curriculum was written out for Adam in-chat
+(statistical jump model = sticky-HMM MAP, λ = 2σ²·log(p_stay/p_switch); the causal filter
+= clipped evidence random walk D_t = ΔC_t + clip(D_{t−1}, ±λ) — the derivation of the
+asymmetric lag). Standing offer: Adam hand-writes `filter_states` as a learning exercise
+next session.
+
 Also queued (not blocking): calibrated P(state) from the filter evidence gap (needed by the
 graded variant — calibrate on SYNTHETIC panels pre-freeze); K=3 crash/rebound exploration
 (entry-lag confound check); atlas pages in report.html; λ lag-vs-whipsaw frontier.
