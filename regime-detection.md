@@ -4,11 +4,28 @@ project: regime-detection
 ---
 # Regime Detection
 
-Bayesian HDP-HMM market regime detection. Two goals: (1) an academic paper proving markets have latent states not recoverable from VIX alone, (2) regime labels consumed downstream by Portfolio-Manager. See [[regime-detection/CLAUDE|CLAUDE.md]] for architecture, hard constraints, and downstream label mapping.
+Market regime detection. The v1 research program (HDP-HMM and four successor formulations) **converged
+2026-07-22: five preregistered/pre-specified tests of "latent structure beyond volatility," all null** —
+sealed at git tag `v1-convergence`, durable record in `RESEARCH-RECORD.md`. No academic paper (Adam's
+decision). What remains live: (1) the practical vol-regime ensemble label consumed downstream by
+Portfolio-Manager, (2) this repo as the home of a successor regime question (new information source
+required — not yet chosen). See [[regime-detection/CLAUDE|CLAUDE.md]] for what's live vs archived.
 
 ## Status
 
-**2026-07-22 (latest) — three-chapter negative arc concluded; DIRECTION CHANGE.** After the Continuum
+**2026-07-22 (latest, night) — PROGRAM CONVERGED; repo sealed and repositioned.** The final frozen
+experiment (self-exciting tail hazard, prereg §8, pre-declared stopping rule) returned null with all
+controls clean — primary dLS(D−C) −0.00039, CI [−0.00097, +0.00012], inside the no-excitation simulation
+band; VIX kill-check independently null. A same-day continuous OU/Kalman correlation-state exploration
+was also null on both lenses (forecasting AND contemporaneous), with a sharp diagnosis: the MLE drives
+observation noise to zero and the "latent" state degenerates to the raw observable. Five formulations,
+five nulls. Decisions: **no formal paper** — RESEARCH-RECORD.md is the artifact; repo kept and
+repositioned; v1 one-shot research code archived to `archive/research-v1/`; sealed at tag
+`v1-convergence` (commit 2132b41). The only open item is the successor question (see Next).
+
+---
+
+**2026-07-22 — three-chapter negative arc concluded; DIRECTION CHANGE.** After the Continuum
 Turn, the project ran three increasingly-well-designed, pre-registered tests of "is there useful observable
 structure beyond volatility/stress?" — all null (see `RESEARCH-RECORD.md` newest-first, `NOTES.md`):
 (1) **HMM/latent state** — belief-revised to a moderately-stable *compression* of observables, no
@@ -67,17 +84,17 @@ A same-day follow-up pivoted the evaluation framework: instead of asking "does v
 
 ## Next
 
-**Direction change (2026-07-22): experiment with a Continuous-Time Latent Market State with Jumps.** The
-discrete-HMM / predictive-regime / covariance-conditioning arc is concluded (three nulls; see Status).
-The new line is a continuous-time latent-state model with a jump component (jump-diffusion), which also
-addresses the strongest untested object from the reframe audit (tail/jump behavior). Not yet designed;
-apply the same discipline used throughout — pre-register object, baseline, metric, and falsification
-before running. The **methods/negative paper** documenting the three-chapter arc remains the standing
-fallback deliverable if the new line does not land.
+**One open item: choose the successor question's information source.** The v1 record pre-refutes any
+new *representation* of the same daily index-level features (five formulations tried; a filtered state
+is a function of the same observables — representation cannot create information). A successor must tap
+information v1 never touched: cross-sectional breadth, intraday/microstructure, positioning/flows,
+options surface, alternative data. Once chosen: rewrite CLAUDE.md constraints and the data layer around
+it, with the same prereg/falsifier discipline. Until then, the repo is in its sealed post-convergence
+state and the ensemble label tool keeps running for Portfolio-Manager.
 
-(Superseded: the earlier three deferred experiments — significance-test wiring was since shipped
-`scripts/significance_test.py`; the raw-state/VIX-ablation and persistence questions were overtaken by the
-belief revision and the reframe. See `RESEARCH-RECORD.md` for the full chronology.)
+(Superseded: the continuous-time-jumps direction was executed as the tail-hazard experiment and closed
+null 2026-07-22; the methods/negative paper was considered and declined — RESEARCH-RECORD.md is the
+durable artifact. Earlier deferred experiments: see `RESEARCH-RECORD.md` chronology.)
 
 ## Memory
 
@@ -86,6 +103,10 @@ belief revision and the reframe. See `RESEARCH-RECORD.md` for the full chronolog
 - **Public docs:** [[regime-detection/README|README]]
 
 ## Known Issues
+
+*Scope note (2026-07-22): the paper-methodology findings below are moot post-convergence (no paper; v1
+sealed) but retained as factual record. Still-live items: training-window sensitivity (affects the tool's
+ensemble label), the CI workflow staleness, and dep/data-bloat cleanup.*
 
 Four methodological findings from the 2026-07-21 audit (detail + implications in `RESEARCH-RECORD.md`;
 **none fixed yet, by decision**):

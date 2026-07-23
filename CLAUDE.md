@@ -2,91 +2,55 @@
 
 **Read NOTES.md first** — it has the current state and next action.
 
-## Purpose
+## State of the Project (2026-07-22)
 
-Two goals simultaneously:
-1. **Academic paper** — publishable paper proving markets have latent states not recoverable from VIX alone
-2. **Practical tool** — regime labels consumed by Algo-Trading-Bot and Portfolio-Manager
+The v1 research program is **CONVERGED and sealed** at git tag `v1-convergence`. Five
+preregistered/pre-specified formulations of "markets have latent structure beyond volatility" —
+discrete HDP-HMM states, macro/rates axis, covariance/eigenstructure conditioning, self-exciting
+tail hazard, continuous OU/Kalman correlation factor — all returned null, all causally clean.
+**`RESEARCH-RECORD.md` is the durable artifact** (no academic paper — Adam's decision, 2026-07-22).
 
-Core thesis: *"Markets have latent states not directly observable from any single indicator — a Bayesian HDP-HMM can recover them."*
-Null hypothesis: *"Regimes are just VIX thresholds."*
+The repo is being repositioned for a successor regime-detection question. **The successor question is
+not yet chosen** — that's the single open item. See NOTES.md and the hub's Next section.
 
-## Architecture (Stripped — Paper-First)
+## What Is Live vs Archived
 
-```
-src/
-  config.py                  — All params: features, HDP, MCMC, VOL_BRACKETS, paths
-  data/
-    collect_macro.py         — Fetch 4 features: SPY return, VIX, yield slope, NFCI
-  core/
-    hdp_hmm.py               — Bayesian HDP-HMM (NumPyro): SVI + NUTS, forward-backward
-    inference.py             — expanding_standardize() — causal z-score (no lookahead)
-    evaluation.py            — evaluate() + block bootstrap CIs
-    orchestrator.py          — walk_forward() stub (not yet implemented)
-  baselines/
-    threshold_rules.py       — VIX-threshold baseline (the null hypothesis)
-    parametric_hmm.py        — Fixed-K Gaussian HMM baseline (hmmlearn)
-  experiments/
-    thesis_experiments.py    — Top-level experiment runner
-  pipeline/
-    runner.py                — Pipeline runner (timing, error handling)
-    stages.py                — Stage functions: collect, features, train_hmm, signals
-```
+**Live (do not break):**
+- The practical vol-regime ensemble label — `data/oos_regime_labels*.csv`, 3-window ensemble with
+  agreement fraction, consumed by Portfolio-Manager. Label mapping that must survive any change:
+  Low-Vol → `LOW_VOL`, Moderate-Vol → `MED_VOL`, High-Vol → `HIGH_VOL`.
+- `src/` pipeline, data collectors (yfinance + FRED; key in `.env` as `FRED_API_KEY`), evaluation/
+  bootstrap utilities, causal-inference helpers (`expanding_standardize`, forward-pass filtering),
+  the causality-invariant test suite.
+- `.venv` exists (JAX 0.9.1 / NumPyro 0.20.0 pinned; also arch 8.0.0, yfinance 1.2.0).
 
-## Features (4 direct, no PCA)
+**Archived (`archive/research-v1/` — inert, sealed):** the one-shot chapter experiment scripts, paper
+scaffolding, and research baselines. Import paths left as-is intentionally; to reproduce v1 results,
+check out the `v1-convergence` tag. Never edit archived code in place.
 
-| Feature | Source | Economic meaning |
-|---------|--------|-----------------|
-| `spy_ret` | yfinance ^GSPC | Market direction (log return) |
-| `vol_index` | yfinance ^VIX | Implied volatility level |
-| `yield_slope` | FRED T10Y2Y | Macro cycle (10y minus 2y spread) |
-| `nfci` | FRED NFCI | Financial stress (Chicago Fed) |
+## Discipline That Carries Forward (non-negotiable, learned the hard way)
 
-No PCA needed at 4 dimensions — feed directly to HMM. Reviewers cannot argue with it.
-
-## Model
-
-- HDP stick-breaking prior — K learned from data (core contribution)
-- Sticky transitions — `pi_k ~ Dir(alpha*beta + kappa*e_k)` — markets are persistent
-- Gaussian emissions — cleaner math for the paper than Student-t
-- Forward-pass filtering only (causal, no lookahead) — essential for live trading
-- Inference: SVI (fast, daily use) or NUTS (full posterior, paper-quality)
-
-## Paper Proof Structure
-
-**Figure 1 (money shot):** Two days with identical VIX but different posterior distributions — model sees something VIX doesn't
-**Figure 2:** Within-regime return distributions: HDP-HMM vs VIX-threshold. Tighter violins = more coherent hidden structure
-**Figure 3:** Walk-forward OOS stability — states findable in real time, not just hindsight
-
-**Table 1:** Within-regime stats (mean return, vol, Sharpe, dwell time) — HDP-HMM vs VIX-threshold vs buy-and-hold
-**Table 2:** Transition matrix — high diagonal = persistent real states
-**Table 3:** Information content regression — regime dummies add R² beyond VIX alone (cleanest statistical proof)
-
-## Downstream Integration
-
-Bot label mapping must survive any further changes:
-- Low-Vol → `LOW_VOL`
-- Moderate-Vol → `MED_VOL`
-- High-Vol → `HIGH_VOL`
-
-## Hard Constraints
-
-- NumPyro for HMM — not hmmlearn, pomegranate, etc.
-- 4 features, no PCA
-- K=3 regimes (target), learned via HDP (actual K may vary)
-- Causal inference only — forward-pass filtering, expanding-window standardization
-- JAX 0.9.1 and NumPyro 0.20.0 pinned exactly (reproducibility)
-
-## Data Requirements
-
-FRED API key required — add to `.env` as `FRED_API_KEY=<your_key>` (free at fred.stlouisfed.org)
+- **The information gate:** any proposed formulation must name the NEW information source it taps —
+  not a new representation of the same daily index-level features. A filtered/transformed state is a
+  function of the same observables; representation cannot create information (demonstrated literally:
+  the v1 Kalman MLE collapsed its "latent" state onto the raw observable).
+- **Prereg before running:** object, matched baseline, primary metric, falsifier, and stopping rule
+  frozen before any real-data result exists.
+- **Causal inference only:** expanding-window standardization, forward-pass filtering, no full-sample
+  fitting, no refit lookahead. New estimators get causality-invariant tests.
+- **Honest baselines:** never benchmark a smoother/filter against raw persistence — fixed EWMA is the
+  minimum; matched same-architecture baselines for conditioning claims; placebo/surrogate controls for
+  extra-dimension artifacts.
+- **Evaluation lens is part of the prereg** — don't re-ask a settled question under a new lens without
+  acknowledging which prior null already covers it.
 
 ## Do Not
 
-- Add rolling PCA, GARCH VaR, Student-t emissions, or signal combination logic
-- Change the 4-feature set without re-running the paper's ablation
-- Add complexity that can't be directly cited to a paper section
-- Build production execution logic here (that's Algo-Trading-Bot's job)
+- Reopen any v1 formulation (HMM variants, vol-conditioned covariance kernels, daily-frequency
+  self-excitation, OU/Kalman states on index-level series) without a genuinely new information source.
+- Edit `RESEARCH-RECORD.md`'s sealed sections, the frozen preregs in `.planning/`, or anything under
+  `archive/research-v1/`.
+- Build production execution logic here (that's Algo-Trading-Bot's job).
 
 ## Session Close Checklist
 
