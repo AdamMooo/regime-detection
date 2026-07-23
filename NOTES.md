@@ -44,10 +44,14 @@ exist (= the literature's actual claim, Shu/Mulvey 2024). **In-silico: VT subsum
 value at daily frequency up to detection lag** — v1's "vol absorbs everything" re-derived from first
 principles, now with a mechanism (reaction-speed race, not information content).
 
-**NEXT ACTION (Adam decision, blocks Phase-2 freeze):** re-decide the prereg primary — see banner in
-`.planning/V2-JUMPMODEL-PREREG.md`. Recommended: primary = fee(JM−B&H) replication claim, co-primary
-deflation exhibit fee(JM−VT) expected ≤0. Then sign freeze; real run = `scripts/v2_stage1.py
---confirm-frozen` (~4-5h, one look). Blind fully intact — no real-data model result exists.
+**LATER SAME NIGHT — prereg FROZEN (Rev 2) + real run LAUNCHED.** Adam directed: final audit sweep,
+then wire up the proper backtest, era focus 1990+. Second 2-agent sweep (backtest methodology +
+adversarial code audit): NO critical findings; fixes applied pre-freeze — delay=2 next-close
+execution headline (delay=1 was same-close; matches Shu/Mulvey's actual convention), rf footing in
+C2/C3, 8y λ-validation window, moment-drop LOTO/era fees, full-panel baseline warmup. Prereg Rev 2:
+primary = fee(JM−B&H) γ=10 (replication claim), deflation exhibit fee(JM−VT) expected ≤0; train
+1970+, score ~1990→2026-05. Full audit trail: prereg §11. Stage-1 runner smoke-tested on synthetic
+(correctly Case D on iid noise). **Real run launched ~2-3h; verdict + RESEARCH-RECORD chapter next.**
 
 ## Session 2026-07-22 (evening) — tail-hazard primary NULL; OU/Kalman correlation state NULL on both lenses
 

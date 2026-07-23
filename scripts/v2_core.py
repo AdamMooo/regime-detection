@@ -98,6 +98,9 @@ def _fit_once(X, k, lam, n_init, max_iter, rng):
             for j in range(k):
                 if np.any(s == j):
                     mu[j] = X[s == j].mean(axis=0)
+        # re-sync (s, obj) with the final centers so the cross-init comparison
+        # never uses a stale objective when max_iter is exhausted
+        s, obj = _dp_assign(_cost(X, mu), lam)
         if best is None or obj < best[2]:
             best = (mu.copy(), s.copy(), obj)
     return best

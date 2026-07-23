@@ -49,6 +49,8 @@ def fko_fee(r_a, r_b, gamma=10.0):
     Closed form: average utility is quadratic in the constant deduction Delta."""
     a = 1.0 + np.asarray(r_a, dtype=float)
     b = 1.0 + np.asarray(r_b, dtype=float)
+    if len(a) == 0 or not (np.isfinite(a).all() and np.isfinite(b).all()):
+        return float("nan")
     c = gamma / (2.0 * (1.0 + gamma))
     K = b.mean() - c * (b ** 2).mean()
     # mean U(a - Delta) = (m1 - Delta) - c (m2 - 2 m1 Delta + Delta^2) = K

@@ -119,12 +119,16 @@ Phase 4: <1 session. Total ≈ 5–6 sessions.
   at daily frequency up to detection lag; the JM does beat B&H when regimes exist (replicating
   the literature's actual claim).** This is the v1 arc's "vol absorbs everything" reproduced
   from first principles in simulation.
-- **Phase 2 BLOCKED on Adam:** re-decide the primary before freeze. Candidates:
-  (a) primary = fee(JM−B&H) replication + co-primary deflation exhibit fee(JM−VT) expected ≤0;
-  (b) iterate the estimator to cut lag (ceiling analysis says gains are capped);
-  (c) declare the question answered in silico, skip the real run, record.
-  Recommendation: (a) — the real-data run stays informative under either outcome and the VT
-  exhibit answers the honest question.
+- **Phase 2 FROZEN 2026-07-22 (Rev 2)** per Adam's direction (1990+ focus, "wire it up properly"):
+  primary = fee(JM−B&H) replication claim; deflation exhibit fee(JM−VT) expected ≤0. Pre-freeze:
+  second sweep (backtest-methodology survey + adversarial code audit) — verdict "no CRITICAL,
+  causal architecture holds"; fixes applied: **delay=2 next-close execution headline** (our delay=1
+  was same-close; Shu/Mulvey's "one-day delay" = shift-2), rf footing in C2/C3 controls, 8y
+  λ-validation window (was 4y), LOTO/era fees by moment-drop on precomputed returns (no stitched
+  seams), full-panel baseline warmup, fit objective resync. Full audit trail in prereg §11.
+  Era: train 1970+, score ~1990→2026-05.
+- **Phase 3 LAUNCHED 2026-07-22** — `scripts/v2_stage1.py --confirm-frozen`, ~2-3h, one look.
+  Synthetic smoke of the full runner passed (and correctly returned Case D on iid noise).
 
 ## Sources (key)
 - Bemporad, Breschi, Piga & Boyd, "Fitting Jump Models," Automatica 2018.
