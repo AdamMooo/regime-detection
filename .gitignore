@@ -8,3 +8,6 @@ __pycache__/
 # Generated dashboard/figure outputs (large, reproducible via scripts/generate_figures.py)
 figures/dashboard.html
 figures/feature_analysis.html
+# regenerable via scripts/build_panel.py
+data/raw/
+data/processed/market_daily.csv
