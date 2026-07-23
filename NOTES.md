@@ -44,7 +44,19 @@ exist (= the literature's actual claim, Shu/Mulvey 2024). **In-silico: VT subsum
 value at daily frequency up to detection lag** — v1's "vol absorbs everything" re-derived from first
 principles, now with a mechanism (reaction-speed race, not information content).
 
-**LATER SAME NIGHT — prereg FROZEN (Rev 2) + real run LAUNCHED.** Adam directed: final audit sweep,
+**2026-07-23 ~5:50am — REAL RUN COMPLETE (381 min): CASE B, full deflation + an exceptional
+instrument.** Primary fee(JM−B&H) +487.8 [−47.4, +1138.8] → F1; ALL THREE control bands contain or
+exceed it (placebo 95th=541, surrogates [41,1080], iid [179,805]) and the exposure-matched constant
+mix beats the overlay (−48.7) → the "beats B&H" claim is an exposure/utility artifact, not timing.
+Deflation exhibit CONFIRMED significantly: fee(JM−VT) = −255.8 [−477.5, −36.7] — vol targeting
+dominates, mechanism as predicted in silico. BUT: label stability 1.000/1.000 vs incumbent 0.809,
+1.66 switches/yr, F2/F3 clear — the estimator-instability problem is solved by this architecture.
+Chapter written: RESEARCH-RECORD.md top section. **NEXT: Phase 4 decision with Adam — swap the
+Portfolio-Manager label source to the JM label (instrument decision, NOT an alpha claim). Open
+design item: map 2 JM states onto the live 3-label LOW/MED/HIGH_VOL contract without breaking
+downstream. Do NOT touch data/oos_regime_labels*.csv until that mapping is decided.**
+
+**LATER SAME NIGHT (2026-07-22) — prereg FROZEN (Rev 2) + real run LAUNCHED.** Adam directed: final audit sweep,
 then wire up the proper backtest, era focus 1990+. Second 2-agent sweep (backtest methodology +
 adversarial code audit): NO critical findings; fixes applied pre-freeze — delay=2 next-close
 execution headline (delay=1 was same-close; matches Shu/Mulvey's actual convention), rf footing in

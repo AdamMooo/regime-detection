@@ -127,8 +127,14 @@ Phase 4: <1 session. Total ≈ 5–6 sessions.
   λ-validation window (was 4y), LOTO/era fees by moment-drop on precomputed returns (no stitched
   seams), full-panel baseline warmup, fit objective resync. Full audit trail in prereg §11.
   Era: train 1970+, score ~1990→2026-05.
-- **Phase 3 LAUNCHED 2026-07-22** — `scripts/v2_stage1.py --confirm-frozen`, ~2-3h, one look.
-  Synthetic smoke of the full runner passed (and correctly returned Case D on iid noise).
+- **Phase 3 COMPLETE 2026-07-23 (381 min): CASE B.** Primary fee(JM−B&H) +487.8 [−47.4, +1138.8],
+  F1 fires, controls not clean — all three null bands contain the primary; exposure-matched mix
+  beats the overlay. Deflation exhibit significant: fee(JM−VT) −255.8 [−477.5, −36.7]. Label
+  instrument exceptional: stability 1.000 vs incumbent 0.809, 1.66 switches/yr. Full chapter:
+  RESEARCH-RECORD.md (2026-07-23 section).
+- **Phase 4 OPEN (Adam decision):** swap Portfolio-Manager label source to the JM label — pure
+  instrument decision per frozen Case-B wording. Design item: 2 JM states → 3-label
+  LOW/MED/HIGH_VOL contract mapping; plus the SPY-splice live tail (French publishes lagged).
 
 ## Sources (key)
 - Bemporad, Breschi, Piga & Boyd, "Fitting Jump Models," Automatica 2018.

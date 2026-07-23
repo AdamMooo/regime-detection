@@ -2,8 +2,8 @@
 type: research-record
 project: regime-detection
 created: 2026-07-21
-last_updated: 2026-07-22
-status: interim — belief revised (2026-07-22): HMM coordinate is a moderately-stable compression of observables; no incremental OOS vol info beyond raw features
+last_updated: 2026-07-23
+status: v1 CONVERGED (five nulls, sealed at v1-convergence). v2 Chapter 1 (jump model, 2026-07-23): Case B — literature's beat-B&H claim is an exposure artifact under risk-averse utility; vol targeting significantly dominates the overlay; the JM label itself is an exceptional instrument (stability 1.00 vs incumbent 0.809)
 detailed_audit: .planning/RESEARCH-AUDIT.md (full 25-section research audit — retained as evidence)
 code_review: .planning/DEEP-REVIEW.md (code-level causality review, 5 fixed bugs)
 ---
@@ -23,7 +23,55 @@ the full version is in `RESEARCH-AUDIT.md`. Nothing from the audit has been disc
 
 ---
 
-## 2026-07-22 (latest) — FINAL EXPERIMENT CLOSED: self-exciting tail hazard is NULL → program converged
+## 2026-07-23 (latest) — V2 CHAPTER 1: jump-model overlay, Case B — the field's beat-B&H claim deflates to an exposure artifact; the label itself is an exceptional instrument
+
+First v2 experiment (successor program; frozen prereg `.planning/V2-JUMPMODEL-PREREG.md` Rev 2,
+audit trail §11). Object: K=2 weighted statistical jump model (Bemporad/Boyd 2018; Nystrup et al.;
+Shu/Yu/Mulvey 2024) on return-only downside features (French daily TR), fully causal walk-forward
+(train 1970+, annual refits, λ by 8y-validation Sharpe, DP-endpoint filter, next-close execution,
+10 bps), OOS **1990-03-13..2026-05-29** (n=9120). Run: `results/v2_stage1_run.log`, outputs
+`results/v2_stage1.csv` + `results/v2_oos_labels.csv`. One look; frozen classification: **Case B**.
+
+**PRIMARY (H1, replication claim): fee(JM−B&H) γ=10 = +487.8 bps/yr, 90% CI [−47.4, +1138.8] →
+F1 fires (CI includes 0). Controls NOT clean — and they explain the point estimate away:**
+- C1 exposure-matched persistent placebo (n=100): 95th pctile = **541.3** > 487.8 — random signals
+  with the JM's persistence and average exposure do this well.
+- C2 destroyed-timing surrogates: band [41.4, 1080.0] contains the primary.
+- C3 pure-iid pipelines: band [178.7, 805.3] contains the primary.
+- Exposure-matched static mix (constant w̄=0.709): fee(JM−mix) = **−48.7** — the overlay's timing
+  is worth ≤ nothing beyond its average exposure.
+- γ=1 fee = −314.2 — a risk-tolerant investor pays to AVOID the overlay.
+**Mechanism: at γ=10 any strategy holding ~29% cash earns a large utility fee off B&H's −54.6% max
+drawdown. The fee measures variance avoidance from reduced exposure, not timing skill.** The
+delay-1 sensitivity (480.1 ≈ 487.8) corroborates: if timing mattered, execution timing would too.
+
+**DEFLATION EXHIBIT (D1, pre-declared expectation ≤0): fee(JM−VT) = −255.8, 90% CI
+[−477.5, −36.7] — significantly negative.** Vol targeting beats the jump-model overlay with the
+same information at lower turnover cost, exactly as the Phase-1 in-silico lag analysis predicted
+(oracle regimes beat VT; 10–21d detection lag erases it; causal filters lag ~5–20d). Sharpe
+ordering: VT 0.568 > SMA200 0.558 > B&H 0.533 > JM 0.458. Robust: era halves and all-crisis LOTO
+keep the primary inside the null bands' reach; fee vs SMA200 also negative (−158.1).
+
+**The genuinely positive result is the label as an INSTRUMENT:** OOS label stability under ±2y
+train-start shift = **1.000/1.000** (incumbent HDP 3-window ensemble: 0.809 mean agreement);
+1.66 switches/yr (F3 clear); λ never stuck at grid edges (6/37, F2 clear); bear_frac 0.291.
+The estimator-instability problem that motivated the v1 ensemble is *solved* by the jump-model
+architecture — persistent, initialization-robust, window-robust.
+
+**Chapter conclusion.** (1) The jump-model literature's headline "regime switching beats
+buy-and-hold" does not survive preregistered, causal, control-gated evaluation: the effect is an
+average-exposure/utility artifact reproducible by random persistent signals and noise pipelines.
+(2) Vol targeting dominates the overlay significantly — the v1 conclusion ("vol absorbs
+everything") now has a demonstrated mechanism: a reaction-speed race that discrete regime
+detection loses. (3) Per frozen Case-B wording, the practical path is decided on stability +
+turnover: the JM label beats the incumbent ensemble on both, so **Phase 4 (evaluating a swap of
+the Portfolio-Manager label source) proceeds as an instrument decision, explicitly not an alpha
+claim** — open design question: mapping 2 JM states onto the live 3-label LOW/MED/HIGH_VOL
+contract without breaking downstream consumers.
+
+---
+
+## 2026-07-22 — FINAL EXPERIMENT CLOSED: self-exciting tail hazard is NULL → program converged
 
 The frozen §8 prereg (FINAL experiment, pre-declared stopping rule, Adam signed §8.9) ran to completion
 on real data. Full log: `results/tailhazard_stage1_run.log`; outputs `results/tailhazard_stage1.csv` +

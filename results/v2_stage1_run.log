@@ -1,0 +1,32 @@
+[1/12] panel 1970-01-02..2026-05-29 n=14223 (delay=2, cost=10.0bps, gamma=10.0)
+[2/12] OOS 1990-03-13..2026-05-29 n=9120 bear_frac=0.291 switches/yr=1.66 lam_path=[200.0, 10.0, 10.0, 10.0, 800.0, 800.0, 800.0, 800.0, 800.0, 400.0, 800.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 100.0, 100.0, 200.0, 200.0, 50.0, 50.0, 200.0, 400.0, 400.0, 100.0, 100.0, 100.0, 100.0, 50.0, 50.0, 100.0, 25.0]
+[3/12] C1 exposure-matched placebo (n=100): 95th pctile fee vs B&H = 541.3 bps
+    C2 surrogate 1/10: fee=397.1
+    C2 surrogate 2/10: fee=391.9
+    C2 surrogate 3/10: fee=405.1
+    C2 surrogate 4/10: fee=320.4
+    C2 surrogate 5/10: fee=41.4
+    C2 surrogate 6/10: fee=470.5
+    C2 surrogate 7/10: fee=885.3
+    C2 surrogate 8/10: fee=564.2
+    C2 surrogate 9/10: fee=1080.0
+    C2 surrogate 10/10: fee=598.8
+[4/12] C2 surrogate band: [41.4, 1080.0]
+    C3 iid calibration 1/10: fee=209.0
+    C3 iid calibration 2/10: fee=372.5
+    C3 iid calibration 3/10: fee=605.5
+    C3 iid calibration 4/10: fee=805.3
+    C3 iid calibration 5/10: fee=192.5
+    C3 iid calibration 6/10: fee=337.9
+    C3 iid calibration 7/10: fee=561.8
+    C3 iid calibration 8/10: fee=701.8
+    C3 iid calibration 9/10: fee=319.2
+    C3 iid calibration 10/10: fee=178.7
+[5/12] C3 iid calibration band: [178.7, 805.3]
+[6/12] PRIMARY fee(JM-B&H) = 487.8 bps/yr, 90% CI [-47.4, 1138.8] | DEFLATION fee(JM-VT) = -255.8 [-477.5, -36.7] (pre-declared expectation <= 0)
+[7/12] F1=True F2(lam edge 6/37)=False F3=False controls_clean=False
+[8/12] arms: {'JM': {'sharpe': 0.458, 'maxdd': -0.275, 'ann_ret': 0.0827, 'avg_w': 0.709, 'turnover_yr': 1.66}, 'VT': {'sharpe': 0.568, 'maxdd': -0.264, 'ann_ret': 0.0837, 'avg_w': 0.715, 'turnover_yr': 2.46}, 'SMA200': {'sharpe': 0.558, 'maxdd': -0.242, 'ann_ret': 0.0919, 'avg_w': 0.767, 'turnover_yr': 6.33}, 'BH': {'sharpe': 0.533, 'maxdd': -0.546, 'ann_ret': 0.123, 'avg_w': 1.0, 'turnover_yr': 0.0}}
+[9/12] fee g1=-314.2 vsSMA=-158.1 vsMix(w=0.709)=-48.7 | delay1 sens=480.1 | breakeven cost=305.6bps | dSharpe(JM-BH) 90% CI [-0.307, 0.152]
+[10/12] era halves={'1990_2007': 237.9, '2008_2026': 729.5} LOTO={'1998_ltcm': 492.3, '2001_dotcom': 403.5, '2008_gfc': 191.0, '2011_debt': 482.1, '2015_yuan': 509.3, '2018_q4': 489.4, '2020_covid': 414.9, '2022_tighten': 378.8}
+[11/12] label stability vs train-start shift: {'start+2y': 1.0, 'start-2y': 1.0} (incumbent bar 0.809)
+[12/12] CASE B (per prereg §9). runtime=381.3 min
