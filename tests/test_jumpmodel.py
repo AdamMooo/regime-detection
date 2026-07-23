@@ -6,7 +6,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
-from v2_core import _cost, _dp_assign, build_features, filter_states, fit_jump_model
+from jumpmodel import _cost, _dp_assign, build_features, filter_states, fit_jump_model
 
 
 def _synthetic_two_state(T=3000, seed=7, p_stay=(0.995, 0.99)):

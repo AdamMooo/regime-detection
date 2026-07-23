@@ -5,7 +5,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
-from v2_eval import fko_fee, sma_weights, strategy_returns, vol_target_weights
+from backtest import fko_fee, sma_weights, strategy_returns, vol_target_weights
 
 
 def test_fko_fee_identical_series_is_zero():

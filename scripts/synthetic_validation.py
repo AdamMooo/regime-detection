@@ -15,7 +15,7 @@ Bars:
   B2 (R): mean OOS balanced accuracy >= 0.70
   B3 (N): fee(JM - VolTarget) 90% bootstrap CI contains 0 for >= 2/3 seeds
 
-Writes results/v2_synthetic_validation.csv.
+Writes results/synthetic_validation.csv.
 """
 
 import sys
@@ -28,9 +28,9 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from v2_core import build_features
-from v2_eval import fko_fee, jm_weights, sharpe, stationary_bootstrap_ci, strategy_returns, vol_target_weights
-from v2_pipeline import walk_forward as pipeline_walk_forward
+from jumpmodel import build_features
+from backtest import fko_fee, jm_weights, sharpe, stationary_bootstrap_ci, strategy_returns, vol_target_weights
+from walkforward import walk_forward as pipeline_walk_forward
 
 T_TOTAL = 6300
 TRAIN0 = 3024
@@ -110,7 +110,7 @@ def main():
             print(rows[-1], flush=True)
 
     df = pd.DataFrame(rows)
-    df.to_csv(ROOT / "results" / "v2_synthetic_validation.csv", index=False)
+    df.to_csv(ROOT / "results" / "synthetic_validation.csv", index=False)
 
     g = df.groupby("config")
     b1 = (g["bac"].mean()["S"] >= 0.85) and (g["fee_jm_vs_vt_bps"].mean()["S"] > 0)

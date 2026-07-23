@@ -17,7 +17,7 @@ Gate bars (all must PASS before Phase 1 uses the panel):
   G4 crisis coverage — every pre-named crisis window contains a day with dd10 above its full-sample 90th pctile
   G5 episode count   — >= 10 distinct high-stress episodes (dd10 > 90th pctile, separated by > 63 trading days)
 
-Writes: data/raw/ff_factors_daily.csv, data/processed/v2_daily.csv, results/v2_construction_gate.csv
+Writes: data/raw/ff_factors_daily.csv, data/processed/market_daily.csv, results/construction_gate.csv
 """
 
 import io
@@ -31,7 +31,7 @@ import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from v2_core import build_features
+from jumpmodel import build_features
 
 FF_URL = ("https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/"
           "F-F_Research_Data_Factors_daily_CSV.zip")
@@ -90,7 +90,7 @@ def main():
     panel = pd.DataFrame({"mkt_ret": mkt_ret, "rf": rf}).join(feats)
     panel = panel.iloc[63:]  # feature burn-in
 
-    out = ROOT / "data" / "processed" / "v2_daily.csv"
+    out = ROOT / "data" / "processed" / "market_daily.csv"
     out.parent.mkdir(parents=True, exist_ok=True)
     panel.to_csv(out)
 
@@ -120,7 +120,7 @@ def main():
     gate.append(("G5_episode_count", episodes >= 10, f"episodes={episodes}"))
 
     res = pd.DataFrame(gate, columns=["gate", "passed", "detail"])
-    res.to_csv(ROOT / "results" / "v2_construction_gate.csv", index=False)
+    res.to_csv(ROOT / "results" / "construction_gate.csv", index=False)
     print(res.to_string(index=False))
     print(f"\npanel rows={len(panel)}  span={panel.index[0].date()}..{panel.index[-1].date()}")
     print("CONSTRUCTION GATE:", "PASS" if res["passed"].all() else "FAIL")

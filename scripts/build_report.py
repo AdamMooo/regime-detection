@@ -1,6 +1,6 @@
 """Generate results/v2_report.html — self-contained visual report of the v2 Stage-1 backtest.
 
-Reads: data/processed/v2_daily.csv, results/v2_oos_labels.csv, results/v2_stage1.csv,
+Reads: data/processed/market_daily.csv, results/v2_oos_labels.csv, results/v2_stage1.csv,
 results/v2_stage1_run.log (lambda path + LOTO parsed from the frozen one-look log).
 Recomputes strategy paths with the exact stage-1 code (deterministic; not a new look).
 Regenerate any time: .venv/Scripts/python scripts/v2_report.py
@@ -18,13 +18,13 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from v2_eval import sharpe, sma_weights, vol_target_weights
-from v2_stage1 import COST, DELAY, START, arm_returns, maxdd
-from v2_eval import jm_weights
+from backtest import sharpe, sma_weights, vol_target_weights
+from run_backtest import COST, DELAY, START, arm_returns, maxdd
+from backtest import jm_weights
 
 
 def build_data():
-    panel = pd.read_csv(ROOT / "data" / "processed" / "v2_daily.csv",
+    panel = pd.read_csv(ROOT / "data" / "processed" / "market_daily.csv",
                         index_col=0, parse_dates=True).loc[START:]
     labels = pd.read_csv(ROOT / "results" / "v2_oos_labels.csv", parse_dates=["date"])
     stats = pd.read_csv(ROOT / "results" / "v2_stage1.csv").iloc[0]
@@ -542,7 +542,7 @@ function table(id, headers, rows, numFrom) {
 def main():
     data = build_data()
     html = HTML.replace("__DATA__", json.dumps(data, separators=(",", ":")))
-    out = ROOT / "results" / "v2_report.html"
+    out = ROOT / "results" / "report.html"
     out.write_text(html, encoding="utf-8")
     print(f"wrote {out} ({out.stat().st_size / 1024:.0f} KB) — "
           f"{len(data['dates'])} chart points, {len(data['episodes'])} episodes")

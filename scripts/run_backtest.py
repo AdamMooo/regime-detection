@@ -14,7 +14,7 @@ Audit fixes incorporated (2026-07-22 sweep, see prereg §11):
 
 Primary = FKO fee(JM - B&H), gamma=10 (replication claim). Co-primary deflation exhibit =
 fee(JM - VT), pre-declared expectation <= 0 (in-silico capability falsified). Writes
-results/v2_stage1.csv + results/v2_oos_labels.csv (research outputs; live label contract untouched).
+results/backtest_summary.csv + results/backtest_labels.csv (research outputs; live label contract untouched).
 
 --smoke: replaces returns with iid synthetic + shrinks controls/panel — code-path check only,
 produces no real-data result (blind preserved)."""
@@ -30,11 +30,11 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from v2_build import CRISIS_WINDOWS
-from v2_core import build_features
-from v2_eval import (fko_fee, jm_weights, sharpe, sma_weights, stationary_bootstrap_ci,
+from build_panel import CRISIS_WINDOWS
+from jumpmodel import build_features
+from backtest import (fko_fee, jm_weights, sharpe, sma_weights, stationary_bootstrap_ci,
                      strategy_returns, vol_target_weights)
-from v2_pipeline import walk_forward
+from walkforward import walk_forward
 
 START = "1970-01-01"
 TRAIN0 = 5040          # ~20y -> scoring starts ~1990 (Adam's era focus, 2026-07-22)
@@ -76,7 +76,7 @@ def main():
         return 2
 
     train0, n_pl, n_su, n_si, n_boot, n_init = TRAIN0, N_PLACEBO, N_SURROGATE, N_SIM, N_BOOT, N_INIT
-    panel = pd.read_csv(ROOT / "data" / "processed" / "v2_daily.csv",
+    panel = pd.read_csv(ROOT / "data" / "processed" / "market_daily.csv",
                         index_col=0, parse_dates=True).loc[START:]
     if args.smoke:
         panel = panel.iloc[-6000:]
@@ -97,7 +97,7 @@ def main():
     s_o, idx_o = states[oos], idx[oos]
     n_o = int(oos.sum())
     pd.DataFrame({"date": idx_o, "state": s_o}).to_csv(
-        ROOT / "results" / "v2_oos_labels.csv", index=False)
+        ROOT / "results" / "backtest_labels.csv", index=False)
     switches_yr = float((s_o[1:] != s_o[:-1]).sum() / n_o * 252)
     print(f"[2/12] OOS {idx_o[0].date()}..{idx_o[-1].date()} n={n_o} "
           f"bear_frac={float((s_o == 1).mean()):.3f} switches/yr={switches_yr:.2f} "
@@ -252,7 +252,7 @@ def main():
                        dsr_lo=dsr_ci[0], dsr_hi=dsr_ci[1],
                        **{f"stab_{k}": v for k, v in stab.items()},
                        **{f"half_{k}": v for k, v in halves.items()})]
-                 ).to_csv(ROOT / "results" / "v2_stage1.csv", index=False)
+                 ).to_csv(ROOT / "results" / "backtest_summary.csv", index=False)
     return 0
 
 

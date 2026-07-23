@@ -10,8 +10,8 @@ chained across refit boundaries.
 
 import numpy as np
 
-from v2_core import filter_states, fit_jump_model
-from v2_eval import jm_weights, sharpe, strategy_returns
+from jumpmodel import filter_states, fit_jump_model
+from backtest import jm_weights, sharpe, strategy_returns
 
 
 def _zapply(F, mean, std):
