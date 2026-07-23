@@ -1,9 +1,9 @@
-"""Generate results/v2_report.html — self-contained visual report of the v2 Stage-1 backtest.
+"""Generate results/report.html — self-contained visual report of the chapter-1 backtest.
 
-Reads: data/processed/market_daily.csv, results/v2_oos_labels.csv, results/v2_stage1.csv,
-results/v2_stage1_run.log (lambda path + LOTO parsed from the frozen one-look log).
+Reads: data/processed/market_daily.csv, results/oos_labels.csv, results/stage1.csv,
+results/stage1_run.log (lambda path + LOTO parsed from the frozen one-look log).
 Recomputes strategy paths with the exact stage-1 code (deterministic; not a new look).
-Regenerate any time: .venv/Scripts/python scripts/v2_report.py
+Regenerate any time: .venv/Scripts/python scripts/build_report.py
 """
 
 import ast
@@ -26,9 +26,9 @@ from backtest import jm_weights
 def build_data():
     panel = pd.read_csv(ROOT / "data" / "processed" / "market_daily.csv",
                         index_col=0, parse_dates=True).loc[START:]
-    labels = pd.read_csv(ROOT / "results" / "v2_oos_labels.csv", parse_dates=["date"])
-    stats = pd.read_csv(ROOT / "results" / "v2_stage1.csv").iloc[0]
-    log = (ROOT / "results" / "v2_stage1_run.log").read_text()
+    labels = pd.read_csv(ROOT / "results" / "oos_labels.csv", parse_dates=["date"])
+    stats = pd.read_csv(ROOT / "results" / "stage1.csv").iloc[0]
+    log = (ROOT / "results" / "stage1_run.log").read_text()
 
     lam_path = ast.literal_eval(re.search(r"lam_path=(\[[^\]]*\])", log).group(1))
     loto = ast.literal_eval(re.search(r"LOTO=(\{[^}]*\})", log).group(1))
@@ -131,7 +131,7 @@ HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>V2 Jump-Model Backtest — Results</title>
+<title>Regime Program — Jump-Model Backtest Results</title>
 <style>
 :root {
   color-scheme: light;
@@ -529,7 +529,7 @@ function table(id, headers, rows, numFrom) {
     `Preregistered (.planning/V2-JUMPMODEL-PREREG.md Rev 2, frozen 2026-07-22) · ` +
     `K=2 weighted statistical jump model on downside-deviation/Sortino features · ` +
     `French daily market total return, trained from 1970 · annual refits, λ by 8y-validation ` +
-    `Sharpe · causal DP-endpoint filter · run log: results/v2_stage1_run.log (381 min) · ` +
+    `Sharpe · causal DP-endpoint filter · run log: results/stage1_run.log (381 min) · ` +
     `secondary exhibits: fee γ=1 ${fmt(F.g1)}, vs SMA200 ${fmt(F.sma)}, vs matched static mix ` +
     `${fmt(F.mix)}, same-close sensitivity ${fmt(F.delay1)}, break-even cost ${fmt(F.breakeven)} bps.`;
 })();

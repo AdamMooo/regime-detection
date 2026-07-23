@@ -27,8 +27,10 @@ narrative, newest-first). This file now tracks only the living program.*
 (jumpmodel / walkforward / backtest / build_panel / run_backtest / synthetic_validation /
 build_report; data → `market_daily.csv`); ~40 v1-era result/data/planning files deleted
 (recoverable at tag `v1-convergence`); CI workflow rewritten (was referencing deleted files);
-CLAUDE.md rewritten for the new era. Frozen evidence kept under its original v2_* names —
-see CLAUDE.md "Live vs Frozen vs Archived".
+CLAUDE.md rewritten for the new era. Frozen evidence later renamed by Adam to drop v2_ prefixes
+(stage1.csv / stage1_run.log / oos_labels.csv — mapping in `results/README.md`); frozen DOCS
+still cite the old names. Forward program doc: `.planning/PROGRAM.md` (regime-aware allocation,
+graded tilts, never 0/100 — goal set 2026-07-23).
 
 ## Roadmap (`.planning/V2-JUMPMODEL-PLAN.md`, Phase-4 tracks)
 

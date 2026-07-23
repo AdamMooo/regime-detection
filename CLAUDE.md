@@ -39,14 +39,16 @@ requirements.txt is the slim jump-model set — the v1 JAX/NumPyro stack was ret
 **The HDP-HMM pipeline is GONE (retired 2026-07-23, Adam's direction).** Its label was never
 consumed by anything — the Portfolio-Manager integration was only ever an idea in notes
 (verified by grep of that repo, 2026-07-23). The jump-model label
-(`results/v2_oos_labels.csv` frozen; `results/backtest_labels.csv` from future runs) is the
+(`results/oos_labels.csv` frozen; `results/backtest_labels.csv` from future runs) is the
 repo's label artifact; any downstream integration is a future project designed fresh.
 
-**Frozen evidence (never overwrite, never rename):** `RESEARCH-RECORD.md` sealed sections;
+**Frozen evidence (never overwrite):** `RESEARCH-RECORD.md` sealed sections;
 `.planning/V2-JUMPMODEL-PREREG.md` (+ all earlier frozen preregs); the chapter-1 one-look
-artifacts `results/v2_stage1{.csv,_run.log}`, `results/v2_oos_labels.csv`,
-`results/v2_construction_gate.csv`, `results/v2_synthetic_validation*`. Future runs write
-`results/backtest_*` / `results/construction_gate.csv` — clean names, no collisions.
+artifacts `results/stage1.csv`, `results/stage1_run.log`, `results/oos_labels.csv`
+(renamed by Adam 2026-07-23 from the `v2_*` names the frozen docs cite — see
+`results/README.md` for the mapping). Gates (`construction_gate.csv`,
+`synthetic_validation.*`) are living checks and may be rerun; future backtests write
+`results/backtest_*` and cannot clobber stage1 evidence.
 
 **Archived:** `archive/research-v1/` (inert; reproduce v1 via tag `v1-convergence`). Deleted
 v1 result files are recoverable at that tag.
