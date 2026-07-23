@@ -132,9 +132,15 @@ Phase 4: <1 session. Total ≈ 5–6 sessions.
   beats the overlay. Deflation exhibit significant: fee(JM−VT) −255.8 [−477.5, −36.7]. Label
   instrument exceptional: stability 1.000 vs incumbent 0.809, 1.66 switches/yr. Full chapter:
   RESEARCH-RECORD.md (2026-07-23 section).
-- **Phase 4 OPEN (Adam decision):** swap Portfolio-Manager label source to the JM label — pure
-  instrument decision per frozen Case-B wording. Design item: 2 JM states → 3-label
-  LOW/MED/HIGH_VOL contract mapping; plus the SPY-splice live tail (French publishes lagged).
+- **Phase 4 DIRECTION SET (Adam, 2026-07-23): instrument-first.** Accept the speed loss to VT
+  (proven ceiling); win on stability + correctness, then dabble with speed deliberately.
+  Ordered tracks:
+  1. **Instrument hardening / correctness** — benchmark the label vs ex-post bull/bear datings
+     (Pagan-Sossounov, Lunde-Timmermann; field norm), characterize the two states, solve the
+     live tail (French lags 1-2mo → SPY-splice), decide the 2-state → LOW/MED/HIGH_VOL mapping.
+  2. **Speed, quantified** — map the lag-vs-whipsaw frontier across λ; try asymmetric jump
+     penalties (fast into bear, slow out); pay for speed only with measured stability.
+  3. **Downstream wiring (Portfolio-Manager) PARKED** until track 1 done and Adam signs off.
 
 ## Sources (key)
 - Bemporad, Breschi, Piga & Boyd, "Fitting Jump Models," Automatica 2018.
