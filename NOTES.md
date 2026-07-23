@@ -113,11 +113,25 @@ synthetic capability check, PASSED: structured fee_a 7.0 vs unstructured 0.5). O
   conditional weights, era splits). Evidence: `results/allocation_*.{csv,log}` — frozen,
   do not overwrite.
 
-## Next action — the fork (Adam's call)
+## DECISION (Adam, 2026-07-23): write the paper — option 1, with option 3 in parallel
 
-The program lesson is now sharp: **the vol axis is real; every economic use tested is
+**The paper is the deliverable.** `paper/OUTLINE.md` is written (full skeleton, real
+numbers, figure plan, venue path: SSRN → Journal of Asset Management or Critical Finance
+Review). Next session starts at its "Next actions" list (exact-numbers appendix → §2/§6
+drafts → figure exports). Sensor-track work (λ frontier, asymmetric penalties, calibrated
+P(state)) continues in parallel as instrument work. Chapter 3 (momentum, monthly cadence)
+stays behind its gate — prereg only when Adam wants to spend another look.
+
+Outside-research anchors for the paper (2026-07-23 search): Shu–Yu–Mulvey 2024 (JAM) +
+JM+MPC 2025 claim regime value vs soft baselines — the paper's target; Cederburg et al.
+2020 (vol-managed fails OOS on 103 factors) — the genre + the factor-chapter warning;
+Barroso–Santa-Clara 2015 — momentum vol-scaling is the robust exception (chapter-3
+incumbent if ever run).
+
+The program lesson the paper argues: **the vol axis is real; every economic use tested is
 dominated by a simple reactive estimator (VT for exposure, chapter 1; EWMA for covariance,
-chapter 2). State-conditioning loses detection-lag races at daily horizons.** Options:
+chapter 2). State-conditioning loses detection-lag races at daily horizons.** The fork
+options were:
 
 1. **Close the economic track** → write the methods/negative paper (the long-standing
    default; now with two preregistered chapters of ammunition + the instrument result).
