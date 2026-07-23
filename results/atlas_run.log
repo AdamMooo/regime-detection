@@ -1,0 +1,23 @@
+atlas over 1990-03-13..2026-05-29  (9120 OOS days, 30 stressed episodes)
+
+market vol ratio (stressed/calm): 1.75
+
+DEFENSIVENESS (vol_ratio vs market's, LOEO = sign stability across episode drops)
+  smb          vol   9.1%-> 10.8% ratio  1.19  ret   -1.7%->  +4.5% corr +0.12->+0.02  LOEO v/r/c 1.00/1.00/1.00  DEFENSIVE
+  gold_ret     vol  16.4%-> 20.2% ratio  1.23  ret  +11.0%-> +14.8% corr +0.04->-0.01  LOEO v/r/c 1.00/1.00/1.00  DEFENSIVE
+  bond10_ret   vol   6.6%->  8.9% ratio  1.35  ret   +4.4%->  +7.2% corr -0.10->-0.30  LOEO v/r/c 1.00/1.00/1.00  DEFENSIVE
+  ind_hlth     vol  17.4%-> 24.6% ratio  1.42  ret  +18.2%-> +16.9% corr +0.70->+0.80  LOEO v/r/c 1.00/0.83/1.00  DEFENSIVE
+  ind_hitec    vol  20.5%-> 30.1% ratio  1.47  ret  +16.8%-> +27.7% corr +0.82->+0.89  LOEO v/r/c 1.00/1.00/1.00  DEFENSIVE
+  hml          vol   9.4%-> 14.7% ratio  1.57  ret   +3.9%->  -2.3% corr -0.29->+0.13  LOEO v/r/c 1.00/1.00/1.00  DEFENSIVE
+  ind_telcm    vol  17.3%-> 28.3% ratio  1.64  ret  +13.7%-> +13.8% corr +0.73->+0.85  LOEO v/r/c 1.00/0.50/1.00  
+  ind_enrgy    vol  23.5%-> 38.6% ratio  1.64  ret  +18.3%->  +8.0% corr +0.50->+0.69  LOEO v/r/c 1.00/1.00/1.00  
+  ind_durbl    vol  20.5%-> 34.3% ratio  1.68  ret  +12.0%-> +16.3% corr +0.68->+0.83  LOEO v/r/c 1.00/0.97/1.00  
+  ind_nodur    vol  12.2%-> 20.5% ratio  1.68  ret  +11.9%-> +15.6% corr +0.71->+0.85  LOEO v/r/c 1.00/1.00/1.00  
+  ind_shops    vol  14.8%-> 25.3% ratio  1.72  ret  +12.1%-> +21.3% corr +0.80->+0.89  LOEO v/r/c 1.00/1.00/1.00  
+  mkt_ret      vol  14.3%-> 25.0% ratio  1.75  ret  +11.6%-> +14.1% corr +1.00->+1.00  LOEO v/r/c 1.00/1.00/1.00  
+  ind_manuf    vol  14.8%-> 26.8% ratio  1.81  ret  +14.2%-> +18.9% corr +0.83->+0.92  LOEO v/r/c 1.00/1.00/1.00  
+  mom          vol  11.6%-> 21.2% ratio  1.83  ret   +9.0%->  +0.3% corr +0.25->-0.52  LOEO v/r/c 1.00/1.00/1.00  
+  ind_utils    vol  12.1%-> 22.7% ratio  1.87  ret  +11.0%-> +11.8% corr +0.54->+0.77  LOEO v/r/c 1.00/0.97/1.00  
+  ind_other    vol  13.8%-> 27.5% ratio  2.00  ret  +16.4%-> +19.1% corr +0.83->+0.90  LOEO v/r/c 1.00/1.00/1.00  amplifier
+
+wrote results/atlas.csv
