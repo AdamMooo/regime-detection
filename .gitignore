@@ -12,3 +12,4 @@ figures/feature_analysis.html
 data/raw/
 data/processed/market_daily.csv
 data/processed/assets_daily.csv
+data/processed/dispersion_daily.csv

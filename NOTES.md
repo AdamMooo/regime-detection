@@ -303,15 +303,52 @@ prior: interpolates to VT (expected null → completes the negative paper).
   look; and the honest economic incumbent upgrades to VIX-based VT. Instrument gains
   near-certain; economic gains underdog-with-a-pre-screen.
 
-## PENDING ADAM (blocking, in order)
-1. **One-directional-power ruling** on the §6b smoke (accept-with-caveat [recommended]
-   / redesign / abandon) → then sign-off line → overnight → the ch3 one look.
-2. **Plan-reorder confirmation**: pause Track C (monitor UI) + Track D (age screens),
-   insert Sensor v3 data-foundation — OR keep the frozen A→B→C→D order. Until ruled,
-   the frozen order stands.
+## RULED 2026-07-24 (Adam): "strong regime tool = the focus" — TOOL-FIRST PIVOT
 
-NEXT ACTION (next session): whichever ruling arrives first — ch3 freeze+look, or paper
-§1/appendix (foreground default per rule 3) if rulings are still pending.
+Both pending rulings dissolve.
+
+- **Ch3 one-look PARKED — NOT spent.** Machinery kept intact (runner 28/28 tests,
+  prereg Rev 3). Rationale: the look is scarce+irreversible; the §6b smoke is half-blind
+  (de-risk power only, cannot detect re-risking); prior=null with two preregistered nulls
+  already banked (Ch1 VT, Ch2 EWMA); reserve the look for a post-v3 economic test where
+  lag-tolerance is STRUCTURAL. The §6b one-directional-power result is a **methods finding**
+  → folds into the paper's mechanism section, not behind a spent look. Ruling #1 moot.
+- **Roadmap = tool-first, three parallel streams** (Adam multi-selected all three):
+  1. **Sensor v3 — make it better** (vol-structure info; instrument gains near-certain,
+     economic gains gated behind in-silico lag-decay pricing). Ruling #2 = yes/reorder.
+  2. **Monitor — validate & ship** (Layer-2 nowcast on the CURRENT label; badges +
+     forecast-eval; does not block on v3).
+  3. **Paper — reframe instrument-first** (execute the OUTLINE REFRAME OPTION; foreground
+     per rule 3, compute in background).
+  Track A (ch3 economic) and Track D (age screens) — Layer-3 decision-value work —
+  deprioritized. Monitor Track C is NOT paused (Adam kept it).
+
+**Discipline note:** "strong tool" = strong at Layer 1 (measurement, 1.000 stability) +
+Layer 2 (risk characterization / monitor). NOT Layer 3 (decision value — three dominated
+uses). The tool-first framing must never relaunder a null economic claim; instrument
+improvements are the low-risk high-certainty bet, economic value stays gated.
+
+## AUTONOMOUS SESSION 2026-07-24 (Adam: "go for it autonomously, come back when done")
+
+Delivered (uncommitted — commit awaiting Adam's word per global rule):
+- **Paper reframed instrument-first** (`paper/OUTLINE.md` rewritten): title flips to
+  "Measurement Validity ≠ Decision Value"; §3 = the instrument (front), §§4–6 = three
+  Layer-3 races (exposure / covariance / confidence-margin), §7 mechanism, §8 monitor.
+  Graded-exposure (ch3) fixed to §10 "parked, not concluded" — §6b one-directional-power
+  logged as a methods finding, explicit "no economic result on graded exposure."
+- **Paper §1 (intro) + §3 (instrument) drafted** (`paper/DRAFT-SECTIONS.md`, v0). With §2 +
+  §7-mechanism already there, §§1–3,7 exist → close to the §§1–7 SSRN-preprint trigger.
+  Two [TODO]s in §1: quote Shu–Yu–Mulvey's exact headline + benchmark.
+- **Sensor v3 data foundation tier 1 built** (`scripts/build_dispersion.py` →
+  `data/processed/dispersion_daily.csv`, `results/dispersion_gate.csv` + run log).
+  Realized cross-sectional dispersion from the 10 industries, 1926+, no network. Gate PASS
+  (coverage/sane/distinct-axis corr 0.783). Descriptive-only: stressed/calm ratio 1.34×;
+  weak pre-onset lead (+0.13 z). NO look spent; NO backtest; contamination caveat in-code.
+
+NEXT ACTION (Adam's call): (a) commit this session; (b) paper — fill §1 SYM quotes, draft
+§8 (monitor), export figures; (c) Sensor v3 tier 2 — VIX/VRP via FRED (network fetch; I'll
+hand the exact command), and decide whether dispersion's modest incremental axis (0.78 corr
+w/ own-vol) justifies the options-implied tier; (d) monitor build on current label.
 
 ## EPISODE ANATOMY — DONE (2026-07-23, descriptive, no look; firewalled from ch3)
 

@@ -1,0 +1,4 @@
+gate,passed,detail
+D1_coverage,True,1926-09-17..2026-05-29 n=26190
+D2_sane,True,mean=0.0053 min=0.0006 max=0.0843 nan=0
+D3_distinct_axis,True,"corr(csd_ew20, mkt_ew20_vol)=0.783 (want moderate, not redundant)"

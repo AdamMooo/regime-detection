@@ -81,5 +81,103 @@ estimator can compute the decision-relevant quantity without waiting for a label
 
 ---
 
-*Next: intro draft against Shu–Yu–Mulvey's specific claims (OUTLINE next-action #4)
-once the title framing is decided; figure exports (#3).*
+## §1. Introduction (system-first, v0 — 2026-07-24)
+
+A recurring claim in the applied regime-switching literature is that identifying the
+market's latent state and trading on it improves investor outcomes. Recent work built on
+statistical jump models — Nystrup, Lindström & Madsen (2020), Nystrup, Kolm & Lindström
+(2021), Shu, Yu & Mulvey (2024), and the jump-model-with-MPC extension (2025) — reports
+that regime-aware allocations beat buy-and-hold and raise risk-adjusted returns. The claim
+is attractive because the estimator is attractive: jump models produce stable, interpretable
+state sequences from a handful of return-based features, without the fragility that made
+hidden Markov regime models hard to deploy out of sample. [TODO: quote Shu–Yu–Mulvey's exact
+headline improvement and their benchmark — buy-and-hold or 60/40 — so the deflation is
+against their stated numbers.]
+
+We take the estimator seriously as a measurement device and separate two questions the
+literature tends to fuse. First: does the instrument *measure* the market's risk state
+reliably — is the label a stable, reproducible, live-computable quantity? Second: does
+*conditioning a decision* on that label add value over a simple estimator that never names
+the regime? Our central finding is that these questions have opposite answers, and that the
+reported economic value lives in the gap between them.
+
+On the first question the instrument is exceptional. A K=2 jump model on return-only
+downside features produces a label that is 100.0% stable under ±2-year perturbations of the
+training window — where an HMM ensemble on the same data agrees with itself only 80.9% of
+the time — switches a modest 1.66 times per year, and reproduces to 1.0000 agreement on a
+9,120-day out-of-sample overlap when carried to the present through a live data splice. As a
+market-state sensor it is genuine: it flags 15 of 18 ex-post bear markets. This is a
+measurement instrument worth having, and Section 3 validates it as such.
+
+On the second question every use we tested is dominated by a reactive estimator computing
+the decision-relevant quantity directly. We evaluate three uses under strict preregistered,
+one-look discipline (Section 2): trading the label as an exposure signal (Section 4),
+conditioning a multi-asset covariance estimate on it (Section 5), and mapping the filter's
+own evidence margin to a state probability (Section 6). The exposure strategy's apparent
++488 bps/yr utility fee over buy-and-hold sits inside every exposure-matched null band and
+loses a significant −256 bps/yr to volatility targeting; covariance conditioning adds a
+band-interior +2.8 bps/yr and loses −29 bps/yr to a plain EWMA covariance; and the evidence
+margin is beaten by an EWMA-volatility probability in all eight synthetic environments. A
+single mechanism, demonstrated in simulation before any real-data run, unifies the three
+(Section 7): regime value at daily horizons is an information-*timing* claim, and a causal
+detector's recognition lag lands it exactly where even a perfectly-informed oracle loses to
+an estimator that pays no recognition toll.
+
+Our contribution is therefore both constructive and deflationary. We deliver a regime
+instrument validated to an unusual standard — perturbation stability, live operation, and a
+claim-by-claim ledger of what is out-of-sample-validated versus merely descriptive
+(Section 8, the monitor). And we show, with exposure-matched nulls and reactive co-primary
+baselines that the source literature omits, that its decision value at daily horizons is an
+artifact of comparison choices. The instrument-versus-strategy distinction — usually a
+footnote — is the paper's thesis: measurement validity is not decision value, and honest
+baselines separate them.
+
+## §3. The instrument (Layer 1 — measurement validity) (v0 — 2026-07-24)
+
+The estimator is a two-state weighted statistical jump model (Bemporad et al. 2018; Nystrup
+et al. 2020) fit to three return-only features — exponentially weighted downside deviation
+(10-day half-life) and Sortino ratios at 20- and 60-day half-lives — with a jump penalty λ
+that enforces state persistence. We evaluate it first purely as a measurement device, before
+any economic use, on three properties a deployable instrument must have: stability under
+reasonable estimation choices, agreement with an external ground truth, and live
+computability.
+
+**Stability.** The property that motivated the whole program is reproducibility of the label
+under training-window perturbation. Shifting the training start by ±2 years — a first-order
+analyst choice that leaves competing estimators disagreeing about the state on a fifth of all
+days — changes the jump-model label on 0.0% of out-of-sample days: 1.000/1.000 agreement at
+both the −2y and +2y shifts. An HMM ensemble on the identical data and features achieves only
+0.809. The label switches 1.66 times per year and partitions the 1990–2026 out-of-sample
+period into 30 episodes, each a genuine high-volatility environment (calm-state annualized
+volatility ≈14%, stressed-state ≈25%); λ selects to the interior of its search grid rather
+than an edge. Estimation instability — the practical reason HMM regime labels are hard to
+trust in production — is, for this estimator on this data, solved.
+
+**External agreement, and an honest boundary.** Validated against ex-post bear-market
+datings, the label catches 15 of 18 declines of −15% or more, at a median recognition lag of
+20 trading days from the ex-post peak. It is, precisely, a *volatility-state* detector rather
+than a *bear-market* detector: it fires on high-volatility environments whether or not a
+sustained decline follows (hence a moderate precision against directional bear datings), and
+it misses fast crashes that resolve before its persistence-seeking filter can accumulate
+evidence — 1998 (LTCM) and 2018-Q4 are sub-threshold at the deployed λ. We state this as the
+instrument's boundary of use rather than a defect to be tuned away: the 20-day lag and the
+fast-crash misses are exactly the constraints the mechanism section shows are binding for any
+causal detector, and they define what the monitor (Section 8) can and cannot claim.
+
+**Live computability.** The instrument runs to the present. Ken French publishes with a
+one-to-two-month lag, so the live tail is spliced from an SPY proxy; the splice passes its
+gate at 0.9957 return correlation, and the composite label agrees with the frozen research
+label on 1.0000 of the 9,120-day overlap. There is no vintage-lookahead: the filter's state
+at time t uses only data through t, and the live label at t is the same object the frozen
+backtest would have produced.
+
+These three properties make the label a measurement instrument worth building on. The
+remaining sections ask what happens when a decision is conditioned on it — and find, uniformly,
+that the measurement's quality does not transfer to decision value.
+
+---
+
+*Next: figure exports as standalone SVG/PNG (OUTLINE #5); exact-numbers appendix (#1); fill
+the two [TODO] quotes in §1 from Shu–Yu–Mulvey. Section-number map under the system-first
+spine: §1 intro, §2 discipline, §3 instrument, §4–6 the three races, §7 mechanism (the block
+labeled "§6" above), §8 monitor.*

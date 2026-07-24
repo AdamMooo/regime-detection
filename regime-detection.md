@@ -35,13 +35,30 @@ chapter 3 is the clean state-only dial (VT vs VT·g(S), g∈[0,2], hard label), 
 M2/age deferred to screened ch4 candidate (`CH3-D2-MEMO.md`). Risk-state monitor spec'd
 claim-by-claim (`MONITOR-VALIDATION-SPEC.md`).
 
+**2026-07-24 — TOOL-FIRST PIVOT (Adam: "we have a strong regime tool, that's the
+focus").** Both pending rulings dissolved: **ch3 one-look PARKED, not spent** (scarce +
+irreversible; §6b smoke half-blind — de-risk power only; two nulls already banked; reserve
+for a post-Sensor-v3 test), runner/prereg kept intact; §6b one-directional-power logged as
+a paper methods finding. Roadmap → three parallel tool streams. Autonomous burst this day:
+`paper/OUTLINE.md` reframed instrument-first ("Measurement Validity ≠ Decision Value" —
+instrument to §3, three Layer-3 races §§4–6, monitor §8, graded-exposure demoted to §10
+"parked"); paper §1 + §3 drafted (v0); Sensor v3 tier-1 data foundation built
+(`scripts/build_dispersion.py` — realized cross-sectional dispersion 1926+, gate PASS, 0.78
+own-vol corr = modest distinct axis). Guardrail: "strong tool" = Layers 1–2 only; never
+relaunder a Layer-3 null.
+
 ## Next
 
-Execution order (Adam, 2026-07-23): **Track A ch3 closure** (runner + capability smoke →
-sign-off → overnight → one look) interleaved with **Track B the paper** (foreground
-default, rule 3) → **Track C monitor gate** (`monitor_gate.py` per spec) → **Track D
-ch4/M2 screens** (power test, reactive-age race, era-split, label-only duration test;
-international panels sealed). Parked/killed list with re-entry conditions: `PROGRAM.md`.
+Three parallel tool streams (paper foreground per rule 3, compute background):
+1. **Paper (instrument-first)** — fill §1's Shu–Yu–Mulvey quotes, draft §8 (monitor),
+   export figures → completes the §§1–7 SSRN-preprint core.
+2. **Sensor v3 — make it better** — tier-1 dispersion done; decide tier-2 (VIX/VRP via
+   FRED fetch) given the 0.78 own-vol overlap; scorecard = beat the incumbent's card
+   (20d lag, 15/18 bears, stability 1.000), look-free.
+3. **Monitor — validate & ship** — `monitor_gate.py` per `MONITOR-VALIDATION-SPEC.md`,
+   Layer-2 nowcast on the current label; does not block on v3.
+Deprioritized (Layer-3 economic): ch3 closure, ch4/M2 age screens. Parked/killed list:
+`PROGRAM.md`.
 
 ## Memory
 
