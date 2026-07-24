@@ -282,9 +282,36 @@ prior: interpolates to VT (expected null → completes the negative paper).
   PROGRAM.md goal RESTATED (three-layer framing; morning "graded allocation" goal
   superseded). Parked/killed items + re-entry conditions: see PROGRAM.md.
 
-NEXT ACTION (next session): build ch3 runner + §6b capability smoke (background the
-smoke run) while drafting the paper's exact-numbers appendix in the foreground. Then:
-smoke results → prereg → Adam's sign-off line → overnight → one look.
+## LATE SESSION (into 2026-07-24 early AM): runner built, smoke run, v3 candidate
+
+- **Ch3 runner + smoke DONE** (`scripts/run_exposure.py`, commit 10e8a20; 28/28 tests,
+  g≡1 recovers VT byte-identically; real run hard-blocked pre-freeze). §6b smoke:
+  de-risk POWER PASS (+57 bps, g locks to planted answer), SIZE clean 3/3, re-risk
+  FAIL (placebo-overlap + γ-variance penalty + downside features can't see
+  positive-drift high-vol). Recorded in prereg §6b.
+- **Paper moved:** `paper/DRAFT-SECTIONS.md` — §2 Discipline + §6 Mechanism v0 prose
+  (framing-invariant; §6 closes with the calibration result as the mechanism's third leg).
+- **CANDIDATE direction (NOT a plan change — Adam called it "probably rambling", no
+  ruling given): Sensor v3 — vol-structure information.** Implied vol (VIX 1990+ FRED,
+  term structure, VVIX, SKEW, VRP), implied correlation (COR1M/3M ~2021+ new methodology),
+  DSPX dispersion (2023 launch, backfill to 2014 only — short), and the sleeper: REALIZED
+  dispersion from the French cross-section 1926+. Passes the v1 information gate (new
+  source; options surface was on the sanctioned successor list). Targets documented
+  sensor weaknesses (20d lag, 1998/2018Q4 misses, one-axis blindness). Key discipline
+  asset: chapter-1's in-silico lag-decay curve PRICES the economic ceiling from
+  instrument metrics alone (measure new lag → read surviving oracle value) BEFORE any
+  look; and the honest economic incumbent upgrades to VIX-based VT. Instrument gains
+  near-certain; economic gains underdog-with-a-pre-screen.
+
+## PENDING ADAM (blocking, in order)
+1. **One-directional-power ruling** on the §6b smoke (accept-with-caveat [recommended]
+   / redesign / abandon) → then sign-off line → overnight → the ch3 one look.
+2. **Plan-reorder confirmation**: pause Track C (monitor UI) + Track D (age screens),
+   insert Sensor v3 data-foundation — OR keep the frozen A→B→C→D order. Until ruled,
+   the frozen order stands.
+
+NEXT ACTION (next session): whichever ruling arrives first — ch3 freeze+look, or paper
+§1/appendix (foreground default per rule 3) if rulings are still pending.
 
 ## EPISODE ANATOMY — DONE (2026-07-23, descriptive, no look; firewalled from ch3)
 
