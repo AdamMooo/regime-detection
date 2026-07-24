@@ -136,6 +136,35 @@ def test_build_features_is_causal():
     assert not np.allclose(f_a[300:], f_b[300:], equal_nan=True)
 
 
+def test_filter_states_path_matches_states():
+    r, _ = _synthetic_two_state(T=800)
+    X = _zscore(build_features(r).to_numpy()[200:])
+    mu, _, _, w = fit_jump_model(X, k=2, lam=20.0, n_init=3)
+    Xw = X * np.sqrt(w)
+    s_a, V_a = filter_states(Xw, mu, lam=20.0)
+    s_b, V_b, V_path = filter_states(Xw, mu, lam=20.0, return_path=True)
+    assert np.array_equal(s_a, s_b)
+    assert np.allclose(V_a, V_b)
+    assert np.allclose(V_path[-1], V_b)
+    assert np.array_equal(V_path.argmin(axis=1), s_b)
+
+
+def test_walk_forward_margin_byte_identical_and_state_consistent():
+    from walkforward import walk_forward
+    r, _ = _synthetic_two_state(T=1800)
+    F = build_features(r).to_numpy()
+    kw = dict(burn=63, train0=1200, refit=252, grid=[50.0, 200.0], val=400, n_init=2)
+    s_a, lam_a = walk_forward(r, F, **kw)
+    s_b, lam_b, m = walk_forward(r, F, return_margin=True, **kw)
+    assert np.array_equal(s_a, s_b)
+    assert lam_a == lam_b
+    oos = s_b >= 0
+    assert np.isfinite(m[oos]).all()
+    assert np.isnan(m[~oos]).all()
+    # margin sign convention: m > 0 iff the filter favors the stressed state
+    assert np.array_equal(m[oos] > 0, s_b[oos] == 1)
+
+
 def test_k3_fast_path_matches_general_dp():
     from jumpmodel import _dp_assign_general, _dp_assign_k3
     rng = np.random.default_rng(11)

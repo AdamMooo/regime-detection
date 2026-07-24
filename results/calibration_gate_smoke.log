@@ -1,0 +1,13 @@
+[1/4] base/train/seed21: 3213 oos days, bear_frac 0.160, 9s
+[2/4] base/eval/seed31: 3213 oos days, bear_frac 0.259, 10s
+[3/4] weak_snr/train/seed21: 3213 oos days, bear_frac 0.160, 10s
+[4/4] weak_snr/eval/seed31: 3213 oos days, bear_frac 0.259, 10s
+
+pooled platt map: p = sigmoid(0.2527*m + -1.5538); vol benchmark: sigmoid(8.6774*logsig + 14.3117); train base rate 0.160
+{'cell': 'base', 'n_eval': 3213, 'bear_frac': 0.259, 'slope': 7.695, 'intercept': 12.06, 'brier': 0.1898, 'brier_clim': 0.202, 'brier_vol': 0.0631, 'a_cell': 0.4741, 'b_cell': -1.484, 'pass_reliability': False, 'pass_brier': False}
+{'cell': 'weak_snr', 'n_eval': 3213, 'bear_frac': 0.259, 'slope': 4.282, 'intercept': 6.174, 'brier': 0.1948, 'brier_clim': 0.202, 'brier_vol': 0.0913, 'a_cell': -0.0596, 'b_cell': -1.6893, 'pass_reliability': False, 'pass_brier': False}
+
+(a) reliability per cell: FAIL
+(b) brier vs climatology + vol benchmark per cell: FAIL
+(c) stability: CV(a)=1.288 (<=0.20), range(b)=0.205 (<=0.2): FAIL
+CALIBRATION GATE (SMOKE): FAIL

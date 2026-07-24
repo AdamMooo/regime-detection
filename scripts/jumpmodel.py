@@ -188,21 +188,29 @@ def fit_jump_model(X, k=2, lam=10.0, n_init=10, max_iter=300, seed=0, weight_ite
     return mu_w[order], remap[s], obj, w
 
 
-def filter_states(X, mu, lam, V0=None):
+def filter_states(X, mu, lam, V0=None, return_path=False):
     """Causal filtered states: endpoint of the forward DP value recursion.
     V_t[k] = C_t[k] + min_j(V_{t-1}[j] + lam*1{j!=k}); s_t = argmin_k V_t[k].
     V_t depends only on the past, so s_t is filtered (the backtracked DP path is
     the smoothed object and is never used here). Unlike a greedy one-step rule,
     this accumulates evidence, so the same lam scale as the fit applies.
-    Returns (states, V_end) — pass V_end back in as V0 to chain across blocks."""
+    Returns (states, V_end) — pass V_end back in as V0 to chain across blocks.
+    return_path=True additionally returns the (T, k) normalized value path;
+    differences V_path[t, i] - V_path[t, j] are the filter's accumulated evidence
+    gaps (invariant to the per-step min-normalization)."""
     X = np.asarray(X, dtype=float)
     C = _cost(X, mu)
     k = len(mu)
     switch = lam * (1.0 - np.eye(k))
     V = np.zeros(k) if V0 is None else np.asarray(V0, dtype=float).copy()
     s = np.empty(len(X), dtype=int)
+    V_path = np.empty((len(X), k)) if return_path else None
     for t in range(len(X)):
         V = C[t] + (V[:, None] + switch).min(axis=0)
         V -= V.min()
         s[t] = int(V.argmin())
+        if return_path:
+            V_path[t] = V
+    if return_path:
+        return s, V, V_path
     return s, V
