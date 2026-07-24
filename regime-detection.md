@@ -23,12 +23,25 @@ lesson, preregistered. Program lesson: reactive estimators win daily-horizon lag
 SPY splice (CALM since 2026-04-23). Visual: `results/report.html` (rehauled as a living
 program report: status tiles, claims-vs-honest-bar ladder, sensor section, fork).
 
+**2026-07-23 evening — chapter 3 designed + both gates run; program restated to three
+layers (measurement ≠ risk characterization ≠ decision value, `PROGRAM.md`).**
+Probability layer KILLED (calibration gate: the filter's evidence margin loses to plain
+EWMA vol on Brier AND AUC in all 8 synthetic DGP cells — classification is robust, the
+margin is not a portable confidence measure). K=3 probe: stable severity ladder (1.000
+both ±2y shifts), phase-tilted but NO phase state → M3 dead. Episode anatomy: real phase
+structure, but the ex-post rebound premium collapses under causal conditioning; episode
+age = the surviving causal coordinate, unvalidated. **D2 ruled (Adam): REGISTERED NULL** —
+chapter 3 is the clean state-only dial (VT vs VT·g(S), g∈[0,2], hard label), draft Rev 3;
+M2/age deferred to screened ch4 candidate (`CH3-D2-MEMO.md`). Risk-state monitor spec'd
+claim-by-claim (`MONITOR-VALIDATION-SPEC.md`).
+
 ## Next
 
-**Write the paper** — `paper/OUTLINE.md` (skeleton with real numbers, figure plan, venue
-path; decision 2026-07-23). Parallel: sensor-track instrument work (λ frontier, asymmetric
-penalties, calibrated P(state)). Chapter 3 (momentum at monthly cadence vs Barroso–Santa-Clara
-vol-scaling) is gated: prereg before any data touch, only if another look is worth spending.
+Execution order (Adam, 2026-07-23): **Track A ch3 closure** (runner + capability smoke →
+sign-off → overnight → one look) interleaved with **Track B the paper** (foreground
+default, rule 3) → **Track C monitor gate** (`monitor_gate.py` per spec) → **Track D
+ch4/M2 screens** (power test, reactive-age race, era-split, label-only duration test;
+international panels sealed). Parked/killed list with re-entry conditions: `PROGRAM.md`.
 
 ## Memory
 
@@ -38,8 +51,11 @@ vol-scaling) is gated: prereg before any data touch, only if another look is wor
 
 ## Known Issues
 
-- French data publishes with a 1–2 month lag → the jump-model label is not yet live-capable
-  (SPY-splice tail is Track 1 work).
+- French data publishes with a 1–2 month lag — handled by the SPY-splice live tail
+  (`scripts/live_label.py`, gate PASS corr 0.9957, 1.0000 agreement on overlap); the
+  splice must be refreshed when displaying a current state (monitor claim C0).
+- Chapter-3 prereg has one recorded defect (§10a): the M3 phase-separation criterion was
+  frozen qualitatively — resolved by Adam's explicit ruling, kept on record for referees.
 - HDP pipeline fully retired 2026-07-23 (its label was never consumed by anything — the
   Portfolio-Manager integration was only an idea in notes). Recoverable in git history if ever
   needed.
