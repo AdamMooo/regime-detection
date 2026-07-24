@@ -127,6 +127,34 @@ The pushback we must survive, addressed in the manuscript itself:
 5. **Priority:** SSRN preprint as soon as §§1–6 are drafted — the timestamp matters more
    than polish; the 2024–25 literature window is open now.
 
+## REFRAME OPTION (2026-07-23 evening — decision pending, Adam's instinct: system, not algo)
+
+The current title/claim leads with the negative ("does regime detection add investment
+value? No"). Adam's proposed reframe: lead with the SYSTEM — the three-layer split that
+today's work crystallized — and let the negatives define the instrument's honest boundary
+of use. Candidate claim paragraph:
+
+> We build and validate a market risk-state instrument (statistical jump model, K=2,
+> return-only features) to an unusual standard: 100.0% label stability under training
+> perturbation, live operation, preregistered evaluation of every use. We then map,
+> under one-look discipline, exactly WHERE its information is and is not consumable:
+> its state classification is robust (Layer 1); its conditional risk characterization
+> is testable and partially validated (Layer 2); every DECISION use tested — exposure
+> switching, graded exposure, covariance conditioning, even the filter's own confidence
+> margin as a probability — is dominated by simple reactive estimators at daily
+> horizons (Layer 3). The instrument-vs-strategy distinction, usually a footnote, is
+> the paper's thesis: measurement validity ≠ decision value, and the applied
+> regime-switching literature's positive claims live in the gap between them.
+
+Gains: constructive contribution first (referees prefer building+bounding to pure
+deflation); today's calibration-gate result becomes a third exhibit instead of an
+appendix; the monitor becomes the "what it IS for" section. Costs: the Shu–Yu–Mulvey
+deflation becomes supporting evidence rather than the headline — the CFR/replication
+venue fit weakens, JAM fit holds. Sections reshuffle: current §5 (instrument) moves to
+§3; experiments become §4–6 as the three Layer-3 races; monitor scoreboard enters §7.
+DECIDE at next paper session before drafting §1; §2 (discipline) and §6 (mechanism)
+are framing-invariant — draft those regardless.
+
 ## Next actions (in order)
 1. [ ] Assemble exact-numbers appendix tables from stage1.csv + allocation_summary.csv.
 2. [ ] Draft §2 (discipline) and §6 (mechanism) — they carry the paper's identity.

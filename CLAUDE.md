@@ -18,18 +18,29 @@ and sealed at git tag `v1-convergence`; narrative in `RESEARCH-RECORD.md` (newes
 
 ## File Map (living code, `scripts/`)
 
+Core pipeline:
 - `jumpmodel.py` — estimator core: features (dd10/sortino20/sortino60), DP state assignment
-  (k=2 fast path), weighted fit, causal DP-endpoint filter
-- `walkforward.py` — shared walk-forward pipeline (annual refits, λ by 8y-validation Sharpe);
-  used byte-identically by synthetic and real runs
+  (k=2/k=3 fast paths), weighted fit, causal DP-endpoint filter (+ value-path/margin export)
+- `walkforward.py` — shared walk-forward pipeline (annual refits, λ by 8y-validation Sharpe;
+  optional evidence-margin output); used byte-identically by synthetic and real runs
 - `backtest.py` — strategy construction (delay/costs), VT/SMA/B&H baselines, FKO fee,
   paired stationary bootstrap
-- `build_panel.py` — French daily panel + SPY cross-check + construction gate
-  → `data/processed/market_daily.csv`
-- `run_backtest.py` — full preregistered battery (controls → primary → falsifiers →
-  secondaries) → `results/backtest_*.csv`
+- `build_panel.py` / `build_assets.py` — French daily panel + SPY cross-check + gates
+  → `data/processed/market_daily.csv`, `assets_daily.csv`
+- `run_backtest.py` / `run_allocation.py` + `allocation.py` — the chapter-1/2 preregistered
+  batteries (one-looks SPENT) → frozen `results/` evidence
 - `synthetic_validation.py` — capability battery on simulated panels (known truth)
-- `build_report.py` — regenerates `results/report.html` (visual results dashboard)
+- `live_label.py` — SPY-splice live tail; label to today
+- `build_report.py` — regenerates `results/report.html` (living program report)
+
+Gates & probes (living checks; rerunnable):
+- `calibration_gate.py` — P(state) Platt gate on 8-cell synthetic DGP grid (FAILED
+  2026-07-23 → probability layer KILLED; script kept as the finding's reproduction path)
+- `explore_k3.py` — K=3 probe (severity ladder, stability 1.000; K=3 dev PARKED)
+- `validate_sensor.py` — label vs ex-post bear datings (lag/precision stats, monitor C7)
+
+Descriptive anatomy (no look; hypothesis-generating, contaminated for prereg purposes):
+- `atlas.py`, `state_anatomy.py`, `episode_anatomy.py`
 
 Tests: `tests/test_jumpmodel.py`, `tests/test_backtest.py`. venv: `.venv` (numpy/pandas stack;
 requirements.txt is the slim jump-model set — the v1 JAX/NumPyro stack was retired 2026-07-23).

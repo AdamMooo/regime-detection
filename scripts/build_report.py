@@ -299,6 +299,53 @@ details { margin: 8px 0; } summary { cursor: pointer; color: var(--ink2); font-s
 
 <div class="tiles" id="tiles"></div>
 
+<h2>The program in three layers</h2>
+<p class="note">The organizing split (frozen 2026-07-23): <strong>measurement validity &ne;
+decision value</strong>. A state model can describe the market's risk environment reliably
+while adding nothing to any trading decision — those are different claims with different
+validation machinery, and this program stopped conflating them.</p>
+<div class="tiles">
+  <div class="tile"><div class="v posv">Layer 1</div><div class="l">Measurement — ESTABLISHED</div>
+  <div class="d">Label stability 1.000 under &plusmn;2y shifts (re-confirmed at K=3, both
+  directions); causal; live to today via SPY splice; 1.66 switches/yr.</div></div>
+  <div class="tile"><div class="v" style="color:var(--s4)">Layer 2</div><div class="l">Risk
+  characterization — GATES PENDING</div>
+  <div class="d">Does the state support reliable conditional risk statements? Claim-by-claim
+  validation spec frozen (.planning/MONITOR-VALIDATION-SPEC.md); monitor gate unbuilt.</div></div>
+  <div class="tile"><div class="v negv">Layer 3</div><div class="l">Decision value — 3 races
+  lost, 1 pending</div>
+  <div class="d">Reactive estimators won every preregistered race so far (VT for exposure;
+  EWMA for covariance; EWMA-vol beat the filter's own confidence margin 8/8 synthetic cells).
+  Chapter 3 (state-only dial vs VT, registered-null prior) is the last daily-cadence test.</div></div>
+</div>
+<details><summary>The risk-state monitor — claim scoreboard (what Layer 2 will display)</summary>
+<p class="note">Every future monitor statement carries a badge assigned mechanically by
+<code>monitor_gate.py</code>: <strong class="posv">[OOS]</strong> out-of-sample validated ·
+<strong style="color:var(--s4)">[DESC]</strong> descriptive only, labeled ·
+UNSUPPORTED = never rendered. Headline disclosure, always first:
+<em>this is a nowcast, not an early-warning system</em> (median detection lag 20d;
+missed 1998 and 2018Q4 entirely).</p>
+<div class="card"><table>
+<tr><th>Claim</th><th>Statement the monitor would display</th><th>Status now</th></tr>
+<tr><td>C0</td><td>Data vintage &amp; splice freshness</td><td class="posv">[OOS]</td></tr>
+<tr><td>C1</td><td>Current state, stability, persistence (&ldquo;does not whipsaw&rdquo;)</td>
+<td><span class="posv">[OOS]</span> stability &middot; flip-rate race vs matched vol threshold TO RUN</td></tr>
+<tr><td>C2</td><td>Conditional forward-vol fan per state</td><td><span style="color:var(--s4)">[DESC]</span> &rarr; coverage/PIT tests TO RUN</td></tr>
+<tr><td>C3</td><td>Conditional daily VaR/ES; episode drawdown history</td><td>tails TO RUN &middot; drawdowns <span style="color:var(--s4)">[DESC]</span> permanently (n&asymp;30)</td></tr>
+<tr><td>C4</td><td>Episode age: facts / risk-by-age / returns-by-age</td><td><span class="posv">[OOS]</span> / <span style="color:var(--s4)">[DESC]</span> / <span class="negv">UNSUPPORTED</span></td></tr>
+<tr><td>C5</td><td>Historical analog episodes (causal features only)</td><td><span style="color:var(--s4)">[DESC]</span> permanently</td></tr>
+<tr><td>C6</td><td>Incremental information beyond an EWMA-vol chart — quantified by region</td><td>CRPS / QW-CRPS / GW battery TO RUN</td></tr>
+<tr><td>C7</td><td>Nowcast-not-early-warning lag statistics</td><td class="posv">[OOS]</td></tr>
+</table></div></details>
+<details><summary>Parked &amp; killed (2026-07-23, re-entry conditions in .planning/PROGRAM.md)</summary>
+<p class="note"><strong>Killed:</strong> the probability layer (calibrated P(state) from the
+filter margin — failed all 3 gate criteria in all 8 DGP cells).
+<strong>Parked:</strong> K=3 sensor development (stable severity ladder, phase-tilted, no
+consumer); asymmetric-&lambda; and the &lambda; lag-vs-whipsaw frontier (nothing needs sensor
+speed); atlas pages (fold into the monitor UI).
+<strong>Excluded:</strong> factor selection / sector rotation (preregistered out of scope).</p>
+</details>
+
 <h2>Every claim, against its honest bar</h2>
 <p class="note">One rule keeps this program honest: a claim counts only if it beats the best
 <em>simple</em> alternative — not just buy-and-hold. Four claims tested under frozen
