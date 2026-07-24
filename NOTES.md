@@ -219,3 +219,99 @@ next session.
 Also queued (not blocking): calibrated P(state) from the filter evidence gap (needed by the
 graded variant — calibrate on SYNTHETIC panels pre-freeze); K=3 crash/rebound exploration
 (entry-lag confound check); atlas pages in report.html; λ lag-vs-whipsaw frontier.
+
+## CHAPTER 3 PREP (2026-07-23, PM session) — prereg DRAFT Rev 1, gates in flight
+
+Question narrowed by Adam: state-conditioned CONTINUOUS exposure vs vol targeting —
+w = (σ*/σ̂)·g(state) vs w = σ*/σ̂, single-delta (g≡1 must recover VT byte-identically),
+a decision-rule claim NOT an information claim (information-gate compliant). Registered
+prior: interpolates to VT (expected null → completes the negative paper).
+
+- **Prereg:** `.planning/CH3-EXPOSURE-PREREG.md` DRAFT Rev 1 — NOT frozen. Decisions
+  recorded: D1 daily (monthly = robustness only), D3 w_max=1.0 long-only, D2 = CONDITIONAL
+  rule frozen before the probe result (M3 if K=3 passes phase+stability gate, M2
+  episode-age/hazard if it fails, registered null if neither). g family pinned per branch.
+  Freeze still blocked on: probe → calibration gate → overnight cooling-off + Adam's
+  named+dated sign-off. One look.
+- **Margin plumbing:** `filter_states(..., return_path)` + `walk_forward(..., return_margin)`
+  emit m_t = (V_calm − V_stressed)/λ (dimensionless evidence gap; λ-normalized because the
+  filter clips at ±λ). States byte-identical with/without (27/27 tests).
+- **Calibration gate:** `scripts/calibration_gate.py` — 8-cell DGP grid (frequency,
+  persistence, severity, SNR; Adam's robustness requirement), pooled Platt on train seeds,
+  per-cell acceptance (Cox slope/intercept, Brier vs climatology AND vs log-EWMA-vol
+  benchmark, cross-cell stability). SMOKE: machinery works, gate itself FAILS the smoke
+  config — margin nearly flat (a=0.25), vol benchmark crushes it (Brier 0.06 vs 0.19),
+  weak-SNR cell sign-flips. If full run confirms → pre-committed §6 fallback: A3 uses the
+  HARD label, two-point g. AUC diagnostics added to separate discrimination from
+  calibration. Full run (32 walk-forwards) launched; K=3 probe rerun also launched.
+
+**GATES RESOLVED (same day, later):** prereg now DRAFT Rev 2, §10a records both:
+- **Calibration gate FAILED all 3 criteria in all 8 cells** — margin loses to log-EWMA-vol
+  on Brier (2–4×) AND AUC everywhere; per-cell slopes −0.17..2.05. → A3 = HARD label,
+  two-point g (pre-committed fallback; Adam concurred: "the filter's classification is
+  robust, its internal evidence margin is not a portable confidence measure").
+- **K=3 probe (32 min, `results/k3_exploration.csv`):** severity ladder 12.8/16.2/28.3%
+  vol; switches 2.57/yr; stability 1.000 at BOTH ±2y shifts (bar 0.95); λ path noisy
+  (hits both grid edges — k3 λ selection less stable than k2's). Crash/rebound load
+  differentially on state 2 (71%/36%) and MORE than an occupancy-matched σ̂ threshold
+  (57%/50% — scratchpad control) → more than a pure vol tier (dd/sortino see drift), BUT
+  no state IS a phase (rebound-heavy state 1 = majority state, 58% of calm days).
+  **Phase-separation criterion was under-specified in the prereg (defect recorded, not
+  cured post hoc). D2 = M2 (episode age) RECOMMENDED — M3's family g={1,g_crash,g_rebound}
+  presupposes phase states that didn't materialize. Final ruling = Adam's, at sign-off.**
+
+## EVENING SESSION (2026-07-23): D2 RULED, MONITOR SPEC'D, PLAN FROZEN
+
+- **D2 RULED (Adam): REGISTERED NULL.** Chapter 3 = clean state-only test (VT vs
+  VT × two-point hard dial). M2 (episode age) DEFERRED to a screened ch4 candidate —
+  full reasoning in `.planning/CH3-D2-MEMO.md` (five-claim separation; single-delta;
+  external lit contests duration-dependence sign; Nagel premium partly vol-spanned;
+  age-beyond-vol "apparently underexplored"). All three Rev-3 refinements ACCEPTED:
+  g_stress ∈ [0,2] (don't assume de-risking), mandatory capability smoke (§6b, power
+  AND size — no smoke, no run), F3 = hysteresis signature (positive fee must
+  concentrate on within-episode vol-lull days).
+- **Conceptual split frozen: measurement validity ≠ decision value.** Layer 1
+  measurement (done) / Layer 2 risk characterization (the MONITOR —
+  `.planning/MONITOR-VALIDATION-SPEC.md`, claim-by-claim badges [OOS]/[DESC]/
+  UNSUPPORTED, forecast-validation machinery: PIT/Christoffersen/CRPS/QW-CRPS/
+  Amisano-Giacomini/Giacomini-White) / Layer 3 decision value (ch3, ch4 screens).
+  Monitor is a NOWCAST, not early warning (C7 renders the lag stats prominently).
+- **Execution plan (Adam-approved, AskUserQuestion 2026-07-23):** Track A ch3 closure
+  + Track B paper INTERLEAVED (paper owns the foreground per rule 3, compute in
+  background) → Track C monitor gate → Track D ch4 screens. Park/kill list applied;
+  PROGRAM.md goal RESTATED (three-layer framing; morning "graded allocation" goal
+  superseded). Parked/killed items + re-entry conditions: see PROGRAM.md.
+
+NEXT ACTION (next session): build ch3 runner + §6b capability smoke (background the
+smoke run) while drafting the paper's exact-numbers appendix in the foreground. Then:
+smoke results → prereg → Adam's sign-off line → overnight → one look.
+
+## EPISODE ANATOMY — DONE (2026-07-23, descriptive, no look; firewalled from ch3)
+
+`scripts/episode_anatomy.py` → `results/episode_anatomy.csv` (+ run log). Real-time
+phase coordinates (τ, σ̂ level/trend/accel, DD level/velocity, trailing jump count) vs
+forward outcomes, frozen labels:
+
+- **Age profile (causal) is the strongest structure:** τ≤5 = tail-of-crash (fwd5 −23% ann);
+  τ 6–42 = sweet zone (fwd +29..+49% ann at BELOW-average vol); τ 127+ = grind (fwd +2..+5%,
+  vol RISES to 25%, hazard 8%; 5 episodes/1075 days). "Stay invested in stress" is right
+  early, wrong late — the anti-cash rule is as coarse as the cash rule.
+- **Vol trajectory = hazard descriptor, not return signal:** lo/falling vol → 35% exit
+  hazard but the WEAKEST fwd returns (+8% ann); hi/rising → 2% hazard, +24%. Vol peak is
+  COINCIDENT with the price trough (median +1d) — falling vol cannot lead the rebound.
+- **Ex-post/causal gap quantified:** last-10-days-before-exit average +66% ann with a crisp
+  signature, but conditioning on that signature in real time yields +8% — detection ≠
+  prediction ≠ decision value, at phase level.
+- Episode species barely visible in first-10d observables (grinds reveal themselves by
+  surviving) — another argument for age as THE phase coordinate.
+
+**PRESERVED HYPOTHESIS (Adam, 2026-07-23 — conceptual only, no model/prereg change):**
+"The model may correctly detect the stress episode, but the economic behavior within that
+episode depends on its duration and phase" — State + Episode age, stress as trajectory
+(onset → early → recovery window → grind) compressed into one label; state detection ≠
+phase identification. Routes from EITHER ch3 outcome (positive → natural next question;
+null → explains why binary state-to-cash failed). Obligations attached at birth: honest
+incumbent = REACTIVE age (days since a plain σ̂ trigger — if JM-age only proxies
+time-since-vol-spike, vol machinery replicates it); US-anatomy-born → international
+confirmation binds; τ inherits the label's entry lag; τ 22–42 numbers are
+overlapping-window, era-concentrated, survivor-conditioned (expect shrinkage OOS).
