@@ -183,6 +183,26 @@ chapter 2's --smoke, structured fee 7.0 vs unstructured 0.5). Before freeze:
 If POWER fails, the chapter is not run as-is (redesign or abandon — an underpowered
 one-look is worse than none). Smoke results recorded here before the sign-off line.
 
+**SMOKE RESULTS (run 2026-07-23, `results/exposure_smoke.{csv,log}`, runner
+`scripts/run_exposure.py --smoke`):**
+- POWER de-risk: **PASS** (mean fee +57.2 bps; 2/3 seeds above placebo 95th; g locks
+  to 0 after warmup — machinery finds the planted answer).
+- SIZE no-gap: **PASS** (3/3 CIs contain 0 — no false positives from the fitting).
+- POWER re-risk: **FAIL** (mean +17.0 bps, 0/3 above placebo; noisy g-paths).
+  Diagnosis: placebo bar contaminated by overlap with true stress (matched-persistence
+  placebos harvest the planted effect too); γ=10 variance penalty on added exposure at
+  32% vol; and the downside-deviation features degrade detection in a positive-drift
+  high-vol regime by construction.
+- Verdict under §6b criteria: FAIL as specified → not run as-is. **DECISION PENDING
+  (Adam): accept ONE-DIRECTIONAL power** — freeze with verdict wording limited
+  accordingly ("a null constrains de-risk-direction value; the re-risk direction is
+  underpowered at tested magnitude and no verdict speaks to it"; [0,2] bound retained
+  as non-assumption) **vs redesign vs abandon.** Assistant recommendation: accept
+  one-directional power; redesigning the cell until it passes is power-hacking the
+  smoke. Frozen machinery constants to be written into §4 at freeze: G_GRID
+  {0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2}, warmup 1008 OOS days (g=1), per-refit
+  selection by trailing-1008d net Sharpe (delay=2), ties toward g=1.
+
 ## 7. Metrics, falsifiers, verdict
 
 - PRIMARY: FKO performance fee, fee(A3 − A2), quadratic utility, gamma per chapter-1

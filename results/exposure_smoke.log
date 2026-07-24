@@ -1,0 +1,14 @@
+{'cell': 'power_derisk', 'seed': 11, 'fee_a3_vs_a2': 40.5, 'ci_lo': -7.3, 'ci_hi': 93.1, 'placebo95': 15.0, 'placebo05': -62.3, 'g_median': 0.0, 'g_path': '[1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]', 'runtime_s': 12.7}
+{'cell': 'power_derisk', 'seed': 12, 'fee_a3_vs_a2': 126.4, 'ci_lo': -10.1, 'ci_hi': 295.7, 'placebo95': 54.8, 'placebo05': -248.9, 'g_median': 0.0, 'g_path': '[1.0, 1.0, 1.0, 1.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]', 'runtime_s': 12.0}
+{'cell': 'power_derisk', 'seed': 13, 'fee_a3_vs_a2': 4.6, 'ci_lo': -2.7, 'ci_hi': 14.7, 'placebo95': 29.8, 'placebo05': -67.9, 'g_median': 1.0, 'g_path': '[1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.5, 1.5, 1.5]', 'runtime_s': 12.3}
+{'cell': 'power_rerisk', 'seed': 11, 'fee_a3_vs_a2': 18.7, 'ci_lo': 0.0, 'ci_hi': 48.0, 'placebo95': 24.0, 'placebo05': -67.1, 'g_median': 2.0, 'g_path': '[1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0]', 'runtime_s': 13.1}
+{'cell': 'power_rerisk', 'seed': 12, 'fee_a3_vs_a2': 113.8, 'ci_lo': -16.2, 'ci_hi': 309.7, 'placebo95': 201.6, 'placebo05': -200.5, 'g_median': 1.5, 'g_path': '[1.0, 1.0, 1.0, 1.0, 2.0, 0.75, 0.75, 1.5, 1.5, 1.5, 1.5, 1.0, 1.0]', 'runtime_s': 16.8}
+{'cell': 'power_rerisk', 'seed': 13, 'fee_a3_vs_a2': -81.4, 'ci_lo': -256.6, 'ci_hi': 53.5, 'placebo95': 37.4, 'placebo05': -124.9, 'g_median': 2.0, 'g_path': '[1.0, 1.0, 1.0, 1.0, 0.5, 0.5, 1.5, 2.0, 2.0, 2.0, 2.0, 0.0, 2.0]', 'runtime_s': 10.9}
+{'cell': 'size_nogap', 'seed': 11, 'fee_a3_vs_a2': -2.6, 'ci_lo': -22.7, 'ci_hi': 20.8, 'placebo95': 60.0, 'placebo05': -66.2, 'g_median': 1.0, 'g_path': '[1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 2.0, 2.0]', 'runtime_s': 10.3}
+{'cell': 'size_nogap', 'seed': 12, 'fee_a3_vs_a2': 17.3, 'ci_lo': -66.4, 'ci_hi': 90.3, 'placebo95': 108.5, 'placebo05': -218.3, 'g_median': 1.0, 'g_path': '[1.0, 1.0, 1.0, 1.0, 1.0, 1.5, 1.5, 1.5, 1.5, 0.5, 0.0, 0.25, 0.0]', 'runtime_s': 8.4}
+{'cell': 'size_nogap', 'seed': 13, 'fee_a3_vs_a2': -33.9, 'ci_lo': -157.8, 'ci_hi': 88.2, 'placebo95': 59.2, 'placebo05': -113.7, 'g_median': 1.25, 'g_path': '[1.0, 1.0, 1.0, 1.0, 1.25, 1.5, 1.5, 1.5, 0.5, 1.0, 0.0, 0.0, 1.25]', 'runtime_s': 8.9}
+
+POWER de-risk (mean fee 57.2): PASS
+POWER re-risk (mean fee 17.0): FAIL
+SIZE no-gap (CI contains 0 in 3/3 seeds): PASS
+CAPABILITY SMOKE (§6b): FAIL
