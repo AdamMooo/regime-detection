@@ -3,11 +3,39 @@
 ## Status
 Program: statistical jump model (chapter 1 CLOSED — Case B); instrument-first roadmap
 Branch: main
-Last updated: 2026-07-23
+Last updated: 2026-07-26
 
 *Full v1 session history (five nulls → convergence) and the v2 build log live in git
 (this file pre-cleanup, commit b6e4b5f and earlier) and in `RESEARCH-RECORD.md` (the durable
 narrative, newest-first). This file now tracks only the living program.*
+
+## Current state (2026-07-26) — Path-B cross-asset candidate explored (descriptive, no look)
+
+Prompted by Adam surfacing Shu–Yu–Mulvey **2025** ("Dynamic Asset Allocation with
+Asset-Specific Regime Forecasts", Annals of OR, arXiv:2406.09578) — the allocation sequel to
+the 2024 JAM anchor. Opened the **cross-sectional defensive rotation** candidate (the one
+Layer-3 door where the auto-loss-to-reactive condition is absent — cross-asset selection is a
+quantity vol-targeting can't produce). Full detail: `.planning/PROGRAM.md` candidate section +
+memory `cross-sectional-rotation-candidate.md`. All work descriptive/look-free.
+
+- **Precondition (`rotation_precondition.py`):** per-asset JM regimes DIVERGE — mixed states
+  ~76% of days; refuge exists ~61% of equity-bear days. GREEN but modest, leans on bonds.
+- **Hedge anatomy (`hedge_anatomy.py`, 20 assets + carry lens):** Adam's "bonds aren't a hedge
+  in this market" CONFIRMED (IEF/TLT failed 2022/2025). GOLD = only both-regime hedge; TREND
+  (DBMF/KMLM) = best in the bonds-failed 2022 crisis (+18–20%) AND positive carry. Defensive
+  equity / intl / EM / REIT are just equity beta; **BTC is an amplifier not a hedge**. Feature
+  lens = B (conditional return), not own-vol regime.
+- **Trend proxy (`build_trend_proxy.py`) — GATE PASS:** TSMOM proxy for the trend sleeve, corr
+  vs DBMF **0.69**, 2005+, ~10% vol, +12.8%/2022. Long-history trend series now available.
+- **Web-checked the path** (searched, not memory): inflation-conditional gold hedge is
+  mainstream 2025; trend crisis-alpha real for prolonged crises; "dynamic beats static" claims
+  exist but are the soft-baseline genre we deflate — inadmissible.
+
+**NEXT ACTION:** the go/no-go backtest — Portfolio A (static enhanced-60/20/20 hold) vs
+Portfolio B (regime-timed: JM risk-on/off × realized-corr bonds↔trend switch, gold core)
+through 2008/2020/2022 after costs. B beats A robustly → prereg; B≈A → "just hold gold+trend"
+(useful null). Reactive switch only (no corr prediction — Stage-1 null). Beta-tilt offense
+must beat VT separately. NOT committed to git yet (awaiting Adam's go).
 
 ## Current state (2026-07-23, post-cleanup)
 

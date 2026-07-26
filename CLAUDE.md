@@ -42,6 +42,17 @@ Gates & probes (living checks; rerunnable):
 Descriptive anatomy (no look; hypothesis-generating, contaminated for prereg purposes):
 - `atlas.py`, `state_anatomy.py`, `episode_anatomy.py`
 
+Path-B cross-asset candidate (2026-07-26, EXPLORATORY, no look — see `.planning/PROGRAM.md`
+candidate section; pre-prereg, descriptive only):
+- `rotation_precondition.py` — do per-asset JM regimes diverge cross-sectionally? (GREEN:
+  mixed ~76% of days; gold refuge, bonds regime-dependent) → `results/rotation_precondition*.csv`
+- `hedge_anatomy.py` — behavioral fingerprint of 20 assets vs equity-stress (stress payoff /
+  carry / crisis returns / feature-lens); gold+trend the only positive-carry hedges, crypto is
+  an amplifier → `results/hedge_fingerprint.csv` (panel `data/processed/hedge_etf_daily.csv`)
+- `build_trend_proxy.py` — TSMOM (Moskowitz–Ooi–Pedersen) trend/managed-futures proxy from
+  long-history ETFs, GATED on corr vs DBMF/KMLM (PASS: corr 0.69, 2005+, ~10% vol, +12.8%/2022)
+  → `data/processed/trend_proxy_daily.csv`, `results/trend_proxy_gate.csv`
+
 Tests: `tests/test_jumpmodel.py`, `tests/test_backtest.py`. venv: `.venv` (numpy/pandas stack;
 requirements.txt is the slim jump-model set — the v1 JAX/NumPyro stack was retired 2026-07-23).
 

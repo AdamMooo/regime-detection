@@ -47,9 +47,21 @@ instrument to §3, three Layer-3 races §§4–6, monitor §8, graded-exposure d
 own-vol corr = modest distinct axis). Guardrail: "strong tool" = Layers 1–2 only; never
 relaunder a Layer-3 null.
 
+**2026-07-26 — Path-B cross-asset candidate opened + de-risked (descriptive, no look).**
+Adam surfaced Shu–Yu–Mulvey **2025** (allocation sequel); opened cross-sectional defensive
+rotation — the one Layer-3 door where the auto-loss-to-reactive condition is absent. Findings
+(`PROGRAM.md` candidate; scripts `rotation_precondition` / `hedge_anatomy` / `build_trend_proxy`):
+per-asset regimes diverge (mixed ~76% of days); **bonds aren't a reliable hedge in this market
+(failed 2022/2025)** — confirmed; **gold = only both-regime hedge, trend = best in the
+bonds-failed crisis + positive carry, BTC = amplifier not hedge**; feature lens = conditional
+return (B), not own-vol. Trend proxy GATE PASS (corr vs DBMF 0.69). Next = static-vs-timed
+go/no-go backtest. Not committed yet.
+
 ## Next
 
-Three parallel tool streams (paper foreground per rule 3, compute background):
+Immediate (Path-B candidate, look-free): the static-hold vs regime-timed **go/no-go backtest**
+(Portfolio A enhanced-60/20/20 vs Portfolio B regime-timed, through 2008/2020/2022, after
+costs) → prereg only if timing robustly beats static hold. Then, the standing three tool streams:
 1. **Paper (instrument-first)** — fill §1's Shu–Yu–Mulvey quotes, draft §8 (monitor),
    export figures → completes the §§1–7 SSRN-preprint core.
 2. **Sensor v3 — make it better** — tier-1 dispersion done; decide tier-2 (VIX/VRP via

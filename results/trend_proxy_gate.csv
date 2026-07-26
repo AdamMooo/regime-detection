@@ -1,0 +1,4 @@
+gate,passed,detail
+G1_dbmf_corr,True,corr=0.691 (bar 0.50)
+G2_vol_sane,True,ann_vol=10.16% (target ~10%)
+G3_crisis_alpha_2022,True,2022 cum=+12.8% (>0 expected)

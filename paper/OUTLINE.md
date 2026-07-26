@@ -40,6 +40,16 @@ them.**
   where its information is consumable (three layers).
 - The applied regime-value claim (Nystrup 2020–21; Shu–Yu–Mulvey 2024; JM+MPC 2025) and
   its baseline problem (B&H-grade comparisons; no exposure match; no reactive incumbent).
+- The cleanest foil is the *allocation* sequel, Shu–Yu–Mulvey 2025 (Annals of OR 346(1),
+  "Dynamic Asset Allocation with Asset-Specific Regime Forecasts", arXiv:2406.09578):
+  regime forecasts enter the FIRST moment only (μ; a GBT-forecast bull/bear cap of
+  +10 bps / 0), covariance is a plain unmodified EWMA, and the sole benchmarks are
+  MinVar / MeanVar / equal-weight — no exposure-matched, vol-targeted, or cost-matched
+  control. Their own internal JM-vs-JM-XGB comparison (persistence label vs boosted
+  forecast) is presented but not shown to favor the forecast, and they concede forecast
+  delay ("a prominent challenge is the delay of the forecasts") — our detection-lag
+  mechanism, admitted in their own text. This is the exact soft-baseline gap our program
+  is built to close.
 - Contributions: (a) an exceptionally stable, live regime instrument; (b) preregistration
   with freeze-before-run in public git history; (c) exposure-matched nulls; (d) reactive
   co-primary baselines; (e) the lag-race mechanism unifying three dominated uses;
@@ -111,8 +121,10 @@ them.**
   ledger of which claims are OOS-validated vs descriptive.
 
 ### 9. Related literature
-- Regime/JM allocation: Nystrup et al. 2020, 2021; Shu–Yu–Mulvey 2024 (JAM); Aydınhan
-  et al. 2024 (continuous JM); JM+MPC (Mathematics, 2025).
+- Regime/JM allocation: Nystrup et al. 2020, 2021; Shu–Yu–Mulvey 2024 (JAM, single-asset
+  downside overlay — formerly titled "Regime-Aware Asset Allocation", arXiv:2402.05272);
+  Shu–Yu–Mulvey 2025 (Annals of OR, multi-asset μ-conditioned MVO, arXiv:2406.09578 — the
+  allocation foil); Aydınhan et al. 2024 (continuous JM); JM+MPC (Mathematics, 2025).
 - Deflation genre: Cederburg–O'Doherty–Wang–Yan 2020 (vol-managed fails OOS, 103 factors);
   DeMiguel et al. 2024.
 - Vol-scaling incumbents: Moreira–Muir 2017; Barroso–Santa-Clara 2015 (momentum, the robust

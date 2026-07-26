@@ -13,3 +13,6 @@ data/raw/
 data/processed/market_daily.csv
 data/processed/assets_daily.csv
 data/processed/dispersion_daily.csv
+# regenerable via scripts/hedge_anatomy.py --refresh and scripts/build_trend_proxy.py --refresh
+data/processed/hedge_etf_daily.csv
+data/processed/trend_proxy_daily.csv
