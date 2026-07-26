@@ -2,8 +2,8 @@
 type: research-record
 project: regime-detection
 created: 2026-07-21
-last_updated: 2026-07-23
-status: v1 CONVERGED (five nulls, sealed at v1-convergence). v2 Chapter 1 (2026-07-23): Case B — beat-B&H claim is an exposure artifact; VT dominates; the JM label is an exceptional instrument (stability 1.00). v2 Chapter 2 (2026-07-23): NULL — state-conditional covariance adds no allocation value (fee_A +2.8 inside all bands) and a reactive EWMA covariance beats it outright (fee_B −29.1); risk-stabilization mechanism exists (F2 clear) but reactive estimation harvests it better
+last_updated: 2026-07-26
+status: v1 CONVERGED (five nulls, sealed at v1-convergence). v2 Chapter 1 (2026-07-23): Case B — beat-B&H claim is an exposure artifact; VT dominates; the JM label is an exceptional instrument (stability 1.00). v2 Chapter 2 (2026-07-23): NULL — state-conditional covariance adds no allocation value (fee_A +2.8 inside all bands) and a reactive EWMA covariance beats it outright (fee_B −29.1); risk-stabilization mechanism exists (F2 clear) but reactive estimation harvests it better. 2026-07-26: Path-B cross-asset defensive-rotation candidate opened — DESCRIPTIVE hypotheses only (no look, no prereg): per-asset regimes diverge; gold=both-regime hedge, trend=crisis-alpha, bonds fail in inflation; feature lens B; trend proxy gated (corr 0.69 vs DBMF). Awaiting the go/no-go backtest
 detailed_audit: .planning/RESEARCH-AUDIT.md (full 25-section research audit — retained as evidence)
 code_review: .planning/DEEP-REVIEW.md (code-level causality review, 5 fixed bugs)
 ---
@@ -23,7 +23,79 @@ the full version is in `RESEARCH-AUDIT.md`. Nothing from the audit has been disc
 
 ---
 
-## 2026-07-23 (latest) — V2 CHAPTER 2: state-conditional allocation, NULL — the atlas structure is real but a plain EWMA covariance harvests it better than the state label
+## 2026-07-26 (latest) — PATH-B: cross-asset defensive rotation — DESCRIPTIVE foundation (no look, no prereg; hypotheses awaiting the go/no-go test)
+
+**Status discipline first: everything in this entry is DESCRIPTIVE and UNVALIDATED** —
+hypothesis-generating exploration for a candidate, not a preregistered one-look chapter. No
+look was spent, no prereg frozen. These findings graduate to claims only after the validation
+ladder (go/no-go backtest → prereg + one look with exposure-matched controls → robustness →
+out-of-sample → crisis/carry stress). Recorded here so the signals are not lost, NOT as results.
+Reproduction: commit `d9287e1`; scripts `rotation_precondition.py`, `hedge_anatomy.py`,
+`build_trend_proxy.py`; outputs `results/rotation_precondition*.csv`, `hedge_fingerprint.csv`,
+`trend_proxy_gate.csv`. Full forward detail in `.planning/PROGRAM.md` candidate section.
+
+**Origin.** Adam surfaced Shu–Yu–Mulvey **2025** ("Dynamic Asset Allocation with Asset-Specific
+Regime Forecasts," Annals of OR, arXiv:2406.09578) — the multi-asset ALLOCATION sequel to the
+2024 JAM overlay (2402.05272, whose *old* title was "Regime-Aware Asset Allocation"). Their
+design conditions μ (first moment) only, covariance a plain EWMA, baselines soft
+(MinVar/MeanVar/EW, no exposure-matched control) — the exact gap this program indicts. The
+motivating structural argument: every Layer-3 null so far lost to a reactive estimator of the
+SAME quantity (VT for exposure, EWMA for covariance). Cross-sectional asset SELECTION produces a
+quantity no single-axis vol estimator can output → the auto-loss condition is absent. Plus
+breadth (Grinold): N semi-independent per-asset bets vs the single-asset program's breadth≈1.
+This is the one untested Layer-3 door, and NOT a relaundered null (banked nulls are single-asset
+exposure and cross-asset COVARIANCE; this is cross-asset RETURN selection).
+
+**Finding 1 — the market regime is a composite (`rotation_precondition.py`).** Fitting a separate
+K=2 JM label on each asset's own returns (standardized features, common 2001–2026 window, robust
+across λ∈{25..200}): assets sit in MIXED states ~74–80% of days (all-three-same ~23%, all-bear
+~11%). A cross-section to rotate within genuinely exists. Refuge when equity is bear ~61% of
+days, but MODEST and bond-leaning (bond-in-bull lift 1.2–1.4×; gold lift ≈1.0 = independent
+diversifier). Within-equity industries co-move (mean phi +0.44) → rotation must be ACROSS asset
+classes, not sectors.
+
+**Finding 2 — the hedge fingerprint, and bonds are not a reliable hedge in this market
+(`hedge_anatomy.py`, ETF panel 2004–2026, 20 assets, 10 SPY-stress episodes, + a carry lens).**
+Nominal bonds hedged 8/10 episodes but FAILED the two inflation/rates episodes (2022: IEF −10.6,
+TLT −24.0, LQD −12.4, TIP −8.5; 2025 similar) — the v1 stock-bond co-trend finding, live.
+GOLD is the only asset positive in BOTH bond-hedge and bond-fail regimes (+8.1 / +7.3, up 9/10
+episodes). TREND / managed futures (DBMF, KMLM) were the BEST performers in the 2022 bonds-failed
+crisis (+18–20%) AND carry positive — the crisis-alpha class we had omitted. The carry lens is
+decisive: only GOLD (stress +18.3%/yr, carry +9.8%) and TREND pay in stress without bleeding in
+calm. Defensive-equity (USMV), international (EFA), EM (EEM), REIT (VNQ) are all just equity beta
+(high carry, negative stress payoff). BTC is an AMPLIFIER, not a hedge (stress −29.4%, 2022 −58.8%).
+
+**Finding 3 — the feature lens is B, not own-vol regime.** GLD own-downside regime lift 1.05
+(blind to equity stress) yet returns +18.3%/yr during equity bears; DBC lift 1.14 ("own-calm")
+yet −11.7%/yr. Own-vol regime ≠ conditional payoff → any rotation rule must key on conditional
+return / co-movement behavior, not each asset's autonomous downside regime.
+
+**Tool built — the trend sleeve (`build_trend_proxy.py`, GATE PASS).** Managed-futures ETFs are
+too short (DBMF 2019, KMLM 2020) to see 2008, so a transparent TSMOM proxy (Moskowitz–Ooi–Pedersen
+12-month momentum, inverse-vol sized, monthly rebalance, causal, 10-ETF universe with per-market
+availability so the GFC is covered) was built and validated against the live products: **corr
+0.69 vs DBMF** (bar 0.50), corr 0.45 vs KMLM, ann vol 10.2%, +12.8% in the 2022 crisis
+(crisis-alpha independently reproduced), Sharpe 0.62 over 2005–2026. The trend sleeve now has a
+faithful long-history return series.
+
+**Web pressure-test (searched, not from memory).** Inflation-conditional gold hedging and the
+60/20/20-beats-60/40-post-2022 story are mainstream 2025 (LSEG/FTSE Russell, WisdomTree). Trend
+crisis-alpha is real for PROLONGED crises, mixed for equity corrections, with a live "myth or
+reality?" debate — add it as an ingredient, not a hero. "Dynamic regime timing beats static risk
+parity" claims exist but are the soft-baseline genre this program deflates — inadmissible as
+evidence; our own two chapters found the opposite. So the literature raises interest in the
+INGREDIENTS, not confidence in the TIMING.
+
+**The next test (gates everything, not yet run).** Does regime-TIMED rotation beat simply HOLDING
+a static gold+trend+diversified blend, after costs, through 2008/2020/2022? If yes → prereg. If
+B≈A → the honest lesson is "hold a static gold+trend blend" (still deployable, no regime machinery
+needed). The switch signal must be REACTIVE (realized stock-bond correlation), never predictive
+(the stock-bond Stage-1 null). The beta-tilt offense must separately beat vol-targeting (ch.1).
+**Live execution (Alpaca paper) is PARKED by Adam until the full ladder passes.**
+
+---
+
+## 2026-07-23 — V2 CHAPTER 2: state-conditional allocation, NULL — the atlas structure is real but a plain EWMA covariance harvests it better than the state label
 
 Second v2 experiment (frozen prereg `.planning/ALLOCATION-PREREG.md` **Rev 2.1** — Rev 2 from
 the same-day pre-freeze outside audit, Rev 2.1 from synthetic-smoke findings; all design changes
