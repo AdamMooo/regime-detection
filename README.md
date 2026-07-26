@@ -22,7 +22,7 @@ The main issue was that the repository had the pipeline logic, but the README re
 ## Quickstart
 
 ### Prerequisites
-- Python 3.11+
+- Python 3.13 (see `runtime.txt`)
 - Optional: [FRED API key](https://fred.stlouisfed.org/docs/api/api_key.html) for fresh data downloads
 
 ### Setup
@@ -37,10 +37,10 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-If you want to refresh the raw data, create a `.env` file with your FRED key:
+If you want to refresh the raw data, copy the template and add your FRED key:
 
 ```bash
-FRED_API_KEY=your_api_key_here
+cp .env.example .env   # then set FRED_API_KEY
 ```
 
 ### Run the documented commands
