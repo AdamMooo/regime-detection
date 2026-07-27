@@ -1,0 +1,87 @@
+% =====================================================================
+%  Measurement Validity is not Decision Value
+%  A validated market regime instrument and the honest limits of its use
+%
+%  COLLABORATIVE DRAFT.  Read README.md for the editing conventions.
+%  - Blue text = AI-drafted, NOT yet reviewed by Adam. Wrapped in \aidraft{}.
+%    As you rewrite a passage in your own voice, delete the \aidraft{...}
+%    wrapper (keep the text) and it turns black = "approved".
+%  - Flip \reviewtrue -> \reviewfalse below for a clean reading/submission PDF.
+% =====================================================================
+\documentclass[11pt]{article}
+
+% ---- REVIEW TOGGLE ---------------------------------------------------
+% \reviewtrue  : show AI-draft highlighting, margin TODOs, and a checklist page
+% \reviewfalse : clean render (no colors, no todos) for reading / submission
+\newif\ifreview
+\reviewtrue
+% ----------------------------------------------------------------------
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{csquotes}
+\usepackage{graphicx}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=blue!45!black,urlcolor=blue!45!black}
+
+% ---- review tooling --------------------------------------------------
+\definecolor{aidraftcolor}{HTML}{1A56A0}   % AI-draft prose color (blue)
+\ifreview
+  \usepackage[colorinlistoftodos,prependcaption,textsize=footnotesize]{todonotes}
+  \newcommand{\aidraft}[1]{{\color{aidraftcolor}#1}} % unreviewed AI prose
+  \newcommand{\needcite}[1]{\todo[color=orange!55,size=\tiny]{CITE: #1}}
+  \newcommand{\reviewnote}[1]{\todo[color=yellow!75,size=\tiny]{#1}}
+  \newcommand{\stub}[1]{\todo[inline,color=red!25]{STUB / TO WRITE: #1}}
+\else
+  \usepackage[disable]{todonotes}
+  \newcommand{\aidraft}[1]{#1}
+  \newcommand{\needcite}[1]{}
+  \newcommand{\reviewnote}[1]{}
+  \newcommand{\stub}[1]{}
+\fi
+
+% ---- single-sourced frozen numbers (edit once, used everywhere) ------
+\input{numbers}
+
+% ---- metadata --------------------------------------------------------
+\title{Measurement Validity is not Decision Value:\\
+       A Validated Market Regime Instrument and the Honest Limits of Its Use}
+\author{Adam Morris\thanks{Working draft. Not for circulation.}}
+\date{Draft --- \today}
+
+\begin{document}
+\maketitle
+
+\ifreview
+  \begin{center}\small\itshape
+  Review render: blue text is AI-drafted and awaiting your edit; margin notes are action items.
+  Flip \texttt{\textbackslash reviewtrue} to \texttt{\textbackslash reviewfalse} in main.tex for a clean PDF.
+  \end{center}
+  \listoftodos
+  \clearpage
+\fi
+
+\input{sections/00-abstract}
+\input{sections/01-intro}
+\input{sections/02-discipline}
+\input{sections/03-instrument}
+\input{sections/04-race1-exposure}
+\input{sections/05-race2-covariance}
+\input{sections/06-race3-margin}
+\input{sections/07-race4-crossasset}
+\input{sections/08-mechanism}
+\input{sections/09-monitor}
+\input{sections/10-related}
+\input{sections/11-discussion}
+\input{sections/12-reproducibility}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}

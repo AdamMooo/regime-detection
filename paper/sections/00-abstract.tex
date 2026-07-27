@@ -1,0 +1,24 @@
+\begin{abstract}
+\aidraft{%
+We build and validate a market regime-detection instrument --- a two-state statistical jump
+model on return-only downside features --- to an unusual standard, and then map, under strict
+preregistered one-look discipline, exactly where its information is and is not usable for
+decisions.
+As a measurement device the label is exceptional: \stabJM{} agreement under $\pm 2$-year
+training-window perturbation (versus \stabHMM{} for an HMM ensemble), \switchesYr{} switches
+per year, and live operation to the present.
+As a decision input it is dominated at every use we tested by a reactive estimator that never
+names the regime: binary exposure timing loses \feeJMVT{}~bps/yr to volatility targeting;
+covariance conditioning loses \feeBreact{}~bps/yr to a plain EWMA covariance; the filter's own
+confidence margin loses to an EWMA-volatility signal in \dgpCells{} synthetic environments; and
+cross-asset defensive rotation adds no risk-adjusted value beyond exposure, its drawdown
+protection matched by volatility targeting.
+A single mechanism, shown in simulation before any real-data run, unifies the nulls: regime
+value at daily horizons is an information-timing claim, and a causal detector's recognition lag
+lands it precisely where even a perfectly informed oracle loses to an estimator that pays no
+lag toll.
+The instrument-versus-strategy distinction, usually a footnote, is the thesis: measurement
+validity is not decision value, and the applied regime-switching literature's positive claims
+live in the gap between them.%
+}
+\end{abstract}

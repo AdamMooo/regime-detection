@@ -1,0 +1,25 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Race 2 --- conditional allocation: primary and controls. FKO fee, annualized bps/yr,
+$\gamma{=}10$. Source: \texttt{results/allocation\_summary.csv}, \texttt{allocation\_controls.csv}.}
+\label{tab:exp2}
+\begin{tabular}{lr}
+\toprule
+Quantity & Value \\
+\midrule
+fee$_A$(cond $-$ B\_match), full window       & \feeAmatch~\feeAmatchci \\
+fee$_B$(cond $-$ EWMA), from activation       & \feeBreact~\feeBreactci \\
+fee$_A$ / fee$_B$ at $\gamma{=}1$             & $+1.2$ / $+3.2$ \\
+placebo ($n{=}100$): fee$_A$ 5--95th          & $[-0.5,\,+5.8]$ \\
+placebo ($n{=}100$): fee$_B$ 5--95th          & $[-32.7,\,-25.7]$ \\
+episode-shuffle ($n{=}50$): fee$_A$ 5--95th   & $[-1.7,\,+4.9]$ \\
+iid panels ($n{=}20$): fee$_A$ 5--95th        & $[-1.2,\,+0.9]$ \\
+vol-of-vol, cond / B\_match (F2)              & \volofvolCond{} / \volofvolMatch{}~pp \\
+turnover/yr, cond / B\_match / EWMA          & 0.11 / 0.06 / 0.88 \\
+conditioning activation                       & 1994-03-29 \\
+falsifiers F1 / F1b / F2 / F3                  & T / T / F / F \\
+frozen classification                         & NULL \\
+\bottomrule
+\end{tabular}
+\end{table}

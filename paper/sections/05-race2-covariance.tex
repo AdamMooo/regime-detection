@@ -1,0 +1,27 @@
+\section{Race 2 --- conditioning covariance on the label}
+\label{sec:race2}
+
+\aidraft{%
+If timing exposure fails, perhaps the state helps estimate \emph{risk} rather than direction.
+We build a long-only equal-risk-contribution portfolio over equity, ten-year Treasury total return,
+gold, and cash, targeting 8\% volatility (scale-down only), and condition its covariance estimate on
+the frozen state label (hard state, expanding per-state windows, 0.5 shrinkage to unconditional),
+rebalancing monthly and on state flips.
+The matched control is the identical allocator with conditioning removed; the reactive co-primary is
+the same allocator on a plain EWMA covariance ($\lambda{=}0.97$).%
+}
+
+\aidraft{%
+Conditioning adds essentially nothing over its matched twin --- $\feeAmatch$~bps/yr, CI
+$\feeAmatchci$, inside all null bands (Table~\ref{tab:exp2}) --- and loses to the reactive
+incumbent: $\text{fee}_B(\text{cond}-\text{EWMA}) = \feeBreact$~bps/yr, with the EWMA arm the best
+performer outright (Table~\ref{tab:exp2arms}).
+The mechanism the state is supposed to exploit is real but second-best: conditioning does stabilize
+portfolio risk (vol-of-vol $\volofvolCond$ vs $\volofvolMatch$~pp for the matched twin), it is simply
+dominated at the job by an estimator that re-estimates the whole covariance in weeks while the
+expanding per-state estimate drags decades of stale mixture.
+The frozen classification is null.%
+}
+
+\input{tables/tab-exp2}
+\input{tables/tab-exp2-arms}

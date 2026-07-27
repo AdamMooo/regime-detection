@@ -1,0 +1,27 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Race 1 --- exposure overlay on equity: primary and controls. FKO quadratic-utility fee,
+annualized bps/yr, $\gamma{=}10$ unless noted; 90\% CIs from the paired stationary bootstrap
+(mean block 126d, $B{=}2000$). Source: \texttt{results/stage1.csv}.}
+\label{tab:exp1}
+\begin{tabular}{lr}
+\toprule
+Quantity & Value \\
+\midrule
+fee(JM $-$ B\&H), $\gamma{=}10$              & \feeJMBH~\feeJMBHci \\
+fee(JM $-$ VT), $\gamma{=}10$ (honest bar)   & \feeJMVT~\feeJMVTci \\
+fee(JM $-$ B\&H), $\gamma{=}1$               & \feeJMBHgone \\
+fee(JM $-$ exposure-matched static mix)      & \feeStaticMix \\
+same-close (delay $=1$) sensitivity          & $+480.1$ \\
+break-even one-way cost                       & \breakeven~bps \\
+C1 placebo 95th percentile ($n{=}100$)        & $+\placeboOne$ \\
+C2 surrogate band max ($n{=}10$)              & $+1080.0$ \\
+C3 iid band max ($n{=}10$)                    & $+805.3$ \\
+label stability, train-start $+2$y / $-2$y    & \stabJM{} / \stabJM{} \\
+era-half fees 1990--2007 / 2008--2026         & $+237.9$ / $+729.5$ \\
+switches/yr                                    & \switchesYr{} \\
+frozen classification                         & Case B \\
+\bottomrule
+\end{tabular}
+\end{table}

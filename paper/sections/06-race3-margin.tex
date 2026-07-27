@@ -1,0 +1,24 @@
+\section{Race 3 --- the confidence margin as a probability}
+\label{sec:race3}
+
+\aidraft{%
+The filter carries its own confidence: the $\lambda$-normalized gap between the value of the calm and
+stressed states is a natural state-probability signal.
+If that margin is a portable measure of conviction, it should calibrate.
+We test it on an eight-cell synthetic grid (frequency $\times$ persistence $\times$ severity $\times$
+signal-to-noise), fitting a pooled Platt layer on training seeds and scoring per-cell calibration
+(Cox slope and intercept), discrimination (AUC), and Brier score against two benchmarks: climatology
+and a plain log-EWMA-volatility signal.%
+}
+
+\aidraft{%
+The margin is not a portable confidence measure.
+In \dgpCells{} data-generating environments the filter's evidence margin loses to a plain
+log-EWMA-volatility signal on Brier score (by a factor of two to four) and on AUC; per-cell
+calibration slopes scatter across $-0.17$ to $2.05$.
+The classification is robust --- the state assignment itself is reliable --- but its internal margin
+does not transfer as a probability, so the honest decision input is the hard label, not a graded
+confidence.
+The probability layer is killed as a decision input.%
+}
+\reviewnote{Adam: consider a calibration/AUC-across-cells figure here (OUTLINE figure 5).}

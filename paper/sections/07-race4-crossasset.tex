@@ -1,0 +1,35 @@
+\section{Race 4 --- cross-asset defensive rotation}
+\label{sec:race4}
+
+\aidraft{%
+The three preceding races all time a single risk axis, where a volatility target is the obvious
+reactive incumbent.
+A natural objection is that the state's value is cross-sectional: even if it cannot time one asset's
+exposure, per-asset regimes might diverge enough to \emph{rotate} a defensive sleeve --- a quantity no
+single-axis volatility estimator can produce.
+This is the design of the recent allocation literature \citep{shu2025dynamic}, and it is the one
+Layer-3 use whose reactive incumbent is not, a priori, obvious.
+We test it descriptively (no preregistered look was spent; the result closed the direction before one
+was warranted).%
+}
+
+\aidraft{%
+The cross-section exists but the timing does not add value.
+Fitting a separate label per asset, the states genuinely diverge --- assets sit in mixed states on
+${\approx}\,\mixedDays$ of days --- so there is something to rotate within.
+Yet against a static blend that simply \emph{holds} the same diversified sleeve (equity, gold, and a
+time-series-momentum trend proxy validated to \trendProxyCorr{} correlation with a live
+managed-futures fund), regime-timed rotation adds no risk-adjusted value at matched average exposure:
+timed Sharpe \sharpeTimed{} versus static \sharpeStatic{}, with the return difference slightly
+negative after costs.
+Isolating the distinctive cross-asset switch (holding equity exposure constant) leaves the static
+result unchanged.
+The one effect the timing does produce --- roughly halving drawdown --- is the exposure-timing
+mechanism of Race~1, and it too fails the honest control: a volatility target at matched average
+exposure equals or beats the timed strategy on Sharpe, drawdown, and crisis-period protection alike
+(matched-exposure VT Sharpe \sharpeVT{}).
+Cross-sectional selection changes the quantity being estimated, but not the verdict.%
+}
+\reviewnote{Adam: this is the fresh section --- the numbers are descriptive/in-sample (2007--2026,
+one path). Frame it as a fourth dominated use, not a preregistered chapter. Scripts removed but
+reproducible at git d022c09; findings in RESEARCH-RECORD 2026-07-26.}

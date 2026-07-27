@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Race 2 --- arm summary over the scored window. The reactive EWMA arm is the best performer;
+buy-and-hold equity is shown for exposure context. Source: \texttt{results/allocation\_arms.csv}.}
+\label{tab:exp2arms}
+\begin{tabular}{lrrrr}
+\toprule
+Arm & Ann.\ return & Ann.\ vol & Sharpe & MaxDD \\
+\midrule
+Conditional ERC              & 8.34\% & 6.88\%  & 0.826 & $-18.3\%$ \\
+B\_match (uncond.\ expanding) & 8.33\% & 6.90\%  & 0.822 & $-18.3\%$ \\
+B\_react (EWMA $\lambda{=}0.97$) & 8.28\% & 6.40\% & \textbf{0.878} & $-16.2\%$ \\
+60/40                        & 9.44\% & 10.68\% & 0.634 & $-30.8\%$ \\
+VT equity                    & 8.37\% & 10.04\% & 0.568 & $-26.4\%$ \\
+B\&H equity                  & 12.30\% & 18.10\% & 0.533 & $-54.6\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
