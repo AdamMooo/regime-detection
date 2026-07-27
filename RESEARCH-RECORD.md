@@ -86,7 +86,9 @@ parity" claims exist but are the soft-baseline genre this program deflates — i
 evidence; our own two chapters found the opposite. So the literature raises interest in the
 INGREDIENTS, not confidence in the TIMING.
 
-**THE GO/NO-GO TEST — RESOLVED SAME DAY: NULL (`rotation_gonogo.py` / `_sweep.py` / `_deflate.py`).**
+**THE GO/NO-GO TEST — RESOLVED SAME DAY: NULL** (backtest scripts `rotation_gonogo/sweep/deflate.py`
+removed from the tree 2026-07-26 per Adam — the algo direction is closed; reproducible in git at
+commit `d022c09`; the descriptive probes + trend-proxy tool + ETF data were kept for non-algo use).
 Regime-timed rotation vs a static gold+trend+equity blend, 2007–2026, after costs, frozen causal
 JM label for risk-on/off, reactive realized-corr for the bonds↔trend switch. Findings, in order of
 how decisively they close the door:
