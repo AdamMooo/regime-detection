@@ -4,8 +4,8 @@ project: regime-detection
 created: 2026-07-21
 last_updated: 2026-07-26
 status: v1 CONVERGED (five nulls, sealed at v1-convergence). v2 Chapter 1 (2026-07-23): Case B — beat-B&H claim is an exposure artifact; VT dominates; the JM label is an exceptional instrument (stability 1.00). v2 Chapter 2 (2026-07-23): NULL — state-conditional covariance adds no allocation value (fee_A +2.8 inside all bands) and a reactive EWMA covariance beats it outright (fee_B −29.1); risk-stabilization mechanism exists (F2 clear) but reactive estimation harvests it better. 2026-07-26: Path-B cross-asset defensive-rotation candidate — go/no-go RESOLVED NULL (timing adds no return/Sharpe beyond exposure; a matched vol-target matches/beats its drawdown protection — ch.1 reconfirmed 3rd time). CLOSED. Durable survivors: composite-regime + hedge-fingerprint descriptive facts, validated trend proxy (corr 0.69 vs DBMF), and a 4th dominated-use for the paper. Descriptive/no look throughout
-detailed_audit: .planning/RESEARCH-AUDIT.md (full 25-section research audit — retained as evidence)
-code_review: .planning/DEEP-REVIEW.md (code-level causality review, 5 fixed bugs)
+detailed_audit: archive/research-v1/RESEARCH-AUDIT.md (v1 25-section audit — archived 2026-07-26)
+code_review: archive/research-v1/DEEP-REVIEW.md (v1 code-level causality review — archived 2026-07-26)
 ---
 
 # Research Record — Regime-Detection HDP-HMM

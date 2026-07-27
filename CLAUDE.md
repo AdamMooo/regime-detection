@@ -25,10 +25,13 @@ Core pipeline:
   optional evidence-margin output); used byte-identically by synthetic and real runs
 - `backtest.py` — strategy construction (delay/costs), VT/SMA/B&H baselines, FKO fee,
   paired stationary bootstrap
-- `build_panel.py` / `build_assets.py` — French daily panel + SPY cross-check + gates
-  → `data/processed/market_daily.csv`, `assets_daily.csv`
+- `build_panel.py` / `build_assets.py` / `build_dispersion.py` — French daily panel + SPY
+  cross-check + multi-asset panel + realized cross-sectional dispersion (Sensor v3 tier-1, 1926+)
+  → `data/processed/market_daily.csv`, `assets_daily.csv`, `dispersion_daily.csv`
 - `run_backtest.py` / `run_allocation.py` + `allocation.py` — the chapter-1/2 preregistered
-  batteries (one-looks SPENT) → frozen `results/` evidence
+  batteries (one-looks SPENT) → frozen `results/` evidence. `run_backtest.py` also holds the
+  shared run constants (START/DELAY/LAMBDA_GRID/REFIT/…) imported by build_report/explore_k3/live_label
+- `run_exposure.py` — chapter-3 graded-exposure runner (one-look PARKED, not spent; 28/28 tests)
 - `synthetic_validation.py` — capability battery on simulated panels (known truth)
 - `live_label.py` — SPY-splice live tail; label to today
 - `build_report.py` — regenerates `results/report.html` (living program report)
@@ -53,7 +56,8 @@ kept for NON-algo use — regime/asset characterization and reusable data:
 - `build_trend_proxy.py` — TSMOM (Moskowitz–Ooi–Pedersen) trend proxy tool, GATED vs DBMF/KMLM
   (corr 0.69) → `data/processed/trend_proxy_daily.csv`, `results/trend_proxy_gate.csv`
 
-Tests: `tests/test_jumpmodel.py`, `tests/test_backtest.py`. venv: `.venv` (numpy/pandas stack;
+Tests: `tests/test_jumpmodel.py` (+ walkforward, run_exposure), `tests/test_backtest.py`,
+`tests/test_allocation.py`. venv: `.venv` (numpy/pandas stack;
 requirements.txt is the slim jump-model set — the v1 JAX/NumPyro stack was retired 2026-07-23).
 
 ## Frozen vs Archived

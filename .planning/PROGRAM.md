@@ -1,6 +1,7 @@
 # Regime Program — Goal & Roadmap
 
-Last updated: 2026-07-23 (evening restatement, Adam-approved). Forward-looking program
+Last updated: 2026-07-26 (Path-B closed null; detection-not-trading identity re-confirmed).
+Forward-looking program
 doc. Receipts: `V2-JUMPMODEL-PREREG.md` (frozen, ch1) + chapter-2 allocation prereg +
 `CH3-EXPOSURE-PREREG.md` (draft Rev 3) + `CH3-D2-MEMO.md` + `MONITOR-VALIDATION-SPEC.md`
 + `RESEARCH-RECORD.md` (newest-first narrative).
@@ -185,8 +186,13 @@ records the design so it is ready if he rules to spend a look.
   K=3 probe DONE (severity, not phase; stability 1.000). Episode anatomy DONE
   (phase structure real; ex-post rebound premium collapses under causal conditioning;
   age = the surviving causal coordinate, unvalidated).
-- Ch3: draft Rev 3, D2 = registered null (Adam ruling), awaiting smoke + sign-off.
-- Monitor: validation spec frozen; gate unbuilt.
+- Ch3: draft Rev 3, runner built + 28/28 tests, but one-look **PARKED (2026-07-24 tool-first
+  pivot), NOT spent** — reserved for a post-Sensor-v3 instrument.
+- Path-B cross-asset rotation: **CLOSED NULL 2026-07-26** (timing = beta + VT-replicable drawdown).
+- Monitor: validation spec frozen; gate unbuilt (live Track C).
+- Program identity re-confirmed 2026-07-26: DETECTION/measurement + paper, NOT trading. Layer-3
+  (economic/algo) closed as null 3+ times; reopens only with genuinely NEW orthogonal information
+  (VIX/implied-vol is a KILLED axis — do not re-propose; RESEARCH-RECORD "regimes are vol regimes").
 
 ---
 <!-- LINKS:AUTO -->

@@ -1,5 +1,12 @@
 # V2 Plan — Statistical Jump Model Under V1 Discipline (DRAFT)
 
+> **STALE FRAMING (banner added 2026-07-26).** This doc predates key rulings and its mission
+> framing is superseded: the "HDP-HMM ensemble incumbent" and the "Portfolio-Manager consumes
+> the label" goal were both RETIRED 2026-07-23 (nothing consumed the label; PM integration was
+> notes-only). The live forward roadmap is `PROGRAM.md` (three-layer program; detection + paper,
+> not trading). Retained here only for the Phase-4 track descriptions that NOTES still references.
+> Cites pre-rename `v2_*` filenames (mapping in `results/README.md`).
+
 Status: Phases 0-1 EXECUTED 2026-07-22 (see "Execution status" at bottom). Phase 2 freeze
 BLOCKED on a design decision (see prereg banner). Created: 2026-07-22. Origin: outward-facing
 methodology sweep (3-agent survey of academic SOTA, practitioner systems, data/stats standards)
