@@ -31,11 +31,23 @@ memory `cross-sectional-rotation-candidate.md`. All work descriptive/look-free.
   mainstream 2025; trend crisis-alpha real for prolonged crises; "dynamic beats static" claims
   exist but are the soft-baseline genre we deflate — inadmissible.
 
-**NEXT ACTION:** the go/no-go backtest — Portfolio A (static enhanced-60/20/20 hold) vs
-Portfolio B (regime-timed: JM risk-on/off × realized-corr bonds↔trend switch, gold core)
-through 2008/2020/2022 after costs. B beats A robustly → prereg; B≈A → "just hold gold+trend"
-(useful null). Reactive switch only (no corr prediction — Stage-1 null). Beta-tilt offense
-must beat VT separately. NOT committed to git yet (awaiting Adam's go).
+- **Go/no-go backtest — RESOLVED NULL (`rotation_gonogo/sweep/deflate.py`).** Regime-timing
+  adds no return/Sharpe beyond exposure (pure beta ladder); the bonds↔trend switch adds nothing;
+  and a matched-exposure vol-target MATCHES/BEATS the JM on Sharpe, drawdown AND GFC protection —
+  ch.1 reconfirmed a 3rd time on the hardest test. Direction CLOSED. No weight-optimization
+  (in-sample overfit, forbidden). Committed + pushed.
+
+**SURVIVORS (focus here, waste no more time on the timing null):**
+1. Descriptive facts (hypothesis-generating, in RESEARCH-RECORD): composite regime; bonds fail
+   in inflation; gold=both-regime hedge, trend=crisis-alpha+carry; defensive-equity/intl/EM/REIT/
+   crypto are just beta; feature lens B.
+2. Tool: the validated trend proxy (`build_trend_proxy.py`, corr 0.69 vs DBMF).
+3. Paper: a 4th dominated-use race (cross-asset timing loses to VT at every exposure) —
+   the cleanest demonstration yet of measurement validity ≠ decision value.
+
+**NEXT ACTION (this week = the paper):** fold the cross-asset null into `paper/OUTLINE.md` as
+Race 4; complete the §§1–7 SSRN-preprint core (draft §1 vs Shu–Yu–Mulvey, §3 instrument, §8
+monitor); export figures. Instrument-first framing. See weekly goal in the daily note.
 
 ## Current state (2026-07-23, post-cleanup)
 

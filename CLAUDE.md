@@ -52,6 +52,10 @@ candidate section; pre-prereg, descriptive only):
 - `build_trend_proxy.py` — TSMOM (Moskowitz–Ooi–Pedersen) trend/managed-futures proxy from
   long-history ETFs, GATED on corr vs DBMF/KMLM (PASS: corr 0.69, 2005+, ~10% vol, +12.8%/2022)
   → `data/processed/trend_proxy_daily.csv`, `results/trend_proxy_gate.csv`
+- `rotation_gonogo.py` / `rotation_sweep.py` / `rotation_deflate.py` — the go/no-go backtest that
+  CLOSED the candidate NULL (2026-07-26): static blend vs regime-timed, equity-tilt sweep, and the
+  decisive VT/naive-core deflators. Timing = beta + VT-replicable drawdown (ch.1, 3rd reconfirm).
+  → `results/rotation_{gonogo,sweep,deflate}.csv`. Kept as the null's reproduction path.
 
 Tests: `tests/test_jumpmodel.py`, `tests/test_backtest.py`. venv: `.venv` (numpy/pandas stack;
 requirements.txt is the slim jump-model set — the v1 JAX/NumPyro stack was retired 2026-07-23).

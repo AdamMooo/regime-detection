@@ -56,7 +56,19 @@ program stopped conflating them on 2026-07-23.
 - **EXCLUDED — factor selection / sector rotation / cross-asset menus:** preregistered
   out of chapter 3 (§10); any revival is a new prereg and a new look.
 
-## Candidate — cross-sectional defensive rotation (Path B, Adam 2026-07-26, NOT launched)
+## Candidate — cross-sectional defensive rotation (Path B, Adam 2026-07-26) — CLOSED NULL 2026-07-26
+
+**RESOLVED SAME DAY: NULL.** The go/no-go backtest (`rotation_gonogo.py` / `_sweep.py` /
+`_deflate.py`) found: (1) the bonds↔trend switch — the distinctive idea — adds nothing (Sharpe
+0.72 vs static 0.70, maxDD −27.0 vs −27.5); (2) at matched equity, timing adds zero return/Sharpe
+(pure beta ladder); (3) the decisive control — a matched-exposure vol-target MATCHES/BEATS the JM
+on Sharpe, drawdown, and GFC protection → the "protection" is just VT (ch.1, 3rd reconfirmation);
+(4) protection survives a boring bonds/cash core, so the null is about timing, not the hedge pick.
+No weight-optimization run (in-sample overfitting, forbidden). **Direction CLOSED.** Survivors:
+the descriptive hedge facts (below), the trend proxy tool, and a 4th dominated-use for the paper.
+Live execution correctly never reached.
+
+--- retained below: original candidate design + descriptive findings (pre-null, for the record) ---
 
 Prompted by Shu–Yu–Mulvey 2025 (Annals of OR, arXiv:2406.09578) — but a deliberate move
 AWAY from their design, not toward it. Status: GATED CANDIDATE. No look spent, no prereg

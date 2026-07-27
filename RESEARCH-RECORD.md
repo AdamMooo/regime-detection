@@ -3,7 +3,7 @@ type: research-record
 project: regime-detection
 created: 2026-07-21
 last_updated: 2026-07-26
-status: v1 CONVERGED (five nulls, sealed at v1-convergence). v2 Chapter 1 (2026-07-23): Case B — beat-B&H claim is an exposure artifact; VT dominates; the JM label is an exceptional instrument (stability 1.00). v2 Chapter 2 (2026-07-23): NULL — state-conditional covariance adds no allocation value (fee_A +2.8 inside all bands) and a reactive EWMA covariance beats it outright (fee_B −29.1); risk-stabilization mechanism exists (F2 clear) but reactive estimation harvests it better. 2026-07-26: Path-B cross-asset defensive-rotation candidate opened — DESCRIPTIVE hypotheses only (no look, no prereg): per-asset regimes diverge; gold=both-regime hedge, trend=crisis-alpha, bonds fail in inflation; feature lens B; trend proxy gated (corr 0.69 vs DBMF). Awaiting the go/no-go backtest
+status: v1 CONVERGED (five nulls, sealed at v1-convergence). v2 Chapter 1 (2026-07-23): Case B — beat-B&H claim is an exposure artifact; VT dominates; the JM label is an exceptional instrument (stability 1.00). v2 Chapter 2 (2026-07-23): NULL — state-conditional covariance adds no allocation value (fee_A +2.8 inside all bands) and a reactive EWMA covariance beats it outright (fee_B −29.1); risk-stabilization mechanism exists (F2 clear) but reactive estimation harvests it better. 2026-07-26: Path-B cross-asset defensive-rotation candidate — go/no-go RESOLVED NULL (timing adds no return/Sharpe beyond exposure; a matched vol-target matches/beats its drawdown protection — ch.1 reconfirmed 3rd time). CLOSED. Durable survivors: composite-regime + hedge-fingerprint descriptive facts, validated trend proxy (corr 0.69 vs DBMF), and a 4th dominated-use for the paper. Descriptive/no look throughout
 detailed_audit: .planning/RESEARCH-AUDIT.md (full 25-section research audit — retained as evidence)
 code_review: .planning/DEEP-REVIEW.md (code-level causality review, 5 fixed bugs)
 ---
@@ -23,7 +23,7 @@ the full version is in `RESEARCH-AUDIT.md`. Nothing from the audit has been disc
 
 ---
 
-## 2026-07-26 (latest) — PATH-B: cross-asset defensive rotation — DESCRIPTIVE foundation (no look, no prereg; hypotheses awaiting the go/no-go test)
+## 2026-07-26 (latest) — PATH-B: cross-asset defensive rotation — NULL (timing = beta + VT-replicable drawdown; descriptive hedge facts + trend-proxy tool survive)
 
 **Status discipline first: everything in this entry is DESCRIPTIVE and UNVALIDATED** —
 hypothesis-generating exploration for a candidate, not a preregistered one-look chapter. No
@@ -86,12 +86,28 @@ parity" claims exist but are the soft-baseline genre this program deflates — i
 evidence; our own two chapters found the opposite. So the literature raises interest in the
 INGREDIENTS, not confidence in the TIMING.
 
-**The next test (gates everything, not yet run).** Does regime-TIMED rotation beat simply HOLDING
-a static gold+trend+diversified blend, after costs, through 2008/2020/2022? If yes → prereg. If
-B≈A → the honest lesson is "hold a static gold+trend blend" (still deployable, no regime machinery
-needed). The switch signal must be REACTIVE (realized stock-bond correlation), never predictive
-(the stock-bond Stage-1 null). The beta-tilt offense must separately beat vol-targeting (ch.1).
-**Live execution (Alpaca paper) is PARKED by Adam until the full ladder passes.**
+**THE GO/NO-GO TEST — RESOLVED SAME DAY: NULL (`rotation_gonogo.py` / `_sweep.py` / `_deflate.py`).**
+Regime-timed rotation vs a static gold+trend+equity blend, 2007–2026, after costs, frozen causal
+JM label for risk-on/off, reactive realized-corr for the bonds↔trend switch. Findings, in order of
+how decisively they close the door:
+- The bonds↔trend switch (the distinctive Path-B idea) adds NOTHING: isolating it (equity held
+  constant) gives Sharpe 0.72 vs static 0.70 and maxDD −27.0% vs −27.5% — indistinguishable.
+- At matched average equity, timing adds ZERO return/Sharpe (ΔSharpe +0.00..+0.03, ΔRet −0.1..−0.3%
+  after costs). The return ladder is pure beta: equity 47%→82% lifts return 9.1%→10.5% while Sharpe
+  FALLS 0.69→0.60. "More return" = "hold more equity," full stop.
+- Timing DID cut drawdown ~8–20pp vs matched static — but the decisive control kills it: a plain
+  vol-target at MATCHED exposure MATCHES OR BEATS the JM label on Sharpe AND drawdown AND GFC
+  protection (VT@68% eq: Sharpe 0.66 / maxDD −22.0% / GFC −8.1% vs JM@73%: 0.62 / −21.4% / −10.6%).
+  The JM's protection is not unique — it is vol-targeting, and VT does it cleaner. Chapter-1
+  mechanism reconfirmed for the THIRD time, now on the hardest test (cross-asset, every exposure).
+- Contamination check (honest): the protection is NOT the hindsight gold/trend pick — it survives a
+  plain bonds or cash defensive core (−20.0% / −22.6%). So the null is about TIMING, robustly.
+**Verdict: cross-asset regime TIMING adds no value beyond exposure + a VT-replicable drawdown
+effect. Direction CLOSED. No weight-optimization run (would be in-sample overfitting — forbidden).**
+What SURVIVES as durable value: (1) the composite-regime and hedge-fingerprint DESCRIPTIVE facts
+above; (2) the validated trend proxy tool; (3) the cleanest paper demonstration yet of measurement
+validity ≠ decision value — a 4th dominated use, tested with a matched VT control at every exposure.
+Live execution never reached (correctly parked). Next: fold this null into the paper as Race 4.
 
 ---
 

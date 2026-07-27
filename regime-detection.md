@@ -54,14 +54,16 @@ rotation — the one Layer-3 door where the auto-loss-to-reactive condition is a
 per-asset regimes diverge (mixed ~76% of days); **bonds aren't a reliable hedge in this market
 (failed 2022/2025)** — confirmed; **gold = only both-regime hedge, trend = best in the
 bonds-failed crisis + positive carry, BTC = amplifier not hedge**; feature lens = conditional
-return (B), not own-vol. Trend proxy GATE PASS (corr vs DBMF 0.69). Next = static-vs-timed
-go/no-go backtest. Not committed yet.
+return (B), not own-vol. Trend proxy GATE PASS (corr vs DBMF 0.69). **Go/no-go backtest → NULL:
+timing adds no return/Sharpe beyond exposure, and a matched vol-target matches/beats its drawdown
+protection (ch.1, 3rd reconfirm). Direction CLOSED.** Survivors: the descriptive hedge facts, the
+trend-proxy tool, and a 4th dominated-use race for the paper. All committed + pushed.
 
 ## Next
 
-Immediate (Path-B candidate, look-free): the static-hold vs regime-timed **go/no-go backtest**
-(Portfolio A enhanced-60/20/20 vs Portfolio B regime-timed, through 2008/2020/2022, after
-costs) → prereg only if timing robustly beats static hold. Then, the standing three tool streams:
+**This week = the paper** (Path-B closed null; the paper is the deliverable). Fold the cross-asset
+null in as a 4th dominated-use race; complete the §§1–7 SSRN-preprint core; export figures. Then
+the standing tool streams:
 1. **Paper (instrument-first)** — fill §1's Shu–Yu–Mulvey quotes, draft §8 (monitor),
    export figures → completes the §§1–7 SSRN-preprint core.
 2. **Sensor v3 — make it better** — tier-1 dispersion done; decide tier-2 (VIX/VRP via
