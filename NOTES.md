@@ -98,10 +98,15 @@ mixing calendar-day/trading-day units in the first draft, fixed). `results/regim
 now generates correctly (`CALM`, 95d in, 53rd percentile of 30 completed episodes). Verified:
 suite green (19/19), `regime_signal.py` runs clean.
 
-Next: add `.github/workflows/weekly-regime-card.yml` to this repo (weekly cron) running
-`live_label.py` → `regime_signal.py` → commit `results/label_live.csv` + `regime_card.json` back
-to main. Then hand off to portfolio-manager: fetch helper (HTTPS + PAT, private repo) + daily
-one-liner in `daily_report.py` + new `weekly_regime_brief.py`.
+Done: `.github/workflows/weekly-regime-card.yml` added (Monday 10:00 UTC, ahead of
+portfolio-manager's 11:30 UTC daily brief) — runs `live_label.py` → `regime_signal.py`, commits
+`results/label_live.csv` + `regime_card.json` back to main if changed. No secrets needed (SPY
+pull is public via yfinance; base panel already tracked). Not yet verified by an actual scheduled
+or manual (`workflow_dispatch`) firing — worth a manual trigger once pushed.
+
+Next: switch to portfolio-manager repo — fetch helper (HTTPS + PAT, private repo) + daily
+one-liner in `daily_report.py` + new `weekly_regime_brief.py`. Needs a PAT (repo secret) with
+read access to `AdamMooo/regime-detection` — Adam to generate.
 
 Then: still this week, the paper (SSRN preprint core) — fold the Path-B null into
 `paper/OUTLINE.md` as **Race 4** (cross-asset timing loses to VT at every exposure); complete the
