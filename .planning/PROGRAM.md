@@ -51,7 +51,11 @@ program stopped conflating them on 2026-07-23.
   beyond a matched vol threshold (instrument finding, recorded). Re-entry: a named
   consumer for a severity dial.
 - **PARKED — asymmetric-λ, λ lag-vs-whipsaw frontier:** re-entry: something
-  downstream needs sensor speed (nothing currently does).
+  downstream needs sensor speed (nothing currently does). Reconsidered 2026-07-27
+  (the portfolio-manager positioning emails are now a real downstream consumer,
+  arguably satisfying the re-entry condition) — Adam's call: **stay parked**, keep
+  disclosing the lag honestly (C7) rather than trade away stability for speed.
+  Re-raise only if a real decision is blocked on faster entries specifically.
 - **PARKED — atlas pages in report.html:** folded into the monitor UI when Track C
   reaches presentation.
 - **EXCLUDED — factor selection / sector rotation / cross-asset menus:** preregistered
