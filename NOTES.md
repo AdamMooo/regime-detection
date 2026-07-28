@@ -89,12 +89,19 @@ auto-loss-to-reactive condition seemed absent). Explored descriptively, then tes
 5. **Check the record/web before proposing** (added 2026-07-26 — I re-proposed a killed axis
    from memory; grep RESEARCH-RECORD/notes and cite evidence first).
 
-## Next action — finish `persistence_gauge()` in `scripts/regime_signal.py`
+## Next action — build the weekly GH Actions producer workflow in this repo
 
-Unblocks `results/regime_card.json`, which is the data contract the portfolio-manager weekly
-email (see current-state above) is waiting on. Learning-mode walkthrough: Markov expected-dwell
-+ half-life from `p_stay`, empirical median/percentile-position from the dwell-length samples.
-Commit `regime_signal.py` + `run_config.py` once verified (both currently uncommitted).
+`persistence_gauge()` is done (2026-07-27): Markov expected-dwell (`1/(1-p_stay)`) + half-life
+(`ln(0.5)/ln(p_stay)`), empirical median/n/percentile-position from completed dwell episodes
+(current still-open run excluded from its own comparison set — was double-counting itself and
+mixing calendar-day/trading-day units in the first draft, fixed). `results/regime_card.json`
+now generates correctly (`CALM`, 95d in, 53rd percentile of 30 completed episodes). Verified:
+suite green (19/19), `regime_signal.py` runs clean.
+
+Next: add `.github/workflows/weekly-regime-card.yml` to this repo (weekly cron) running
+`live_label.py` → `regime_signal.py` → commit `results/label_live.csv` + `regime_card.json` back
+to main. Then hand off to portfolio-manager: fetch helper (HTTPS + PAT, private repo) + daily
+one-liner in `daily_report.py` + new `weekly_regime_brief.py`.
 
 Then: still this week, the paper (SSRN preprint core) — fold the Path-B null into
 `paper/OUTLINE.md` as **Race 4** (cross-asset timing loses to VT at every exposure); complete the
