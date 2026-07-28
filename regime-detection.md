@@ -12,6 +12,23 @@ backtest.
 
 ## Status
 
+**2026-07-27 — repo refocused to instrument+paper+live-feed only; regime_card.json now feeds
+portfolio-manager (daily one-liner + weekly deep-dive email).** Removed the closed-chapter
+battery runners (`run_backtest.py`/`run_allocation.py`/`allocation.py` — one-looks spent,
+reproducible at commit `51fbeff`); extracted the constants the live pipeline still needs into
+`scripts/run_config.py`. Finished `regime_signal.py`'s `persistence_gauge()` (Markov expected
+dwell/half-life + empirical position vs history) and added a weekly GH Action
+(`weekly-regime-card.yml`, verified live) that regenerates and commits `regime_card.json`.
+Enriched the card same day (prompted by "what's still missing"): `health` (today's live-splice
+correlation/pass-fail, the earliest warning of a bad reading), `skill` (the real bear-catch
+track record — 15/18 at 20d lag, 9/11 at 56d lag — vs `validate_sensor.py`), and `history`
+(trailing 24-month state timeline for a sparkline). portfolio-manager consumes all three via
+`src/regime.py`; vol-diagnostics is explicitly NOT a consumer (stays a separate showcase
+project). Considered reopening the parked asymmetric-λ/K=3-severity speed work now that a real
+downstream consumer exists — Adam's call: **stay parked**, the lag is an honest, disclosed
+tradeoff (monitor spec C7), not a bug to chase. Only remaining step: Adam creates
+`REGIME_REPO_PAT` so the emails actually populate.
+
 **2026-07-23 — Chapters 1 AND 2 CLOSED same day; program direction decided: the paper.**
 Chapter 1 (Case B): the "regime switching beats buy-and-hold" claim is an exposure artifact
 (fee +488 bps inside every null band); **vol targeting dominates the overlay** (−256 bps, CI
@@ -87,6 +104,7 @@ Deprioritized (Layer-3 economic): ch3 closure, ch4/M2 age screens. Parked/killed
   splice must be refreshed when displaying a current state (monitor claim C0).
 - Chapter-3 prereg has one recorded defect (§10a): the M3 phase-separation criterion was
   frozen qualitatively — resolved by Adam's explicit ruling, kept on record for referees.
-- HDP pipeline fully retired 2026-07-23 (its label was never consumed by anything — the
-  Portfolio-Manager integration was only an idea in notes). Recoverable in git history if ever
-  needed.
+- HDP pipeline fully retired 2026-07-23 (its label was never consumed by anything). Recoverable
+  in git history if ever needed. The jump-model label's Portfolio-Manager integration is real now
+  (2026-07-27, `results/regime_card.json` → `src/regime.py` there) — blocked only on the
+  `REGIME_REPO_PAT` secret.
