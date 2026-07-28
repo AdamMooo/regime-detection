@@ -8,7 +8,29 @@ trading.** Branch: main | Last updated: 2026-07-27
 (newest-first). Forward roadmap + parked/killed ledger in `.planning/PROGRAM.md`. This file =
 current state + next action only. Full session-by-session history is in git + RESEARCH-RECORD.*
 
-## Current state (2026-07-27) — repo refocused to instrument+paper only; algo-battery scripts removed
+## Current state (2026-07-28) — dispersion 4th-feature lag probe: candidate lead, needs intl confirmation
+
+Built two new descriptive/data tools + lag probes this session (`build_credit.py` +
+`explore_credit_feature.py`; `explore_dispersion_feature.py` reuses `build_dispersion.py`'s
+existing `csd_ew10`). Both probes compare a BASE JM (dd10/sortino20/sortino60) against
+BASE+4th-feature on detection lag, coverage, stability, switches/yr. Runs got killed mid-execution
+once (agent closed) and were cleanly rerun to completion — no corruption, just restarted.
+
+- **Credit** (`scripts/build_credit.py`, Moody's Baa-Aaa via FRED, gate PASS; `explore_credit_feature.py`
+  → `results/explore_credit_feature.csv`): **negative**. Adding credit_ew10 made LT20 lag *worse*
+  (52d → 106d, +54d), fewer bears detected (6/6 → 4/6), fewer switches/yr. Credit spread as a 4th
+  feature does not help this instrument.
+- **Dispersion** (`scripts/build_dispersion.py` realized cross-sectional dispersion, `csd_ew10`;
+  `explore_dispersion_feature.py` → `results/explore_dispersion_feature.csv`): **candidate lead**.
+  LT20 median lag dropped 56d → 16d (**−40 days**), more bears caught (9/11 → 10/11, LT15 15/18 →
+  17/18), recall 0.56 → 0.79, stability held at 1.000, switches/yr didn't blow up (1.66 → 1.13).
+  Script's own read: "a real lead candidate... CONTAMINATED (US panel) — needs international
+  confirmation before any SUPPORT claim. No economic claim, no look spent."
+- **Discipline note:** per the out-of-hypothesis-sample rule (`CLAUDE.md`), this is a US-panel
+  descriptive finding only — it must confirm on French/MSCI developed-market daily panels (Japan,
+  Germany, UK) before any SUPPORT claim or paper mention beyond "candidate under investigation."
+
+## Prior state (2026-07-27) — repo refocused to instrument+paper only; algo-battery scripts removed
 
 Decision: this repo stays regime DETECTION + PAPER + the live instrument feed for
 portfolio-manager — never an algo-backtest program again. Chapters 1/2 are closed and their
@@ -114,22 +136,27 @@ synced. Both repos' working trees are clean and fully pushed (verified 2026-07-2
 
 ## Next action(s) — in order
 
-1. **[Adam, blocking] Create `REGIME_REPO_PAT`** — fine-grained PAT, read-only,
+1. **International confirmation for the dispersion lead** — the −40d lag drop
+   (`results/explore_dispersion_feature.csv`) is a candidate, not a finding, until it holds on a
+   non-US panel (French/MSCI developed markets — Japan, Germany, UK). Build the equivalent
+   cross-sectional dispersion feature on one of those panels and rerun the same lag-probe
+   methodology before any SUPPORT claim or paper mention.
+2. **[Adam, blocking] Create `REGIME_REPO_PAT`** — fine-grained PAT, read-only,
    `contents:read` scope on `AdamMooo/regime-detection` only
    (`https://github.com/settings/personal-access-tokens/new`). Add via
    `gh secret set REGIME_REPO_PAT --repo AdamMooo/portfolio-manager` + the same value in
    portfolio-manager's local `.env`. Until this exists both regime email sections silently
    omit themselves — confirmed safe, not a crash.
-2. **Once the PAT is live:** watch the next real daily brief + the next Monday's weekly brief
+3. **Once the PAT is live:** watch the next real daily brief + the next Monday's weekly brief
    land — confirm the sparkline/track-record/health rows read cleanly on iPhone Mail (same
    check already pending from the original Market Brief rollout, now extended to the regime
    sections).
-3. **Resume the paper (this integration was a detour from "this week = the paper").** Fold the
+4. **Resume the paper (this integration was a detour from "this week = the paper").** Fold the
    Path-B null into `paper/OUTLINE.md` as **Race 4** (cross-asset timing loses to VT at every
    exposure); complete the §§1–7 core — draft §1 (vs Shu–Yu–Mulvey), §3 (the instrument, incl.
    the stability-stress-test to-do), §8 (monitor); exact-numbers appendix; export figures.
    Instrument-first framing. **No new experiments, no live/Alpaca, no reopening closed nulls.**
-4. **(Optional, low priority)** Decide whether the Artifact preview (today's build, static
+5. **(Optional, low priority)** Decide whether the Artifact preview (today's build, static
    snapshot) should become a genuinely live-updating page — would need a safe no-PAT
    read path (a public mirror of the non-sensitive card fields), since embedding the PAT
    client-side would expose it. Not started; fine to leave as a manual on-request refresh.

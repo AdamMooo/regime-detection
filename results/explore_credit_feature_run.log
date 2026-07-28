@@ -1,0 +1,22 @@
+panel 1986-01-02..2026-05-29 n=10180 | 4th feature = credit_ew10
+[1/4] BASE pass (dd10, sortino20, sortino60)...
+      done (8.0 min). lam_path=[400.0, 400.0, 25.0, 200.0, 200.0, 100.0, 100.0, 100.0, 50.0, 100.0, 100.0, 100.0, 25.0, 100.0, 100.0, 50.0, 800.0, 50.0, 100.0, 100.0, 100.0]
+[2/4] +CRED pass (BASE + credit)...
+      done (19.3 min). lam_path=[400.0, 400.0, 100.0, 100.0, 400.0, 200.0, 400.0, 200.0, 200.0, 200.0, 50.0, 400.0, 800.0, 800.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0]
+[3/4] stability (±2y train-start shifts)...
+
+================================================================================================
+CREDIT-FEATURE LAG PROBE (Baa-Aaa, 1986+) — does a 4th credit feature cut detection lag?
+================================================================================================
+BASE       | LT20 lag    52d cov 0.59 det 6/6 prec 0.29 rec 0.52 | LT15 lag    39d det 11/11 | switches/yr 1.19 | stability 1.000
++CRED      | LT20 lag   106d cov 0.45 det 4/6 prec 0.39 rec 0.58 | LT15 lag    62d det 8/11 | switches/yr 0.79 | stability 1.000
+
+BASE vs +CRED label agreement: 0.8986 on 5077 joint OOS days
+BASE(1986) vs FROZEN(1970) agreement on overlap: 0.9094 (sanity; expect high, not 1.000 — different train start)
+
+LT20 median-lag change (+CRED - BASE): +54 days   (negative = credit detects bears EARLIER)
+READ: lag drop + stability ~unchanged + switches/yr not blown up = a real lead.
+      CONTAMINATED (US panel) — needs international confirmation before any SUPPORT.
+
+wrote results/explore_credit_feature.csv (total 43.7 min)
+ min)

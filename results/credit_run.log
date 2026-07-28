@@ -1,0 +1,11 @@
+credit foundation (Sensor-v3, Moody's Baa-Aaa) — run log
+fetched DBAA,DAAA via api.stlouisfed.org: baa 1986-01-02..2026-07-27 aaa 1983-01-03..2026-07-27
+            gate  passed                                                                                                      detail
+     C1_coverage    True                                                                              1986-01-02..2026-07-27 n=10583
+         C2_sane    True                                                                                min=0.41 max=3.50 pct; nan=0
+      C3_anchors    True 2008-12-01=3.49[2.6-3.9]OK 2020-04-15=1.59[1.2-2.3]OK 2007-06-01=0.93[0.6-1.1]OK 2021-06-30=0.69[0.5-1.0]OK
+         C4_gaps    True                                                                                raw_na=1189 long_gaps(>7d)=0
+C5_distinct_axis    True                             corr(credit_ew20, mkt_ew20_vol)=0.559 on n=10180 (want moderate, not redundant)
+
+CREDIT GATE: PASS
+series 1986-01-02..2026-07-27 rows=10583 cols=['credit', 'baa', 'aaa', 'credit_ew5', 'credit_ew10', 'credit_ew20']

@@ -1,0 +1,23 @@
+panel 1970-01-02..2026-05-29 n=14223 | 4th feature = csd_ew10
+[1/4] BASE pass (dd10, sortino20, sortino60)...
+      done (22.5 min). lam_path=[200.0, 10.0, 10.0, 10.0, 800.0, 800.0, 800.0, 800.0, 800.0, 400.0, 800.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 100.0, 100.0, 200.0, 200.0, 50.0, 50.0, 200.0, 400.0, 400.0, 100.0, 100.0, 100.0, 100.0, 50.0, 50.0, 100.0, 25.0]
+[2/4] +DISP pass (BASE + dispersion)...
+      done (40.9 min). lam_path=[25.0, 25.0, 800.0, 200.0, 25.0, 10.0, 100.0, 200.0, 800.0, 800.0, 200.0, 800.0, 200.0, 800.0, 800.0, 800.0, 100.0, 100.0, 100.0, 100.0, 50.0, 25.0, 50.0, 50.0, 50.0, 50.0, 400.0, 50.0, 800.0, 800.0, 50.0, 50.0, 50.0, 50.0, 25.0, 100.0, 50.0]
+[3/4] stability (±2y train-start shifts)...
+
+================================================================================================
+DISPERSION-FEATURE LAG PROBE — does a 4th dispersion feature cut detection lag?
+================================================================================================
+BASE       | LT20 lag    56d cov 0.53 det 9/11 prec 0.29 rec 0.56 | LT15 lag    20d det 15/18 | switches/yr 1.66 | stability 1.000
++DISP      | LT20 lag    16d cov 0.67 det 10/11 prec 0.30 rec 0.79 | LT15 lag     7d det 17/18 | switches/yr 1.13 | stability 1.000
+
+BASE vs +DISP label agreement: 0.7834 on 9120 joint OOS days
+BASE vs FROZEN label agreement: 1.0000 (harness sanity; want ~1.000)
+
+LT20 median-lag change (+DISP - BASE): -40 days   (negative = dispersion detects bears EARLIER)
+READ: a lag drop with stability still ~1.000 and switches/yr not blown up = a real
+      lead candidate. CONTAMINATED (US panel) — needs international confirmation before
+      any SUPPORT claim. No economic claim, no look spent.
+
+wrote results/explore_dispersion_feature.csv (total 70.7 min)
+in)
