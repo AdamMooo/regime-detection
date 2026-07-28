@@ -2,13 +2,39 @@
 
 ## Status
 Program: statistical jump model. **Identity = regime DETECTION + methods/negative PAPER, NOT
-trading.** Branch: main | Last updated: 2026-07-26
+trading.** Branch: main | Last updated: 2026-07-27
 
 *Durable narrative (all chapters, anatomy, every null) lives in `RESEARCH-RECORD.md`
 (newest-first). Forward roadmap + parked/killed ledger in `.planning/PROGRAM.md`. This file =
 current state + next action only. Full session-by-session history is in git + RESEARCH-RECORD.*
 
-## Current state (2026-07-26) — Path-B cross-asset rotation CLOSED NULL; repo cleaned
+## Current state (2026-07-27) — repo refocused to instrument+paper only; algo-battery scripts removed
+
+Decision: this repo stays regime DETECTION + PAPER + the live instrument feed for
+portfolio-manager — never an algo-backtest program again. Chapters 1/2 are closed and their
+one-looks spent, so their battery runners no longer earn a place in the tree:
+
+- Removed `scripts/run_backtest.py`, `scripts/run_allocation.py`, `scripts/allocation.py`,
+  `tests/test_allocation.py` — reproducible at git commit `51fbeff` (last commit before removal).
+  Extracted the constants + helpers the *living* pipeline still needs (`arm_returns`, `maxdd`,
+  START/DELAY/LAMBDA_GRID/REFIT/…) into a new `scripts/run_config.py`; rewired
+  `live_label.py`/`build_report.py`/`explore_k3.py` to import from it. Full suite green (19
+  passed) after the move; `live_label.py` re-verified end-to-end.
+- Kept `run_exposure.py` (Ch3, graded exposure) **parked, untouched** — it's not algo-trading
+  cruft, it's the "how much should I scale into/out of positions given the regime" question,
+  which is directly relevant to the positioning-email goal below. Kept `backtest.py` (core
+  Sharpe/vol-target/fee library — `walkforward.py` and `live_label.py` depend on it) and
+  `synthetic_validation.py` (instrument QA, not algo backtesting).
+- **New direction, started this session:** combine with **portfolio-manager** (not
+  vol-diagnostics, which stays a separate showcase/interview piece) into a real weekly +
+  daily positioning system. Architecture: regime-detection runs its own weekly GH Action
+  (`live_label.py` → `regime_signal.py` → commit `results/regime_card.json`);
+  portfolio-manager fetches that file over HTTPS (PAT-authed, private repo) for a daily
+  one-liner in the existing Market Brief plus a new standalone weekly deep-dive email.
+  Blocked on: finishing `persistence_gauge()` in `regime_signal.py` (still `TODO(human)`,
+  uncommitted) — next action.
+
+## Prior state (2026-07-26) — Path-B cross-asset rotation CLOSED NULL; repo cleaned
 
 Prompted by Adam surfacing Shu–Yu–Mulvey **2025** ("Dynamic Asset Allocation with Asset-Specific
 Regime Forecasts", arXiv:2406.09578) — the allocation sequel to the 2024 JAM anchor. Opened the
@@ -63,12 +89,18 @@ auto-loss-to-reactive condition seemed absent). Explored descriptively, then tes
 5. **Check the record/web before proposing** (added 2026-07-26 — I re-proposed a killed axis
    from memory; grep RESEARCH-RECORD/notes and cite evidence first).
 
-## Next action — this week = the paper (SSRN preprint core)
+## Next action — finish `persistence_gauge()` in `scripts/regime_signal.py`
 
-Fold the Path-B null into `paper/OUTLINE.md` as **Race 4** (cross-asset timing loses to VT at
-every exposure); complete the §§1–7 core — draft §1 (vs Shu–Yu–Mulvey), §3 (the instrument, incl.
-the stability-stress-test to-do above), §8 (monitor); exact-numbers appendix; export figures.
-Instrument-first framing. **No new experiments, no live/Alpaca, no reopening closed nulls.**
+Unblocks `results/regime_card.json`, which is the data contract the portfolio-manager weekly
+email (see current-state above) is waiting on. Learning-mode walkthrough: Markov expected-dwell
++ half-life from `p_stay`, empirical median/percentile-position from the dwell-length samples.
+Commit `regime_signal.py` + `run_config.py` once verified (both currently uncommitted).
+
+Then: still this week, the paper (SSRN preprint core) — fold the Path-B null into
+`paper/OUTLINE.md` as **Race 4** (cross-asset timing loses to VT at every exposure); complete the
+§§1–7 core — draft §1 (vs Shu–Yu–Mulvey), §3 (the instrument, incl. the stability-stress-test
+to-do above), §8 (monitor); exact-numbers appendix; export figures. Instrument-first framing.
+**No new experiments, no live/Alpaca, no reopening closed nulls.**
 
 Background streams (not this week): monitor (Layer-2 nowcast, `MONITOR-VALIDATION-SPEC.md`);
 Sensor v3 tier-1 dispersion built (`build_dispersion.py`, 0.78 own-vol corr = only modestly

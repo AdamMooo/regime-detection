@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from build_panel import download_spy
 from jumpmodel import build_features
-from run_backtest import LAMBDA_GRID, N_INIT, REFIT, START, TRAIN0, VAL, DELAY
+from run_config import LAMBDA_GRID, N_INIT, REFIT, START, TRAIN0, VAL, DELAY
 from walkforward import walk_forward
 
 

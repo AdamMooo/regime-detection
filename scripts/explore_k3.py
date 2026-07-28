@@ -30,7 +30,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from atlas import episodes_of
 from jumpmodel import build_features
-from run_backtest import DELAY, LAMBDA_GRID, N_INIT, REFIT, START, TRAIN0, VAL
+from run_config import DELAY, LAMBDA_GRID, N_INIT, REFIT, START, TRAIN0, VAL
 from walkforward import walk_forward
 
 ANN = 252

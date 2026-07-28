@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from backtest import sharpe, sma_weights, vol_target_weights
-from run_backtest import COST, DELAY, START, arm_returns, maxdd
+from run_config import COST, DELAY, START, arm_returns, maxdd
 from backtest import jm_weights
 
 

@@ -28,10 +28,13 @@ Core pipeline:
 - `build_panel.py` / `build_assets.py` / `build_dispersion.py` — French daily panel + SPY
   cross-check + multi-asset panel + realized cross-sectional dispersion (Sensor v3 tier-1, 1926+)
   → `data/processed/market_daily.csv`, `assets_daily.csv`, `dispersion_daily.csv`
-- `run_backtest.py` / `run_allocation.py` + `allocation.py` — the chapter-1/2 preregistered
-  batteries (one-looks SPENT) → frozen `results/` evidence. `run_backtest.py` also holds the
-  shared run constants (START/DELAY/LAMBDA_GRID/REFIT/…) imported by build_report/explore_k3/live_label
-- `run_exposure.py` — chapter-3 graded-exposure runner (one-look PARKED, not spent; 28/28 tests)
+- `run_config.py` — shared frozen-protocol constants (START/DELAY/LAMBDA_GRID/REFIT/…) + arm-return
+  helpers (`arm_returns`, `maxdd`), imported by build_report/explore_k3/live_label. Extracted
+  2026-07-27 when the chapter-1/2 battery runners (`run_backtest.py`, `run_allocation.py` +
+  `allocation.py` — one-looks SPENT, both chapters CLOSED) were removed from the tree; reproducible
+  at git commit `51fbeff`. Repo is instrument + paper focused now — no algo/backtest-battery work.
+- `run_exposure.py` — chapter-3 graded-exposure runner (one-look PARKED, not spent; 28/28 tests;
+  directly relevant to future personal-positioning use, kept deliberately)
 - `synthetic_validation.py` — capability battery on simulated panels (known truth)
 - `live_label.py` — SPY-splice live tail; label to today
 - `build_report.py` — regenerates `results/report.html` (living program report)
@@ -56,17 +59,19 @@ kept for NON-algo use — regime/asset characterization and reusable data:
 - `build_trend_proxy.py` — TSMOM (Moskowitz–Ooi–Pedersen) trend proxy tool, GATED vs DBMF/KMLM
   (corr 0.69) → `data/processed/trend_proxy_daily.csv`, `results/trend_proxy_gate.csv`
 
-Tests: `tests/test_jumpmodel.py` (+ walkforward, run_exposure), `tests/test_backtest.py`,
-`tests/test_allocation.py`. venv: `.venv` (numpy/pandas stack;
+Tests: `tests/test_jumpmodel.py` (+ walkforward, run_exposure), `tests/test_backtest.py`.
+venv: `.venv` (numpy/pandas stack;
 requirements.txt is the slim jump-model set — the v1 JAX/NumPyro stack was retired 2026-07-23).
 
 ## Frozen vs Archived
 
 **The HDP-HMM pipeline is GONE (retired 2026-07-23, Adam's direction).** Its label was never
 consumed by anything — the Portfolio-Manager integration was only ever an idea in notes
-(verified by grep of that repo, 2026-07-23). The jump-model label
-(`results/oos_labels.csv` frozen; `results/backtest_labels.csv` from future runs) is the
-repo's label artifact; any downstream integration is a future project designed fresh.
+(verified by grep of that repo, 2026-07-23). The jump-model label (`results/oos_labels.csv`
+frozen; `results/label_live.csv` the live tail from `live_label.py`) is the repo's label
+artifact. Downstream integration is now underway for real: `scripts/regime_signal.py` emits
+`results/regime_card.json` for consumption by portfolio-manager (weekly positioning email —
+see NOTES.md).
 
 **Frozen evidence (never overwrite):** `RESEARCH-RECORD.md` sealed sections;
 `.planning/V2-JUMPMODEL-PREREG.md` (+ all earlier frozen preregs); the chapter-1 one-look
@@ -110,8 +115,10 @@ v1 result files are recoverable at that tag.
 
 - Edit sealed RESEARCH-RECORD sections, frozen preregs, `archive/research-v1/`, or the frozen
   v2_* evidence files.
-- Rerun `run_backtest.py` casually — the one-look is spent.
-- Build production execution logic here (Algo-Trading-Bot's job).
+- Rebuild the chapter-1/2 battery runners to "just rerun something" — those one-looks are spent
+  and the scripts are gone (reproducible at commit `51fbeff`); a new backtest needs a new prereg.
+- Build production execution logic here (Algo-Trading-Bot's job) — the portfolio-manager
+  integration is a read-only `regime_card.json` export, not a trading system.
 
 ## Session Close
 
