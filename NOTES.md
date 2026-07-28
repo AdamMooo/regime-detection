@@ -104,31 +104,38 @@ auto-loss-to-reactive condition seemed absent). Explored descriptively, then tes
 5. **Check the record/web before proposing** (added 2026-07-26 — I re-proposed a killed axis
    from memory; grep RESEARCH-RECORD/notes and cite evidence first).
 
-## Next action — build the weekly GH Actions producer workflow in this repo
+## Session 2026-07-27 close-out — portfolio-manager integration DONE, blocked only on the PAT
 
-`persistence_gauge()` is done (2026-07-27): Markov expected-dwell (`1/(1-p_stay)`) + half-life
-(`ln(0.5)/ln(p_stay)`), empirical median/n/percentile-position from completed dwell episodes
-(current still-open run excluded from its own comparison set — was double-counting itself and
-mixing calendar-day/trading-day units in the first draft, fixed). `results/regime_card.json`
-now generates correctly (`CALM`, 95d in, 53rd percentile of 30 completed episodes). Verified:
-suite green (19/19), `regime_signal.py` runs clean.
+Everything planned for this integration is built, tested, and pushed: `persistence_gauge()`,
+the weekly `regime_card.json` producer workflow (verified live twice on GH Actions), the
+health/skill/history enrichment, portfolio-manager's consumer side (daily one-liner + weekly
+`weekly_regime_brief.py`, both dry-run clean on real GH Actions), and both hub docs + this file
+synced. Both repos' working trees are clean and fully pushed (verified 2026-07-27 evening).
 
-Done: `.github/workflows/weekly-regime-card.yml` added (Monday 10:00 UTC, ahead of
-portfolio-manager's 11:30 UTC daily brief) — runs `live_label.py` → `regime_signal.py`, commits
-`results/label_live.csv` + `regime_card.json` back to main if changed. No secrets needed (SPY
-pull is public via yfinance; base panel already tracked). Not yet verified by an actual scheduled
-or manual (`workflow_dispatch`) firing — worth a manual trigger once pushed.
+## Next action(s) — in order
 
-Next: switch to portfolio-manager repo — fetch helper (HTTPS + PAT, private repo) + daily
-one-liner in `daily_report.py` + new `weekly_regime_brief.py`. Needs a PAT (repo secret) with
-read access to `AdamMooo/regime-detection` — Adam to generate.
+1. **[Adam, blocking] Create `REGIME_REPO_PAT`** — fine-grained PAT, read-only,
+   `contents:read` scope on `AdamMooo/regime-detection` only
+   (`https://github.com/settings/personal-access-tokens/new`). Add via
+   `gh secret set REGIME_REPO_PAT --repo AdamMooo/portfolio-manager` + the same value in
+   portfolio-manager's local `.env`. Until this exists both regime email sections silently
+   omit themselves — confirmed safe, not a crash.
+2. **Once the PAT is live:** watch the next real daily brief + the next Monday's weekly brief
+   land — confirm the sparkline/track-record/health rows read cleanly on iPhone Mail (same
+   check already pending from the original Market Brief rollout, now extended to the regime
+   sections).
+3. **Resume the paper (this integration was a detour from "this week = the paper").** Fold the
+   Path-B null into `paper/OUTLINE.md` as **Race 4** (cross-asset timing loses to VT at every
+   exposure); complete the §§1–7 core — draft §1 (vs Shu–Yu–Mulvey), §3 (the instrument, incl.
+   the stability-stress-test to-do), §8 (monitor); exact-numbers appendix; export figures.
+   Instrument-first framing. **No new experiments, no live/Alpaca, no reopening closed nulls.**
+4. **(Optional, low priority)** Decide whether the Artifact preview (today's build, static
+   snapshot) should become a genuinely live-updating page — would need a safe no-PAT
+   read path (a public mirror of the non-sensitive card fields), since embedding the PAT
+   client-side would expose it. Not started; fine to leave as a manual on-request refresh.
 
-Then: still this week, the paper (SSRN preprint core) — fold the Path-B null into
-`paper/OUTLINE.md` as **Race 4** (cross-asset timing loses to VT at every exposure); complete the
-§§1–7 core — draft §1 (vs Shu–Yu–Mulvey), §3 (the instrument, incl. the stability-stress-test
-to-do above), §8 (monitor); exact-numbers appendix; export figures. Instrument-first framing.
-**No new experiments, no live/Alpaca, no reopening closed nulls.**
-
-Background streams (not this week): monitor (Layer-2 nowcast, `MONITOR-VALIDATION-SPEC.md`);
-Sensor v3 tier-1 dispersion built (`build_dispersion.py`, 0.78 own-vol corr = only modestly
-distinct — a genuinely orthogonal axis remains unfound, and may not exist).
+Parked, no action needed — do not re-propose without new information: Ch3 graded exposure
+(reserved for a future consumer); asymmetric-λ / K=3 severity speed work (reconsidered
+2026-07-27, stays parked — see `PROGRAM.md`). Background streams, not urgent: monitor
+(Layer-2 nowcast, `MONITOR-VALIDATION-SPEC.md`); Sensor v3 tier-2 decision (VIX/VRP via FRED,
+0.78 own-vol overlap — genuinely orthogonal axis still unfound).
