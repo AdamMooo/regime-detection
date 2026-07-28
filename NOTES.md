@@ -31,8 +31,23 @@ one-looks spent, so their battery runners no longer earn a place in the tree:
   (`live_label.py` → `regime_signal.py` → commit `results/regime_card.json`);
   portfolio-manager fetches that file over HTTPS (PAT-authed, private repo) for a daily
   one-liner in the existing Market Brief plus a new standalone weekly deep-dive email.
-  Blocked on: finishing `persistence_gauge()` in `regime_signal.py` (still `TODO(human)`,
-  uncommitted) — next action.
+  `persistence_gauge()` done, weekly workflow built + verified live on GH Actions (7m59s).
+- **Card enriched (same session, prompted by "what's still missing"):** the first version
+  only carried self-referential persistence stats (how long has the label persisted).
+  Added three things it was missing per this repo's own discipline
+  (`results/README.md` documents the new fields):
+  1. **`health`** — today's live-splice-gate correlation + pass/fail + agreement with the
+     frozen labels, from a new `results/live_label_meta.json` `live_label.py` now writes.
+     Earliest warning if the live SPY splice ever drifts from the French panel.
+  2. **`skill`** — the instrument's real track record vs ex-post bear dating
+     (`validate_sensor.py` vs frozen ch1 labels, already-run 2026-07-23 numbers: 15/18 bears
+     caught at 15% dating, 20d median lag; 9/11 at 20% dating, 56d lag) — the "companion
+     skill number" the paper to-do below already calls for, now also in the live card/email.
+  3. **`history`** — trailing 24-month state timeline, rendered as a colored strip in the
+     weekly email so the current dwell has visual scale.
+  portfolio-manager's daily one-liner + weekly deep-dive updated to render all three
+  (health only surfaces as a warning row when the gate actually fails — stays quiet
+  otherwise). Not yet committed/pushed — verifying end-to-end first.
 
 ## Prior state (2026-07-26) — Path-B cross-asset rotation CLOSED NULL; repo cleaned
 

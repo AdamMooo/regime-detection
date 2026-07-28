@@ -91,6 +91,54 @@ def persistence_gauge(p_stay, dwell_days, days_in_state):
     }
 
 
+def health_block():
+    """Splice-gate health for TODAY's specific reading (from live_label.py's most recent
+    run) — the earliest warning if the live SPY splice has drifted from the French panel
+    it's spliced onto. None if live_label.py hasn't been run since this field was added.
+    """
+    meta_path = ROOT / "results" / "live_label_meta.json"
+    if not meta_path.exists():
+        return None
+    meta = json.loads(meta_path.read_text())
+    return {
+        "splice_corr": meta.get("splice_corr"),
+        "splice_gate_pass": meta.get("splice_gate_pass"),
+        "agreement_with_frozen": meta.get("agreement_with_frozen"),
+    }
+
+
+def skill_block():
+    """The instrument's historical track record vs ex-post bear dating (validate_sensor.py,
+    scored against the frozen chapter-1 OOS labels — a fixed fact, not rerun per card).
+    Companion to the stability/persistence numbers above: pairs every "how persistent" claim
+    with a "how often has it actually been right" one.
+    """
+    path = ROOT / "results" / "sensor_validation.csv"
+    if not path.exists():
+        return None
+    df = pd.read_csv(path).set_index("variant")
+    if "LT15" not in df.index or "LT20" not in df.index:
+        return None
+    lt15, lt20 = df.loc["LT15"], df.loc["LT20"]
+    return {
+        "source": "validate_sensor.py vs Lunde-Timmermann ex-post bear dating, frozen chapter-1 OOS",
+        "lt15_detected": int(lt15["detected"]), "lt15_episodes": int(lt15["episodes"]),
+        "lt15_median_lag_days": int(lt15["median_lag_days"]),
+        "lt20_detected": int(lt20["detected"]), "lt20_episodes": int(lt20["episodes"]),
+        "lt20_median_lag_days": int(lt20["median_lag_days"]),
+        "caveat": ("Vol-state sensor, not a bear detector: catches most drawdowns with a "
+                   "multi-week lag; historically misses fast crashes (e.g. 1998, 2018 Q4)."),
+    }
+
+
+def history_block(dates, states, months=24):
+    """Monthly state (last trading day of each month) for the trailing `months` — a compact
+    timeline so the current dwell has visual scale, not just a percentile number."""
+    monthly = pd.Series(states.to_numpy(), index=dates).resample("ME").last()
+    tail = monthly.iloc[-months:]
+    return [{"period": d.strftime("%Y-%m"), "state": int(v)} for d, v in tail.items()]
+
+
 def build_card():
     dates, states = load_labels()
     card = current_state(dates, states)
@@ -99,6 +147,9 @@ def build_card():
     gauge = persistence_gauge(p_stay, dwell, card["days_in_state"])
     card["p_stay"] = round(p_stay, 4)
     card["gauge"] = gauge
+    card["health"] = health_block()
+    card["skill"] = skill_block()
+    card["history"] = history_block(dates, states)
     card["generated"] = date.today().isoformat()
     return card
 

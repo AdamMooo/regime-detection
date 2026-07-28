@@ -12,5 +12,118 @@
     "empirical_n": 30,
     "position": "53rd percentile of 30 completed episodes (currently 95d in)"
   },
-  "generated": "2026-07-28"
+  "health": {
+    "splice_corr": 0.9957,
+    "splice_gate_pass": true,
+    "agreement_with_frozen": 1.0
+  },
+  "skill": {
+    "source": "validate_sensor.py vs Lunde-Timmermann ex-post bear dating, frozen chapter-1 OOS",
+    "lt15_detected": 15,
+    "lt15_episodes": 18,
+    "lt15_median_lag_days": 20,
+    "lt20_detected": 9,
+    "lt20_episodes": 11,
+    "lt20_median_lag_days": 56,
+    "caveat": "Vol-state sensor, not a bear detector: catches most drawdowns with a multi-week lag; historically misses fast crashes (e.g. 1998, 2018 Q4)."
+  },
+  "history": [
+    {
+      "period": "2024-08",
+      "state": 0
+    },
+    {
+      "period": "2024-09",
+      "state": 0
+    },
+    {
+      "period": "2024-10",
+      "state": 0
+    },
+    {
+      "period": "2024-11",
+      "state": 0
+    },
+    {
+      "period": "2024-12",
+      "state": 0
+    },
+    {
+      "period": "2025-01",
+      "state": 0
+    },
+    {
+      "period": "2025-02",
+      "state": 0
+    },
+    {
+      "period": "2025-03",
+      "state": 1
+    },
+    {
+      "period": "2025-04",
+      "state": 1
+    },
+    {
+      "period": "2025-05",
+      "state": 1
+    },
+    {
+      "period": "2025-06",
+      "state": 1
+    },
+    {
+      "period": "2025-07",
+      "state": 0
+    },
+    {
+      "period": "2025-08",
+      "state": 0
+    },
+    {
+      "period": "2025-09",
+      "state": 0
+    },
+    {
+      "period": "2025-10",
+      "state": 0
+    },
+    {
+      "period": "2025-11",
+      "state": 0
+    },
+    {
+      "period": "2025-12",
+      "state": 0
+    },
+    {
+      "period": "2026-01",
+      "state": 0
+    },
+    {
+      "period": "2026-02",
+      "state": 0
+    },
+    {
+      "period": "2026-03",
+      "state": 1
+    },
+    {
+      "period": "2026-04",
+      "state": 0
+    },
+    {
+      "period": "2026-05",
+      "state": 0
+    },
+    {
+      "period": "2026-06",
+      "state": 0
+    },
+    {
+      "period": "2026-07",
+      "state": 0
+    }
+  ],
+  "generated": "2026-07-27"
 }

@@ -9,6 +9,7 @@ tolerated per the construction-gate diagnosis; modern-era corr measured 0.995).
 Writes results/label_live.csv; prints current state + agreement with the frozen labels.
 """
 
+import json
 import sys
 from pathlib import Path
 
@@ -23,6 +24,8 @@ from jumpmodel import build_features
 from run_config import LAMBDA_GRID, N_INIT, REFIT, START, TRAIN0, VAL, DELAY
 from walkforward import walk_forward
 
+SPLICE_GATE_THRESHOLD = 0.98
+
 
 def spliced_series():
     panel = pd.read_csv(ROOT / "data" / "processed" / "market_daily.csv",
@@ -31,18 +34,18 @@ def spliced_series():
     ff_end = panel.index[-1]
     overlap = pd.DataFrame({"ff": panel["mkt_ret"], "spy": spy}).dropna().iloc[-250:]
     corr = overlap["ff"].corr(overlap["spy"])
-    if corr < 0.98:
-        raise SystemExit(f"SPLICE GATE FAIL: overlap corr {corr:.4f} < 0.98")
+    if corr < SPLICE_GATE_THRESHOLD:
+        raise SystemExit(f"SPLICE GATE FAIL: overlap corr {corr:.4f} < {SPLICE_GATE_THRESHOLD}")
     tail = spy[spy.index > ff_end]
     r = pd.concat([panel["mkt_ret"], tail])
     rf = pd.concat([panel["rf"], pd.Series(panel["rf"].iloc[-1], index=tail.index)])
     print(f"splice gate PASS (corr {corr:.4f}); French ends {ff_end.date()}, "
           f"SPY tail {len(tail)} days -> {r.index[-1].date()}")
-    return r, rf
+    return r, rf, float(corr)
 
 
 def main():
-    r, rf = spliced_series()
+    r, rf, splice_corr = spliced_series()
     F = build_features(r.to_numpy())
     states, lam_hist = walk_forward(r.to_numpy(), F.to_numpy(), burn=63, train0=TRAIN0,
                                     refit=REFIT, grid=LAMBDA_GRID, val=VAL,
@@ -64,6 +67,17 @@ def main():
     print(f"agreement with frozen chapter-1 labels on overlap: {agree:.4f} ({len(merged)} days)")
     print(f"final-year lambda: {lam_hist[-1]}")
     print("wrote results/label_live.csv")
+
+    meta = {
+        "splice_corr": round(splice_corr, 4),
+        "splice_gate_threshold": SPLICE_GATE_THRESHOLD,
+        "splice_gate_pass": splice_corr >= SPLICE_GATE_THRESHOLD,
+        "agreement_with_frozen": round(agree, 4),
+        "agreement_n_days": int(len(merged)),
+        "final_lambda": float(lam_hist[-1]),
+    }
+    (ROOT / "results" / "live_label_meta.json").write_text(json.dumps(meta, indent=2))
+    print("wrote results/live_label_meta.json")
     return 0
 
 
