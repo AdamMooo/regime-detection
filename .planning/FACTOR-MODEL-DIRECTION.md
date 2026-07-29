@@ -93,6 +93,25 @@ the data-quality bar (survivorship, PIT) is exactly where amateur factor models 
 
 ---
 
+## 3b. Path A — progress (started 2026-07-29)
+
+**Chosen: Path A first (Adam).** Built and validated the portfolio-level test bench:
+- `build_factor_test_panel.py` → `data/processed/factor_test_monthly.csv` — French 25 size/BE-ME
+  value-weight portfolios + FF3 factors, monthly, 1926-07..2026-05 (1199 months), gates pass
+  (incl. a raw value-premium integrity check, V5−V1 = +0.47%/mo).
+- `factor_tests.py` — `grs_test` (Gibbons-Ross-Shanken), `fama_macbeth`, `factor_spanning`.
+  7 tests incl. a simulation-based GRS null-size check (catches a wrong scaling constant).
+- **Machinery validated on real data (descriptive, no look):** GRS rejects both CAPM and FF3 on
+  the 25 portfolios (p~1e-7 — the known FF result); HML priced (FM t=3.5) and not spanned by
+  Mkt+SMB; SMB weak (t=1.0). Known caveat surfaced: FM market premium is unidentified on these
+  low-beta-dispersion test assets (intercept absorbs it) — GRS is the clean headline; add
+  beta-dispersed test assets (e.g. beta-sorted or industry portfolios) before leaning on FM premia.
+
+**Next on Path A:** (a) add beta-dispersed test assets to fix FM identification; (b) the real
+question this bench exists for — does the JM regime label, used as a *risk-scaler* (not a timer),
+improve a factor's risk-adjusted return? — which needs a prereg + cooling-off + sign-off before any
+look, since it could produce a positive claim.
+
 ## 4. Recommendation & next step (still NO look)
 
 1. **Pick the fork (Path A vs B)** — a real decision for Adam. Path A is honest, fast, and uses our

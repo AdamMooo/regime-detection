@@ -176,6 +176,20 @@ health/skill/history enrichment, portfolio-manager's consumer side (daily one-li
 `weekly_regime_brief.py`, both dry-run clean on real GH Actions), and both hub docs + this file
 synced. Both repos' working trees are clean and fully pushed (verified 2026-07-27 evening).
 
+## Current state (2026-07-29 cont.) — Path A factor bench BUILT + validated
+
+Gap analysis done (`.planning/FACTOR-MODEL-DIRECTION.md`, cited). **Fork decided: Path A first**
+(portfolio-level cross-section, no new data). Built + validated:
+- `build_factor_test_panel.py` → 25 size/BE-ME + FF3 monthly panel, 1926+, gates pass.
+- `factor_tests.py` (GRS + Fama-MacBeth + factor-spanning), 7 tests incl. GRS size simulation.
+- Validated on real data (descriptive, no look): GRS rejects CAPM & FF3 (p~1e-7, the known FF
+  result); HML priced (t=3.5), not spanned; SMB weak. FM market-premium unidentified on these
+  low-beta-dispersion assets (known issue, noted). Suite 25 passing.
+
+**JM's only honest role = risk-scaler, never exposure-timer** (Asness "siren song"; our 3 nulls =
+the literature). The real Path-A question (does the JM regime label as a risk-scaler improve a
+factor's risk-adjusted return?) needs a prereg + cooling-off + sign-off before any look.
+
 ## Next action(s) — in order
 
 1. **Factor-model gap analysis (the pivot's first step — NO look, NO prereg yet).** A
