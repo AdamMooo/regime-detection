@@ -187,10 +187,36 @@ Gap analysis done (`.planning/FACTOR-MODEL-DIRECTION.md`, cited). **Fork decided
   low-beta-dispersion assets (known issue, noted). Suite 25 passing.
 
 **JM's only honest role = risk-scaler, never exposure-timer** (Asness "siren song"; our 3 nulls =
-the literature). The real Path-A question (does the JM regime label as a risk-scaler improve a
-factor's risk-adjusted return?) needs a prereg + cooling-off + sign-off before any look.
+the literature).
 
-## Next action(s) — in order
+**Regime-as-a-FACTOR idea researched + test designed (2026-07-29, `.planning/FACTOR-MODEL-DIRECTION.md`
+§5–6).** Adam's question: is regime a priced *cross-sectional* factor (do assets that covary with
+regime shifts earn a premium)? Deep-research honest prior: **most likely SPANNED by Mkt + BAB /
+low-vol** (our label is a market-vol transform → a regime-spread re-loads the low-vol anomaly). One
+narrow survival door: if the JUMP model isolates discontinuous tail/jump risk orthogonal to
+diffusive vol (Kelly-Jiang, Bollerslev-Todorov). Cleanest test = build a regime factor-mimicking
+portfolio (from the label INNOVATION, causal betas), spanning-regress on FF3+BAB (α at t>3),
+Barillas-Shanken max-Sharpe check, GRS on broadened test assets; sign must be NEGATIVE
+(hedging), positive = timing artifact. Steps 1–3 are NO-look; the look is gated behind
+cooling-off + sign-off + international confirmation.
+
+## Next action(s) — TOMORROW (2026-07-30), in order
+
+Full detail in `.planning/FACTOR-MODEL-DIRECTION.md` §6. Steps 1–3 are NO-look; look gated at 4.
+1. **Data (no look):** fetch AQR monthly **BAB** (+ low-vol if avail); build a monthly JM regime
+   series (state + continuous stress score) aligned to the panel from the daily label/`oos_labels`.
+   New `build_regime_factor_inputs.py` + gate.
+2. **FMP (no look):** `regime_factor(...)` — beta-sort spread AND max-correlation mimicking
+   portfolio, causal trailing-window betas. Tests: recovers a planted factor; no-lookahead check.
+3. **Descriptive spanning (NO look, characterization):** REG on FF3+BAB (α, t>3), Barillas-Shanken
+   Sh² check. Spanned → CLOSED cheaply ("regime = vol/BAB axis in the cross-section"). Expected.
+4. **Only if unspanned α:** freeze prereg (spanning+Sh²+GRS+sign+intl), overnight cooling-off,
+   explicit dated sign-off, THEN one look.
+
+Also queued (no look, housekeeping): add beta-dispersed test assets (industry / size-mom) to fix
+the Fama-MacBeth market-premium identification issue on the 25-portfolio set.
+
+## Older next-action list (superseded above; kept for context)
 
 1. **Factor-model gap analysis (the pivot's first step — NO look, NO prereg yet).** A
    literature-grounded audit of how professionals construct a cross-sectional factor book

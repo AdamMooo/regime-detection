@@ -87,6 +87,17 @@ feed (`live_label`, `regime_signal`, `build_report`), instrument QA (`synthetic_
 factor) and `build_intl_panel.py` (int'l size/value portfolios are factor data). Frozen evidence
 untouched (`stage1*`, `oos_labels`, `construction_gate`, `allocation_*`, all `.planning/` preregs).
 
+**Path-A execution started (same day).** Built + validated the portfolio-level test bench
+(`build_factor_test_panel.py` — 25 size/BE-ME + FF3 monthly 1926+; `factor_tests.py` — GRS +
+Fama-MacBeth + factor-spanning, 7 tests). Machinery reproduces known results on real data (GRS
+rejects CAPM & FF3 p~1e-7; HML priced t=3.5, not spanned; SMB weak). Then researched Adam's
+"regime-as-a-cross-sectional-factor" idea (full cited design in `.planning/FACTOR-MODEL-DIRECTION.md`
+§5–6): honest prior = **most likely spanned by Mkt+BAB/low-vol** (label is a market-vol transform);
+narrow survival door = jump/tail risk orthogonal to diffusive vol (Kelly-Jiang, Bollerslev-Todorov).
+Test = regime factor-mimicking portfolio (from label innovation, causal betas) → spanning on FF3+BAB
+(t>3) + Barillas-Shanken max-Sharpe + GRS; NEGATIVE price of risk required. Steps 1–3 no-look; look
+gated behind cooling-off + sign-off + international confirmation. Tomorrow's ordered plan in NOTES.
+
 ---
 
 ## 2026-07-26 — PATH-B: cross-asset defensive rotation — NULL (timing = beta + VT-replicable drawdown; descriptive hedge facts + trend-proxy tool survive)

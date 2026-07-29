@@ -125,6 +125,82 @@ look, since it could produce a positive claim.
 
 ---
 
+## 5. Regime-as-a-FACTOR — researched test design (2026-07-29)
+
+Adam's idea: is the JM regime an **input to the factor model** — i.e. is regime a priced
+*cross-sectional* risk factor (do assets whose returns covary with regime shifts earn a premium),
+NOT regime-timing. This is the right, higher bar. Deep-research synthesis (cited below):
+
+**The honest prior (what the literature predicts): most likely SPANNED.** Our label is a nonlinear
+transform of the market's own downside-vol features, so a portfolio sorted on "regime-beta" loads
+on exactly the high-β / high-IVOL cross-sectional dimension that **betting-against-beta (BAB,
+Frazzini-Pedersen 2014)** and the low-vol anomaly (Baker-Bradley-Wurgler 2011) already harvest.
+Expected outcome: regime-factor α ≈ 0 once BAB is controlled → redundant. This is the v1
+"everything collapses onto the vol axis" finding, in cross-sectional form.
+
+**Real precedents (the idea is not crazy):**
+- **Ang, Hodrick, Xing & Zhang (2006)** — build **FVIX**, a max-correlation portfolio mimicking
+  VIX *innovations*; aggregate-vol-risk is priced at ~−1%/mo. Sign is NEGATIVE (a vol-hedging asset
+  is expensive) — theoretically correct via ICAPM. **A positive regime premium would be a red
+  flag** (timing artifact), not a win.
+- **Ang, Chen & Xing (2006)** downside-beta β⁻ priced ~6%/yr and NOT subsumed by β/size/value/mom —
+  the closest surviving precedent; **Lettau-Maggiori-Weber (2014)** DR-CAPM prices across asset classes.
+
+**The two narrow doors where it could survive spanning:**
+1. **Jump / tail risk distinct from diffusive vol** — if the *jump* model captures discontinuous
+   crash-onset risk (regime switches concentrated at jumps, not gradual vol drift), it may be
+   orthogonal to BAB (a diffusive-β story). Benchmark: **Kelly-Jiang (2014)** tail risk priced
+   beyond vol; **Bollerslev-Todorov (2011)** jump/tail-fear component of the variance premium.
+2. **Downside-conditional covariance beyond symmetric β** (the AC(X)/LMW result) — narrower than it
+   looks, since that premium may itself be BAB in disguise.
+
+**The cleanest test for our exact data (FF 25 + FF3 monthly + JM label):**
+1. **Build a regime FACTOR return (FMP).** Use the label *innovation* Δs (a factor must be a
+   return, and the ICAPM-priced object is the state *innovation*, not the level). Two ways for
+   robustness: (a) **beta-sort spread** — trailing-window β of each test portfolio to Δs, monthly
+   long-short; (b) **max-correlation mimicking portfolio** — project Δs on base-asset excess returns
+   (Breeden-Gibbons-Litzenberger; Lamont 2001 economic tracking, OOS-validated). Call it `REG`.
+2. **Spanning regression** `REG = α + b·Mkt + s·SMB + h·HML + βa·BAB (+ low-vol) + ε`. Decision:
+   α significant at the **Harvey-Liu-Zhu t>3** bar (Newey-West) ⇒ not spanned. **Must include BAB**
+   or the result is a false positive re-discovering the low-vol anomaly.
+3. **Max-squared-Sharpe confirmation (Barillas-Shanken 2017/2018):** the correct model-comparison
+   criterion — REG helps iff Sh²(FF3+BAB+REG) − Sh²(FF3+BAB) > 0; use **BKRS (2020)** standard
+   errors (the Sharpe-difference sampling error is large — don't eyeball it).
+4. **GRS** of FF3 vs FF3+REG on the 25 (+ industry + size-mom) portfolios — does REG shrink the
+   joint intercepts? The 25 FF portfolios ALONE are weak test assets (Lewellen-Nagel-Shanken 2010) —
+   add beta-dispersed assets so a spurious factor can't hide in the FF3 structure.
+5. **Sign/economics:** the price of REG-risk must be NEGATIVE (hedging); positive ⇒ timing artifact.
+
+**Top 3 pitfalls that would invalidate the test:**
+1. **Look-ahead in FMP betas/weights** — estimate on a strictly PRIOR window (our causal discipline);
+   full-sample betas manufacture an in-sample spread that dies OOS.
+2. **Not controlling for BAB/low-vol** — the single most likely false positive; α must survive AFTER BAB.
+3. **Timing-vs-pricing confusion (the Case-B trap)** + weak test assets + no multiple-testing bar —
+   impose t>3, BKRS SEs, and a broader test-asset set; require the α to show up UNCONDITIONALLY
+   (Lewellen-Nagel 2006: conditional-only stories that vanish unconditionally aren't priced factors).
+
+**Discipline:** this test CAN produce a SUPPORT claim → cooling-off + explicit dated sign-off before
+any look; and since the label was born on the US panel, any surviving α confirms on the
+French/MSCI international panels (we already have Japan/Europe) before being called real.
+
+## 6. Tomorrow's plan (concrete, ordered)
+
+All of step 1–3 below are NO-look data/plumbing; the look is gated at step 4.
+1. **Data:** fetch AQR's monthly **BAB** factor (+ a low-vol factor if available); produce a
+   **monthly JM regime series** (state + continuous stress score) aligned to the panel from the
+   existing daily label / `oos_labels`. New builder `build_regime_factor_inputs.py` + gate.
+2. **FMP:** add `regime_factor(...)` to `factor_tests.py` (or a new `regime_factor.py`) — both the
+   beta-sort spread and the max-correlation mimicking portfolio, betas on a trailing window (causal).
+   Tests: recovers a known planted factor; no-lookahead check.
+3. **Descriptive spanning (NO look, characterization):** run the spanning regression of REG on
+   FF3+BAB and the Barillas-Shanken Sh² check. If α is insignificant / spanned → **CLOSED, cheaply**,
+   documented as "regime is the vol/BAB axis in the cross-section." (This is the expected outcome and
+   it's a clean result either way.)
+4. **Only if step 3 shows an unspanned α:** freeze a prereg (spanning + Sh² + GRS + sign + intl
+   confirmation), overnight cooling-off, explicit dated sign-off, THEN the one look.
+
+---
+
 ## Key citations (full list in the RESEARCH-RECORD entry / research transcript)
 
 - Asness (2016) *Siren Song of Factor Timing*, JPM — aqr.com/Insights/Research/Journal-Article/The-Siren-Song-of-Factor-Timing
@@ -137,6 +213,15 @@ look, since it could produce a positive claim.
 - Fama & MacBeth (1973); Gibbons, Ross & Shanken (1989) — the cross-sectional test workhorses
 - Bailey & López de Prado (2014) *Deflated Sharpe Ratio*, JPM
 - MSCI/Barra E3 Handbook (exposure standardization, factor-risk structure)
+
+Regime-as-a-factor (§5):
+- Ang, Hodrick, Xing & Zhang (2006) *The Cross-Section of Volatility and Expected Returns*, JF — FVIX, aggregate-vol priced ~−1%/mo
+- Ang, Chen & Xing (2006) *Downside Risk*, RFS (β⁻ priced ~6%/yr, not subsumed); Lettau-Maggiori-Weber (2014) DR-CAPM, JFE
+- Frazzini & Pedersen (2014) *Betting Against Beta*, JFE; Baker-Bradley-Wurgler (2011) low-vol anomaly, FAJ — the spanning threat
+- Breeden-Gibbons-Litzenberger (1989); Lamont (2001) *Economic Tracking Portfolios* — factor-mimicking-portfolio construction
+- Barillas & Shanken (2017 *Which Alpha?*, 2018 *Comparing Asset Pricing Models*), Barillas-Kan-Robotti-Shanken (2020) — max-squared-Sharpe model comparison + correct SEs
+- Lewellen & Nagel (2006) *Conditional CAPM Does Not Explain Anomalies*, JFE; Lewellen-Nagel-Shanken (2010) *Skeptical Appraisal of Asset Pricing Tests*, JFE (weak-test-asset critique)
+- Kelly & Jiang (2014) *Tail Risk and Asset Prices*, RFS; Bollerslev & Todorov (2011) *Tails, Fears, and Risk Premia*, JF — the jump/tail door
 
 ---
 <!-- LINKS:AUTO -->
