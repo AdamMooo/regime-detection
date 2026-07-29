@@ -165,21 +165,6 @@ def test_walk_forward_margin_byte_identical_and_state_consistent():
     assert np.array_equal(m[oos] > 0, s_b[oos] == 1)
 
 
-def test_exposure_dial_g1_recovers_vt():
-    # prereg CH3 §4 degenerate check: g ≡ 1 must recover the VT arm byte-identically
-    from backtest import vol_target_weights
-    from run_exposure import a3_weights, dial_weights, sig_ann
-    r, _ = _synthetic_two_state(T=2000)
-    sig = sig_ann(r)
-    w_vt = vol_target_weights(r)
-    assert np.allclose(dial_weights(sig, np.full(len(r), -1), 1.0), w_vt)
-    states = np.full(len(r), -1)
-    states[1500:] = (np.arange(500) // 50) % 2  # states present, but warmup keeps g=1
-    w_a3, g_path = a3_weights(r, states, sig)
-    assert all(g == 1.0 for g in g_path)
-    assert np.allclose(w_a3, w_vt)
-
-
 def test_k3_fast_path_matches_general_dp():
     from jumpmodel import _dp_assign_general, _dp_assign_k3
     rng = np.random.default_rng(11)

@@ -11,12 +11,30 @@ data (1926+), run under strict prereg/causal discipline. Chapter 1 (frozen prere
 an exposure artifact under risk-averse utility (all null bands contain it); vol targeting beats
 the overlay significantly (fee −256 bps, CI excl. 0); **but the label itself is an exceptional
 instrument** — 100.0% stability under ±2y training-window shifts vs the v1 ensemble's 80.9%.
-Direction: **instrument-first** (see `.planning/V2-JUMPMODEL-PLAN.md` Phase-4 tracks).
+
+**PIVOT (2026-07-29): cross-sectional factor model.** Three closed Layer-3 nulls (Ch1, Ch2,
+Path-B) all tested *single-time-series market timing* and all lost to a reactive baseline
+(vol-targeting/EWMA) — the textbook result (Asness 2016, factor/market timing is a trap; risk
+management is the edge). The mistake was the sport, not the execution. New direction: build an
+actual **cross-sectional factor model** (rank names by a characteristic, harvest the long/short
+spread) — a genuinely new information source, not a re-ask of a settled market-timing null, which
+is the one condition the standing Layer-3-closed rule permits. Next step is a literature-grounded
+gap analysis of professional factor construction BEFORE any prereg or look. See RESEARCH-RECORD
+2026-07-29 entry. (Prior direction "instrument-first" — the live JM label feeding portfolio-manager
+— continues in parallel as the shipped tool.)
 
 The v1 program (HDP-HMM + four successor formulations, five preregistered nulls) is CONVERGED
 and sealed at git tag `v1-convergence`; narrative in `RESEARCH-RECORD.md` (newest-first).
 
 ## File Map (living code, `scripts/`)
+
+**Tree cleaned 2026-07-29 (Adam's direction): all closed-null / dead-probe code removed** —
+`calibration_gate`, `explore_k3`, `build_credit`+`explore_credit_feature`,
+`build_dispersion`+`explore_dispersion_feature`+`explore_dispersion_intl`,
+`rotation_precondition`, `hedge_anatomy`, `run_exposure`, and the descriptive anatomy trio
+(`atlas`/`state_anatomy`/`episode_anatomy`). Each closure is recorded in RESEARCH-RECORD
+(2026-07-29 entry); all recoverable in git history. Repo is now: **the living instrument + the
+factor-model pivot** (see What This Project Is).
 
 Core pipeline:
 - `jumpmodel.py` — estimator core: features (dd10/sortino20/sortino60), DP state assignment
@@ -25,41 +43,24 @@ Core pipeline:
   optional evidence-margin output); used byte-identically by synthetic and real runs
 - `backtest.py` — strategy construction (delay/costs), VT/SMA/B&H baselines, FKO fee,
   paired stationary bootstrap
-- `build_panel.py` / `build_assets.py` / `build_dispersion.py` — French daily panel + SPY
-  cross-check + multi-asset panel + realized cross-sectional dispersion (Sensor v3 tier-1, 1926+)
-  → `data/processed/market_daily.csv`, `assets_daily.csv`, `dispersion_daily.csv`
+- `build_panel.py` / `build_assets.py` — French US daily market panel + SPY cross-check +
+  multi-asset panel (industries, SMB/HML/MOM) → `data/processed/market_daily.csv`, `assets_daily.csv`
+- `build_intl_panel.py` — French International daily panels (Japan, Europe: market factor + 25
+  size/BE-ME portfolios, 1990+) → `data/processed/{japan,europe}_{market,assets}_daily.csv`.
+  Built 2026-07-29 for the dispersion int'l confirmation; **kept as factor-portfolio data for the pivot.**
+- `build_trend_proxy.py` — TSMOM (Moskowitz–Ooi–Pedersen) trend proxy, GATED vs DBMF/KMLM
+  (corr 0.69) → `data/processed/trend_proxy_daily.csv`. **Kept — momentum is a factor.**
 - `run_config.py` — shared frozen-protocol constants (START/DELAY/LAMBDA_GRID/REFIT/…) + arm-return
-  helpers (`arm_returns`, `maxdd`), imported by build_report/explore_k3/live_label. Extracted
-  2026-07-27 when the chapter-1/2 battery runners (`run_backtest.py`, `run_allocation.py` +
-  `allocation.py` — one-looks SPENT, both chapters CLOSED) were removed from the tree; reproducible
-  at git commit `51fbeff`. Repo is instrument + paper focused now — no algo/backtest-battery work.
-- `run_exposure.py` — chapter-3 graded-exposure runner (one-look PARKED, not spent; 28/28 tests;
-  directly relevant to future personal-positioning use, kept deliberately)
+  helpers (`arm_returns`, `maxdd`), imported by build_report/live_label. The chapter-1/2 battery
+  runners (`run_backtest.py`, `run_allocation.py`, `allocation.py`) were removed 2026-07-27
+  (one-looks SPENT, reproducible at `51fbeff`).
 - `synthetic_validation.py` — capability battery on simulated panels (known truth)
+- `validate_sensor.py` — label vs ex-post bear datings (lag/precision stats, monitor C7)
 - `live_label.py` — SPY-splice live tail; label to today
+- `regime_signal.py` — emits `results/regime_card.json` (LIVE, consumed by portfolio-manager)
 - `build_report.py` — regenerates `results/report.html` (living program report)
 
-Gates & probes (living checks; rerunnable):
-- `calibration_gate.py` — P(state) Platt gate on 8-cell synthetic DGP grid (FAILED
-  2026-07-23 → probability layer KILLED; script kept as the finding's reproduction path)
-- `explore_k3.py` — K=3 probe (severity ladder, stability 1.000; K=3 dev PARKED)
-- `validate_sensor.py` — label vs ex-post bear datings (lag/precision stats, monitor C7)
-
-Descriptive anatomy (no look; hypothesis-generating, contaminated for prereg purposes):
-- `atlas.py`, `state_anatomy.py`, `episode_anatomy.py`
-
-Path-B descriptive probes + data tools (2026-07-26; the cross-asset ALGO candidate is CLOSED
-NULL — the portfolio-backtest scripts `rotation_gonogo/sweep/deflate.py` were REMOVED from the
-tree, reproducible in git at commit `d022c09`; the null is documented in RESEARCH-RECORD). These
-kept for NON-algo use — regime/asset characterization and reusable data:
-- `rotation_precondition.py` — do per-asset JM regimes diverge cross-sectionally? (mixed ~76% of
-  days) → `results/rotation_precondition*.csv`
-- `hedge_anatomy.py` — behavioral fingerprint of 20 assets vs equity-stress (descriptive market
-  characterization) → `results/hedge_fingerprint.csv` (panel `data/processed/hedge_etf_daily.csv`)
-- `build_trend_proxy.py` — TSMOM (Moskowitz–Ooi–Pedersen) trend proxy tool, GATED vs DBMF/KMLM
-  (corr 0.69) → `data/processed/trend_proxy_daily.csv`, `results/trend_proxy_gate.csv`
-
-Tests: `tests/test_jumpmodel.py` (+ walkforward, run_exposure), `tests/test_backtest.py`.
+Tests: `tests/test_jumpmodel.py`, `tests/test_backtest.py` (18 passing).
 venv: `.venv` (numpy/pandas stack;
 requirements.txt is the slim jump-model set — the v1 JAX/NumPyro stack was retired 2026-07-23).
 

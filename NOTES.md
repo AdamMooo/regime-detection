@@ -8,7 +8,32 @@ trading.** Branch: main | Last updated: 2026-07-27
 (newest-first). Forward roadmap + parked/killed ledger in `.planning/PROGRAM.md`. This file =
 current state + next action only. Full session-by-session history is in git + RESEARCH-RECORD.*
 
-## Current state (2026-07-29) — portfolio-manager integration LIVE and verified end-to-end
+## Current state (2026-07-29) — dispersion CLOSED (didn't generalize); tree cleaned; PIVOT to cross-sectional factor model
+
+Two big moves this session, after the PAT integration went live (below):
+
+1. **Dispersion 4th-feature lead CLOSED — does not generalize.** Built `build_intl_panel.py`
+   (French International daily — Japan + Europe, market factor + 25 size/BE-ME portfolios,
+   1990+, gates PASS) and reran the identical lag probe (`explore_dispersion_intl.py`). Both
+   panels move OPPOSITE the US: **Japan +154d, Europe +94d** LT20 lag (US was −40d), recall
+   collapses (0.56→0.08, 0.73→0.28). Out-of-hypothesis-sample gate FAILED cleanly. Likely a
+   US-specific *sector*-dispersion artifact (US feature used 10 industries; French has no daily
+   industry sort internationally, so the proxy used size/BE-ME). Recorded in RESEARCH-RECORD
+   2026-07-29; reproduction at commit `c370cfb`.
+
+2. **Tree cleaned + PIVOT decided.** Adam: three closed Layer-3 nulls (Ch1/Ch2/Path-B) all tested
+   *market timing* and all lost to vol-targeting/EWMA — the textbook result (Asness 2016). The
+   mistake was the sport: everything was single-time-series timing, none was cross-sectional
+   factor investing. **New direction = build a real cross-sectional factor model** (rank names by
+   a characteristic, harvest the long/short spread) — a genuinely new information source, the one
+   condition the Layer-3-closed rule permits reopening on. Removed all dead/failed probe code
+   (`calibration_gate`, `explore_k3`, credit×2, dispersion×3, `rotation_precondition`,
+   `hedge_anatomy`, `run_exposure`, anatomy trio) + orphaned results/data; kept the living
+   instrument + `build_intl_panel`/`build_trend_proxy` as factor-data foundation. Suite green
+   (18 passed). **Next: a literature-grounded gap analysis of professional factor construction
+   BEFORE any prereg or look** (see next-actions).
+
+## Prior state (2026-07-29) — portfolio-manager integration LIVE and verified end-to-end
 
 `REGIME_REPO_PAT` created and set (fine-grained, read-only, `contents:read` on this repo only).
 Confirmed via real GH Actions runs, not just a dry-run:
@@ -153,26 +178,26 @@ synced. Both repos' working trees are clean and fully pushed (verified 2026-07-2
 
 ## Next action(s) — in order
 
-1. **Watch the next real daily brief + Monday's weekly brief land** and confirm the
-   sparkline/track-record/health rows read cleanly on iPhone Mail — first genuinely-live
-   observation now that the PAT is confirmed working (2026-07-29).
-2. **Improve the reports** (new focus, replaces the PAT chase) — content/presentation quality
-   in the daily one-liner and weekly deep-dive. No specific list yet; review a real rendered
-   email first to find what's thin.
-3. **International confirmation for the dispersion lead** — the −40d lag drop
-   (`results/explore_dispersion_feature.csv`) is a candidate, not a finding, until it holds on a
-   non-US panel (French/MSCI developed markets — Japan, Germany, UK). Build the equivalent
-   cross-sectional dispersion feature on one of those panels and rerun the same lag-probe
-   methodology before any SUPPORT claim or paper mention.
-4. **Resume the paper (this integration was a detour from "this week = the paper").** Fold the
-   Path-B null into `paper/OUTLINE.md` as **Race 4** (cross-asset timing loses to VT at every
-   exposure); complete the §§1–7 core — draft §1 (vs Shu–Yu–Mulvey), §3 (the instrument, incl.
-   the stability-stress-test to-do), §8 (monitor); exact-numbers appendix; export figures.
-   Instrument-first framing. **No new experiments, no live/Alpaca, no reopening closed nulls.**
-5. **(Optional, low priority)** Decide whether the Artifact preview (today's build, static
-   snapshot) should become a genuinely live-updating page — would need a safe no-PAT
-   read path (a public mirror of the non-sensitive card fields), since embedding the PAT
-   client-side would expose it. Not started; fine to leave as a manual on-request refresh.
+1. **Factor-model gap analysis (the pivot's first step — NO look, NO prereg yet).** A
+   literature-grounded audit of how professionals construct a cross-sectional factor book
+   (point-in-time fundamentals, cross-sectional z-score/winsorization, industry neutralization,
+   alpha-model / risk-model / portfolio-construction separation, Ledoit-Wolf shrinkage,
+   turnover/cost control, the multiple-testing hurdle — Harvey-Liu-Zhu, McLean-Pontiff), mapped
+   against what this repo has. Output = a ranked "here's what we're doing wrong / missing"
+   document. This is the honest prerequisite before deciding the factor program is real and
+   scoping a prereg. Grounded in cited sources, not memory.
+2. **Watch the live emails land** — next daily brief + Monday's weekly; confirm the
+   sparkline/track-record/health rows read cleanly on iPhone Mail (first live observation now
+   that the PAT works).
+3. **Paper** — the negative/methods paper is still a real deliverable; the dispersion int'l
+   null is a clean new "candidate that didn't survive confirmation" story for it. Fold in when
+   returning to `paper/OUTLINE.md`. No new experiments, no reopening closed nulls.
+
+Parked/killed (do not re-propose): all Layer-3 market-timing (Ch1/Ch2/Path-B/dispersion —
+dominated by reactive baselines, closed); Ch3 graded-exposure (deleted); VIX/VRP detection axis
+(killed). Reopening Layer-3 requires genuinely new orthogonal information — the cross-sectional
+factor path is the one candidate that qualifies, and only after the gap analysis + a fresh prereg
++ overnight cooling-off + explicit dated sign-off.
 
 Parked, no action needed — do not re-propose without new information: Ch3 graded exposure
 (reserved for a future consumer); asymmetric-λ / K=3 severity speed work (reconsidered
