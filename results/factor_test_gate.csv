@@ -1,0 +1,5 @@
+gate,passed,detail
+F1_coverage,True,1926-07-31..2026-05-31 n=1199 months
+F2_25_assets,True,25 test portfolios
+F3_factors_sane,True,mkt_rf mean=0.0070/mo std=0.0531
+F4_value_premium_raw,True,avg (V5-V1) monthly = 0.0047 (>0 = value premium present raw)
