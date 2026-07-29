@@ -12,6 +12,14 @@ backtest.
 
 ## Status
 
+**2026-07-29 — portfolio-manager integration LIVE, verified end-to-end.** `REGIME_REPO_PAT`
+created; confirmed via real (not dry-run) GH Actions: `Weekly Regime Card` here, plus
+`Daily Market Brief` and `Weekly Regime Brief` in portfolio-manager, all green on both their
+own cron and manual dispatch. The regime sections now actually populate in the real emails.
+One disclosed fragility, not a bug: PAT expiry is a silent self-omit, no alert wired — a
+manual calendar check before it lapses is the only safeguard. **Focus now shifts to improving
+report content/quality**, not shipping the pipe.
+
 **2026-07-27 — repo refocused to instrument+paper+live-feed only; regime_card.json now feeds
 portfolio-manager (daily one-liner + weekly deep-dive email).** Removed the closed-chapter
 battery runners (`run_backtest.py`/`run_allocation.py`/`allocation.py` — one-looks spent,
@@ -78,15 +86,17 @@ trend-proxy tool, and a 4th dominated-use race for the paper. All committed + pu
 
 ## Next
 
-**This week = the paper** (Path-B closed null; the paper is the deliverable). Fold the cross-asset
-null in as a 4th dominated-use race; complete the §§1–7 SSRN-preprint core; export figures. Then
-the standing tool streams:
-1. **Paper (instrument-first)** — fill §1's Shu–Yu–Mulvey quotes, draft §8 (monitor),
-   export figures → completes the §§1–7 SSRN-preprint core.
-2. **Sensor v3 — make it better** — tier-1 dispersion done; decide tier-2 (VIX/VRP via
+**Improve the live regime reports** (new, replaces "create the PAT" now that the pipe is verified
+live) — content/presentation quality in the daily one-liner and weekly deep-dive; review a real
+rendered email first to find what's thin. Then, standing work:
+1. **International confirmation** for the dispersion 4th-feature lead (−40d lag, US-only so far)
+   on a French/MSCI developed-market panel before any SUPPORT claim.
+2. **Paper (instrument-first)** — fold Path-B null in as a 4th dominated-use race; fill §1's
+   Shu–Yu–Mulvey quotes, draft §8 (monitor), export figures → completes §§1–7 SSRN-preprint core.
+3. **Sensor v3 — make it better** — tier-1 dispersion done; decide tier-2 (VIX/VRP via
    FRED fetch) given the 0.78 own-vol overlap; scorecard = beat the incumbent's card
    (20d lag, 15/18 bears, stability 1.000), look-free.
-3. **Monitor — validate & ship** — `monitor_gate.py` per `MONITOR-VALIDATION-SPEC.md`,
+4. **Monitor — validate & ship** — `monitor_gate.py` per `MONITOR-VALIDATION-SPEC.md`,
    Layer-2 nowcast on the current label; does not block on v3.
 Deprioritized (Layer-3 economic): ch3 closure, ch4/M2 age screens. Parked/killed list:
 `PROGRAM.md`.
@@ -105,6 +115,5 @@ Deprioritized (Layer-3 economic): ch3 closure, ch4/M2 age screens. Parked/killed
 - Chapter-3 prereg has one recorded defect (§10a): the M3 phase-separation criterion was
   frozen qualitatively — resolved by Adam's explicit ruling, kept on record for referees.
 - HDP pipeline fully retired 2026-07-23 (its label was never consumed by anything). Recoverable
-  in git history if ever needed. The jump-model label's Portfolio-Manager integration is real now
-  (2026-07-27, `results/regime_card.json` → `src/regime.py` there) — blocked only on the
-  `REGIME_REPO_PAT` secret.
+  in git history if ever needed. The jump-model label's Portfolio-Manager integration is real and
+  **live** (2026-07-27 built, 2026-07-29 verified via actual GH Actions runs — no longer blocked).

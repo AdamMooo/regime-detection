@@ -8,7 +8,24 @@ trading.** Branch: main | Last updated: 2026-07-27
 (newest-first). Forward roadmap + parked/killed ledger in `.planning/PROGRAM.md`. This file =
 current state + next action only. Full session-by-session history is in git + RESEARCH-RECORD.*
 
-## Current state (2026-07-28) — dispersion 4th-feature lag probe: candidate lead, needs intl confirmation
+## Current state (2026-07-29) — portfolio-manager integration LIVE and verified end-to-end
+
+`REGIME_REPO_PAT` created and set (fine-grained, read-only, `contents:read` on this repo only).
+Confirmed via real GH Actions runs, not just a dry-run:
+- `Weekly Regime Card` (this repo) — green, committing `regime_card.json` on schedule.
+- `Daily Market Brief` + `Weekly Regime Brief` (portfolio-manager) — both green on their own
+  cron **and** on manual `workflow_dispatch` (run IDs `30463577874`/`30463598842`,
+  2026-07-29), both pulling the card successfully. The integration built 2026-07-27 is no
+  longer blocked or hypothetical — it is live in the actual daily/weekly emails.
+- Known non-bug fragility: the PAT has an expiry Adam set at creation; on lapse the regime
+  sections silently self-omit (by design, not a crash) rather than erroring — no automated
+  alert exists for that lapse, worth a manual calendar check before it expires.
+
+**Next focus shifts from "ship the integration" to "improve the reports"** — the pipe is done;
+content/presentation quality in the daily one-liner and weekly deep-dive is now the open work
+(see Next action(s) below).
+
+## Prior state (2026-07-28) — dispersion 4th-feature lag probe: candidate lead, needs intl confirmation
 
 Built two new descriptive/data tools + lag probes this session (`build_credit.py` +
 `explore_credit_feature.py`; `explore_dispersion_feature.py` reuses `build_dispersion.py`'s
@@ -136,21 +153,17 @@ synced. Both repos' working trees are clean and fully pushed (verified 2026-07-2
 
 ## Next action(s) — in order
 
-1. **International confirmation for the dispersion lead** — the −40d lag drop
+1. **Watch the next real daily brief + Monday's weekly brief land** and confirm the
+   sparkline/track-record/health rows read cleanly on iPhone Mail — first genuinely-live
+   observation now that the PAT is confirmed working (2026-07-29).
+2. **Improve the reports** (new focus, replaces the PAT chase) — content/presentation quality
+   in the daily one-liner and weekly deep-dive. No specific list yet; review a real rendered
+   email first to find what's thin.
+3. **International confirmation for the dispersion lead** — the −40d lag drop
    (`results/explore_dispersion_feature.csv`) is a candidate, not a finding, until it holds on a
    non-US panel (French/MSCI developed markets — Japan, Germany, UK). Build the equivalent
    cross-sectional dispersion feature on one of those panels and rerun the same lag-probe
    methodology before any SUPPORT claim or paper mention.
-2. **[Adam, blocking] Create `REGIME_REPO_PAT`** — fine-grained PAT, read-only,
-   `contents:read` scope on `AdamMooo/regime-detection` only
-   (`https://github.com/settings/personal-access-tokens/new`). Add via
-   `gh secret set REGIME_REPO_PAT --repo AdamMooo/portfolio-manager` + the same value in
-   portfolio-manager's local `.env`. Until this exists both regime email sections silently
-   omit themselves — confirmed safe, not a crash.
-3. **Once the PAT is live:** watch the next real daily brief + the next Monday's weekly brief
-   land — confirm the sparkline/track-record/health rows read cleanly on iPhone Mail (same
-   check already pending from the original Market Brief rollout, now extended to the regime
-   sections).
 4. **Resume the paper (this integration was a detour from "this week = the paper").** Fold the
    Path-B null into `paper/OUTLINE.md` as **Race 4** (cross-asset timing loses to VT at every
    exposure); complete the §§1–7 core — draft §1 (vs Shu–Yu–Mulvey), §3 (the instrument, incl.
