@@ -1,0 +1,9 @@
+gate,passed,detail
+Japan_I1_coverage,True,1990-07-02..2026-05-29 n=9370
+Japan_I2_sane,True,max|r|=0.130 ann_vol=0.214
+Japan_I3_ports_coverage,True,n=9370 cols=25
+Japan_I4_ports_track_market,True,"corr(EW(25 ports), mkt_ret)=0.954"
+Europe_I1_coverage,True,1990-07-02..2026-05-29 n=9370
+Europe_I2_sane,True,max|r|=0.120 ann_vol=0.178
+Europe_I3_ports_coverage,True,n=9370 cols=25
+Europe_I4_ports_track_market,True,"corr(EW(25 ports), mkt_ret)=0.957"

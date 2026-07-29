@@ -23,7 +23,73 @@ the full version is in `RESEARCH-AUDIT.md`. Nothing from the audit has been disc
 
 ---
 
-## 2026-07-26 (latest) — PATH-B: cross-asset defensive rotation — NULL (timing = beta + VT-replicable drawdown; descriptive hedge facts + trend-proxy tool survive)
+## 2026-07-29 (latest) — DISPERSION 4th-feature lead does NOT generalize (int'l confirmation FAILS); Layer-3 market-timing closed for good; PIVOT to a cross-sectional factor model
+
+**Dispersion lead — CLOSED, does not generalize.** The 2026-07-28 US-panel finding (adding
+realized cross-sectional dispersion of the 10 industry portfolios as a 4th jump-model feature
+cut LT20 median detection lag 56d → 16d, −40d) was flagged CONTAMINATED (hypothesis-generated
+on the US panel) and required out-of-hypothesis-sample confirmation per the CLAUDE.md rule.
+Built `build_intl_panel.py` (Ken French International daily library — Japan + Europe market
+factor + 25 size/BE-ME portfolios, 1990-07-02+, gates PASS) and reran the identical BASE vs
+BASE+dispersion lag probe byte-through the same `run_config` constants (`explore_dispersion_intl.py`).
+Result — **both international panels move OPPOSITE to the US, hard**:
+
+| Panel | LT20 median-lag change (+DISP − BASE) | recall (BASE→+DISP) |
+|---|---|---|
+| US (contaminated) | −40d (56→16) | 0.56 → 0.79 (helped) |
+| Japan | **+154d** (96→250) | 0.56 → 0.08 (collapsed) |
+| Europe | **+94d** (39→134) | 0.73 → 0.28 (collapsed) |
+
+Clean failure of the confirmation gate. Likely a US-specific *sector*-dispersion artifact (the
+US feature dispersed across 10 industries; French publishes no daily industry sort for Japan/
+Europe, so the int'l proxy dispersed across 25 size/BE-ME portfolios — a related-but-different
+cross-sectional object). Either way the finding as stated does not survive. **No SUPPORT; the
+dispersion 4th-feature direction is closed.** Reproduction: this commit (scripts
+`build_intl_panel.py` [kept], `explore_dispersion_intl.py`; outputs
+`results/explore_dispersion_intl_{japan,europe}.csv`).
+
+**Layer-3 market-timing — closed for good; the three nulls are the textbook result.** Ch1
+(regime-timed equity exposure), Ch2 (regime-conditioned covariance in a factor/ERC portfolio),
+and Path-B (cross-asset regime rotation) all tested a variant of *single-time-series market
+timing* and all lost to a reactive baseline (vol-targeting / EWMA). This is consistent with the
+professional consensus — Asness, *"The Siren Song of Factor Timing"* (2016): timing is
+seductive and mostly a trap; the durable edge is *risk management* (vol-scaling), not *timing*.
+We independently rediscovered it. **The mistake was the sport, not the execution: everything
+tested was market timing, none of it was cross-sectional factor investing.**
+
+**PIVOT (Adam, 2026-07-29): build an actual cross-sectional factor model.** Professional factor
+alpha is *cross-sectional* (rank names by a characteristic, long/short the spread, harvested
+continuously) — not a market on/off switch. This repo has never built that; the "factor model"
+that exists (portfolio-manager's returns-based OLS on style ETFs) is a risk-attribution tool,
+not an alpha model. Cross-sectional selection is a **genuinely new information source** (not a
+re-ask of a settled market-timing null), which is the one condition under which the standing
+Layer-3-closed rule permits a new program. Next: a literature-grounded gap analysis of how
+professionals construct a factor book (point-in-time fundamentals, cross-sectional
+standardization/winsorization, industry neutralization, alpha/risk/construction separation,
+Ledoit-Wolf shrinkage, turnover/cost control, multiple-testing hurdle), mapped against what we
+have — BEFORE any prereg or look.
+
+**Tree cleanup (same day, Adam's direction — "remove ALL old failed code, note the failure, keep
+zero confusing dead scripts").** All closed-null / dead-probe code removed from the working tree
+(recoverable in git history at this commit's parent):
+- `calibration_gate.py` — probability layer KILLED (2026-07-23; failed all 3 criteria in all 8 DGP cells).
+- `explore_k3.py` — K=3 / M3 phase-state dead (2026-07-23; no phase state, severity ladder only).
+- `build_credit.py` + `explore_credit_feature.py` — credit-spread 4th feature NEGATIVE (2026-07-28; lag 52→106d).
+- `build_dispersion.py` + `explore_dispersion_feature.py` + `explore_dispersion_intl.py` — dispersion lead closed (this entry).
+- `rotation_precondition.py` + `hedge_anatomy.py` — Path-B cross-asset rotation NULL (2026-07-26).
+- `run_exposure.py` (+ its test) — Ch3 graded-exposure, PARKED one-look never spent, dropped as market-timing off the new path.
+- `atlas.py`, `state_anatomy.py`, `episode_anatomy.py` — descriptive US-panel anatomy; findings already captured in this record.
+
+**Kept** (living instrument + factor-adjacent data foundation): the core estimator/pipeline
+(`jumpmodel`, `walkforward`, `backtest`, `run_config`, `build_panel`, `build_assets`), the live
+feed (`live_label`, `regime_signal`, `build_report`), instrument QA (`synthetic_validation`,
+`validate_sensor`), and — retained for the factor pivot — `build_trend_proxy.py` (momentum is a
+factor) and `build_intl_panel.py` (int'l size/value portfolios are factor data). Frozen evidence
+untouched (`stage1*`, `oos_labels`, `construction_gate`, `allocation_*`, all `.planning/` preregs).
+
+---
+
+## 2026-07-26 — PATH-B: cross-asset defensive rotation — NULL (timing = beta + VT-replicable drawdown; descriptive hedge facts + trend-proxy tool survive)
 
 **Status discipline first: everything in this entry is DESCRIPTIVE and UNVALIDATED** —
 hypothesis-generating exploration for a candidate, not a preregistered one-look chapter. No
