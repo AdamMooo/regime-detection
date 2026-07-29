@@ -75,7 +75,8 @@ artifact. Downstream integration is now underway for real: `scripts/regime_signa
 see NOTES.md).
 
 **Frozen evidence (never overwrite):** `RESEARCH-RECORD.md` sealed sections;
-`.planning/V2-JUMPMODEL-PREREG.md` (+ all earlier frozen preregs); the chapter-1 one-look
+`.planning/archive/V2-JUMPMODEL-PREREG.md` (+ all earlier frozen preregs, archived 2026-07-29
+into `.planning/archive/` — closed-chapter record, out of the working view); the chapter-1 one-look
 artifacts `results/stage1.csv`, `results/stage1_run.log`, `results/oos_labels.csv`
 (renamed by Adam 2026-07-23 from the `v2_*` names the frozen docs cite — see
 `results/README.md` for the mapping). Gates (`construction_gate.csv`,

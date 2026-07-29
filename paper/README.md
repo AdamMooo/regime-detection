@@ -1,61 +1,42 @@
-# Paper — build & editing workflow
+# Paper — one file, one process
 
-LaTeX manuscript for the instrument-first regime paper. Built for **robust AI-human co-editing**:
-AI-drafted prose is visually flagged so your review is tractable and git diffs stay clean.
+**The paper is `main.tex`** — a single self-contained LaTeX file (preamble + number macros +
+all sections + tables inlined). No modular scaffold, no build script: edit one file, compile
+one file. (Collapsed from the old 15-file modular layout 2026-07-29 — "one paper, simpler
+process." The section boundaries survive as `% >>> begin sections/…` comments if you ever want
+to split again.)
 
 ## Build
 
-No LaTeX is installed locally. Two easy options:
-- **Overleaf** (recommended): upload the `paper/` folder, set `main.tex` as the root document.
-- **Local**: install TeX Live / MiKTeX, then `latexmk -pdf main.tex` (run twice for refs/TODO list).
+No LaTeX installed locally. Either:
+- **Overleaf** (recommended): upload `paper/`, set `main.tex` as root.
+- **Local**: TeX Live / MiKTeX, then `latexmk -pdf main.tex` (run twice for refs + the TODO list).
 
-## The editing conventions (why this is set up the way it is)
+## Editing conventions
 
-**1. Blue text = AI-drafted, not yet yours.** Every AI-written passage is wrapped in `\aidraft{...}`
-and renders **blue**. When you rewrite a passage in your own voice, **delete the `\aidraft{` and its
-closing `}`** (keep the text) — it turns black. The document is a progress bar: a sea of blue that
-becomes black as you approve it. "Black = Adam approved" is the only invariant that matters.
+- **Blue text = AI-drafted, not yet yours.** Wrapped in `\aidraft{...}`. Rewrite it in your voice,
+  delete the `\aidraft{` + closing `}` (keep the text) → it turns black = approved. The doc is a
+  progress bar: blue → black.
+- **Review toggle** (top of `main.tex`): `\reviewtrue` shows blue + margin TODOs + a checklist page;
+  `\reviewfalse` = clean submission render.
+- **Margin flags** (auto-collected on the checklist page): `\reviewnote{}` (decision for you),
+  `\needcite{}` (missing citation), `\stub{}` (not yet written).
+- **Numbers single-sourced** as macros in the preamble (e.g. `\feeJMVT`, `\stabJM`) — edit once,
+  updates everywhere; never hard-code a result.
+- **One sentence per line** (semantic line breaks) so git diffs show exactly which sentence changed.
 
-**2. Review mode vs clean mode.** Top of `main.tex`:
-- `\reviewtrue` → blue highlighting, margin TODO notes, and a **checklist page** (`\listoftodos`) up front.
-- `\reviewfalse` → clean render (no colors, no todos) for reading or submission.
+## Status — WORKING DRAFT, not done
 
-**3. Margin action items.** Three flags, all auto-collected onto the checklist page in review mode:
-- `\reviewnote{...}` — a question/decision for you (yellow).
-- `\needcite{...}` — a missing or unverified citation (orange).
-- `\stub{...}` — a section/paragraph not yet written (red, inline).
+Drafted (blue): abstract, §1–8, §10. Stubs: §9 monitor, §11 discussion, §12 reproducibility.
 
-**4. Numbers are single-sourced.** Every frozen figure is a macro in `numbers.tex` (e.g. `\feeJMVT`,
-`\stabJM`). Edit the number **there**, once, and it updates everywhere. Never hard-code a result in a
-section. This ties each number to its `results/*.csv` source (noted in `numbers.tex`).
-
-**5. One sentence per line** (semantic line breaks). Sources look odd but git diffs show you *exactly*
-which sentence changed — essential for reviewing edits. Keep this convention when you edit.
-
-## File map
-
-```
-main.tex          preamble, review toggle, macros, section \input order
-numbers.tex       single source of truth for all frozen figures
-refs.bib          bibliography (some fields marked % TODO — verify before submission)
-sections/         one file per section (edit in isolation, clean diffs)
-  00-abstract  01-intro  02-discipline  03-instrument
-  04-race1-exposure  05-race2-covariance  06-race3-margin  07-race4-crossasset
-  08-mechanism  09-monitor  10-related  11-discussion  12-reproducibility
-tables/           tab-exp1, tab-exp2, tab-exp2-arms (booktabs, numbers from numbers.tex)
-```
-
-## Status (2026-07-26)
-
-- **Drafted (blue, ready for your edit):** §1 intro, §2 discipline, §3 instrument, §4–6 the first
-  three races, §7 the new cross-asset race, §8 mechanism, §10 related, abstract.
-- **Stubs (red `\stub`):** §9 monitor (fill from the Track-C build), §11 discussion (survivor
-  hypotheses), §12 reproducibility (exact hashes).
-- **Known review flags:** §3 stability-is-under-argued note (the referee's first objection); §1
-  Shu–Yu–Mulvey exact-headline `\needcite`; figures not yet inserted (OUTLINE figure plan).
-
-## Provenance
-
-- Planning/structure, figure plan, defensibility requirements: `OUTLINE.md` (kept — it's meta, not
-  manuscript). Prose that used to live in `DRAFT-SECTIONS.md` and numbers in `TABLES.md` now live in
-  the `.tex` files and `numbers.tex` — those two markdown files are superseded (safe to delete).
+What's left (was `OUTLINE.md`'s next-actions, folded here):
+1. **Fold in the two new nulls** — Path-B cross-asset timing (loses to VT at every exposure) and
+   the dispersion 4th-feature lead that **failed international confirmation** (Japan +154d, Europe
+   +94d; the clean "candidate that didn't survive out-of-sample" story). Both in RESEARCH-RECORD
+   2026-07-29.
+2. **§3 instrument** — the stability-is-under-argued objection (pair every stability number with a
+   skill number; harden the perturbation; add a deterministic vol-threshold baseline).
+3. **§1 intro** — quote Shu–Yu–Mulvey's exact baselines; resolve the `\needcite`.
+4. **Wire `refs.bib`** — no `\bibliography` in `main.tex` yet; citations aren't live.
+5. **Figures** — export from the report machinery to `paper/fig/`.
+6. **Exact-numbers appendix** — from `stage1.csv`, `allocation_summary.csv`, `sensor_validation.csv`.

@@ -1,10 +1,10 @@
 # Regime Program — Goal & Roadmap
 
-Last updated: 2026-07-26 (Path-B closed null; detection-not-trading identity re-confirmed).
-Forward-looking program
-doc. Receipts: `V2-JUMPMODEL-PREREG.md` (frozen, ch1) + chapter-2 allocation prereg +
-`CH3-EXPOSURE-PREREG.md` (draft Rev 3) + `CH3-D2-MEMO.md` + `MONITOR-VALIDATION-SPEC.md`
-+ `RESEARCH-RECORD.md` (newest-first narrative).
+Last updated: 2026-07-29 (dispersion lead failed intl confirmation → CLOSED; tree + docs
+cleaned; PIVOT to a cross-sectional factor model — see RESEARCH-RECORD 2026-07-29). Forward-looking
+program doc. Receipts: all closed-chapter preregs archived to `.planning/archive/`
+(`V2-JUMPMODEL-PREREG` ch1, covariance/allocation/stockbond/continuous-state nulls, CH3-exposure)
++ `MONITOR-VALIDATION-SPEC.md` (parked stream) + `RESEARCH-RECORD.md` (newest-first narrative).
 
 ## Goal (restated 2026-07-23, supersedes the morning "regime-aware allocation" goal)
 

@@ -191,7 +191,8 @@ synced. Both repos' working trees are clean and fully pushed (verified 2026-07-2
    that the PAT works).
 3. **Paper** — the negative/methods paper is still a real deliverable; the dispersion int'l
    null is a clean new "candidate that didn't survive confirmation" story for it. Fold in when
-   returning to `paper/OUTLINE.md`. No new experiments, no reopening closed nulls.
+   returning to `paper/main.tex` (paper collapsed to one file 2026-07-29; to-do in `paper/README.md`).
+   No new experiments, no reopening closed nulls.
 
 Parked/killed (do not re-propose): all Layer-3 market-timing (Ch1/Ch2/Path-B/dispersion —
 dominated by reactive baselines, closed); Ch3 graded-exposure (deleted); VIX/VRP detection axis
