@@ -1,0 +1,5 @@
+strategy,ann_ret,ann_vol,sharpe,max_dd
+EW_market (baseline),0.1641,0.2129,0.674,-0.762
+long_only_mom_tilt,0.1876,0.2163,0.761,-0.7243
+WML_longshort (spread),0.0539,0.1411,0.445,-0.6438
+WML_vol_scaled,0.0745,0.1728,0.504,-0.7196

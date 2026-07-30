@@ -1,0 +1,4 @@
+strategy,ann_ret,ann_vol,sharpe,max_dd,universe
+static_equalwt,0.0847,0.0887,0.754,-0.2261,eq+bond+gold 2000+
+voltarget_only,0.0497,0.0394,0.785,-0.0991,eq+bond+gold 2000+
+voltarget_PLUS_trend,0.0435,0.0347,0.714,-0.0619,eq+bond+gold 2000+

@@ -8,6 +8,31 @@ trading.** Branch: main | Last updated: 2026-07-30
 (newest-first). Forward roadmap + parked/killed ledger in `.planning/PROGRAM.md`. This file =
 current state + next action only. Full session-by-session history is in git + RESEARCH-RECORD.*
 
+## Current state (2026-07-30 eve) — PRODUCT CONVERGENCE: momentum = engine, crash = the gate
+
+Goal locked with Adam: **A (make money) + B (advisor-usable tool), as ONE product.** Worked through the
+strategy question and converged (all in-sample/QA, no look-gated claim):
+- Timing/prediction/JM-as-signal = dead (5 nulls). Diversification = the only free lunch. Vol-targeting
+  & trend = drawdown reducers, NOT alpha (`risk_engine.py`, `strategy_combo.py`: adding trend to
+  vol-target did NOT lift Sharpe, only cut drawdown).
+- `oracle_exposure.py` (in-sample-optimal per turbulence×trend cell, JM REMOVED — it's a weak detector,
+  comms-only): once the JM is dropped, the "best move" is mostly risk-scaling (corr w/ inv-vol 0.18→0.62);
+  residual = a trend tilt = momentum.
+- **`cross_sectional_momentum.py` = the one real return-adder:** industry cross-sectional momentum
+  (10 French industries, 12-1, long-only tilt) beat equal-weight on Sharpe (0.67→0.76) AND return,
+  decade-ROBUST (alive 2010-now 0.75 vs 0.63; only failed 2000-09 the known momentum-crash decade),
+  LOW overfit (no tuned params). **BUT −64/−72% crash drawdowns → un-holdable → fails B.**
+- **Crash fix FAILED as tested:** vol-scaling (Barroso-Santa-Clara) did NOT tame it on industry momentum
+  (2000-09 Sharpe −0.15→−0.36, DD −64→−72%). Likely too-coarse universe / 6m-vol lag — NOT tweaked
+  further (spec-search refused).
+
+**Convergence: momentum is the engine; its drawdown is the ONE problem between "real edge" and
+"holdable product."** Next = (1) broaden universe (48 French industries → breadth diversifies the crash),
+(2) a crash-control that actually works (Daniel-Moskowitz dynamic; residual/idiosyncratic momentum;
+multi-factor), (3) OOS/walk-forward, (4) wrap with regime comms layer (B), (5) maybe single-stock
+graduation. Regime/JM demoted to comms skin. **Deep-research launched 2026-07-30 on how professionals
+build a HOLDABLE momentum product + solve the crash (was over-reliant on in-repo backtests — Adam).**
+
 ## Current state (2026-07-30 pm) — DETECTOR reframed as a COMMUNICATION instrument; multi-view read built + stress-tested
 
 Adam's direction: "improve the detector" → then "how do we get VALUE / make it better." Landed here:
