@@ -8,6 +8,42 @@ trading.** Branch: main | Last updated: 2026-07-30
 (newest-first). Forward roadmap + parked/killed ledger in `.planning/PROGRAM.md`. This file =
 current state + next action only. Full session-by-session history is in git + RESEARCH-RECORD.*
 
+## SESSION CLOSE (2026-07-30 night) — PRODUCT DEFINED; next action = VALIDATE (walk-forward OOS + intl)
+
+Full arc + roadmap in `.planning/PRODUCT-PLAN.md`. Goal locked: **A (make money) + B (advisor-holdable)
+as ONE product.** After the JM-as-strategy was shown dominated, the session converged on a real product
+and validated its pieces (all IN-SAMPLE — that's the caveat driving the next step).
+
+**THE PRODUCT (every piece separately validated, in-sample):**
+> Momentum-tilted equity SLEEVE (48-industry, buffered, inverse-vol, 12-1 skip-month, ~0.81 Sharpe)
+> INSIDE a static vol-targeted diversified allocation (brings raw −51% sleeve DD down to −8/−28%,
+> holdable) + the regime read as the client COMMUNICATION layer (goal B / behavior-gap money).
+> Beat the jump-model overlay head-to-head: **0.92 vs 0.50 Sharpe**, higher return, lower DD (1990+).
+
+**VALIDATED (in-sample):** breadth 48>10 industries (Sharpe 0.74→0.81, DD −73%→−51%); confidence =
+trend CONSISTENCY (frog-in-the-pan) lifts Sharpe 0.81→0.87 (use as a MILD tilt, NOT concentration —
+concentration blew DD to −77%); survivorship-bias CLEAN (French = CRSP, incl. delisted, value-weight).
+
+**KILLED this session (do not revive):** JM as a trading signal (dominated, Sharpe 0.50); vol-scaling
+momentum crash-fix (long-short tool, fails on long-only coarse tilt); dynamic asset-class timing —
+min-var (piled 93% into bonds in 2022 💀) AND trend-gating (right behaviorally but lost to static on
+Sharpe) → keep allocation STATIC; pure conviction concentration (no Sharpe gain, more DD); residual
+momentum on ≤48 names (breadth-hungry, needs single stocks).
+
+**NEXT ACTION (Phase A4 — do FIRST, before any more improvements):** walk-forward OOS validation of the
+whole sleeve+allocation (params fixed a-priori) AND international confirmation on the Japan/Europe panels
+we already have. Everything above is in-sample; validate before embellishing. IF it survives, the ranked
+improvement roadmap (PRODUCT-PLAN §revised sequence) is: (2) multi-factor value+quality composite,
+(3) diversify allocation w/ trend+gold (the honest 2022 fix), (4) mild confidence tilt + buffering,
+(5) ship comms layer, (6) single-stock graduation (delisting-aware data). Honest ceiling: momentum is
+crowded/decayed — improvements are incremental (robustness/holdability/behavior-gap), not secret alpha.
+
+Scripts this session (all `scripts/`, all in-sample QA, no look spent): `benchmark_detector`,
+`regime_read`, `regime_panel`, `risk_engine`, `oracle_exposure`, `strategy_combo`,
+`cross_sectional_momentum`, `residual_momentum`, `value_momentum_blend`, `compare_vs_jm`,
+`dynamic_allocation`, `momentum_breadth`, `conviction_momentum`. Two deep-research audits (factor
+methodology; holdable-momentum/crash) in RESEARCH-RECORD-adjacent agent transcripts.
+
 ## Current state (2026-07-30 eve) — PRODUCT CONVERGENCE: momentum = engine, crash = the gate
 
 Goal locked with Adam: **A (make money) + B (advisor-usable tool), as ONE product.** Worked through the

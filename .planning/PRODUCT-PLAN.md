@@ -81,11 +81,18 @@ implementation harness (skip-month, buffering, costs); (A4) OOS + prereg gate; (
 ## Status
 - [x] Phase 1 residual momentum — DONE, net negative on 10 industries (breadth-hungry); revisit after breadth
 - [x] Phase 2 value blend — DONE, +0.96 corr in long-only; drawdown is market-beta → fix at allocation layer
-- [ ] A1 assemble momentum-tilted sleeve INSIDE vol-targeted allocation — NEXT
-- [ ] A2 breadth 30/48 industries (+ residual momentum retest)
-- [ ] A3 implementation harness (skip-month, buffering, costs, tax)
-- [ ] A4 OOS/walk-forward + prereg gate (the one look)
+- [x] A1 assembled sleeve-in-allocation — beat JM 0.92 vs 0.50 (compare_vs_jm.py); dynamic allocation
+      tested + REJECTED (min-var/trend-gating lose to static — dynamic_allocation.py) → allocation STATIC
+- [x] A2 breadth — 48-industry buffered momentum beats 10 (Sharpe 0.74→0.81, DD −73→−51; momentum_breadth.py);
+      residual momentum breadth-hungry, parked; confidence=consistency helps as MILD tilt (conviction_momentum.py)
+- [~] A3 implementation harness — buffering + skip-month DONE in momentum_breadth; costs/tax/turnover realism TODO
+- [ ] **A4 OOS/walk-forward + international (Japan/Europe) confirmation — THE NEXT ACTION (validate before more)**
 - [ ] A5 regime communication layer (B) → portfolio-manager
+
+Revised improvement sequence AFTER A4 passes: (2) multi-factor value+quality COMPOSITE rank (not tilt-blend
+— +0.96 corr trap); (3) diversify allocation w/ trend+gold (honest 2022 stock-bond-together fix, as a
+diversifier not a timer); (4) mild confidence tilt + buffering; (5) ship comms; (6) single-stock graduation
+(delisting-aware data — survivorship is THE risk there; French data is clean, stocks are not).
 
 ---
 <!-- LINKS:AUTO -->
