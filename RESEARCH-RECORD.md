@@ -23,7 +23,46 @@ the full version is in `RESEARCH-AUDIT.md`. Nothing from the audit has been disc
 
 ---
 
-## 2026-07-29 (latest) — DISPERSION 4th-feature lead does NOT generalize (int'l confirmation FAILS); Layer-3 market-timing closed for good; PIVOT to a cross-sectional factor model
+## 2026-07-30 (latest) — REGIME-AS-A-FACTOR: SPANNED by FF3+BAB (expected); closed cheaply, no look spent
+
+The factor-model pivot's first real question (FACTOR-MODEL-DIRECTION §5): is the JM regime a priced
+*cross-sectional* factor, or is it — as the honest prior predicted — just the low-vol/BAB axis in
+disguise? Built the machinery (all NO-look) and ran the descriptive spanning characterization.
+
+**Steps 1–3 (all no-look):**
+1. `build_regime_factor_inputs.py` — reproduced the FROZEN chapter-1 walk-forward on the French US
+   panel with the filter's causal evidence-margin exported (`return_margin`), **integrity gate 0/9120
+   daily-state mismatches vs frozen `oos_labels`** (the margin rides on the sealed label). Resampled
+   to a monthly regime series (state + continuous stress), 435 mo 1990-03..2026-05. `build_bab.py` —
+   AQR monthly Betting-Against-Beta (Frazzini-Pedersen), USA ann. Sharpe 0.70 (matches literature);
+   the mandatory spanning control (label = market-downside-vol transform ⇒ likely re-loads low-vol/BAB).
+2. `regime_factor.py` — regime factor return (FMP) two ways, both with strictly-prior (causal) betas:
+   beta-sort spread (long high-Δstress-β hedges / short amplifiers) and Lamont/BGL max-correlation
+   mimicking portfolio. Driver = innovation Δs = first difference of the continuous stress margin
+   (level→news, Campbell 1993 ICAPM). Tests: planted-factor recovery (corr>0.9) + no-lookahead.
+3. `explore_regime_spanning.py` — REG on FF 25 size/BE-ME excess returns, spanning-regressed on
+   FF3 and FF3+BAB with Newey-West(6) t-stats + Barillas-Shanken max-Sharpe² check.
+
+**Result — SPANNED (the §5 honest prior, confirmed):**
+
+| construction | mean/mo | corr(BAB) | α vs FF3+BAB (NW t) | R² (FF3+BAB) | ΔSh² (ann ΔSharpe) |
+|---|---|---|---|---|---|
+| beta-sort | −0.07% | 0.39 | t = **−1.30** | 0.57 | 0.008 (0.05) |
+| mimicking | −0.09% | 0.13 | t = **−2.09** | 0.15 | 0.013 (0.08) |
+
+Neither α clears the Harvey-Liu-Zhu **t>3** bar; both premia carry the **correct NEGATIVE (hedge)
+sign** — a positive premium would have been the Case-B timing-artifact red flag, and it isn't there;
+ΔSh² is within BKRS sampling noise. **Regime is the vol/BAB axis in the cross-section** — the v1
+"everything collapses onto the vol axis" finding in cross-sectional form. CLOSED cheaply; the Step-4
+protocol (prereg + cooling-off + sign-off + international confirmation) is NOT triggered — no look was
+ever at stake. Reproduction: `build_regime_factor_inputs.py`→`build_bab.py`→`explore_regime_spanning.py`;
+result `results/regime_spanning.csv`. 34 tests pass.
+
+This does not close the *factor model* — Path A's live question (does the JM label, as a **risk-scaler**
+not a timer, improve a factor's risk-adjusted return?) is untouched and remains the next real target.
+What's closed is the narrower "regime is itself a priced cross-sectional factor" — spanned, as predicted.
+
+## 2026-07-29 — DISPERSION 4th-feature lead does NOT generalize (int'l confirmation FAILS); Layer-3 market-timing closed for good; PIVOT to a cross-sectional factor model
 
 **Dispersion lead — CLOSED, does not generalize.** The 2026-07-28 US-panel finding (adding
 realized cross-sectional dispersion of the 10 industry portfolios as a 4th jump-model feature

@@ -40,7 +40,9 @@ def build_daily():
         r.to_numpy(), F.to_numpy(), burn=63, train0=TRAIN0, refit=REFIT,
         grid=LAMBDA_GRID, val=VAL, n_init=N_INIT, delay=DELAY, return_margin=True)
     daily = pd.DataFrame({"state": states, "margin": margins}, index=r.index)
-    return daily.dropna(subset=["state"])
+    # margin is NaN outside scored blocks (pre-scoring burn/train region ~pre-1990); those `state`
+    # values are the uninitialized default, not real labels — drop them so the artifact is honest.
+    return daily.dropna(subset=["margin"])
 
 
 def integrity_check(daily):

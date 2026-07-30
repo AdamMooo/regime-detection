@@ -11,7 +11,8 @@ import numpy as np
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from factor_tests import fama_macbeth, factor_spanning, grs_test, time_series_regression
+from factor_tests import (fama_macbeth, factor_spanning, factor_spanning_nw, grs_test,
+                          max_sharpe2, time_series_regression)
 
 
 def _sim(T, N, K, alpha=None, premium=None, seed=0):
@@ -88,3 +89,35 @@ def test_time_series_regression_shapes_and_recovery():
     alpha, bhat, resid = time_series_regression(R, F)
     assert alpha.shape == (8,) and bhat.shape == (8, 3) and resid.shape == (3000, 8)
     assert np.allclose(bhat, betas, atol=0.05)                 # recovers the true betas (~3.6 SE)
+
+
+def test_nw_spanning_matches_ols_at_zero_lag():
+    rng = np.random.default_rng(7)
+    others = rng.normal(0, 0.04, (300, 3))
+    target = 0.002 + others @ np.array([0.5, -0.3, 0.8]) + rng.normal(0, 0.02, 300)
+    nw0 = factor_spanning_nw(target, others, lags=0)
+    ols = factor_spanning(target, others)
+    # at 0 lags the NW variance reduces to White (still robust) — t-stats should be same ballpark,
+    # and the alpha/R2 identical since the point estimate is the same OLS fit
+    assert abs(nw0["alpha"] - ols["alpha"]) < 1e-12
+    assert abs(nw0["r2"] - ols["r2"]) < 1e-12
+    assert np.sign(nw0["t_alpha_nw"]) == np.sign(ols["t_alpha"])
+
+
+def test_nw_spanning_detects_unspanned_alpha():
+    rng = np.random.default_rng(8)
+    others = rng.normal(0, 0.04, (600, 2))
+    target = 0.01 + others @ np.array([0.4, 0.4]) + rng.normal(0, 0.01, 600)  # big alpha
+    assert abs(factor_spanning_nw(target, others)["t_alpha_nw"]) > 3
+
+
+def test_max_sharpe2_adding_factor_never_decreases():
+    rng = np.random.default_rng(9)
+    F = rng.normal([0.005, 0.003], 0.04, (500, 2))
+    extra = rng.normal(0.004, 0.04, (500, 1))
+    assert max_sharpe2(np.column_stack([F, extra])) >= max_sharpe2(F) - 1e-9
+
+
+def test_max_sharpe2_matches_grs_sh2():
+    R, F, _ = _sim(300, 6, 2, premium=[0.006, 0.004], seed=3)
+    assert abs(max_sharpe2(F) - grs_test(R, F)["sh2_factors"]) < 1e-10

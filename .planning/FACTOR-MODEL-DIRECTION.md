@@ -183,6 +183,17 @@ Expected outcome: regime-factor α ≈ 0 once BAB is controlled → redundant. T
 any look; and since the label was born on the US panel, any surviving α confirms on the
 French/MSCI international panels (we already have Japan/Europe) before being called real.
 
+## 6b. OUTCOME (2026-07-30) — Steps 1–3 DONE, SPANNED, step 4 NOT triggered
+
+Built `build_regime_factor_inputs.py` (integrity gate 0/9120 vs frozen `oos_labels`), `build_bab.py`
+(AQR BAB, US ann Sharpe 0.70), `regime_factor.py` (beta-sort + Lamont/BGL mimicking FMPs, causal),
+FF3+BAB Newey-West spanning + Barillas-Shanken Sh² in `factor_tests.py`, run by
+`explore_regime_spanning.py`. **Result: SPANNED** — beta-sort α t=−1.30, mimicking α t=−2.09 vs
+FF3+BAB (neither clears HLZ t>3); both means NEGATIVE (correct hedge sign); ΔSh² within BKRS noise.
+The §5 honest prior confirmed: regime = vol/BAB axis in the cross-section. Closed cheaply, no look
+spent. `results/regime_spanning.csv`; full narrative in RESEARCH-RECORD 2026-07-30. Next Path-A target
+= the JM label as a **risk-scaler** (not the factor itself), which IS look-gated. See NOTES.
+
 ## 6. Tomorrow's plan (concrete, ordered)
 
 All of step 1–3 below are NO-look data/plumbing; the look is gated at step 4.
