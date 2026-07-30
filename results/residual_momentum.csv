@@ -1,0 +1,5 @@
+strategy,ann_ret,ann_vol,sharpe,max_dd
+raw_mom_long_only,0.1917,0.2135,0.783,-0.5259
+residual_mom_long_only,0.1792,0.2139,0.731,-0.566
+raw_WML,0.0487,0.1406,0.411,-0.6438
+residual_WML,0.0198,0.1168,0.229,-0.6738
