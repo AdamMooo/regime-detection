@@ -8,6 +8,31 @@ trading.** Branch: main | Last updated: 2026-07-30
 (newest-first). Forward roadmap + parked/killed ledger in `.planning/PROGRAM.md`. This file =
 current state + next action only. Full session-by-session history is in git + RESEARCH-RECORD.*
 
+## SESSION CLOSE (2026-07-31) — Phase A4 VALIDATION DONE: sleeve edge is OOS-robust (Europe strong, Japan weak-as-expected)
+
+`scripts/validate_product.py` (a-priori params, NO tuning — momentum has no fitted params, so "walk-forward"
+= OOS in TIME + GEOGRAPHY). Results in `results/validate_product_{us_sleeve,us_full,intl}.csv`.
+
+- **US 48-ind sleeve vs equal-weight — SURVIVES OOS in time.** Beats EW Sharpe in 8/10 decades, full
+  +0.15 (0.81 vs 0.65), and in the crowded post-publication decades 2010s +0.10 / 2020s +0.13. Only the
+  known momentum-crash 2000s (−0.03) and a tiny 1940s (−0.06) are flat. Reproduces the frozen in-sample
+  0.81/−51% exactly → machinery trusted.
+- **Europe — STRONG OOS-geography confirmation.** Sleeve beats EW every decade, full +0.15 (0.87 vs 0.72),
+  incl. 2010s +0.11 / 2020s +0.19.
+- **Japan — weak/ambiguous, AS THE LITERATURE PREDICTS** (Asness 2011; Chui-Titman-Wei 2010 — Japan is THE
+  international-momentum exception). Full edge only +0.07 (0.41 vs 0.34), ~0 in the 1990s, negative 2010s.
+  Not a construction bug — a real caveat: a global product must diversify across regions, not lean on one.
+- **Allocation/vol-target adds ~0 Sharpe over a static blend** (edge ~−0.02 full); its job is DD/holdability
+  (sleeve −51% DD → product −24%). Exactly the project's standing thesis — risk-management, not timing alpha.
+
+**VERDICT:** momentum's cross-sectional edge is OOS-robust; the product's holdability comes from the
+allocation layer, not from timing. These are characterization/robustness findings (a-priori, no look-gated
+null) — a formal SUPPORT/deploy stamp still needs the overnight cooling-off + explicit dated sign-off.
+
+**NEXT** (per PRODUCT-PLAN revised sequence, only now that A4 survives): (2) multi-factor value+quality
+COMPOSITE rank (not tilt-blend — the +0.96 long-only corr trap); (3) trend/gold allocation diversifiers;
+(4) mild confidence tilt; (5) ship comms layer; (6) single-stock graduation (delisting-aware data).
+
 ## SESSION CLOSE (2026-07-30 night) — PRODUCT DEFINED; next action = VALIDATE (walk-forward OOS + intl)
 
 Full arc + roadmap in `.planning/PRODUCT-PLAN.md`. Goal locked: **A (make money) + B (advisor-holdable)

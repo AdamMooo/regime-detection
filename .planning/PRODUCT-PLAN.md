@@ -86,7 +86,9 @@ implementation harness (skip-month, buffering, costs); (A4) OOS + prereg gate; (
 - [x] A2 breadth — 48-industry buffered momentum beats 10 (Sharpe 0.74→0.81, DD −73→−51; momentum_breadth.py);
       residual momentum breadth-hungry, parked; confidence=consistency helps as MILD tilt (conviction_momentum.py)
 - [~] A3 implementation harness — buffering + skip-month DONE in momentum_breadth; costs/tax/turnover realism TODO
-- [ ] **A4 OOS/walk-forward + international (Japan/Europe) confirmation — THE NEXT ACTION (validate before more)**
+- [x] **A4 OOS/walk-forward + international confirmation — DONE 2026-07-31 (validate_product.py).** Sleeve
+      edge OOS-robust in time (8/10 decades, incl. 2010s/2020s); Europe strong (+0.15), Japan weak-as-
+      literature-predicts (+0.07); allocation = DD/holdability not Sharpe. Characterization, no look spent.
 - [ ] A5 regime communication layer (B) → portfolio-manager
 
 Revised improvement sequence AFTER A4 passes: (2) multi-factor value+quality COMPOSITE rank (not tilt-blend
