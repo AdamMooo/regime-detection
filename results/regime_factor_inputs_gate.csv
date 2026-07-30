@@ -1,0 +1,10 @@
+check,value
+daily_overlap_vs_frozen,9120
+daily_state_mismatches,0
+monthly_rows,677
+monthly_first,1970-01-31
+monthly_last,2026-05-31
+aligned_to_panel_rows,677
+frac_stressed_overall,0.1865
+margin_min,-2.3342
+margin_max,1.8216
