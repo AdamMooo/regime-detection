@@ -183,16 +183,26 @@ Expected outcome: regime-factor α ≈ 0 once BAB is controlled → redundant. T
 any look; and since the label was born on the US panel, any surviving α confirms on the
 French/MSCI international panels (we already have Japan/Europe) before being called real.
 
-## 6b. OUTCOME (2026-07-30) — Steps 1–3 DONE, SPANNED, step 4 NOT triggered
+## 6b. OUTCOME (2026-07-30) — Steps 1–3 DONE; AMBIGUOUS candidate → Step-4 (first "closed" verdict was WRONG)
 
 Built `build_regime_factor_inputs.py` (integrity gate 0/9120 vs frozen `oos_labels`), `build_bab.py`
 (AQR BAB, US ann Sharpe 0.70), `regime_factor.py` (beta-sort + Lamont/BGL mimicking FMPs, causal),
 FF3+BAB Newey-West spanning + Barillas-Shanken Sh² in `factor_tests.py`, run by
-`explore_regime_spanning.py`. **Result: SPANNED** — beta-sort α t=−1.30, mimicking α t=−2.09 vs
-FF3+BAB (neither clears HLZ t>3); both means NEGATIVE (correct hedge sign); ΔSh² within BKRS noise.
-The §5 honest prior confirmed: regime = vol/BAB axis in the cross-section. Closed cheaply, no look
-spent. `results/regime_spanning.csv`; full narrative in RESEARCH-RECORD 2026-07-30. Next Path-A target
-= the JM label as a **risk-scaler** (not the factor itself), which IS look-gated. See NOTES.
+`explore_regime_spanning.py`. Raw: beta-sort α t=−1.30, mimicking α t=−2.09 vs FF3+BAB; both means
+NEGATIVE; `results/regime_spanning.csv`.
+
+I first called this "SPANNED, closed cheaply." **WRONG** — a deep-research methodology audit (Adam
+demanded it) found two verdict-flipping errors: (1) HLZ **t>3** is a factor-DISCOVERY bar; a nested
+spanning test uses **|t|>2**, under which the mimicking α (t=−2.09) is significant; (2) a marginally-sig
+NEGATIVE α on a hedge candidate is the **FVIX signature** (AHXZ 2006 — aggregate-vol priced negative),
+i.e. a candidate priced hedge, not "spanned". Also: ΔSh² has no BKRS SE (no inferential weight); BAB-only
+under-controls the vol/IVOL axis (BAB is a beta/correlation factor — AFGP 2020); the two constructions
+disagree. SOUND: FMP construction (Lamont/BGL) + first-difference innovation (AHXZ FVIX method).
+
+**Disposition: OPEN Step-4 candidate — not closed, not supported.** Next = a preregistered confirmatory
+test (controls FF3+BAB+IVOL/BAC, |t|>2 bar, BKRS/GRS inference, required negative sign, both constructions
+agree, international confirmation) written BEFORE any augmented run → cooling-off → dated sign-off → one
+look. Full narrative: RESEARCH-RECORD 2026-07-30. See NOTES for the next-action list.
 
 ## 6. Tomorrow's plan (concrete, ordered)
 

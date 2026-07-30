@@ -8,25 +8,30 @@ trading.** Branch: main | Last updated: 2026-07-30
 (newest-first). Forward roadmap + parked/killed ledger in `.planning/PROGRAM.md`. This file =
 current state + next action only. Full session-by-session history is in git + RESEARCH-RECORD.*
 
-## Current state (2026-07-30) — REGIME-AS-A-FACTOR tested: SPANNED by FF3+BAB (expected); closed cheaply, no look spent
+## Current state (2026-07-30) — REGIME-AS-A-FACTOR: AMBIGUOUS candidate, escalated to Step-4 (my "closed" verdict was WRONG)
 
-Ran the pivot's first real question (FACTOR-MODEL-DIRECTION §5-6, Steps 1-3, all NO-look): is the JM
-regime a priced *cross-sectional* factor? **Answer: SPANNED — it's the low-vol/BAB axis in disguise,
-exactly the honest prior.** Built + committed:
+Ran the pivot's first real question (FACTOR-MODEL-DIRECTION §5-6, Steps 1-3, all NO-look). I first wrote
+this up as "SPANNED, closed cheaply." **That verdict was an over-claim — corrected after a deep-research
+methodology audit Adam demanded.** Honest status: an **ambiguous candidate**, now at the Step-4 gate.
+
+Built (all sound, all NO-look) + committed:
 - `build_regime_factor_inputs.py` — frozen ch1 walk-forward + causal evidence-margin; **integrity gate
   0/9120 mismatch** vs frozen `oos_labels`; monthly regime series (state+stress), 435 mo 1990-2026.
-- `build_bab.py` — AQR monthly BAB (USA ann Sharpe 0.70); the mandatory spanning control.
-- `regime_factor.py` — regime FMP (beta-sort spread + Lamont/BGL mimicking), causal betas; planted-factor
-  recovery + no-lookahead tests.
-- `factor_tests.py` +Newey-West spanning + max-Sharpe² (Barillas-Shanken). `explore_regime_spanning.py`.
-- **Result** (`results/regime_spanning.csv`): beta-sort α t=−1.30, mimicking α t=−2.09 vs FF3+BAB —
-  neither clears the HLZ t>3 bar; both means NEGATIVE (correct hedge sign, no timing-artifact flag);
-  ΔSh²≈0.008-0.013 (within BKRS noise). CLOSED cheaply; Step-4 protocol NOT triggered. 34 tests pass.
+- `build_bab.py` — AQR monthly BAB (USA ann Sharpe 0.70). `regime_factor.py` — regime FMP (beta-sort +
+  Lamont/BGL mimicking, causal betas; recovery + no-lookahead tests). `factor_tests.py` +Newey-West
+  spanning + max-Sharpe². `explore_regime_spanning.py`. 34 tests pass.
 
-**This closes only "regime as a priced cross-sectional factor" — NOT the factor model.** Path A's live
-question is untouched: does the JM label, used as a **risk-scaler** (not a timer), improve a factor's
-risk-adjusted return? That's the next real target (and the one that needs prereg+cooling-off+sign-off
-since it could produce a positive claim). See Next action(s).
+**Why the verdict flipped (audit findings, cited in RESEARCH-RECORD 2026-07-30):**
+- Wrong bar: HLZ **t>3** is for factor DISCOVERY; a nested spanning test uses **|t|>2** — under which the
+  mimicking α (**t=−2.09**) is significant.
+- Wrong reading: a marginally-sig NEGATIVE α on a hedge candidate is the **FVIX signature** (AHXZ 2006,
+  aggregate-vol priced negative) — a candidate priced hedge, not "spanned".
+- ΔSh² eyeballed with no BKRS SE = no inferential weight. BAB-only under-controls the vol/IVOL axis.
+- Constructions DISAGREE (beta-sort α t=−1.30 n.s.; mimicking t=−2.09) → caution.
+- SOUND: the FMP construction (Lamont/BGL) + first-difference innovation (AHXZ FVIX method).
+
+**Not closed, not supported.** Next = a preregistered Step-4 confirmatory test written BEFORE seeing any
+augmented result (adding IVOL/BAC + re-reading α now would be spec-searching on the answer sheet).
 
 ## Prior state (2026-07-29) — dispersion CLOSED (didn't generalize); tree cleaned; PIVOT to cross-sectional factor model
 
@@ -220,20 +225,22 @@ Barillas-Shanken max-Sharpe check, GRS on broadened test assets; sign must be NE
 (hedging), positive = timing artifact. Steps 1–3 are NO-look; the look is gated behind
 cooling-off + sign-off + international confirmation.
 
-## Next action(s) — regime-as-a-factor DONE (spanned); Path A's live question is next
+## Next action(s) — draft the Step-4 regime-factor prereg (NO look)
 
-Steps 1-3 of FACTOR-MODEL-DIRECTION §6 are DONE and step 4 was NOT triggered (spanned, no look
-spent). What remains on Path A:
+The regime-as-a-factor question is an OPEN Step-4 candidate (not closed, not supported). Next:
 
-1. **The real target — JM label as a RISK-SCALER, not a timer.** Does scaling a factor's exposure by
-   the regime/stress state improve its risk-adjusted return (Asness #8: the label's only honest job)?
-   This CAN produce a positive claim ⇒ needs a prereg + overnight cooling-off + explicit dated
-   sign-off + international confirmation BEFORE any look. Design the prereg first (no look).
-2. **Housekeeping (no look):** add beta-dispersed test assets (industry / size-mom portfolios) to fix
-   the Fama-MacBeth market-premium identification issue on the 25-portfolio set (§3b caveat).
-3. **Paper** — the regime-as-a-factor spanned result is another clean "candidate that didn't survive"
-   entry for the negative/methods paper (the cross-sectional form of "everything collapses onto the
-   vol axis"). Fold in when returning to `paper/main.tex`.
+1. **Draft the Step-4 confirmatory prereg (NO look, written BEFORE any augmented run).** Lock, in
+   advance: control set = FF3 + BAB + a distinct low-vol/IVOL factor (AHXZ IVOL and/or Betting-Against-
+   Correlation, Asness-Frazzini-Gormsen-Pedersen 2020); decision bar = **|t|>2** on the spanning α
+   (NOT HLZ t>3 — that's a discovery bar, wrong for a nested spanning test); proper inference = BKRS
+   (2020) SE / GRS, not eyeballed ΔSh²; a **REQUIRED negative (hedge) sign** (positive = timing
+   artifact → reject); pre-commit BOTH constructions must agree; international confirmation (Japan/Europe
+   panels). Then overnight cooling-off + explicit dated sign-off → the one look.
+   Data still needed (no look): an IVOL and/or BAC factor series (AHXZ / AQR).
+2. **Housekeeping (no look):** add beta-dispersed test assets (industry / size-mom) to fix the
+   Fama-MacBeth market-premium identification issue on the 25-portfolio set (§3b caveat).
+3. **Separate Path-A target (later):** JM label as a **risk-scaler** (not the factor itself) — does
+   scaling a factor's exposure by the state improve risk-adjusted return? Also look-gated.
 
 Parked/killed unchanged (do not re-propose): all Layer-3 market-timing (Ch1/Ch2/Path-B/dispersion);
 Ch3 graded-exposure; VIX/VRP detection axis. Reopening requires genuinely new orthogonal information.

@@ -23,7 +23,42 @@ the full version is in `RESEARCH-AUDIT.md`. Nothing from the audit has been disc
 
 ---
 
-## 2026-07-30 (latest) — REGIME-AS-A-FACTOR: SPANNED by FF3+BAB (expected); closed cheaply, no look spent
+## 2026-07-30 (latest) — REGIME-AS-A-FACTOR: NOT cleanly closed — AMBIGUOUS candidate, escalated to Step-4 prereg
+
+**CORRECTION (same day, after a deep-research methodology audit Adam demanded).** My first write-up of
+this entry declared "SPANNED by FF3+BAB, closed cheaply." That verdict was WRONG — an over-claim from
+two methodology errors. The honest status is an **ambiguous candidate**, now correctly at the Step-4
+gate (prereg + cooling-off + sign-off). The build below is sound; the *verdict* was not. What the audit
+(6 decisions checked against primary sources) found:
+
+- **Wrong significance bar.** I applied Harvey-Liu-Zhu **t>3** to a *spanning* alpha. HLZ t>3 is the bar
+  for DISCOVERING a new factor under factor-zoo multiple testing; HLZ themselves say ordinary **|t|>2**
+  applies absent that context. A nested "does REG add to FF3+BAB?" spanning test is a |t|>2 question —
+  under which the mimicking-portfolio α (**t=−2.09**) CLEARS significance. My bar made "spanned" too easy.
+- **Wrong reading of a negative α.** "Zero α" ≠ "negative α". A marginally-significant *negative* α on a
+  *hedge* candidate is the **FVIX signature** (Ang-Hodrick-Xing-Zhang 2006: aggregate-vol risk priced
+  NEGATIVE ~−1%/mo — you overpay for insurance). A downside-vol regime factor is structurally that object,
+  so α=−2.09 with the negative sign is at least as consistent with "priced negative-premium hedge" as with
+  "spanned." That is arguably a SUPPORTING sign, not a killing one.
+- **Uninterpretable Sh².** I eyeballed ΔSh² as "within noise" with no standard error — the exact error
+  BKRS (2020) exists to prevent (esp. mimicking-portfolio weight estimation error). No inferential weight.
+- **Under-controlled axis.** BAB is a *beta/correlation* factor (Asness-Frazzini-Gormsen-Pedersen 2020:
+  beta ≈ vol × correlation); a downside-vol regime factor sits nearer the *volatility/IVOL* axis. So
+  "REG = the BAB axis" is unproven attribution — could be the vol/IVOL axis. (Safe for the binary verdict —
+  adding IVOL can only push α toward zero — but the narrative was wrong.)
+- SOUND: the FMP construction (= Lamont 2001 / BGL economic-tracking) and the first-difference innovation
+  (= the AHXZ FVIX method) both check out against the papers.
+
+**Also note the two constructions DISAGREE**: beta-sort α t=−1.30 (not significant even at |t|>2), mimicking
+α t=−2.09 (significant). A candidate resting on one of two constructions is itself a reason for caution.
+
+**Disposition: NOT closed, NOT supported — an ambiguous candidate escalated to Step-4.** Adding the IVOL/BAC
+control and re-reading the α now would be spec-searching on the answer sheet (forbidden). The disciplined
+path is a preregistered confirmatory test written BEFORE seeing the augmented result: fixed control set
+(FF3+BAB+IVOL/BAC), fixed |t|>2 bar, proper BKRS/GRS inference, a REQUIRED negative sign, international
+confirmation → overnight cooling-off → explicit dated sign-off → the one look. No look has been spent.
+
+---
 
 The factor-model pivot's first real question (FACTOR-MODEL-DIRECTION §5): is the JM regime a priced
 *cross-sectional* factor, or is it — as the honest prior predicted — just the low-vol/BAB axis in
@@ -43,24 +78,24 @@ disguise? Built the machinery (all NO-look) and ran the descriptive spanning cha
 3. `explore_regime_spanning.py` — REG on FF 25 size/BE-ME excess returns, spanning-regressed on
    FF3 and FF3+BAB with Newey-West(6) t-stats + Barillas-Shanken max-Sharpe² check.
 
-**Result — SPANNED (the §5 honest prior, confirmed):**
+**Raw numbers (interpretation corrected above):**
 
 | construction | mean/mo | corr(BAB) | α vs FF3+BAB (NW t) | R² (FF3+BAB) | ΔSh² (ann ΔSharpe) |
 |---|---|---|---|---|---|
 | beta-sort | −0.07% | 0.39 | t = **−1.30** | 0.57 | 0.008 (0.05) |
 | mimicking | −0.09% | 0.13 | t = **−2.09** | 0.15 | 0.013 (0.08) |
 
-Neither α clears the Harvey-Liu-Zhu **t>3** bar; both premia carry the **correct NEGATIVE (hedge)
-sign** — a positive premium would have been the Case-B timing-artifact red flag, and it isn't there;
-ΔSh² is within BKRS sampling noise. **Regime is the vol/BAB axis in the cross-section** — the v1
-"everything collapses onto the vol axis" finding in cross-sectional form. CLOSED cheaply; the Step-4
-protocol (prereg + cooling-off + sign-off + international confirmation) is NOT triggered — no look was
-ever at stake. Reproduction: `build_regime_factor_inputs.py`→`build_bab.py`→`explore_regime_spanning.py`;
-result `results/regime_spanning.csv`. 34 tests pass.
+Both premia carry the NEGATIVE (hedge) sign. Under the correct |t|>2 spanning bar the *mimicking*
+α is significant (t=−2.09) with the theoretically-correct negative/hedge sign — the FVIX signature,
+a candidate priced hedge, NOT a clean "spanned". The beta-sort α (t=−1.30) is not significant, so the
+constructions disagree. ΔSh² carries no inferential weight without a BKRS SE (not computed). Verdict:
+AMBIGUOUS candidate → Step-4 prereg (see the CORRECTION block at the top of this entry). Reproduction:
+`build_regime_factor_inputs.py`→`build_bab.py`→`explore_regime_spanning.py`; `results/regime_spanning.csv`.
+34 tests pass. No look spent.
 
-This does not close the *factor model* — Path A's live question (does the JM label, as a **risk-scaler**
-not a timer, improve a factor's risk-adjusted return?) is untouched and remains the next real target.
-What's closed is the narrower "regime is itself a priced cross-sectional factor" — spanned, as predicted.
+This does not close the *factor model* — Path A's separate live question (does the JM label, as a
+**risk-scaler** not a timer, improve a factor's risk-adjusted return?) is untouched. And the narrower
+"is regime itself a priced factor" is NOT closed either — it is an open Step-4 candidate.
 
 ## 2026-07-29 — DISPERSION 4th-feature lead does NOT generalize (int'l confirmation FAILS); Layer-3 market-timing closed for good; PIVOT to a cross-sectional factor model
 

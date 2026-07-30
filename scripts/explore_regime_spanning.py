@@ -4,14 +4,19 @@ Builds the regime factor REG (both FMP constructions) on the FF 25 size/BE-ME po
 whether REG is SPANNED by Mkt/SMB/HML + BAB. The honest prior (§5): SPANNED — our label is a
 market-downside-vol transform, so a regime-beta spread most likely re-loads the low-vol/BAB axis.
 
-DISCIPLINE — READ BEFORE INTERPRETING OUTPUT:
-  * Spanned (|t_alpha_nw| < 3, or alpha ~ 0)  => CLOSED cheaply. "Regime is the vol/BAB axis in the
-    cross-section." This is the expected, clean result.
-  * An UNSPANNED alpha here is NOT a SUPPORT claim. It only triggers the Step-4 protocol: freeze a
-    prereg (spanning + Sh^2 + GRS + sign + international confirmation), overnight cooling-off, an
-    explicit dated sign-off, THEN the single look. Nothing here spends that look.
-  * Economic sign gate: a genuine regime risk factor is a HEDGE => its premium (mean REG) must be
-    NEGATIVE. A POSITIVE premium is a timing artifact (the Case-B trap), not a priced factor.
+DISCIPLINE — READ BEFORE INTERPRETING OUTPUT (bar corrected 2026-07-30 after a methodology audit):
+  * This is a NESTED SPANNING test ("does REG add to FF3+BAB?"), so the significance bar is |t|>2,
+    NOT the Harvey-Liu-Zhu t>3 (that is a factor-DISCOVERY / multiple-testing bar, wrong here).
+  * Spanned (|t_alpha_nw| < 2, alpha ~ 0)  => the factors absorb REG. Candidate weak.
+  * A significant NEGATIVE alpha (t < -2) is NOT "spanned" — for a HEDGE candidate it is the expected
+    priced-hedge sign (the AHXZ 2006 FVIX signature: aggregate-vol risk priced negative). That makes
+    REG a CANDIDATE priced hedge, which is a Step-4 situation, NOT a SUPPORT claim: it only triggers a
+    preregistered confirmatory test (FF3+BAB+IVOL/BAC controls, BKRS/GRS inference, required negative
+    sign, both constructions agree, international confirmation) + cooling-off + dated sign-off, THEN a
+    single look. Nothing here spends that look.
+  * A significant POSITIVE alpha (t > +2) is a timing artifact (the Case-B trap), reject.
+  * dSh2 below is descriptive ONLY — it carries no inferential weight without a BKRS (2020) standard
+    error (not computed here). Do not read it as "within noise".
 """
 
 from pathlib import Path
@@ -79,13 +84,16 @@ def main():
     pd.set_option("display.width", 200, "display.max_columns", 30)
     print(f"sample {df.index.min().date()}..{df.index.max().date()}  window={WINDOW}mo\n")
     print(out.round(4).T.to_string())
-    print("\n--- reading (per discipline banner in this file) ---")
+    print("\n--- reading (per discipline banner in this file; bar = |t|>2, NOT HLZ t>3) ---")
     for _, r in out.reset_index().iterrows():
-        spanned = abs(r["t_ff3bab_nw"]) < 3
-        sign = "NEGATIVE (hedge, correct)" if r["mean_mo"] < 0 else "POSITIVE (timing-artifact flag)"
-        verdict = ("SPANNED by FF3+BAB -> CLOSED cheaply" if spanned
-                   else "UNSPANNED alpha -> Step-4 protocol ONLY (NOT support)")
-        print(f"  {r['construction']:10s}: alpha_nw t={r['t_ff3bab_nw']:+.2f}  mean sign {sign}  =>  {verdict}")
+        t = r["t_ff3bab_nw"]
+        if abs(t) < 2:
+            verdict = "not significant -> factors absorb REG (candidate weak)"
+        elif t < -2:
+            verdict = "sig NEGATIVE -> CANDIDATE priced hedge (FVIX signature) -> Step-4 prereg, NOT support"
+        else:
+            verdict = "sig POSITIVE -> timing artifact (Case-B trap), reject"
+        print(f"  {r['construction']:10s}: alpha_nw t={t:+.2f}  =>  {verdict}")
 
 
 if __name__ == "__main__":
