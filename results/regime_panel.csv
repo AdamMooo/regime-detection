@@ -1,0 +1,11 @@
+metric,value,frac
+fast_leads_slow_median_days,15.5,
+fast_slow_agreement,0.74,
+consensus0_fwdvol,0.1203,0.544
+consensus1_fwdvol,0.1392,0.186
+consensus2_fwdvol,0.1989,0.128
+consensus3_fwdvol,0.2673,0.143
+benign (calm+up),0.1301,0.646
+grind (calm+down),0.1883,0.063
+shakeout (stress+up),0.1286,0.121
+confirmed bear (stress+down),0.2556,0.17

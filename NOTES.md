@@ -8,6 +8,39 @@ trading.** Branch: main | Last updated: 2026-07-30
 (newest-first). Forward roadmap + parked/killed ledger in `.planning/PROGRAM.md`. This file =
 current state + next action only. Full session-by-session history is in git + RESEARCH-RECORD.*
 
+## Current state (2026-07-30 pm) — DETECTOR reframed as a COMMUNICATION instrument; multi-view read built + stress-tested
+
+Adam's direction: "improve the detector" → then "how do we get VALUE / make it better." Landed here:
+
+- **Detector skill benchmark** (`benchmark_detector.py`, `results/detector_benchmark.csv`): at matched
+  exposure (29.1%) vs Lunde-Timmermann bears, a DUMB 20d-vol threshold + 5d hysteresis MATCHES/beats
+  the JM on recall/precision/BAC/lag/episode-coverage; JM only wins raw switch-count (1.66 vs 2.76/yr).
+  Reproduces the frozen `sensor_validation` numbers (machinery trusted). **Conclusion: the JM is NOT a
+  superior detector and NOT an alpha/timing signal (5 nulls). Its value = a STABLE, trustworthy
+  human-facing COMMUNICATION instrument** (advisor/client behavioral use), not a trade signal.
+- **Multi-view regime READ** (`regime_read.py`, `results/regime_read_latest.json`): the defensible
+  better instrument = turbulence (downside semivariance, continuous causal percentile) × direction
+  (price vs SMA200) quadrant + severity + historical analogs. JM = the stable anchor. Reads sensibly on
+  2008/2020/2022 (CONFIRMED BEAR EXTREME) and **catches 2018Q4 (which the bare JM misses)** as
+  HIGH/GRIND — concrete proof the multi-view read beats the single label on its blind spot.
+- **Two deep-research audits done this session** (both grounded/cited, in git via agent transcripts):
+  1. regime-as-a-factor methodology → flipped my "spanned" call (see correction block below).
+  2. multi-view design stress-test → ontology sound, but MECHANISMS naive: (#2) consensus-COUNT is the
+     naive version of CISS/PCA composites — use first-PC/correlation-weighted, not counting; (#4)
+     lifecycle state-machine is superseded (field uses latent stress PROBABILITY + hazard — BUT our
+     probability layer is KILLED, tension to respect); (#1) "fast leads slow 16d" likely MECHANICAL
+     smoothing lag — must beat a phase-lag null before believing it; (#3) turbulence×trend = textbook
+     leverage effect, KEEP (sharpen w/ signed semivariance — done in regime_read); (#5) drawdown depth
+     redundant (Magdon-Ismail) unless path-persistence residual; (#6) the behavioral premise ("stable >
+     twitchy for humans") is UNTESTED (rests on cockpit/ICU analogy) — cheap randomized-vignette test,
+     and it's a NEW use that clears the Layer-3 rule.
+
+**Next action (not yet done, awaiting go):** wire the `regime_read` quadrant+severity+analog line into
+`regime_card.json` + the portfolio-manager email (replace the bare binary label). Then optionally: the
+behavioral vignette test (the actual thesis), and rebuild the composite as PC1 not a count.
+Parked exploratory: `regime_panel.py` (consensus-count version — superseded by the PC1 critique);
+`build_ohlc_panel.py` + `data/processed/ohlc_*` (range-based-feature idea, untracked, not pursued).
+
 ## Current state (2026-07-30) — REGIME-AS-A-FACTOR: AMBIGUOUS candidate, escalated to Step-4 (my "closed" verdict was WRONG)
 
 Ran the pivot's first real question (FACTOR-MODEL-DIRECTION §5-6, Steps 1-3, all NO-look). I first wrote
