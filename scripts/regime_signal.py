@@ -41,6 +41,11 @@ def current_state(dates, states):
 
 def stay_probability(states, state_code):
     trans = pd.crosstab(states.shift(), states, normalize="index")
+    if state_code not in trans.index:
+        # state_code has never had a day-after to transition from (e.g. it just
+        # started today for the first time in the label's history) — no completed
+        # transition to estimate a stay probability from.
+        return 1.0
     return float(trans.loc[state_code, state_code])
 
 

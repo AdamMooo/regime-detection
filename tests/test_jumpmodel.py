@@ -165,6 +165,33 @@ def test_walk_forward_margin_byte_identical_and_state_consistent():
     assert np.array_equal(m[oos] > 0, s_b[oos] == 1)
 
 
+def test_fit_handles_zero_variance_window():
+    # degenerate window: identical feature rows everywhere. Must not crash or
+    # divide-by-zero into NaN/inf centers.
+    X = np.zeros((100, 3))
+    mu, s, obj, w = fit_jump_model(X, k=2, lam=10.0, n_init=3)
+    assert np.isfinite(mu).all()
+    assert np.isfinite(obj)
+    assert set(np.unique(s)) <= {0, 1}
+
+
+def test_fit_handles_minimal_sample_size():
+    # T == k: the smallest input fit_jump_model can be asked to cluster.
+    rng = np.random.default_rng(2)
+    X = rng.normal(size=(2, 3))
+    mu, s, obj, w = fit_jump_model(X, k=2, lam=1.0, n_init=1)
+    assert mu.shape == (2, 3)
+    assert len(s) == 2
+
+
+def test_build_features_short_series_no_crash():
+    # series shorter than the longest EWM halflife (60d) — early rows are noisy
+    # but must be finite-or-NaN, never crash.
+    r = np.random.default_rng(4).normal(0, 0.01, size=5)
+    f = build_features(r)
+    assert len(f) == 5
+
+
 def test_k3_fast_path_matches_general_dp():
     from jumpmodel import _dp_assign_general, _dp_assign_k3
     rng = np.random.default_rng(11)
