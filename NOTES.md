@@ -8,6 +8,90 @@ trading.** Branch: main | Last updated: 2026-07-30
 (newest-first). Forward roadmap + parked/killed ledger in `.planning/PROGRAM.md`. This file =
 current state + next action only. Full session-by-session history is in git + RESEARCH-RECORD.*
 
+## ACTIVE DIRECTION (2026-08-02) — EQUITY-OWNERSHIP OPTIMIZATION: defense study DONE, offense study NEXT
+
+Big session. The "portfolio constitution" brainstorm matured into a real thesis + a completed structural
+study. **Read, in order: `.planning/PORTFOLIO-CONSTITUTION.md` (living brain) · `.planning/EQUITY-ENGINE-OFFENSE.md`
+(the next program) · `.planning/PORTFOLIO-TEST-PREREG.md` (DRAFT, freeze PAUSED).** All no-look
+characterization — 0 looks spent, nothing preregistered/deployed.
+
+**THESIS (crystallized):** NOT asset allocation — **equity-ownership optimization.** Maximize lifetime
+compounded wealth through ownership of equity risk; diversifiers are NOT return substitutes — they are a
+**WAR CHEST** that preserves compounding capacity so we can MAINTAIN / REBALANCE / deploy INTO equity through
+adverse regimes ("go all-in when it's cheap"). Headline metric = **EQUITY PARTICIPATION** (up-capture vs
+down-capture). Edge = **structural alpha, not forecasting** (most investors optimize an incomplete problem on
+*unconditional* moments; this survives being known → mechanism-gate compliant). The −30% drawdown budget is a
+**constraint, not the objective**; success = **geometric compounding**, never Sharpe/vol.
+
+**DEFENSE STUDY — COMPLETE.** `scripts/{economic_driver_study, intl_replication, equity_decomposition}.py`;
+`results/{drawdown_episodes, conditional_corr, failure_mode_coverage, insurance_ledger, spanning_test,
+intl_replication, equity_decomposition}.csv`; `data/processed/{econ_driver_monthly, gold_monthly_1833}.csv`.
+- 5 candidate macro drivers COLLAPSE to ~2 axes (PC1 = risk-off severity: growth/liquidity/vol are ONE axis;
+  PC2 = inflation/real-rate). Two failure archetypes fell out: **DEFLATIONARY** (bonds/gold/trend cover,
+  commod fails) vs **INFLATIONARY/rate** (commod/trend cover, **bonds AND gold FAIL**). 60/40's hidden bet =
+  all bears deflationary (2022 bond −16.6% falsifies it).
+- **INTERNATIONAL replication CONFIRMS the deflationary axis independently** — Japan JGB **+155%** through
+  Nikkei −78%; Europe Bund positive 8/10 low-inflation bears, −18.7% in 2022. "equity+bonds covers the
+  deflationary shock" is now **cross-country structural**, not a US artifact. Inflation axis still thin (~2022
+  global) → **size any inflation hedge HUMBLY.**
+- Cost-of-insurance + spanning: bonds cheapest/best; **gold unique-but-EXPENSIVE** (27yr underwater); commod
+  fails (2022-only, unique-crisis −16.5%); trend genuinely independent, the cross-axis partial hedge.
+- Equity-drawdown decomposition (Campbell-Shiller, Shiller 1871+): drawdowns = cash-flow (recession, DEEP,
+  bonds cover) vs multiple/risk-premium (shallow, = the ERP itself, no sleeve spans, endure/deploy). ~33% PCA
+  residual is NOT a missing driver → **spanning set STRUCTURALLY COMPLETE.**
+- **WAR CHEST / countercyclical deployment** = the offensive core: mechanical tranche ladder by *realized* DD
+  depth (−20%→⅓, −30%→⅔, −40%→all-in; rebuild on recovery). Inside the bright line (contrarian rebalancing to
+  realized price, NOT forecasting) = prereg H3 / rung 6.
+
+**OFFENSE STUDY — SCOPED, NEXT (`.planning/EQUITY-ENGINE-OFFENSE.md`).** STRICT RULE (Adam): **mechanisms
+first, exposures second, implementations LAST** (QQQ/2× are products, not mechanisms — my first scope violated
+this and was rebuilt). 3 tiers mirror the defense: PHASE 1 STRUCTURE (what drives long-term equity compounding
++ persistent excess return) → PHASE 2 EXPOSURES (which capture the durable sources, falsified OOS/intl/
+post-publication-decay) → PHASE 3 IMPLEMENTATIONS (factor ETFs/QQQ/2×/concentration). Phase 1 = 3 questions:
+(1) Grinold-Kroner return-source decomposition (durable cash-flow engine vs mean-reverting repricing);
+(2) cross-section by mechanism (risk vs behavioral, survives-being-known); (3) compounding mechanics (vol
+drag, Kelly ceiling, deployment). Guardrail: "aggressive when CHEAP" (deployment) OK vs "forecast now's the
+time" = closed null → Research Vault.
+
+**OFFENSE MECHANISM MAP — COMPLETE** (`.planning/EQUITY-OFFENSE-LITMAP.md` synthesis + two grounded part-files).
+Verdict: durable engine = broad-market ERP + yield + real growth + reinvestment (net dilution); valuation
+EXPANSION is cyclical (don't extrapolate); the COMPOUNDING MATH (variance drain/Kelly/vol-drag) is a persistent
+portfolio-sizing force = where "how we own it" adds value, CONVERGING with the defense; cross-sectional premia
+= Tier-2 (BAB best); NO durable mechanism routes through a SECTOR (intangibles = firm-level, "own tech" is the
+forbidden recent-winner inference); Bessembinder ~4% of firms create all net wealth → own broadly.
+
+**NEXT ACTION = the COMPOUNDING-MATH STUDY** (`.planning/COMPOUNDING-MATH-STUDY.md` — the offense↔defense fusion
++ the real-math paper spine). Core result g(f*)=½·Sharpe² ⇒ leverage can't rescue a weak engine; low-vol's edge
+is a constraint phenomenon. Two SEPARATED questions (sequence mechanism→exposure→geometric efficiency→sizing):
+(Q1) ENGINE SELECTION — highest geometric compounding per unit drawdown capacity (beta/low-vol/quality/momentum),
+report Sharpe + within-budget growth so no engine hides behind sizing; (Q2) SIZING — max g(f) s.t. maxDD≤30%,
+leverage capped/explicit; (Q3) DIVERSIFIER-AS-CAPACITY — a diversifier earns its place ONLY if it raises
+within-budget geometric growth (lower σ + rebalancing bonus + deployment), not because it's "defensive."
+Unlevered f≤1 LOCKED (engine-choice before leverage). Engine selection is CONFIDENCE-ADJUSTED (highest
+confidence-adjusted compounding over decades), NOT max historical CAGR — the confidence score is PRE-COMMITTED
+from the mechanism map so CAGR can't retro-pick the winner. Per-engine output = g(f) curve · drawdown-by-exposure
+· vol drag (empirical vs Gaussian) · downside/tail · confidence score; decision = best combo of durable mechanism
++ efficiency + confidence.
+
+**RESUME HERE:** build `scripts/compounding_math.py`, Q1 (engine selection: broad beta / low-vol-BAB / quality-RMW
+/ momentum) FIRST. Core (learning-mode, Adam writes or Claude builds — offer again): `geo_growth(engine_ret, rf, f)`
+= `12*mean(log(1 + rf + f*(engine_ret-rf)))` (empirical E[logW]) + `g_gauss` (shows vol-drag term) + `max_dd`.
+Sweep f∈[0,1], report Sharpe (ceiling ½Sharpe²) AND within-budget growth so no engine hides behind sizing.
+THEN Q2 sizing → Q3 diversifier-as-capacity. The allocation FRAMEWORK (4 questions) is the product; this is
+evidence. No look; 0 spent; the portfolio SUPPORT prereg stays paused. Full design: `.planning/COMPOUNDING-MATH-STUDY.md`.
+
+---
+**⇩⇩ EVERYTHING BELOW THIS LINE IS PRIOR-SESSION HISTORY (pre-2026-08-02), SUPERSEDED by the block above.
+Its "NEXT ACTION" lists are stale — kept only for narrative context. ⇩⇩**
+
+## STATUS CORRECTION (2026-08-01) — "ship comms layer" is DONE, not outstanding
+
+Several entries below list "(5) ship comms layer" as a still-open next step — that's stale. A
+read-only audit across both repos (2026-08-01) confirmed `regime_card.json` is fully populated
+(health/skill/gauge/history) and portfolio-manager's `daily_report.py` + `weekly_regime_brief.py`
+already fetch and render it, verified via real GH Actions runs since 2026-07-29 (see
+`.planning/PRODUCT-PLAN.md` A5 for detail). Don't re-propose shipping this — it's done.
+
 ## SESSION CLOSE (2026-07-31) — Phase A4 VALIDATION DONE: sleeve edge is OOS-robust (Europe strong, Japan weak-as-expected)
 
 `scripts/validate_product.py` (a-priori params, NO tuning — momentum has no fitted params, so "walk-forward"
@@ -343,6 +427,30 @@ portfolio (from the label INNOVATION, causal betas), spanning-regress on FF3+BAB
 Barillas-Shanken max-Sharpe check, GRS on broadened test assets; sign must be NEGATIVE
 (hedging), positive = timing artifact. Steps 1–3 are NO-look; the look is gated behind
 cooling-off + sign-off + international confirmation.
+
+## Parallel thread — Internals fragility gauge (2026-08-01, infrastructure only, NO look)
+
+`.planning/INTERNALS-BETA-DIAL-PREREG.md` (Rev 2, frozen 2026-07-31) had gone unlinked from
+this file and PROGRAM.md since the 2026-07-29 factor-model pivot — confirmed orphaned, not
+abandoned. Built the missing infra so the frozen design can be run later: `scripts/internals_gauge.py`
+(breadth/herf/disp/g construction, generic over US/Japan/Europe panels), `internals_h1.py` (non-
+overlapping 60d regression per S5), `internals_h2.py` (event study), `internals_controls.py` (S7
+placebo + dispersion ablation — MUST pass before primary is read), `internals_dial.py` (H3
+sanity, cash not bonds as the de-risk leg per S4, unchanged), `run_internals_prereg.py`
+(orchestrator that hard-blocks H1/H2/H3 unless a filled, dated sign-off line exists in the
+prereg file — a conversational go-ahead does not satisfy CLAUDE.md's cooling-off rule).
+
+**Flag from control testing:** the S7 placebo control (persistence-matched AR(1) surrogate)
+correctly fails to predict on US and Japan, but currently ALSO "predicts" on the Europe panel
+(|t|=3.18) — this is pre-mortem failure mode #4 (S8): forward-DD may be too autocorrelated
+relative to the Europe OOS sample size (n=147 non-overlap windows) for this test design to
+distinguish signal from any persistent noise there. Needs a design fix (e.g. longer/matched-
+spectrum surrogate, or a tighter significance bar for the small-sample panel) before Europe's
+H1 can be trusted — do this BEFORE any sign-off, not after.
+
+No look taken on H1/H2 for Japan/Europe (the actual verdict panels, F4) — only confirmed the
+code runs without error. US H1 was execution-tested once (non-gating/contaminated panel per
+S5, expected to pass by construction) — not a discipline breach, no result recorded here.
 
 ## Next action(s) — draft the Step-4 regime-factor prereg (NO look)
 

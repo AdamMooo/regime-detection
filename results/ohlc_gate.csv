@@ -1,0 +1,4 @@
+panel,ticker,first,last,n,mean_log_hl_range,nonpositive_ranges
+spy,SPY,1993-01-29,2026-07-30,8432,0.0129,0
+nikkei,^N225,1990-01-04,2026-07-29,8974,0.0145,1
+stoxx,^STOXX50E,2007-03-30,2026-07-30,4845,0.0152,8

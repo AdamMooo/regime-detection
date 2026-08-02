@@ -1,5 +1,51 @@
 # Product Plan — Holdable Momentum-Based Strategy + Regime Communication Layer
 
+## ORIENTATION (2026-08-01) — read this first, everything else is detail
+
+**The purpose, one sentence:** run an aggressive, momentum/factor-driven equity book almost all the
+time, and have one trustworthy trigger to step OUT into safety when equities are genuinely done for
+— not to predict, not to time entries/exits finely, just to react correctly when it's real.
+
+**PROVEN, usable today, don't re-litigate:**
+- **Equity selection engine:** 48-industry momentum sleeve (`momentum_breadth.py`) — 12-1 skip-month,
+  inverse-vol weighted, buffered. OOS-robust (8/10 decades, Europe confirms, Japan weak-as-literature-
+  predicts). This is what decides WHICH equities, all the time you're in.
+- **Cost/tax reality:** survives realistic costs up to 100bps (Sharpe 0.69-0.81). Tax drag in a
+  non-registered account (~4.5 pts/yr) is bigger than any cost/turnover tuning could ever recover —
+  **run this inside RRSP/TFSA if at all possible, biggest lever available, zero research needed.**
+- **The de-risk trigger is a BINARY SWITCH, not a smooth dial** — this matches how you actually trade
+  (100% equity, out to safety only when it's real). Vol-targeting (smooth, continuous) and the JM
+  (laggy, not even the best detector) are NOT the right tool for this job. A vol-threshold+hysteresis
+  binary switch, tested honestly (causal, properly lagged — an earlier version of this had a real
+  lookahead bug, caught and fixed same session), trades some Sharpe/return (0.53 vs 0.61 raw) for
+  roughly half the max drawdown (-23% vs -51%) and flips 2008 positive. Directionally right, NOT yet
+  fully proven — only tested on 2 crisis windows (2008, 2022) in a 20-year sample; needs the full
+  history (back to 1970s/1930s in `market_daily.csv`) before it's trustworthy.
+- **When "out," hold a small STATIC blend (gold+trend+bonds), don't try to actively pick the best
+  defensive asset** — timing that was tested (Path-B) and lost to just holding the static blend always.
+
+**TESTED AND KILLED — do not revive without genuinely new information:**
+- Dynamic/regime-timed allocation (min-var/trend-gating) — loses to static (`dynamic_allocation.py`).
+- The trend-signal "confidence dead-zone" refinement — looked good on gold alone in Oct 2008, worse
+  across the whole trend universe on every metric when tested honestly (`build_trend_proxy_deadzone.py`).
+- Dispersion-lag (the -40d lead) — US-only artifact, did NOT generalize to Japan/Europe. Dead.
+- JM as a timing/allocation signal, or as the best detector — 5 closed nulls; a dumb vol-threshold+
+  hysteresis rule beats it on precision/recall/lag (`detector_benchmark.csv`). JM's only remaining
+  claimed value (stable label = easier for a human to trust) is a real hypothesis but UNTESTED —
+  don't oversell it; it costs nothing to leave running as color commentary, but isn't proven to add value.
+
+**GENUINELY OPEN, not yet decided:**
+- Gold+trend sizing as a permanent diversifier — real, evidenced, correlation-checked as genuinely
+  distinct (not double-counting the sleeve), but not proven at any specific size; needs rescaling to
+  your real 80-90% equity target (tested at 60/40 and 85/15 placeholders so far, both showed WORSE
+  risk-adjusted returns than expected at 85/15 specifically — a real, still-unresolved tension worth
+  another look with a properly-scaled base).
+- The binary-switch trigger — promising, needs full-history validation before trusting it.
+- Fragility gauge (breadth/concentration early-warning) — infrastructure built, no look taken, needs
+  your sign-off on a calm day, not mid-session.
+
+
+
 Created 2026-07-30. Goal: **A (make money) + B (advisor-holdable) as ONE product.** Grounded in the
 2026-07-30 deep-research deliverable (RESEARCH-RECORD), not in-repo backtests. Every phase is
 build/characterization (NO look spent) until Phase 5 makes an OOS economic claim — at which point the
@@ -89,7 +135,13 @@ implementation harness (skip-month, buffering, costs); (A4) OOS + prereg gate; (
 - [x] **A4 OOS/walk-forward + international confirmation — DONE 2026-07-31 (validate_product.py).** Sleeve
       edge OOS-robust in time (8/10 decades, incl. 2010s/2020s); Europe strong (+0.15), Japan weak-as-
       literature-predicts (+0.07); allocation = DD/holdability not Sharpe. Characterization, no look spent.
-- [ ] A5 regime communication layer (B) → portfolio-manager
+- [x] **A5 regime communication layer (B) → portfolio-manager — CONFIRMED SHIPPED 2026-08-01.**
+      Docs had gone stale; audit found it's fully live: `regime_card.json` (health/skill/gauge/history
+      all populated) fetched PAT-authed by portfolio-manager's `src/regime.py`, rendered in
+      `daily_report.py` (one-liner) and `weekly_regime_brief.py` (full deep-dive incl. skill/history),
+      both verified via real GH Actions runs since 2026-07-29 (portfolio-manager's own NOTES.md).
+      One by-design caveat, not a gap: the PAT has an expiry; on lapse both regime sections
+      silently self-omit rather than failing loud.
 
 Revised improvement sequence AFTER A4 passes: (2) multi-factor value+quality COMPOSITE rank (not tilt-blend
 — +0.96 corr trap); (3) diversify allocation w/ trend+gold (honest 2022 stock-bond-together fix, as a

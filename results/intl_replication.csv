@@ -1,0 +1,16 @@
+region,peak,trough,depth,months,bond_ret,cpi_yoy,regime
+Japan,1990-02-28,2009-02-28,-0.781,228,1.554,-0.001,deflationary/low
+Japan,2024-03-31,2025-03-31,-0.118,12,-0.059,,deflationary/low
+Japan,2026-02-28,2026-03-31,-0.132,1,-0.019,,deflationary/low
+Japan,2026-06-30,2026-07-31,-0.123,1,,,deflationary/low
+Europe,1990-03-31,1990-09-30,-0.325,6,0.016,0.03,deflationary/low
+Europe,1993-12-31,1995-03-31,-0.151,15,-0.011,0.019,deflationary/low
+Europe,1997-07-31,1997-10-31,-0.148,3,0.013,0.021,deflationary/low
+Europe,1998-07-31,1998-09-30,-0.244,2,0.056,0.005,deflationary/low
+Europe,2000-02-29,2003-03-31,-0.683,37,0.299,0.011,deflationary/low
+Europe,2007-12-31,2009-02-28,-0.524,14,0.139,0.011,deflationary/low
+Europe,2015-03-31,2016-02-29,-0.206,11,0.009,0.001,deflationary/low
+Europe,2017-10-31,2018-12-31,-0.202,14,0.023,0.016,deflationary/low
+Europe,2019-12-31,2020-03-31,-0.25,3,0.024,0.015,deflationary/low
+Europe,2021-12-31,2022-09-30,-0.237,9,-0.187,0.086,inflationary
+Europe,2026-02-28,2026-03-31,-0.103,1,-0.011,,deflationary/low

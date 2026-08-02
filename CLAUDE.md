@@ -2,7 +2,22 @@
 
 **Read NOTES.md first** — current state and next action.
 
-## What This Project Is (2026-07-23)
+## What This Project Is
+
+**ACTIVE DIRECTION (2026-08-02) — PORTFOLIO CONSTITUTION / equity-ownership optimization.** The live frontier
+is a decades-holdable systematic equity portfolio, framed as *equity-ownership optimization* (not asset
+allocation): maximize long-term geometric wealth from owning the equity risk premium; diversifiers are a war
+chest that preserves compounding capacity and funds countercyclical redeployment into cheap equity. The
+DEFENSE study (structural risk drivers → failure-mode spanning → international replication → equity-drawdown
+decomposition) is COMPLETE; the OFFENSE study (mechanisms that create equity compounding → exposures →
+implementations) is underway, literature-map-first. See `.planning/PORTFOLIO-CONSTITUTION.md`,
+`.planning/EQUITY-ENGINE-OFFENSE.md`, `.planning/PORTFOLIO-TEST-PREREG.md`, NOTES.md. All no-look; 0 looks spent.
+
+The **live jump-model instrument** (below) continues in parallel as the shipped tool (`regime_card.json` →
+portfolio-manager). Prior directions — factor-model pivot (2026-07-29), momentum product (2026-07-30),
+internals fragility gauge (2026-08-01, prereg frozen) — are PARKED; see the File Map and NOTES.md.
+
+### Prior context (2026-07-23)
 
 A regime-detection research program built on the **K=2 weighted statistical jump model**
 (Bemporad/Boyd 2018; Nystrup et al. 2020-21; Shu/Yu/Mulvey 2024) over Ken French daily market
@@ -26,43 +41,58 @@ gap analysis of professional factor construction BEFORE any prereg or look. See 
 The v1 program (HDP-HMM + four successor formulations, five preregistered nulls) is CONVERGED
 and sealed at git tag `v1-convergence`; narrative in `RESEARCH-RECORD.md` (newest-first).
 
-## File Map (living code, `scripts/`)
+## File Map (living code, `scripts/` — 48 modules, refreshed 2026-08-02)
 
-**Tree cleaned 2026-07-29 (Adam's direction): all closed-null / dead-probe code removed** —
-`calibration_gate`, `explore_k3`, `build_credit`+`explore_credit_feature`,
-`build_dispersion`+`explore_dispersion_feature`+`explore_dispersion_intl`,
-`rotation_precondition`, `hedge_anatomy`, `run_exposure`, and the descriptive anatomy trio
-(`atlas`/`state_anatomy`/`episode_anatomy`). Each closure is recorded in RESEARCH-RECORD
-(2026-07-29 entry); all recoverable in git history. Repo is now: **the living instrument + the
-factor-model pivot** (see What This Project Is).
+Status tags: **LIVE** shipped/consumed · **ACTIVE** current direction · **PARKED** shelved (may revive) ·
+**QA** characterization only. (Closed-null/dead-probe code was removed 2026-07-29 — `calibration_gate`,
+`explore_k3`, `build_credit`, `build_dispersion*`, `rotation_precondition`, `hedge_anatomy`, `run_exposure`,
+the anatomy trio — all in RESEARCH-RECORD, recoverable in git history.)
 
-Core pipeline:
-- `jumpmodel.py` — estimator core: features (dd10/sortino20/sortino60), DP state assignment
-  (k=2/k=3 fast paths), weighted fit, causal DP-endpoint filter (+ value-path/margin export)
-- `walkforward.py` — shared walk-forward pipeline (annual refits, λ by 8y-validation Sharpe;
-  optional evidence-margin output); used byte-identically by synthetic and real runs
-- `backtest.py` — strategy construction (delay/costs), VT/SMA/B&H baselines, FKO fee,
-  paired stationary bootstrap
-- `build_panel.py` / `build_assets.py` — French US daily market panel + SPY cross-check +
-  multi-asset panel (industries, SMB/HML/MOM) → `data/processed/market_daily.csv`, `assets_daily.csv`
-- `build_intl_panel.py` — French International daily panels (Japan, Europe: market factor + 25
-  size/BE-ME portfolios, 1990+) → `data/processed/{japan,europe}_{market,assets}_daily.csv`.
-  Built 2026-07-29 for the dispersion int'l confirmation; **kept as factor-portfolio data for the pivot.**
-- `build_trend_proxy.py` — TSMOM (Moskowitz–Ooi–Pedersen) trend proxy, GATED vs DBMF/KMLM
-  (corr 0.69) → `data/processed/trend_proxy_daily.csv`. **Kept — momentum is a factor.**
-- `run_config.py` — shared frozen-protocol constants (START/DELAY/LAMBDA_GRID/REFIT/…) + arm-return
-  helpers (`arm_returns`, `maxdd`), imported by build_report/live_label. The chapter-1/2 battery
-  runners (`run_backtest.py`, `run_allocation.py`, `allocation.py`) were removed 2026-07-27
-  (one-looks SPENT, reproducible at `51fbeff`).
-- `synthetic_validation.py` — capability battery on simulated panels (known truth)
-- `validate_sensor.py` — label vs ex-post bear datings (lag/precision stats, monitor C7)
-- `live_label.py` — SPY-splice live tail; label to today
-- `regime_signal.py` — emits `results/regime_card.json` (LIVE, consumed by portfolio-manager)
-- `build_report.py` — regenerates `results/report.html` (living program report)
+**Jump-model instrument — LIVE (the shipped tool):**
+- `jumpmodel.py` — JM estimator core (dd10/sortino20/sortino60 features, k=2/k=3 DP assignment, causal filter)
+- `walkforward.py` — shared walk-forward pipeline (annual refits, λ by validation Sharpe); synthetic + real
+- `backtest.py` — evaluation machinery: strategy construction, VT/SMA/B&H baselines, FKO fee, bootstrap
+- `run_config.py` — frozen chapter-1 protocol constants + arm helpers (`arm_returns`, `maxdd`)
+- `build_panel.py` / `build_assets.py` — US market TR panel + JM features / multi-asset panel → `market_daily.csv`, `assets_daily.csv`
+- `build_intl_panel.py` — Japan/Europe daily panels (1990+) → `{japan,europe}_*_daily.csv`
+- `build_trend_proxy.py` — TSMOM trend/managed-futures proxy → `trend_proxy_daily.csv`
+- `synthetic_validation.py` — capability battery on synthetic panels (blind preserved)
+- `validate_sensor.py` — label vs ex-post bear datings (descriptive)
+- `live_label.py` — SPY-splice live tail → `label_live.csv`
+- `regime_signal.py` — **LIVE:** emits `results/regime_card.json` (consumed by portfolio-manager emails)
+- `build_report.py` — regenerates `results/report.html`
 
-Tests: `tests/test_jumpmodel.py`, `tests/test_backtest.py` (18 passing).
-venv: `.venv` (numpy/pandas stack;
-requirements.txt is the slim jump-model set — the v1 JAX/NumPyro stack was retired 2026-07-23).
+**Human-facing regime read / detector QA (2026-07-30):**
+- `benchmark_detector.py` — JM detector skill vs a dumb vol-threshold baseline
+- `regime_read.py` — synthesized human read (turbulence×trend quadrant + severity + analogs)
+- `regime_panel.py` — regime panel (consensus-count; superseded by PC1 critique) · `build_ohlc_panel.py` — range-vol probe (not pursued)
+
+**Factor-model pivot — PARKED (regime-as-a-factor is an open Step-4):**
+- `build_factor_test_panel.py` · `factor_tests.py` — 25 size/BE-ME + FF3 panel; GRS + Fama-MacBeth + spanning
+- `build_bab.py` — AQR Betting-Against-Beta factor
+- `build_regime_factor_inputs.py` → `regime_factor.py` → `explore_regime_spanning.py` — regime-as-a-factor steps 1-3
+- `oracle_exposure.py` · `risk_engine.py` · `strategy_combo.py` · `compare_vs_jm.py` — exposure/allocation diagnostics + JM head-to-head
+
+**Momentum product — PARKED (PRODUCT-PLAN; A4 OOS-validated 2026-07-30):**
+- `cross_sectional_momentum.py` — industry cross-sectional momentum (the return-adder)
+- `momentum_breadth.py` — 48 vs 10 industries + buffering · `residual_momentum.py` / `value_momentum_blend.py` — crash fixes
+- `conviction_momentum.py` — confidence tilt (concentration KILLED) · `dynamic_allocation.py` — reactive-cov allocation (KILLED)
+- `allocation_with_diversifiers.py` — gold+trend leg on static allocation · `build_trend_proxy_deadzone.py` — trend confidence-dead-zone variant
+- `validate_product.py` — Phase A4 OOS validation · `sleeve_cost_tax_analysis.py` — cost+Canadian-tax gate · `overlap_check.py` — overlap characterization
+
+**Internals fragility gauge — PARKED (2026-08-01, prereg frozen; Europe placebo control FAILING):**
+- `internals_gauge.py` — breadth/herf/dispersion/g construction (US/JP/EU) · `internals_h1.py` / `internals_h2.py` — predictive validity / event study
+- `internals_controls.py` — S7 placebo (MUST pass first) · `internals_dial.py` — H3 dial (secondary) · `run_internals_prereg.py` — sign-off-gated orchestrator
+
+**Portfolio constitution — ACTIVE (2026-08-02, equity-ownership optimization; DEFENSE study, all NO-look):**
+- `drawdown_budget.py` — the −30% drawdown-budget payoff table
+- `economic_driver_study.py` — structural sleeve study (drawdown episodes, conditional corr, driver PCA, failure-mode coverage, cost-of-insurance ledger, spanning)
+- `intl_replication.py` — international replication break-test (Japan/Europe bond-hedge × inflation)
+- `equity_decomposition.py` — Campbell-Shiller equity-drawdown decomposition (cash-flow vs multiple/risk-premium)
+- *(OFFENSE study = literature map first, no scripts yet — see `.planning/EQUITY-ENGINE-OFFENSE.md`)*
+
+Tests: `tests/{test_jumpmodel,test_backtest,test_factor_tests,test_regime_factor,test_regime_signal}.py`.
+venv: `.venv` (numpy/pandas; `requirements.txt` = slim jump-model set).
 
 ## Frozen vs Archived
 
@@ -112,6 +142,16 @@ v1 result files are recoverable at that tag.
   selection — prereg alone does not cure hypothesis-hunting on the answer sheet. Before any
   SUPPORT is claimed for such a hypothesis, it must confirm on data that did not generate
   it (designated set: French/MSCI developed-market daily panels — Japan, Germany, UK).
+- **Mechanism gate (added 2026-07-31, Adam's direction — the meta-lesson of the closed nulls):**
+  before ANY signal/strategy is preregistered, write down its structural reason to keep working
+  *after it is widely known* — either (a) a risk premium someone is structurally paid to bear, or
+  (b) a risk-management mechanism exploiting a durable statistical fact (vol/fragility clustering).
+  "It's in the recent literature," "it's novel," or "it backtests well" are NOT mechanisms and are
+  disqualifying as the *sole* justification. Proven-and-public return alpha is a contradiction —
+  if it were proven and known it would be arbitraged away; only risk premia and risk management
+  survive being known. The three closed nulls (jump model, dispersion-lag, macro-timing) all fail
+  this gate retroactively — each was selected on academic novelty, not mechanism. Refuse
+  novelty-chasing at the *proposal* stage, not after another spent look.
 
 ## Do Not
 

@@ -1,0 +1,4 @@
+sleeve,R2_by_others,alpha_ann,unique_crisis_ann,n,detail
+gold,0.13,0.03,0.095,256,2005-2026 vs commod+trend+bond10+cash
+commod,0.11,0.009,-0.165,256,2005-2026 vs gold+trend+bond10+cash
+trend,0.02,0.041,-0.057,256,2005-2026 vs gold+commod+bond10+cash
