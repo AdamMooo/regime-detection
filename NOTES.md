@@ -45,6 +45,15 @@ lives under **`.planning/framework/`**:
 - `SIGNOFF-CHECKLIST.md` — **everything unsigned; nothing frozen to v1.0.**
 - `.planning/REGIME-SENSOR-ARCHITECTURE.md` now cross-links `.planning/framework/` as the governing spec (D-16).
 
+**Observatory-framing refinement (2026-08-03, Adam-directed):** system-level name = **factor observatory /
+decision-support layer**; module stays **signal** (canonical); **market-state factor** = informal synonym,
+DISTINCT from an equity-return/priced-risk factor and from the killed regime-as-a-factor. Added to the
+framework: each signal declares its **investment question** (template Q1.3) + its **cross-signal relationships**
+(Q4.3), and Level-0 output gains **trend · extreme_conditions · cross_signal_relationships** — so the set is an
+observatory, not disconnected readings. Pipeline (investment view): Market data → signal states → historical
+context → *investor interpretation* → *investment decision*; the CODE stops after historical context (Level 2).
+Glossary + framing live in `.planning/REGIME-SENSOR-ARCHITECTURE.md` §observatory framing.
+
 Config note: `auto_advance` + `use_worktrees` disabled (sequential docs workflow). ROADMAP SC#3 + architecture
 doc still say "three confidence dimensions" — superseded to FOUR (recorded in the new spec, not silently edited);
 patch those two frozen docs to "four" once the framework is signed off.
@@ -55,7 +64,8 @@ patch those two frozen docs to "four" once the framework is signed off.
 v1.0. Open items: A1 (confidence anchor thresholds) · A2 (maturity-derivation rule) · A3 (forbid-composite
 wording) · the D-06 current-relevance→implementation-maturity swap (veto point) · RF (the shipped volatility
 signal's production tag rests on frozen-US OOS + a universal stylized fact, not literal Japan/Europe OOS — decide
-whether that satisfies the maturity rule). Then patch ROADMAP SC#3 + architecture doc "three→four" dims.
+whether that satisfies the maturity rule) · OBS (observatory framing + new output fields — confirm). Then patch
+ROADMAP SC#3 + architecture doc "three→four" dims.
 
 **Then Phase 2** — stock-bond correlation intl OOS (gated on JGB/Bund series). First NEW signal is **valuation**
 (Phase 3). Per Adam: review Phase 1 before moving to future signal phases; do NOT auto-advance.
