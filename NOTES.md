@@ -3,7 +3,7 @@
 ## Status
 A **market-signal research system** (see CLAUDE.md HARD BOUNDARY — market data → independent signals →
 historical context → regime relevance → STOP; never allocation/decisions). The equity-ownership / allocation
-program was removed from this repo 2026-08-02 (recoverable in git history). Branch: main | Last updated: 2026-08-02
+program was removed from this repo 2026-08-02 (recoverable in git history). Branch: main | Last updated: 2026-08-03
 
 ## Current direction — independent market-signal modules (find → validate → present → STOP)
 
@@ -26,20 +26,39 @@ presentation layer only organizes validated signals into multiple lenses — nev
 (EBP) · funding stress · crowding · tail (data-gated).** Then the presentation layer (assumption ledger + joint
 rarity + historical analogues).
 
+## PHASE 1 COMPLETE (2026-08-03) — framework frozen (pending sign-off)
+
+**Phase 1 (Signal Framework) built + verified 7/7.** The shared spec every future signal declares against now
+lives under **`.planning/framework/`**:
+- `signal-spec-template.md` — semver 8-attribute template (D-04 order: Definition · Mechanism · Measurement ·
+  Historical Context · Validation · Assumptions · Confidence · Limitations), question-form, forced "N/A because…".
+- `validation-standards.md` — causal/PIT · mechanism gate · confound-check · Japan/Europe OOS · one-look+prereg+
+  cooling-off+dated sign-off · TRIPOD completeness checklist · HARD BOUNDARY reviewed-grep audit · D-10 (no
+  signal designed around a desired conclusion) · D-12 (optimize for integrity/reproducibility, not prediction).
+- `research-charter-template.md` — D-15 six-question pre-registration required BEFORE any future signal is built.
+- `signal-output-spec.md` — confidence = **research maturity, never predictive** (4 dims: measurement quality ·
+  mechanism support · evidence robustness · implementation maturity); descriptive maturity model (production is
+  NOT "better" than research); Level 0 measurement · Level 1 historical context · Level 2 regime relevance, STOP
+  at Level 2; composite-scalar forbidden, kept distinct from the Phase-10 joint-rarity (Mahalanobis) lens.
+- `examples/{volatility,stock-bond-corr}-signal-declaration.md` — the two built signals retro-fit the template
+  cleanly (fast/production + slow/research shapes).
+- `SIGNOFF-CHECKLIST.md` — **everything unsigned; nothing frozen to v1.0.**
+- `.planning/REGIME-SENSOR-ARCHITECTURE.md` now cross-links `.planning/framework/` as the governing spec (D-16).
+
+Config note: `auto_advance` + `use_worktrees` disabled (sequential docs workflow). ROADMAP SC#3 + architecture
+doc still say "three confidence dimensions" — superseded to FOUR (recorded in the new spec, not silently edited);
+patch those two frozen docs to "four" once the framework is signed off.
+
 ## NEXT ACTION
 
-**GSD is set up** (2026-08-02) — a 10-phase roadmap scoped strictly to the signal modules lives in
-`.planning/{ROADMAP,PROJECT,REQUIREMENTS,STATE,config}.md/.json`. Structure: Phase 1 = signal framework (shared
-8-attribute spec + validation standards + output format + maturity model), Phases 2–9 = one signal each (2
-stock-bond intl OOS · 3 valuation · 4 concentration · 5 absorption · 6 credit/EBP · 7 funding · 8 crowding · 9
-tail, data-gated), Phase 10 = presentation/assumption ledger. Every phase's DoD is identical: **Find → Validate →
-Present → STOP**, with the mechanism gate + intl OOS confirmation baked into each phase's success criteria. Config:
-YOLO · coarse · sequential · quality models · Researcher+PlanCheck+Verifier enabled. CLAUDE.md HARD BOUNDARY was
-preserved (NOT GSD-regenerated).
+**Adam to review + dated sign-off `.planning/framework/SIGNOFF-CHECKLIST.md`** before the framework freezes to
+v1.0. Open items: A1 (confidence anchor thresholds) · A2 (maturity-derivation rule) · A3 (forbid-composite
+wording) · the D-06 current-relevance→implementation-maturity swap (veto point) · RF (the shipped volatility
+signal's production tag rests on frozen-US OOS + a universal stylized fact, not literal Japan/Europe OOS — decide
+whether that satisfies the maturity rule). Then patch ROADMAP SC#3 + architecture doc "three→four" dims.
 
-**Do next:** `/gsd:plan-phase 1` (Signal Framework) — lock the shared spec before building more signals. The first
-NEW signal after that is **valuation** (Phase 3: high starting CAPE → historically lower long-horizon returns;
-present as context, never "avoid equities"). Phase 2 (stock-bond intl OOS) is gated on JGB/Bund series.
+**Then Phase 2** — stock-bond correlation intl OOS (gated on JGB/Bund series). First NEW signal is **valuation**
+(Phase 3). Per Adam: review Phase 1 before moving to future signal phases; do NOT auto-advance.
 
 ## Signal-research discipline (full text in CLAUDE.md)
 
