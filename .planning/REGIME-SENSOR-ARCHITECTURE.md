@@ -6,7 +6,7 @@ implemented. This documents the *framework*, not any sensor build.
 
 > **Governing specification:** `.planning/framework/` is now the governing specification every signal declares
 > against — `signal-spec-template.md` (the 8-attribute template), `validation-standards.md` (the cross-signal
-> validation law), and `signal-output-spec.md` (confidence model, maturity, and the Level 0/1/2 ledger shape).
+> validation law), and `signal-output-spec.md` (the signal-admission model, maturity, and the Level 0/1/2 ledger shape).
 > The three docs split roles: **framework = the research + validation rules every signal declares against ·
 > the phase roadmap = the execution order · this architecture doc = the system design.** Where this doc's
 > per-sensor spec or confidence text differs from the framework, the framework governs.
@@ -41,13 +41,20 @@ its assumption still holds, contextualizes it historically, names the assumption
 **Sensors are instruments, not the product.** The product is the **assumption ledger** — a map of which
 assumptions are currently supported or challenged, each with observation + history + relevance. It contains no
 conclusion, no allocation, no recommendation. A sensor earns its place only by monitoring a market assumption
-that genuinely matters — never for its own sake (the regime-relevance confidence dimension
-enforces this).
+that genuinely matters — never for its own sake (the **investment-usefulness admission axis** enforces this: a
+signal must answer an important investor question and add unique information; see `framework/signal-output-spec.md`
+§1).
 
 **Two separate repos, two different problems.** This repo answers *"what is the environment, and which
 assumptions are being tested?"* The downstream decision layer (separate repo) + the human answer *"given
 judgment, objectives, constraints, and research, what do I want to own?"* This system never crosses that line —
 it improves the *quality of the inputs* to the decision; it does not make or shape the decision.
+
+**Boundary enforcement is executable (schema + tests + repo structure).** The STOP boundary is enforced in code,
+not by convention (D-18): a **closed Level-0 output schema (allowlist)** that admits only the enumerated fields;
+a runnable **boundary-audit test** asserting no allocation / decision / composite-scalar field is ever emitted;
+and a **repo-structure rule** that no code here is aware of or references any downstream decision system. Built in
+the code pass; the rules live in `framework/signal-output-spec.md` §4.6 and `framework/validation-standards.md` §(m).
 
 ---
 
@@ -308,32 +315,42 @@ forced-unwind-of-crowded-positioning (Aug-2007 quant quake = crowded, not concen
 | **Funding stress** | "funding markets function" | fast, EPISODIC (tail) | funding-liquidity spirals (Brunnermeier-Pedersen); binary flag, high conf when it fires, silent otherwise |
 | **Absorption ratio** | "diversification is working" | fast-med, LEADING | eigenstructure compaction (Kritzman 2011); PARTIAL — *is a factor of* index vol, keep for the LEAD only |
 
-### The three confidence dimensions (every sensor carries all three)
+### The signal-admission model (governed by the framework)
 
-Every reading travels with three separate confidence scores — collapsing them into one hides exactly the
-failure this system prevents:
+> **The framework governs.** The admission model is fully specified in `framework/signal-output-spec.md` §1–§2
+> and `framework/validation-standards.md` §(l). This section summarizes it and gives a first-pass scorecard; where
+> it differs from the framework, the framework wins. *(This REPLACES the earlier "three confidence dimensions"
+> text — measurement / interpretation / regime-relevance — which is superseded; the predictive "regime-relevance"
+> guard is DROPPED. See the framework §3 supersession record.)*
 
-1. **Measurement confidence** — can we observe it reliably, causally, from available data?
-2. **Interpretation confidence** — do we understand the *mechanism* (not just a correlation)?
-3. **Regime-relevance confidence** — does anything downstream actually *depend* on this assumption being true (is it a market assumption that matters, not a curiosity)?
+Admission is a **binary mechanism prerequisite gate** (a written structural reason it survives being known —
+pass / rejected; fail = never admitted) followed by **three graded, non-compensatory axes** (a high axis never
+offsets a low one):
 
-The third is the subordination guard: a signal can score high on measurement + interpretation yet low on
-relevance — *a fascinating research signal that must NOT become an important input.* Maturity
-(production / research / rejected) is derived from all three together, never from backtest fit.
+1. **Measurement validity** — can we measure it accurately, consistently, causally, from available data?
+2. **Investment usefulness** — does it answer an important investor question AND add unique information beyond the
+   admitted signals? (a static per-signal judgment, NOT a per-reading "does this currently matter" score — that
+   predictive framing is the dropped guard).
+3. **Evidence maturity** — holds across sub-periods, survives Japan/Europe out-of-hypothesis-sample, studied
+   enough to understand.
 
-First-pass scorecard (H / M / L):
+The maturity tag (production / research / rejected) is DERIVED from {mechanism = pass · the three axes · dated
+sign-off · an answerable "why does this deserve to be in front of an investor?"}, never from backtest fit.
 
-| Sensor | Measurement | Interpretation | Regime-relevance |
-|---|---|---|---|
-| Volatility | H (shipped) | H | H |
-| Inflation / real-rate | H (from returns) | H | H (defense study's core assumption) |
-| Concentration | H (cap data) | M (healthy-vs-fragile ambiguity) | M |
-| Tail | **L** (needs options/HF) | H | M |
-| Crowding | M (comomentum, narrow) | H | M–H (factor-premium reliability) |
-| Valuation | H | H | M (long-horizon only) |
-| EBP | M (GZ construction) | H | M |
-| Funding stress | M | H | M (tail insurance) |
-| Absorption ratio | M | M (semi-redundant w/ vol) | **L–M** |
+First-pass scorecard (mechanism = gate; the three axes H / M / L). Evidence maturity is largely *pending* until
+each sensor's Japan/Europe OOS is run:
+
+| Sensor | Mechanism | Measurement validity | Investment usefulness | Evidence maturity |
+|---|---|---|---|---|
+| Volatility | pass | H (shipped) | H | H |
+| Inflation / real-rate | pass | H (from returns) | H | M (intl OOS pending) |
+| Concentration | pass | H (cap data) | M (healthy-vs-fragile ambiguity) | pending |
+| Tail | pass | **L** (needs options/HF) | M | pending |
+| Crowding | pass | M (comomentum, narrow) | M–H (factor-premium reliability) | pending |
+| Valuation | pass | H | M (long-horizon only) | pending |
+| EBP | pass | M (GZ construction) | M | pending |
+| Funding stress | pass | M | M (tail insurance) | pending |
+| Absorption ratio | pass | M | **L–M** (semi-redundant w/ vol) | pending |
 
 ### The gate is MECHANISM, not statistics
 
@@ -363,8 +380,9 @@ The output is **not a regime label and not a flat dashboard.** It is a three-lay
 the ledger — is the product; the sensors are the instruments beneath it. This is the "regime in detail": the
 full-resolution state, expressed as which market assumptions currently hold.
 
-**Level 0 — Measurement (the state vector).** Per sensor: `{reading, rarity percentile, clock, the three
-confidence scores, maturity tag}`. The raw substrate; necessary, not yet decision-useful.
+**Level 0 — Measurement (the state vector).** Per sensor: `{reading, rarity percentile, clock, the admission
+assessment (mechanism gate + the three axes), maturity tag}` — the closed field set in
+`framework/signal-output-spec.md` §4.1. The raw substrate; necessary, not yet decision-useful.
 
 **Level 1 — The assumption ledger (THE product).** Each monitored market assumption, with `status ∈ {intact /
 under test / violated}`, the sensor evidence, how unusual, and confidence. Status is an **observation, never an
