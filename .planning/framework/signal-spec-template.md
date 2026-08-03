@@ -43,6 +43,10 @@ if they do not apply to this signal's shape, answer `Not applicable, because …
 - Q1.3 What specific **investment question** does this signal answer (e.g. "valuation: where do forward returns
   start from relative to history?")? This is the anti-disconnection anchor — a signal earns its place only by
   answering one concrete question about the environment, never for its own sake. **[universal-required]**
+- Q1.4 **Why does that question matter** for understanding the market environment? Justify the signal's
+  existence by its contribution to understanding — never by data availability. Data being available is *not* a
+  sufficient reason to build a signal. (This is a declaration about understanding-relevance, not a forecast or
+  applicability claim.) **[universal-required]**
 
 ### 2. Mechanism
 

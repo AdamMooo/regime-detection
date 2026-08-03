@@ -85,6 +85,22 @@ breadth + rising volatility describes a historically more **fragile** environmen
 historical context (Level 2 joint-rarity + nearest-neighbour analogues), **never** as a combined sell signal or
 score (D-09 / D-11).
 
+## The one-way boundary with the decision layer
+
+The relationship to the downstream decision layer is **strictly one-way**:
+
+- **This system (understanding engine)** answers *"what environment exists, and how does it compare
+  historically?"*
+- **The downstream decision layer (governance engine) + the human** answer *"given policy, objectives, and
+  constraints, is what I hold still aligned?"*
+
+This system may, in future, *provide context* to the downstream layer. It must **never** directly modify
+allocation targets, exposure sizing, trades, or orders — it produces no such fields and issues no such
+instructions (the tokens in this sentence appear only to name what is forbidden). The downstream layer remains
+the governance engine; this repo remains the understanding engine. Context flows one way; authority never flows
+back. Before adding any new component, the standing test is: *does it strengthen market understanding while
+preserving the observation-versus-decision boundary?* — if not, it does not belong here.
+
 ## Terminology (glossary)
 
 - **Signal** — the canonical technical term for one independent measurement module: a descriptive dimension of
