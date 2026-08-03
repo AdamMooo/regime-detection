@@ -86,6 +86,12 @@ every prose "reviewed grep" had missed — vindicating D-18.
 
 ## NEXT ACTION
 
+**▶ FRESH-WINDOW START HERE:** open the valuation research charter. Read
+`.planning/phases/03-valuation-signal/03-CHARTER-KICKOFF.md` — it is self-contained (state, relevance-gate
+result, charter template, skepticism scaffold, file map). Valuation already PASSED the Relevance Gate; the next
+artifact is `03-VALUATION-CHARTER.md` (pre-registration, no data look, declare what would REJECT it). Objective =
+does valuation EARN admission, not prove it works.
+
 **Start building the layers (the signals).** Every signal MUST begin with a research charter (D-15, the six
 pre-registration questions) BEFORE any implementation — the framework's own admission discipline. Then it runs
 through: charter → research/build → validation (mechanism gate · confound · Japan/Europe OOS) → admission review
