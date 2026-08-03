@@ -55,7 +55,7 @@ out-of-hypothesis-sample on Japan/Europe before any SUPPORT claim, and (e) emits
 Plans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — merged 8-attribute signal-spec template + validation-standards doc
+- [x] 01-01-PLAN.md — merged 8-attribute signal-spec template + validation-standards doc
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -246,7 +246,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Signal Framework | 0/2 | Not started | - |
+| 1. Signal Framework | 1/2 | In Progress|  |
 | 2. Stock-Bond Correlation (intl OOS) | 0/2 | Not started | - |
 | 3. Valuation Signal | 0/2 | Not started | - |
 | 4. Concentration Signal | 0/2 | Not started | - |

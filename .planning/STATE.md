@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: ROADMAP.md and STATE.md written; REQUIREMENTS.md traceability updated
-last_updated: "2026-08-03T16:33:41.695Z"
-last_activity: 2026-08-03 -- Phase 1 planning complete
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-08-03T17:09:37.754Z"
+last_activity: 2026-08-03
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-02)
 
 **Core value:** Each independently-validated signal surfaces a market assumption worth monitoring — fewer blind spots for the human's judgment, never a forecast, never an action.
-**Current focus:** Phase 1 — Signal Framework
+**Current focus:** Phase 01 — signal-framework
 
 ## Current Position
 
-Phase: 1 of 10 (Signal Framework)
-Plan: 0 of 2 in current phase
+Phase: 01 (signal-framework) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-08-03 -- Phase 1 planning complete
+Last activity: 2026-08-03
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01 P01 | 12 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,9 @@ Recent decisions affecting current work:
 - [Init]: GSD scoped strictly to signal modules — Phase 1 framework + one phase per signal + presentation
 - [Init]: Build order after framework = stock-bond intl OOS → valuation → concentration → absorption → EBP → funding → crowding → tail
 - [Init]: Each signal is its own phase — never merged (independent research module; coarse granularity applies as plan-count compression, not phase-merging)
+- [Phase ?]: 01-01: framework adopts analog enforcement machinery (model cards + datasheets + GRADE + TRIPOD + registered reports), not a bespoke framework
+- [Phase ?]: 01-01: maturity tag is DERIVED (from validation status + confidence vector), not an authored spec attribute
+- [Phase ?]: 01-01: charter-before-implementation — no Phase 2-10 signal is built before its six-question charter exists (D-15)
 
 ### Pending Todos
 
@@ -88,15 +92,13 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-02
-Stopped at: ROADMAP.md and STATE.md written; REQUIREMENTS.md traceability updated
+Last session: 2026-08-03T17:09:37.741Z
+Stopped at: Completed 01-01-PLAN.md
 Resume file: None
 </content>
 
 ---
 <!-- LINKS:AUTO -->
-
 ## Related
-
 **Project:** [[_planning/regime-detection/ROADMAP|ROADMAP]] · [[regime-detection/regime-detection|Hub]]
 <!-- LINKS:END -->

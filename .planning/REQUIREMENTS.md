@@ -20,7 +20,7 @@ Each maps to exactly one roadmap phase.
 
 ### Framework
 
-- [ ] **FRWK-01**: The shared signal spec exists — 8-attribute template (research question · mechanism · data ·
+- [x] **FRWK-01**: The shared signal spec exists — 8-attribute template (research question · mechanism · data ·
   metric · validation · failure modes · historical-context output · maturity), validation standards, the
   historical-context/assumption-ledger output format, and the maturity model — that every subsequent signal declares
   against before it runs.
@@ -70,7 +70,7 @@ Each maps to exactly one roadmap phase.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FRWK-01 | Phase 1 | Pending |
+| FRWK-01 | Phase 1 | Complete |
 | SIG-01 | Phase 2 | Pending |
 | SIG-02 | Phase 3 | Pending |
 | SIG-03 | Phase 4 | Pending |
