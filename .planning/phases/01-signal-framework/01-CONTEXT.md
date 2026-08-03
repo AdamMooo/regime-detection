@@ -67,13 +67,20 @@ consumer. Those are Phases 2–10.
   mechanism-gate + prereg standards, which map onto attributes 2/5).
 
 ### Confidence Model
-- **D-06:** Confidence is **multidimensional**, never a single score. The dimensions are:
-  **data-quality confidence · historical-robustness confidence · mechanism confidence · current-relevance
-  confidence.** (This authoritatively replaces the earlier 3-dimension model —
-  measurement / interpretation / relevance-guard — from the architecture doc/memory; the planner should
-  note the mapping: measurement→data-quality, interpretation→historical-robustness + mechanism,
-  relevance-guard→current-relevance. "Current-relevance" is the boundary-safe rename — no
-  implementation/allocation concept is implied.)
+- **D-06:** Confidence is **multidimensional**, never a single score, and describes **research maturity —
+  NOT predictive confidence.** It must never imply "this signal is more likely to be correct" or "this
+  signal predicts the market." The four dimensions are: **measurement quality · mechanism support ·
+  evidence robustness · implementation maturity.** The spec must carry a prominent disclaimer to this
+  effect. Reconciliation the planner records for sign-off:
+  - This replaces the earlier 3-dim model (measurement / interpretation / relevance-guard) AND the earlier
+    4-dim proposal (data-quality / historical-robustness / mechanism / current-relevance). Mapping:
+    data-quality→measurement quality; mechanism→mechanism support; historical-robustness→evidence
+    robustness; **current-relevance is DROPPED and replaced by implementation maturity** (current-relevance
+    leaned predictive/regime-applicability, which D-06 now forbids).
+  - **implementation maturity** is the research-process dimension whose discrete expression is the maturity
+    tag (see D-13). Confidence and maturity are therefore one coherent research-process concept, never a
+    likelihood. This current-relevance→implementation-maturity swap is flagged in the sign-off checklist
+    for Adam's veto.
 
 ### Signal Independence
 - **D-07:** Signals are **independent research modules**. Each has its own research process, its own
@@ -104,6 +111,25 @@ consumer. Those are Phases 2–10.
   understanding of market structure** — NOT predictive accuracy and NOT decision usefulness. Where a design
   choice trades reproducibility/integrity against apparent usefulness, integrity wins.
 
+### Maturity, Output Levels, Charter, Placement (refinements)
+- **D-13:** The maturity model is **descriptive, not a quality ranking**. A production signal is NOT
+  "better" than a research signal; the tag (production / research / rejected) only states how far the
+  research + validation + implementation process has progressed. The spec must state this explicitly so no
+  reader treats a higher stage as higher predictive quality.
+- **D-14:** The Level 0/1/2 output structure is fixed as: **Level 0 = measurement · Level 1 = historical
+  context · Level 2 = regime relevance.** The system **STOPS at Level 2** — no Level 3, no action, no
+  decision. (This names the three levels concretely; consistent with D-08/D-09.)
+- **D-15:** Every future signal phase (2–10) requires a **research charter written BEFORE implementation**,
+  answering six questions: (1) what question does it answer · (2) what assumption does it monitor · (3) what
+  mechanism supports it · (4) what evidence would validate it · (5) what would falsify it · (6) what does it
+  explicitly NOT claim. Phase 1 must produce the **charter template** (a pre-registration front-matter
+  subset of the 8-attribute spec) and establish the rule that no signal is implemented before its charter
+  exists. This keeps every future phase independent and prevents drift.
+- **D-16:** `.planning/framework/` is the governing specification home (framework = research + validation
+  rules; phases = execution roadmap; architecture = system design). `.planning/REGIME-SENSOR-ARCHITECTURE.md`
+  must be updated to **reference `.planning/framework/` as the governing specification** so the three
+  documents cross-link with clear roles.
+
 ### Separation (core design requirement)
 The separation between the Regime Sensor (this repo) and the downstream decision system is a **core design
 requirement**, already locked in D-01/D-02 and the HARD BOUNDARY. The Regime Sensor never answers "what
@@ -115,7 +141,7 @@ references). This is a boundary-hygiene note, not a new trackable decision.
 
 ### Claude's Discretion
 - File format/serialization of the template (Markdown spec doc vs. a fillable schema), file locations
-  within the repo, and section ordering of the standards doc — provided D-01…D-12 are honored.
+  within the repo, and section ordering of the standards doc — provided D-01…D-16 are honored.
 - How to physically split the work across the two roadmap plans (01-01 template+standards, 01-02
   output/confidence/maturity/ledger), as long as both plans together cover every decision above.
 

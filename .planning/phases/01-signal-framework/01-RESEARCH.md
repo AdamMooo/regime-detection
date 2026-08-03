@@ -387,16 +387,19 @@ Not a rename/refactor/migration phase — this phase creates new specification d
 | A4 | Markdown template + checklist recommended over a machine-fillable schema | §Standard Stack | If future signals are consumed programmatically, a schema might be preferred; low risk given solo research workflow + minimal-tooling bias |
 | A5 | Recommendation to **record supersession of the 3-dim model in the delivered docs** rather than edit ROADMAP/architecture upstream | §Reconciliation | If Adam prefers upstream edits, that's a separate small task; either way the drift must be resolved, not left silent |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should the superseded 3-dimension confidence text in ROADMAP.md SC#3 and REGIME-SENSOR-ARCHITECTURE.md be edited, or only noted as superseded by the new spec?**
    - What we know: D-06 (four dims) is authoritative and overrides both.
    - What's unclear: whether to touch the upstream docs (GSD owns `.planning/`).
    - Recommendation: the new spec states the supersession explicitly; the planner surfaces the upstream edit as an optional follow-up for Adam.
+   - **RESOLVED:** record supersession in the delivered spec (01-01 Task 2 / 01-02 Task 1); upstream ROADMAP/architecture edits left as a flagged follow-up, not silently rewritten.
 2. **Serialization: Markdown prose template vs a machine-fillable schema (YAML/JSON Schema)?** (Claude's discretion D.)
    - Recommendation: Markdown template + completeness checklist, matching the minimal-tooling bias; revisit only if a downstream consumer needs to parse declarations.
+   - **RESOLVED:** Markdown template + checklist adopted across both plans.
 3. **Exact anchor thresholds for the four confidence dimensions and the maturity derivation rule.**
    - Recommendation: adopt the proposed anchors (A1/A2) as the draft, get Adam's dated sign-off, and freeze them as v1.0 of the confidence model.
+   - **RESOLVED (deferred by design):** anchors carried as `[ASSUMED]` proposals gated on Adam's dated sign-off via `SIGNOFF-CHECKLIST.md`; nothing freezes to v1.0 in-plan. NOTE: the four dimension NAMES were further revised by the D-06 refinement (2026-08-03) to measurement quality · mechanism support · evidence robustness · implementation maturity — superseding the current-relevance naming still shown in the State-of-the-Art table below.
 
 ## State of the Art
 
@@ -442,6 +445,8 @@ Not a rename/refactor/migration phase — this phase creates new specification d
 ## Related
 **Project:** [[_planning/regime-detection/ROADMAP|ROADMAP]] · [[_planning/regime-detection/STATE|STATE]] · [[regime-detection/regime-detection|Hub]]
 **Phase siblings:**
+- [[_planning/regime-detection/phases/01-signal-framework/01-01-PLAN|01-01-PLAN]]
+- [[_planning/regime-detection/phases/01-signal-framework/01-02-PLAN|01-02-PLAN]]
 - [[_planning/regime-detection/phases/01-signal-framework/01-CONTEXT|01-CONTEXT]]
 
 <!-- LINKS:END -->
