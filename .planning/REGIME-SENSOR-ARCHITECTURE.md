@@ -51,6 +51,54 @@ it improves the *quality of the inputs* to the decision; it does not make or sha
 
 ---
 
+## The observatory framing (purpose) and the anti-disconnection rule
+
+Adam's framing (2026-08-03): at the *system* level this is a **factor observatory / decision-support layer** —
+its investment purpose is to describe the current environment and what history says about similar ones, so a
+human can decide with confidence. The individual modules stay **signals** (the canonical technical term); the
+observatory is the collection of signals plus the historical-context and joint lenses.
+
+**The pipeline (investment-purpose view):**
+
+> Market data → **signal states** → **historical context** → *investor interpretation* → *investment decision*
+
+The **code covers the first two arrows and STOPS** — signal states (Level 0) and historical context + regime
+relevance (Level 1/2). *Investor interpretation* and the *investment decision* are the human's, downstream, in a
+separate system. The code's job is to provide *enough evidence and context for that decision to be made with
+confidence*; it never makes or shapes the decision. (This restates the STOP boundary above in investment terms;
+the terminal step is named "investment decision" deliberately — without any allocation / holding vocabulary —
+to honor the HARD BOUNDARY.)
+
+**Each signal answers a specific investment question — and is never disconnected.** A signal earns its place
+only by answering one concrete question about the environment. Illustrative:
+
+- *Valuation:* where do forward returns start from relative to history?
+- *Volatility:* is uncertainty rising or falling?
+- *Breadth / concentration:* is performance broad, or dependent on a few names?
+- *Credit:* are financial conditions improving or deteriorating?
+
+Two rules keep the set coherent rather than a bag of disconnected factors: (1) every signal declares, in
+template **attribute 1**, the investment question it answers; and (2) every signal declares, in template
+**attribute 4**, its known relationships to the other signals (co-movement, lead/lag, redundancy,
+conditioning). The value is in *how the signals behave together historically* — e.g. high valuation + weakening
+breadth + rising volatility describes a historically more **fragile** environment. That is rendered as joint
+historical context (Level 2 joint-rarity + nearest-neighbour analogues), **never** as a combined sell signal or
+score (D-09 / D-11).
+
+## Terminology (glossary)
+
+- **Signal** — the canonical technical term for one independent measurement module: a descriptive dimension of
+  the market environment. Used throughout the code and framework.
+- **Market-state factor** — an acceptable *informal synonym* for a signal, used when the investment-purpose
+  framing is in view (a "factor" of the *environment*). It is **distinct from** an *equity-return factor* /
+  *priced-risk factor* (value, momentum, etc. as return-premia constructs) and from **regime-as-a-priced-factor**
+  (KILLED 2026-08-02 — it used the detector as an allocation engine, out of bounds). These signals measure and
+  describe environmental dimensions; they do **not** predict returns, rank assets, or become allocation factors.
+- **Factor observatory / decision-support layer** — the system-level name for the whole (signals + historical
+  context + joint lenses). It names the investment *purpose*; it introduces no allocation or decision behavior.
+
+---
+
 ## Why this exists — the failure this architecture fixes
 
 The v1 program established *regimes are vol regimes*: many candidate representations of "the regime" collapsed

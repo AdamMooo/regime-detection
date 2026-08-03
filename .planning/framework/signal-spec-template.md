@@ -40,6 +40,9 @@ if they do not apply to this signal's shape, answer `Not applicable, because …
 
 - Q1.1 What exactly does the signal measure? **[universal-required]**
 - Q1.2 Which market assumption does it monitor (the ledger key from the header)? **[universal-required]**
+- Q1.3 What specific **investment question** does this signal answer (e.g. "valuation: where do forward returns
+  start from relative to history?")? This is the anti-disconnection anchor — a signal earns its place only by
+  answering one concrete question about the environment, never for its own sake. **[universal-required]**
 
 ### 2. Mechanism
 
@@ -65,6 +68,10 @@ is required before the signal is preregistered. This attribute is where that rea
 - Q4.1 How has the signal behaved historically, and what regimes has it identified? **[universal-required]**
 - Q4.2 What is its empirical false-positive / false-negative record — the errors it actually produced in
   history? **[conditional]** (answer `Not applicable, because …` if the signal has no back-history yet)
+- Q4.3 What are its known **relationships to the other signals** — co-movement, lead/lag, redundancy, or
+  conditioning? This keeps the signal connected to the set (not standalone) and feeds the Level-2 joint lenses;
+  it describes *joint historical behavior only* and never implies a combined action. **[universal-required]**
+  (answer `Not applicable, because …` only if it is the first signal with no others to relate to)
 
 The empirical false-positive / false-negative record lives **here** (attribute 4). This is distinct from the
 structural failure modes declared *before* testing, which live in attribute 6. Attribute-6 failure modes are

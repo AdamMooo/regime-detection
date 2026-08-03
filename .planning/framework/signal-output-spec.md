@@ -169,6 +169,9 @@ The state-vector element. Exactly the D-08 fields, no more:
   assumption_monitored: "<the ledger key, e.g. 'bonds hedge equity drawdowns'>",
   reading:              "<qualitative + quantitative, e.g. 'stock-bond corr positive, +0.35'>",
   rarity:               "<historical percentile + how computed, e.g. '85th pctile, trailing 60y'>",
+  trend:                "<direction of change over a stated window, e.g. 'rising over trailing 6m' | 'flat'>",
+  extreme_conditions:   "<explicit at-a-historical-extreme flag + which tail, e.g. 'at 95th-pctile extreme' | 'not extreme'>",
+  cross_signal_relationships: "<known relationships to other signals from template Q4.3, e.g. 'co-moves with concentration; leads credit ~1-2y' | 'none characterized yet'>",
   clock:                "<daily|weekly|monthly|structural>",
   confidence: {
      measurement_quality:    "H|M|L",
@@ -181,8 +184,18 @@ The state-vector element. Exactly the D-08 fields, no more:
 }
 ```
 
+`trend`, `extreme_conditions`, and `cross_signal_relationships` were added 2026-08-03 (the observatory-framing
+refinement) so each signal describes not just its level but its *direction*, whether it sits at a historical
+*extreme*, and how it *relates* to the other signals — the descriptive richness that makes the set an
+observatory rather than disconnected readings. `cross_signal_relationships` carries the *known / characterized*
+relationships (template Q4.3); the **live joint** reading (this configuration's joint rarity + analogues) is a
+Level-2 lens (§4.3), never collapsed into a per-signal field. These field definitions are `[ASSUMED — pending
+Adam's dated sign-off]` alongside the other v1.0 items.
+
 **Zero allocation / decision fields.** No allocation, exposure, weight, sleeve, tilt, cash, action,
-recommendation, or "portfolio" — the record names a monitored market assumption and its reading, and STOPS.
+recommendation, or "portfolio" — the record names a monitored market assumption and its reading (level, trend,
+rarity, extremity, relationships), and STOPS. `trend` and `extreme_conditions` are descriptive state, never a
+buy/sell trigger.
 
 ### 4.2 Level 1 — historical context (the assumption ledger, THE product)
 
