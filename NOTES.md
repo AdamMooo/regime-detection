@@ -36,10 +36,15 @@ lives under **`.planning/framework/`**:
   cooling-off+dated sign-off · TRIPOD completeness checklist · HARD BOUNDARY reviewed-grep audit · D-10 (no
   signal designed around a desired conclusion) · D-12 (optimize for integrity/reproducibility, not prediction).
 - `research-charter-template.md` — D-15 six-question pre-registration required BEFORE any future signal is built.
-- `signal-output-spec.md` — confidence = **research maturity, never predictive** (4 dims: measurement quality ·
-  mechanism support · evidence robustness · implementation maturity); descriptive maturity model (production is
-  NOT "better" than research); Level 0 measurement · Level 1 historical context · Level 2 regime relevance, STOP
-  at Level 2; composite-scalar forbidden, kept distinct from the Phase-10 joint-rarity (Mahalanobis) lens.
+- `signal-output-spec.md` — **unified signal-admission model** (2026-08-03, D-17, REPLACES the four-dimension
+  confidence model): a **binary mechanism prerequisite gate** (pass/rejected) + **three graded non-compensatory
+  axes** — measurement validity · investment usefulness (important question + unique information, static
+  per-signal) · evidence maturity; the **maturity tag is DERIVED** {mechanism pass + 3 axes + sign-off +
+  investor-question}, implementation-maturity dimension DROPPED. Assessment = "earned its place," never
+  predictive. Descriptive maturity (production NOT "better" than research); Level 0 measurement · Level 1
+  historical context · Level 2 regime relevance, STOP at Level 2; composite-scalar forbidden, kept distinct from
+  the Phase-10 joint-rarity (Mahalanobis) lens. Level-0 closed `assessment{}` field set + boundary enforced in
+  code next pass (schema allowlist + boundary-audit test + repo-structure rule — D-18, architecture not docs).
 - `examples/{volatility,stock-bond-corr}-signal-declaration.md` — the two built signals retro-fit the template
   cleanly (fast/production + slow/research shapes).
 - `SIGNOFF-CHECKLIST.md` — **everything unsigned; nothing frozen to v1.0.**
@@ -61,11 +66,13 @@ patch those two frozen docs to "four" once the framework is signed off.
 ## NEXT ACTION
 
 **Adam to review + dated sign-off `.planning/framework/SIGNOFF-CHECKLIST.md`** before the framework freezes to
-v1.0. Open items: A1 (confidence anchor thresholds) · A2 (maturity-derivation rule) · A3 (forbid-composite
-wording) · the D-06 current-relevance→implementation-maturity swap (veto point) · RF (the shipped volatility
-signal's production tag rests on frozen-US OOS + a universal stylized fact, not literal Japan/Europe OOS — decide
-whether that satisfies the maturity rule) · OBS (observatory framing + new output fields — confirm). Then patch
-ROADMAP SC#3 + architecture doc "three→four" dims.
+v1.0. Open items now **A1 · A2 · A3 · RF · OBS · ADM · ENF**: A1 (three-axis anchor thresholds) · A2
+(maturity-derivation rule) · A3 (forbid-composite wording) · RF (the shipped volatility signal's production tag
+rests on frozen-US OOS + a universal stylized fact, not literal Japan/Europe OOS — decide whether that satisfies
+the maturity rule) · OBS (observatory framing + new output fields — confirm) · **ADM (the unified
+signal-admission model, D-17 — confirm)** · **ENF (code-level boundary enforcement is architecture, D-18 —
+confirm)**. The old D-06 current-relevance→implementation-maturity swap is RESOLVED (superseded by ADM). Then
+patch ROADMAP SC#3 + architecture doc "three→four→admission-model" dims.
 
 **Then Phase 2** — stock-bond correlation intl OOS (gated on JGB/Bund series). First NEW signal is **valuation**
 (Phase 3). Per Adam: review Phase 1 before moving to future signal phases; do NOT auto-advance.
