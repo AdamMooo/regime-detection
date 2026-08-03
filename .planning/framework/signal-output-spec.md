@@ -152,6 +152,90 @@ follow-up for Adam**, not performed here — this spec records the supersession 
 than left as a silent contradiction.
 
 ---
+
+## 4. Output shape — Level 0 / 1 / 2 (STOP at Level 2)
+
+The output is a three-level object (D-08 / D-09 / D-14). The levels are named concretely: **Level 0 =
+measurement · Level 1 = historical context · Level 2 = regime relevance.** The system **STOPS at Level 2** —
+there is no Level 3, no action, no decision. This is the composition target Phase 10 renders into.
+
+### 4.1 Level 0 — measurement (the per-signal record)
+
+The state-vector element. Exactly the D-08 fields, no more:
+
+```
+{
+  signal:               "<name>",
+  assumption_monitored: "<the ledger key, e.g. 'bonds hedge equity drawdowns'>",
+  reading:              "<qualitative + quantitative, e.g. 'stock-bond corr positive, +0.35'>",
+  rarity:               "<historical percentile + how computed, e.g. '85th pctile, trailing 60y'>",
+  clock:                "<daily|weekly|monthly|structural>",
+  confidence: {
+     measurement_quality:    "H|M|L",
+     mechanism_support:      "H|M|L",
+     evidence_robustness:    "H|M|L",
+     implementation_maturity:"H|M|L"
+  },
+  maturity:             "production|research|rejected",   // DERIVED (§2)
+  spec_version:         "<semver of the template filled>"
+}
+```
+
+**Zero allocation / decision fields.** No allocation, exposure, weight, sleeve, tilt, cash, action,
+recommendation, or "portfolio" — the record names a monitored market assumption and its reading, and STOPS.
+
+### 4.2 Level 1 — historical context (the assumption ledger, THE product)
+
+Each monitored market assumption × `{status ∈ intact | under-test | violated · sensor evidence · rarity ·
+confidence}`. **Status is an OBSERVATION, never an instruction** — "the bond-hedge assumption is under test,"
+never any directive to act. The canonical worked example (from CONTEXT.md §Specific Ideas), which must stay
+legible as independent readings:
+
+| Market assumption | Signal(s) | Status (example read) |
+|---|---|---|
+| "Bonds will hedge an equity drawdown" | inflation / real-rate (stock-bond corr) | under-test — corr turned positive, 85th pctile |
+| "The index isn't dependent on a few names" | concentration | under-test — HHI 95th pctile |
+| "Diversification is functioning" | absorption ratio | intact |
+| "Factor premia aren't crowded" | crowding | intact |
+
+The six-reading vector from CONTEXT.md — **valuation: expensive · volatility: elevated · breadth: weakening ·
+liquidity: supportive · credit: stable · concentration: historically high** — must stay legible as six
+independent readings. It must **NEVER** be reduced to a single number such as "market risk = 73/100"; the whole
+point of the shape is that the readings remain independent and the disagreement between them survives.
+
+### 4.3 Level 2 — regime relevance (context)
+
+Joint rarity ("how unusual is the whole configuration") + nearest-neighbour historical analogues (configurations
+— "resembles 2018-Q4 / early-2022"), forecasting-free. **The system STOPS here** — Level 2 is context for the
+human, never a call.
+
+### 4.4 The composite-scalar prohibition AND the joint-rarity distinction
+
+These two must be kept distinct — cutting the joint-rarity lens is itself a failure, and admitting a composite
+scalar is the other failure.
+
+- **FORBIDDEN — any composite-scalar output field.** No single number that claims the market is safer or
+  riskier, implies an action, or erases the per-signal stories. "market risk = 73/100" is the named forbidden
+  form. This supersedes the architecture doc's note that a CISS-style composite is permitted "as a derived
+  secondary view" (research A3): this framework forbids any composite-scalar output field entirely.
+- **PERMITTED — joint rarity (Mahalanobis / turbulence distance)** as a Level-2 distance lens. It is
+  forecasting-free; it is a *distance*, not a rank of good/bad — two configurations equally far from normal can
+  be opposite worlds; it is computed FROM the preserved vector and sits BESIDE it, never replacing the
+  per-signal readings. Allowed form: "joint configuration at the 92nd percentile of historical unusualness,
+  driven by concentration + stock-bond-corr."
+
+**A3 (forbid any composite-scalar output field) is flagged for Adam's dated sign-off** in
+`SIGNOFF-CHECKLIST.md`.
+
+### 4.5 No-dominance / co-equal presentation (D-11)
+
+Signals are presented **co-equally**. There is NO weighting, ranking, precedence, or aggregation that lets any
+single signal override the vector. Signal **disagreement is information**, not a failure to be resolved into
+consensus. This extends D-07 (independent research modules) into the presentation layer and sits alongside the
+composite-scalar prohibition: both defend the same invariant — the full per-signal vector is the product, and it
+is never collapsed, never rank-ordered, never overruled by one dimension.
+
+---
 <!-- LINKS:AUTO -->
 ## Related
 **Project:** [[_planning/regime-detection/ROADMAP|ROADMAP]] · [[_planning/regime-detection/STATE|STATE]] · [[regime-detection/regime-detection|Hub]]
