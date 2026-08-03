@@ -1,7 +1,7 @@
 """Fragility gauge construction — frozen per INTERNALS-BETA-DIAL-PREREG.md REV 2, S3.
 
-Generic over any industry/portfolio-return panel (US 48 French industries, or the
-Japan/Europe 25-portfolio OOS panels) — same frozen formula, different input columns.
+Generic over any industry / sorted-return panel (US 48 French industries, or the
+Japan/Europe 25-sort OOS panels) — same frozen formula, different input columns.
 All causal: breadth/herf/disp use only trailing data; z-scoring uses an expanding
 window through t (no full-sample z, no forward info).
 """

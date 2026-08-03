@@ -394,7 +394,7 @@ exposure effect, not one lucky call.</p>
 
 <div id="ch2block" style="display:none">
 <h1 id="ch2" style="font-size:20px;margin-top:44px">Chapter 2 — Feeding the label to an allocator · NULL</h1>
-<p class="note"><strong>Plain English:</strong> telling the portfolio "we're in a storm" didn't
+<p class="note"><strong>Plain English:</strong> telling investors "we're in a storm" didn't
 help — a simple estimator that just watches the last few weeks (EWMA) reacts faster and does
 better. The cross-asset structure is real; being reactive already harvests it.</p>
 

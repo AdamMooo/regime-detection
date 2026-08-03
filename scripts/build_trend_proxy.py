@@ -14,8 +14,8 @@ METHOD (Moskowitz, Ooi & Pedersen 2012, "Time Series Momentum"):
     signal_{m,t}   = sign(12-month return)                       # long/short trend
     sigma_{m,t}    = trailing 63d realized vol, annualized       # ex-ante risk
     position_{m,t} = signal * min(target_inst_vol / sigma, cap)  # inverse-vol sizing
-  portfolio raw daily return = mean over available markets of position * next-day return
-  portfolio vol scaling: multiply by target_port_vol / trailing-252d realized vol (causal,
+  strategy raw daily return = mean over available markets of position * next-day return
+  strategy vol scaling: multiply by target_port_vol / trailing-252d realized vol (causal,
     lagged) so the series sits near a constant ~10% annualized vol like a real CTA.
 
 Causality: positions set at month-end t use only data <= t and are applied to returns AFTER
@@ -95,7 +95,7 @@ def build_proxy(px):
     raw = contrib.mean(axis=1, skipna=True)                 # equal-weight available markets
     raw = raw.dropna()
 
-    # portfolio-level vol targeting (causal: trailing realized vol, lagged one day)
+    # strategy-level vol targeting (causal: trailing realized vol, lagged one day)
     pvol = raw.rolling(PORT_VOL_LB).std().shift(1) * np.sqrt(252)
     scaler = (TARGET_PORT_VOL / pvol).clip(upper=3.0)
     trend = (raw * scaler).dropna()

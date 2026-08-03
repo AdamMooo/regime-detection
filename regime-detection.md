@@ -8,20 +8,32 @@ Market regime detection under prereg/causal discipline. **v1** (HDP-HMM + four s
 formulations): five preregistered nulls, CONVERGED, sealed at git tag `v1-convergence` — durable
 narrative in `RESEARCH-RECORD.md`. **v2** (statistical jump model, the field-standard estimator,
 on Ken French daily data 1926+): chapter 1 closed 2026-07-23 with a preregistered one-look
-backtest.
+backtest. **v3** (2026-08-02): repo refocused to a **market-signal research system** — finds/validates/presents
+independent signals + historical context, then STOPS (no allocation/decisions; see CLAUDE.md HARD BOUNDARY,
+`.planning/PROJECT.md`). Everything below dated ≤2026-07-29 is v2 history.
 
 ## Status
 
-**2026-07-29 — portfolio-manager integration LIVE, verified end-to-end.** `REGIME_REPO_PAT`
+**2026-08-03 — PIVOT to the market-signal system + GSD roadmap set up.** The equity-ownership / allocation
+program was removed from this repo 2026-08-02 (constitution, offense/defense, factor, momentum — a separate
+concern, recoverable in git history). The repo is now a market-*understanding* layer: independent, mechanism-
+validated signals each monitoring one abstract market assumption. Two signals exist (volatility/risk-off shipped;
+**stock-bond correlation** built + US-validated this session, `scripts/stockbond_corr.py`). GSD is now set up as a
+**10-phase roadmap** (`.planning/ROADMAP.md`): Phase 1 = shared signal framework, Phases 2–9 = one signal each
+(stock-bond intl-OOS · valuation · concentration · absorption · credit/EBP · funding · crowding · tail), Phase 10 =
+presentation/assumption ledger — every phase's DoD identical: **Find → Validate → Present → STOP**. Governing
+design: `.planning/REGIME-SENSOR-ARCHITECTURE.md`. **Next action: `/gsd:plan-phase 1`.**
+
+**2026-07-29 — the downstream consumer integration LIVE, verified end-to-end.** `REGIME_REPO_PAT`
 created; confirmed via real (not dry-run) GH Actions: `Weekly Regime Card` here, plus
-`Daily Market Brief` and `Weekly Regime Brief` in portfolio-manager, all green on both their
+`Daily Market Brief` and `Weekly Regime Brief` in the downstream consumer, all green on both their
 own cron and manual dispatch. The regime sections now actually populate in the real emails.
 One disclosed fragility, not a bug: PAT expiry is a silent self-omit, no alert wired — a
 manual calendar check before it lapses is the only safeguard. **Focus now shifts to improving
 report content/quality**, not shipping the pipe.
 
 **2026-07-27 — repo refocused to instrument+paper+live-feed only; regime_card.json now feeds
-portfolio-manager (daily one-liner + weekly deep-dive email).** Removed the closed-chapter
+the downstream consumer (daily one-liner + weekly deep-dive email).** Removed the closed-chapter
 battery runners (`run_backtest.py`/`run_allocation.py`/`allocation.py` — one-looks spent,
 reproducible at commit `51fbeff`); extracted the constants the live pipeline still needs into
 `scripts/run_config.py`. Finished `regime_signal.py`'s `persistence_gauge()` (Markov expected
@@ -30,7 +42,7 @@ dwell/half-life + empirical position vs history) and added a weekly GH Action
 Enriched the card same day (prompted by "what's still missing"): `health` (today's live-splice
 correlation/pass-fail, the earliest warning of a bad reading), `skill` (the real bear-catch
 track record — 15/18 at 20d lag, 9/11 at 56d lag — vs `validate_sensor.py`), and `history`
-(trailing 24-month state timeline for a sparkline). portfolio-manager consumes all three via
+(trailing 24-month state timeline for a sparkline). the downstream consumer consumes all three via
 `src/regime.py`; vol-diagnostics is explicitly NOT a consumer (stays a separate showcase
 project). Considered reopening the parked asymmetric-λ/K=3-severity speed work now that a real
 downstream consumer exists — Adam's call: **stay parked**, the lag is an honest, disclosed
@@ -86,20 +98,14 @@ trend-proxy tool, and a 4th dominated-use race for the paper. All committed + pu
 
 ## Next
 
-**Improve the live regime reports** (new, replaces "create the PAT" now that the pipe is verified
-live) — content/presentation quality in the daily one-liner and weekly deep-dive; review a real
-rendered email first to find what's thin. Then, standing work:
-1. **International confirmation** for the dispersion 4th-feature lead (−40d lag, US-only so far)
-   on a French/MSCI developed-market panel before any SUPPORT claim.
-2. **Paper (instrument-first)** — fold Path-B null in as a 4th dominated-use race; fill §1's
-   Shu–Yu–Mulvey quotes, draft §8 (monitor), export figures → completes §§1–7 SSRN-preprint core.
-3. **Sensor v3 — make it better** — tier-1 dispersion done; decide tier-2 (VIX/VRP via
-   FRED fetch) given the 0.78 own-vol overlap; scorecard = beat the incumbent's card
-   (20d lag, 15/18 bears, stability 1.000), look-free.
-4. **Monitor — validate & ship** — `monitor_gate.py` per `MONITOR-VALIDATION-SPEC.md`,
-   Layer-2 nowcast on the current label; does not block on v3.
-Deprioritized (Layer-3 economic): ch3 closure, ch4/M2 age screens. Parked/killed list:
-`PROGRAM.md`.
+**`/gsd:plan-phase 1`** — decompose the Signal Framework phase (lock the shared 8-attribute spec + validation
+standards + output format + maturity model before building more signals). Then Phase 2 (stock-bond intl OOS,
+gated on JGB/Bund series) and Phase 3 (valuation) — full sequence in `.planning/ROADMAP.md`. Discipline per
+signal: mechanism gate → causal validation with confound-checks → Japan/Europe out-of-hypothesis-sample
+confirmation before any SUPPORT → historical-context output, zero decision content.
+
+_v2 standing work (paper, sensor-v3, monitor) is deprioritized under the v3 refocus — the durable record lives in
+`RESEARCH-RECORD.md`; parked/killed items were in the now-removed `PROGRAM.md` (git history)._
 
 ## Memory
 
@@ -109,11 +115,15 @@ Deprioritized (Layer-3 economic): ch3 closure, ch4/M2 age screens. Parked/killed
 
 ## Known Issues
 
+- **`scripts/build_report.py` renders a "Chapter 2 — allocator" section that reads now-deleted
+  `results/allocation_*.csv`** (equity-program removal, 2026-08-02) — it will crash if run as-is. Needs the
+  Chapter-2 block removed and the report refocused on signals. Deferred (real refactor, not a doc fix). `README.md`
+  similarly still lists deleted `run_allocation.py`/`allocation.py` (README is maintained separately).
 - French data publishes with a 1–2 month lag — handled by the SPY-splice live tail
   (`scripts/live_label.py`, gate PASS corr 0.9957, 1.0000 agreement on overlap); the
   splice must be refreshed when displaying a current state (monitor claim C0).
 - Chapter-3 prereg has one recorded defect (§10a): the M3 phase-separation criterion was
   frozen qualitatively — resolved by Adam's explicit ruling, kept on record for referees.
 - HDP pipeline fully retired 2026-07-23 (its label was never consumed by anything). Recoverable
-  in git history if ever needed. The jump-model label's Portfolio-Manager integration is real and
+  in git history if ever needed. The jump-model label's downstream integration is real and
   **live** (2026-07-27 built, 2026-07-29 verified via actual GH Actions runs — no longer blocked).

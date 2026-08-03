@@ -1,6 +1,6 @@
 """Regime signal: read the live label (results/label_live.csv, produced by live_label.py)
 and emit results/regime_card.json — a small, stable data contract consumed by
-portfolio-manager (daily Market Brief one-liner + weekly positioning email; 2026-07-27
+a separate downstream repo (a daily Market Brief one-liner + weekly positioning email; 2026-07-27
 decision — vol-diagnostics stays a separate showcase project, not a consumer here).
 
 Instrument operation, not research: this only derives descriptive persistence stats from an

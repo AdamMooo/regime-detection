@@ -58,7 +58,7 @@ marginal or flat H3 does NOT sink H1/H2 — the deliverable is the gauge, not th
   present (~1930-07) to panel end. Drawdown target asset = the market factor (mkt_ret).
 - OOS confirmation (hypothesis generated on US data → mandatory out-of-hypothesis confirmation,
   CLAUDE.md): `data/processed/{japan,europe}_assets_daily.csv`. Rebuild the SAME internals from
-  their portfolio columns, apply the FROZEN gauge definition, repeat H1 (predictive regression) and
+  their sorted-return columns, apply the FROZEN gauge definition, repeat H1 (predictive regression) and
   H2 (event study). 1990+.
 
 ## §3 Gauge construction (frozen)
@@ -82,7 +82,7 @@ sample z — leakage). Industry price proxy P = cumprod(1+ret).
 ## §4 The dial (secondary, frozen) & execution
 
 Used only for H3. `w(t) = clip(1 - k·z_expand(g(t)), 0, 1)`, monotone decreasing in fragility.
-`k` = the single scalar making the dial's **average portfolio exposure** (mean `w`) over the full
+`k` = the single scalar making the dial's **average exposure** (mean `w`) over the full
 OOS equal the baseline's (mean `w_vt`), by a 1-D root solve on that single equality using ONLY the
 two exposure paths — never any return/DD outcome. Once solved, `k` is fixed for every reported
 result and both OOS panels. Execution: delay=2, costs 10 bps one-way on |Δw|, cash earns rf.
