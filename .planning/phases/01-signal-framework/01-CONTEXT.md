@@ -91,9 +91,31 @@ consumer. Those are Phases 2–10.
   composition target (Level 0 state vector · Level 1 assumption ledger · Level 2 context), defined here so
   later signals render into a known place — never a combined score.
 
+### Research Integrity (framework optimization target)
+- **D-10:** No signal may be designed around a **desired conclusion**. Mechanism, metric, and validation
+  are specified before results are interpreted (mechanism gate + prereg discipline). A signal that only
+  "works" because it was tuned toward a wanted answer is rejected. The validation-standards doc must state
+  this as an explicit integrity rule, not leave it implicit in the prereg protocol.
+- **D-11:** No **single signal may dominate interpretation**. Independence (D-07) extends to the
+  presentation layer: the output format presents signals co-equally — no weighting, ranking, precedence,
+  or aggregation that lets one signal override the vector. Signal disagreement is information, not a
+  failure to be resolved.
+- **D-12:** The framework's explicit optimization target is **research integrity, reproducibility, and
+  understanding of market structure** — NOT predictive accuracy and NOT decision usefulness. Where a design
+  choice trades reproducibility/integrity against apparent usefulness, integrity wins.
+
+### Separation (core design requirement)
+The separation between the Regime Sensor (this repo) and the downstream decision system is a **core design
+requirement**, already locked in D-01/D-02 and the HARD BOUNDARY. The Regime Sensor never answers "what
+should I own · what action to take · increase or decrease exposure · bullish or bearish." Those belong
+solely to the separate downstream decision system operating under its own policy. That downstream policy —
+including any target-allocation figures — is **deliberately excluded from this repo**; its specifics are
+intentionally NOT recorded here so the boundary stays literally clean (zero allocation/"portfolio"
+references). This is a boundary-hygiene note, not a new trackable decision.
+
 ### Claude's Discretion
 - File format/serialization of the template (Markdown spec doc vs. a fillable schema), file locations
-  within the repo, and section ordering of the standards doc — provided D-01…D-09 are honored.
+  within the repo, and section ordering of the standards doc — provided D-01…D-12 are honored.
 - How to physically split the work across the two roadmap plans (01-01 template+standards, 01-02
   output/confidence/maturity/ledger), as long as both plans together cover every decision above.
 
@@ -157,4 +179,9 @@ tail, stock-bond intl OOS) is already scoped to its own later phase (2–9), and
 <!-- LINKS:AUTO -->
 ## Related
 **Project:** [[_planning/regime-detection/ROADMAP|ROADMAP]] · [[_planning/regime-detection/STATE|STATE]] · [[regime-detection/regime-detection|Hub]]
+**Phase siblings:**
+- [[_planning/regime-detection/phases/01-signal-framework/01-01-PLAN|01-01-PLAN]]
+- [[_planning/regime-detection/phases/01-signal-framework/01-02-PLAN|01-02-PLAN]]
+- [[_planning/regime-detection/phases/01-signal-framework/01-RESEARCH|01-RESEARCH]]
+
 <!-- LINKS:END -->
