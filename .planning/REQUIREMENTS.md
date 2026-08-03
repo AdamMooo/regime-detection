@@ -68,32 +68,31 @@ Each maps to exactly one roadmap phase.
 
 ## Traceability
 
-Populated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FRWK-01 | — | Pending |
-| SIG-01 | — | Pending |
-| SIG-02 | — | Pending |
-| SIG-03 | — | Pending |
-| SIG-04 | — | Pending |
-| SIG-05 | — | Pending |
-| SIG-06 | — | Pending |
-| SIG-07 | — | Pending |
-| SIG-08 | — | Pending |
-| PRES-01 | — | Pending |
+| FRWK-01 | Phase 1 | Pending |
+| SIG-01 | Phase 2 | Pending |
+| SIG-02 | Phase 3 | Pending |
+| SIG-03 | Phase 4 | Pending |
+| SIG-04 | Phase 5 | Pending |
+| SIG-05 | Phase 6 | Pending |
+| SIG-06 | Phase 7 | Pending |
+| SIG-07 | Phase 8 | Pending |
+| SIG-08 | Phase 9 | Pending |
+| PRES-01 | Phase 10 | Pending |
 
 **Coverage:**
 - v1 requirements: 10 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 10 ⚠️
+- Mapped to phases: 10 ✓
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-08-02*
-*Last updated: 2026-08-02 after initial definition*
+*Last updated: 2026-08-02 after roadmap creation (traceability populated)*
 
 ---
 <!-- LINKS:AUTO -->
 ## Related
-**Project:** [[regime-detection/regime-detection|Hub]]
+**Project:** [[_planning/regime-detection/ROADMAP|ROADMAP]] · [[_planning/regime-detection/STATE|STATE]] · [[regime-detection/regime-detection|Hub]]
 <!-- LINKS:END -->
+</content>
