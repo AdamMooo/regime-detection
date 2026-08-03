@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-08-03T17:09:37.754Z"
+status: verifying
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-08-03T17:19:55.810Z"
 last_activity: 2026-08-03
 progress:
   total_phases: 10
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_plans: 2
+  percent: 10
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-08-02)
 
 Phase: 01 (signal-framework) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-03
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [█████░░░░░] 50%
 
 *Updated after each plan completion*
 | Phase 01 P01 | 12 | 3 tasks | 4 files |
+| Phase 01 P02 | 14 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-01: framework adopts analog enforcement machinery (model cards + datasheets + GRADE + TRIPOD + registered reports), not a bespoke framework
 - [Phase ?]: 01-01: maturity tag is DERIVED (from validation status + confidence vector), not an authored spec attribute
 - [Phase ?]: 01-01: charter-before-implementation — no Phase 2-10 signal is built before its six-question charter exists (D-15)
+- [Phase ?]: 01-02: confidence is four research-maturity dimensions (measurement quality/mechanism support/evidence robustness/implementation maturity), never predictive likelihood (D-06)
+- [Phase ?]: 01-02: maturity tag DERIVED + descriptive (not a quality ranking, D-13); composite-scalar output forbidden, joint rarity preserved as distinct Level-2 lens
+- [Phase ?]: 01-02: nothing frozen to v1.0 — A1/A2/A3 + D-06 dimension swap + retro-fit tension consolidated in SIGNOFF-CHECKLIST.md for Adam's dated sign-off
 
 ### Pending Todos
 
@@ -92,13 +96,15 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-03T17:09:37.741Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-08-03T17:19:55.797Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
 </content>
 
 ---
 <!-- LINKS:AUTO -->
+
 ## Related
+
 **Project:** [[_planning/regime-detection/ROADMAP|ROADMAP]] · [[regime-detection/regime-detection|Hub]]
 <!-- LINKS:END -->

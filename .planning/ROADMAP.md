@@ -24,7 +24,7 @@ out-of-hypothesis-sample on Japan/Europe before any SUPPORT claim, and (e) emits
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Signal Framework** - The shared 8-attribute spec, validation standards, output format, and maturity model every signal declares against
+- [x] **Phase 1: Signal Framework** - The shared 8-attribute spec, validation standards, output format, and maturity model every signal declares against (completed 2026-08-03)
 - [ ] **Phase 2: Stock-Bond Correlation Signal (intl OOS)** - Complete the built inflation/real-rate signal to SUPPORT via Japan/Europe confirmation
 - [ ] **Phase 3: Valuation Signal** - Starting-valuation → long-horizon-return context, monitoring "equities priced for normal returns"
 - [ ] **Phase 4: Concentration Signal** - Index concentration / breadth, monitoring "the index isn't dependent on a few names"
@@ -59,7 +59,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — historical-context output format, four-dimension confidence model, maturity model, assumption-ledger shape (L0/1/2) + retro-fit
+- [x] 01-02-PLAN.md — historical-context output format, four-dimension confidence model, maturity model, assumption-ledger shape (L0/1/2) + retro-fit
 
 ### Phase 2: Stock-Bond Correlation Signal (intl OOS)
 
@@ -246,7 +246,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Signal Framework | 1/2 | In Progress|  |
+| 1. Signal Framework | 2/2 | Complete   | 2026-08-03 |
 | 2. Stock-Bond Correlation (intl OOS) | 0/2 | Not started | - |
 | 3. Valuation Signal | 0/2 | Not started | - |
 | 4. Concentration Signal | 0/2 | Not started | - |
