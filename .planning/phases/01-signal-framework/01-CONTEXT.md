@@ -130,6 +130,24 @@ consumer. Those are Phases 2–10.
   must be updated to **reference `.planning/framework/` as the governing specification** so the three
   documents cross-link with clear roles.
 
+### Unified Signal-Admission Model (supersedes the four-dimension confidence model)
+- **D-17:** The four-dimension confidence model (measurement quality · mechanism support · evidence robustness ·
+  implementation maturity) is REPLACED by a **unified signal-admission model**: a **binary mechanism prerequisite
+  gate** (pass / rejected — a written structural reason it survives being known; graded → binary; fail = never
+  admitted) plus **three graded, non-compensatory admission axes** — **measurement validity** (accurate,
+  consistent, causal, from available data) · **investment usefulness** (answers an important investor question
+  AND adds unique information beyond admitted signals — a static per-signal judgment, NOT a per-reading
+  applicability score; the killed "current-relevance" framing stays dropped) · **evidence maturity** (holds
+  across sub-periods, survives Japan/Europe OOS, studied enough to understand). The axes are non-compensatory (a
+  high axis never offsets a low one). The **maturity tag is DERIVED** from {mechanism = pass · the three axes ·
+  dated sign-off · an answerable "why does this deserve to be in front of an investor?"}; the old
+  implementation-maturity dimension is DROPPED (it was circular — it equalled the tag). This refines D-06.
+- **D-18:** **Code-level boundary enforcement is part of the architecture, not documentation-only.** The HARD
+  BOUNDARY is enforced by a **closed Level-0 output schema (allowlist)**, a runnable **boundary-audit test** (no
+  allocation / decision / composite-scalar field is ever emitted), and a **repo-structure rule** (no code aware
+  of or referencing any allocation / decision system). The rules are fixed in the framework docs this pass; the
+  code that enforces them is built in the next pass.
+
 ### Separation (core design requirement)
 The separation between the Regime Sensor (this repo) and the downstream decision system is a **core design
 requirement**, already locked in D-01/D-02 and the HARD BOUNDARY. The Regime Sensor never answers "what
@@ -207,7 +225,10 @@ tail, stock-bond intl OOS) is already scoped to its own later phase (2–9), and
 **Project:** [[_planning/regime-detection/ROADMAP|ROADMAP]] · [[_planning/regime-detection/STATE|STATE]] · [[regime-detection/regime-detection|Hub]]
 **Phase siblings:**
 - [[_planning/regime-detection/phases/01-signal-framework/01-01-PLAN|01-01-PLAN]]
+- [[_planning/regime-detection/phases/01-signal-framework/01-01-SUMMARY|01-01-SUMMARY]]
 - [[_planning/regime-detection/phases/01-signal-framework/01-02-PLAN|01-02-PLAN]]
+- [[_planning/regime-detection/phases/01-signal-framework/01-02-SUMMARY|01-02-SUMMARY]]
 - [[_planning/regime-detection/phases/01-signal-framework/01-RESEARCH|01-RESEARCH]]
+- [[_planning/regime-detection/phases/01-signal-framework/01-VERIFICATION|01-VERIFICATION]]
 
 <!-- LINKS:END -->
