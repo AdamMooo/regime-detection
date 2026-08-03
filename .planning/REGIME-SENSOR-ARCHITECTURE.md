@@ -92,6 +92,27 @@ breadth + rising volatility describes a historically more **fragile** environmen
 historical context (Level 2 joint-rarity + nearest-neighbour analogues), **never** as a combined sell signal or
 score (D-09 / D-11).
 
+### Observatory philosophy: quality over quantity (D-19)
+
+The observatory is a **curated research system, not an indicator collection.** The scarce resource is research
+time, validation effort, maintenance, and the investor's attention — **NOT code.** Every signal added permanently
+increases literature review, historical + international-OOS validation, docs/governance, maintenance as data and
+methods evolve, and investor cognitive load. So the **default answer to any proposed signal is NO** until it
+justifies permanent inclusion. The objective is the **smallest set of high-quality signals explaining the most
+investor-relevant market behaviour** — not the largest library.
+
+This is enforced upstream as the **Stage-0 Relevance Gate** — a pre-charter triage (`framework/validation-standards.md`
+§Stage 0) answered *before* any research time is spent: five questions (important investment question · why it
+matters to long-term investors · unique information beyond existing signals · **leave-one-out** — would removing
+it make the observatory meaningfully less informative · a strong prior the relationship exists at all). A signal
+may be rejected even if measurable AND predictive if it duplicates existing information, lacks a convincing
+mechanism, answers an unimportant question, adds unnecessary complexity, or fails to materially improve
+understanding. **Popularity / visual appeal is not evidence**, and traditional technical-analysis indicators face
+an extremely high bar (mechanism + unique information + cross-market/history robustness + long-term-investor
+value, not just predictive ability). Litmus: *"if this signal disappeared tomorrow and the observatory were
+essentially unchanged, it never belonged."* The gate is the cheap pre-research form of the same concern the
+investment-usefulness admission axis judges rigorously after research.
+
 ## The one-way boundary with the decision layer
 
 The relationship to the downstream decision layer is **strictly one-way**:
