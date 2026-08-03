@@ -32,12 +32,13 @@ be reconstructed point-in-time (the vintage available at each date), because a l
 final-revision data has a look-ahead trap. A signal built purely from asset returns has no vintage
 sensitivity and states so explicitly.
 
-## (b) The mechanism gate
+## (b) The mechanism gate — the binary admission prerequisite
 
 A signal needs a **written structural reason** — a risk-premium or a risk-management channel — that it survives
-being known. Novelty, backtest fit, or literature citation alone are **disqualifying as sole basis**. The
-reason is stated in spec attribute 2 and frozen in the charter before implementation. A signal whose only claim
-is "it backtests" does not pass.
+being known. This is the **binary admission prerequisite** (pass / rejected, NOT graded H/M/L): a signal that
+fails is `rejected` and never admitted, before any graded axis is scored. Novelty, backtest fit, or literature
+citation alone are **disqualifying as sole basis**. The reason is stated in spec attribute 2 and frozen in the
+charter before implementation. A signal whose only claim is "it backtests" does not pass.
 
 ## (c) Confound-check requirement
 
@@ -92,7 +93,7 @@ Template attributes:
 - [ ] 4. Historical Context
 - [ ] 5. Validation
 - [ ] 6. Assumptions
-- [ ] 7. Confidence
+- [ ] 7. Admission Assessment
 - [ ] 8. Limitations
 
 ## (g) Template versioning discipline
@@ -122,10 +123,10 @@ or boundary statement. A hit that is an actual field, value, or instruction fail
 text legitimately contains the forbidden tokens, `== 0` is the wrong test — the test is "every hit is a
 prohibition."
 
-Confidence in this framework describes **research maturity, never predictive likelihood** — it never implies a
-signal is more likely correct or predicts the market. A dimension named "current-relevance" or a
-"regime-relevance" / "portfolio-relevance guard" must **not** be reintroduced; the four confidence dimensions
-are defined in `signal-output-spec.md`.
+The admission assessment describes whether a signal has **earned its place, never predictive likelihood** — it
+never implies a signal is more likely correct or predicts the market. A dimension named "current-relevance" or a
+"regime-relevance" / "portfolio-relevance guard" must **not** be reintroduced; the mechanism prerequisite gate +
+the three admission axes are defined in `signal-output-spec.md` §1.
 
 ## (i) No signal designed around a desired conclusion (D-10)
 
@@ -148,6 +149,35 @@ This keeps each phase independent and prevents drift.
 
 Follow-up note (do not edit ROADMAP here): the ROADMAP per-phase Definition of Done should later add "research
 charter written before implementation."
+
+## (l) Signal admission gate (the unified model)
+
+A signal is admitted only through this sequence:
+
+1. **Mechanism prerequisite (binary, §(b)).** Pass or `rejected`. No graded axis is scored until it passes.
+2. **Three graded axes (H/M/L, non-compensatory).** **Measurement validity** (accurate, consistent, causal,
+   from available data) · **investment usefulness** (answers an important investor question AND provides unique
+   information beyond admitted signals — a static per-signal judgment, not a per-reading applicability score) ·
+   **evidence maturity** (holds across sub-periods, survives Japan/Europe out-of-hypothesis-sample, studied
+   enough to understand). Non-compensatory: a high axis NEVER offsets a low one.
+3. **Derived maturity tag.** production / research / rejected is DERIVED from {mechanism = pass · the three axes ·
+   dated sign-off · an answerable "why does this deserve to be in front of an investor?"} — never authored. The
+   **investor-question is the production bar**: no clear answer → cannot reach production.
+
+Full anchors + derivation rule in `signal-output-spec.md` §1–§2.
+
+## (m) Boundary enforcement is executable
+
+The HARD BOUNDARY is not documentation alone — it lives in code (D-18):
+
+- **Closed output schema (allowlist).** A Level-0 record may contain ONLY the enumerated fields
+  (`signal-output-spec.md` §4.1); any allocation / decision / composite-scalar field is schema-invalid.
+- **Runnable boundary-audit test.** An automated test asserts no forbidden field or composite scalar is ever
+  emitted — the reviewed-grep of §(h) becomes an executable check.
+- **Repo-structure rule.** No code in this repo is aware of, imports, or references any allocation / decision
+  system; the boundary is enforced by construction, not by convention.
+
+The code is built in the next pass; this doc fixes the rules it enforces.
 
 ---
 <!-- LINKS:AUTO -->
