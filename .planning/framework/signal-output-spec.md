@@ -2,32 +2,43 @@
 
 **Spec version: v0.1-draft**
 
-The scoring + output half of the framework. `signal-spec-template.md` attribute 7 (Confidence) and the DERIVED
-maturity header field point here; `validation-standards.md` supplies the law the confidence dimensions read
-from. This document defines three things: the four-dimension research-maturity confidence model, the
-descriptive maturity model, and the Level 0/1/2 historical-context output / assumption-ledger shape (added in
-the second half of this spec). Nothing here freezes to v1.0 until Adam's dated sign-off (see
-`SIGNOFF-CHECKLIST.md`).
+The scoring + output half of the framework. `signal-spec-template.md` attribute 7 (Admission Assessment) and the
+DERIVED maturity header field point here; `validation-standards.md` supplies the law the admission axes read
+from. This document defines three things: the unified signal-admission model (a binary mechanism prerequisite
+gate + three graded admission axes), the descriptive DERIVED maturity model, and the Level 0/1/2
+historical-context output / assumption-ledger shape (added in the second half of this spec). Nothing here freezes
+to v1.0 until Adam's dated sign-off (see `SIGNOFF-CHECKLIST.md`).
 
 ---
 
-## 1. Confidence model — four research-maturity dimensions
+## 1. Signal-admission model — a prerequisite gate + three graded axes
 
-> **Disclaimer (read first).** Confidence in this framework describes **RESEARCH MATURITY**, not predictive
-> likelihood. A confidence reading NEVER implies "this signal is more likely to be correct," "this signal is
-> more likely to fire," or "this signal predicts the market." It states how far the research + validation +
-> implementation process has progressed and how well-grounded the reading is — nothing about what markets will
-> do next. This is a direct consequence of D-01/D-02 (market-state intelligence, never prediction) and D-06.
+> **Disclaimer (read first).** The admission assessment describes whether a signal has **EARNED ITS PLACE**,
+> never predictive likelihood. It NEVER implies "this signal is more likely to be correct," "this signal is more
+> likely to fire," or "this signal predicts the market." It states whether the mechanism survives being known,
+> whether the state is measurable, whether it adds unique information, and how far its evidence has matured —
+> nothing about what markets will do next. This is a direct consequence of D-01/D-02 (market-state intelligence,
+> never prediction) and D-06.
 
-Confidence is **multidimensional, never a single number** (D-06). Every reading travels with four separate,
-anchored dimensions; collapsing them into one score hides exactly the failure this system exists to prevent.
-Each dimension is graded **H / M / L** with written criteria (GRADE-style anchored rubric) and a **declared
-starting point** that evidence then adjusts — so two people scoring the same signal land on the same label, and
-the rating is auditable rather than gestalt.
+Admission has two parts: a **binary prerequisite gate** (mechanism — pass or rejected) and **three graded axes**
+(measurement validity · investment usefulness · evidence maturity). This unified model REPLACES the earlier
+four-dimension confidence model (see §3 supersession). The three axes are **orthogonal and non-compensatory**: a
+high score on one NEVER offsets a low score on another. Measurable-but-useless, useful-but-research-stage, and
+well-studied-but-irrelevant are three distinct admission failures, and none is bought off by strength elsewhere.
 
-The four dimensions (D-06, authoritative):
+### 1.0 Mechanism prerequisite gate (BINARY — pass / rejected, NOT graded)
 
-### 1.1 Measurement quality — *can we observe it reliably, causally, from available data?*
+A **written structural reason** the signal survives being known — a risk-premium or a risk-management channel.
+This is not graded H/M/L; it is a pass/fail prerequisite. **Fail = the signal is `rejected` and never admitted.**
+"It backtests" / "looks predictive" / novelty / literature-citation alone are **disqualifying**. This PROMOTES
+the old graded "mechanism support" dimension into a binary gate (see `validation-standards.md` §The mechanism
+gate). A signal that does not pass this gate does not proceed to the three axes.
+
+The three graded axes (each H / M / L with a GRADE-style anchored rubric + a **declared starting point** that
+evidence then adjusts — so two people scoring the same signal land on the same label, and the rating is auditable
+rather than gestalt):
+
+### 1.1 Measurement validity — *can we measure this state accurately, consistently, causally, from available data?*
 
 - **H:** Causal, point-in-time construction from non-revised data (e.g. asset returns); no vintage look-ahead;
   full usable history; no material proxy substitution.
@@ -39,22 +50,35 @@ The four dimensions (D-06, authoritative):
 **Declared starting point:** a signal built purely from asset returns starts at **H**; a signal needing macro
 vintages or options data starts at **M or L**.
 
-### 1.2 Mechanism support — *do we understand WHY (a durable structural reason), not just a correlation?*
+### 1.2 Investment usefulness — *does it answer an important investor question AND add unique information?*
 
-- **H:** A written, literature-grounded structural reason — a risk-premium or a risk-management channel — that
-  it survives being known; passes the mechanism gate cleanly.
-- **M:** A plausible mechanism with an unresolved ambiguity (e.g. concentration's healthy-vs-fragile reading) or
-  a declared partial redundancy (e.g. absorption ratio semi-redundant with volatility).
-- **L:** Correlation without a durable structural reason, or the "mechanism" is a disguised forecast → fails the
-  gate (`validation-standards.md` §The mechanism gate).
+The static, per-SIGNAL admission judgment: does this signal answer a question worth asking about the environment
+**and** provide UNIQUE INFORMATION beyond the signals already admitted? Both halves are required — an important
+question already answered by an existing signal is not useful, and unique noise answering no question is not
+useful either. This is a **per-signal admission decision made ONCE at admission**, NEVER a per-reading,
+time-varying applicability / prediction score (that is the killed "current-relevance" framing and must not
+return — see §3).
 
-**Declared starting point:** starts wherever the written mechanism argument lands; the mechanism gate is a
-prerequisite for any positive claim, so a signal cannot reach production at **L** here.
+- **H:** Answers a concrete, important investor question about the environment AND carries information not
+  already captured by an admitted signal (incremental-information requirement met, mechanism-first).
+- **M:** Answers a real question but with a declared partial overlap with an admitted signal (e.g. absorption
+  ratio is semi-redundant with volatility — kept for the lead only), OR the question it answers is real but
+  narrow.
+- **L:** Duplicates an admitted signal's information, or answers no question that matters for understanding the
+  environment (built because the data existed, not because a question demanded it).
 
-### 1.3 Evidence robustness — *does the descriptive property hold across periods and out-of-hypothesis-sample?*
+**Supporting diagnostic (never the gate):** the ΔR²-vs-admitted-axes orthogonality DIAGNOSTIC is evidence for the
+uniqueness half — mechanism-first. Orthogonality is never a hard statistical accept/reject; a signal that is
+statistically correlated but mechanistically distinct is still unique (2008 saw vol, funding, and credit converge
+statistically yet stay three distinct assumptions).
+
+**Declared starting point:** starts wherever the written uniqueness argument + investor-question answer land;
+absent a distinct mechanism and a concrete question, it cannot start above **L**.
+
+### 1.3 Evidence maturity — *does the descriptive property hold across periods, survive OOS, and is it studied enough to understand?*
 
 - **H:** Property replicates across sub-periods **and** on the out-of-hypothesis-sample panels (Japan / Europe)
-  with the pattern intact; confounds checked.
+  with the pattern intact; confounds checked; behavior sufficiently studied to be understood.
 - **M:** Holds in-sample across periods, but international out-of-hypothesis-sample confirmation is not yet run
   or only partial; OR robust with a documented, understood regime-dependence.
 - **L:** In-sample / single-period only, OR failed a sub-period or placebo control. *(The killed dispersion-lead
@@ -63,53 +87,40 @@ prerequisite for any positive claim, so a signal cannot reach production at **L*
 **Declared starting point:** starts at **L** until international out-of-hypothesis-sample confirmation is run —
 mirroring the standing rule that nothing is SUPPORT before Japan / Europe replication.
 
-### 1.4 Implementation maturity — *how far has the research + validation + build process actually progressed?*
-
-This is the research-process dimension. Its **discrete expression IS the maturity tag** (§2): confidence and
-maturity are one coherent research-process concept, never a likelihood. It reads strictly as process progress —
-never as regime applicability, current importance, or anything predictive.
-
-- **H:** Built, characterized, validated (including international out-of-hypothesis-sample), failure-mapped, and
-  carrying a dated sign-off — the process is complete. → maturity tag **production**.
-- **M:** Built and characterized, but an open discipline gap remains (international OOS not yet run, an
-  unresolved placebo / control, or an unresolved vintage-sensitivity risk). → maturity tag **research**.
-- **L:** Failed a specific gate (did not generalize, no distinct mechanism, or a disguised forecast), OR not yet
-  built (spec / charter only). → maturity tag **rejected** (for a failed gate) or pre-build.
-
-**Declared starting point:** starts at **L** (spec-only) and advances only as validation-standards gates are
-cleared.
-
 > **Boundary note.** The old third confidence dimension was named "regime-relevance" / "portfolio-relevance
 > guard" and the earlier four-dimension proposal named its fourth "current-relevance." Both leaned
-> predictive / applicability framing and are **forbidden framings** here. Implementation maturity replaces them
-> and is phrased strictly as research-process progress. See §3 (Supersession).
+> predictive / applicability framing and are **forbidden framings** here — they stay DROPPED. Investment
+> usefulness is NOT their replacement: it is a static, one-time admission judgment about unique information + an
+> answerable question, never a time-varying "does this currently matter" score. See §3 (Supersession).
 
-**Anchor thresholds + declared starting points are `[ASSUMED — requires Adam's dated sign-off before the
-confidence model is frozen at v1.0]`** (research A1). The four-dimension *structure* is decided (D-06); only the
-threshold wording and starting points are proposed.
+**Anchor thresholds + declared starting points for the three axes are `[ASSUMED — requires Adam's dated sign-off
+before the admission model is frozen at v1.0]`** (research A1). The unified-model *structure* (binary mechanism
+gate + three non-compensatory axes) is decided; only the threshold wording and starting points are proposed.
 
 ---
 
 ## 2. Maturity model (descriptive, DERIVED — not a ranking)
 
-The maturity tag — **production / research / rejected** — is **DERIVED, not authored**. It is computed from
-template attribute 5 (Validation) plus the implementation-maturity confidence dimension (§1.4); an author never
-hand-sets it. As stated in §1.4, the implementation-maturity dimension's discrete expression *is* this tag —
-confidence and maturity are the same research-process concept expressed at two grains.
+The maturity tag — **production / research / rejected** — is a **DERIVED state, not an independent dimension and
+not authored**. It is derived from four inputs: **{mechanism = pass · the three graded axes (§1.1–§1.3) · a dated
+sign-off · an answerable "why does this deserve to be in front of an investor making decisions?"}**. An author
+never hand-sets it. The old "implementation maturity" confidence dimension is DROPPED entirely: it was circular
+(it merely equalled this tag), so maturity is no longer an input to itself — it is purely the derived output of
+the gate + the three axes + the sign-off + the investor-question.
 
 > **Descriptive, NOT a quality ranking (D-13).** A production signal is **NOT "better"** than a research
-> signal. The tag says only **how far the research + validation + implementation process has progressed** — not
-> that a higher stage is more trustworthy as a market call, more likely correct, or higher predictive quality.
-> All candidates are researched freely; maturity is a label on how far along a signal is, never a gate on which
-> signals are worth studying and never a statement about predictive value.
+> signal. The tag says only **how far the research + validation process has progressed** — not that a higher
+> stage is more trustworthy as a market call, more likely correct, or higher predictive quality. All candidates
+> are researched freely; maturity is a label on how far along a signal is, never a gate on which signals are
+> worth studying and never a statement about predictive value.
 
 Derivation rule (proposed):
 
 | Tag | Derivation rule |
 |-----|-----------------|
-| **production** | measurement quality ≥ M · mechanism support = H (gate passed) · evidence robustness = H (international out-of-hypothesis-sample confirmed) · structural failure modes mapped · dated sign-off present. *(Today: volatility only.)* |
-| **research** | Built + characterized, but an open discipline gap remains (no international OOS yet, an unresolved placebo / control, or an unresolved vintage-sensitivity risk). Renders as human context only. |
-| **rejected** | Failed a specific gate — did not generalize, no distinct mechanism, or a disguised forecast. Recorded WITH the reason so it is not silently revived. *(Today: dispersion-as-lead; raw-credit-as-a-vol-feature; VIX/VRP as a separate axis.)* |
+| **production** | mechanism = **pass** · measurement validity ≥ **M** · investment usefulness = **H** · evidence maturity = **H** (international out-of-hypothesis-sample confirmed) · structural failure modes mapped · dated sign-off present · a clear answer to "why does this deserve to be in front of an investor?". *(Today: volatility only.)* |
+| **research** | Mechanism passed and built + characterized, but not all of the above are cleared (e.g. no international OOS yet, an unresolved placebo / control, or a vintage-sensitivity risk). Renders as human context, NOT investor-facing / production. |
+| **rejected** | Terminal. Failed the mechanism prerequisite gate, or failed a specific validation gate — did not generalize, no unique information, or a disguised forecast. Recorded WITH the reason so it is not silently revived. *(Today: dispersion-as-lead; raw-credit-as-a-vol-feature; VIX/VRP as a separate axis.)* |
 
 **The derivation rule is `[ASSUMED — requires Adam's dated sign-off]`** (research A2). A wrong rule could
 over-trust an under-validated signal, so the specific thresholds are proposed, not frozen.
@@ -118,7 +129,27 @@ over-trust an under-validated signal, so the specific thresholds are proposed, n
 
 ## 3. Supersession record
 
-This four-dimension research-maturity confidence model **supersedes two earlier models**:
+**(0) The four-dimension confidence model is itself now SUPERSEDED by the unified admission model** (this
+revision). The four graded dimensions (measurement quality · mechanism support · evidence robustness ·
+implementation maturity) are replaced by a **binary mechanism prerequisite gate + three non-compensatory graded
+axes + a derived maturity tag**. Mapping:
+
+| Old four-dim | Unified admission model |
+|---|---|
+| measurement quality | → **measurement validity** (axis) |
+| mechanism support (graded H/M/L) | → **mechanism prerequisite gate** (graded → **binary** pass/rejected) |
+| evidence robustness | → **evidence maturity** (axis) |
+| implementation maturity | → **DROPPED** — becomes the DERIVED maturity tag, no longer an input dimension |
+| *(new)* | → **investment usefulness** (axis: important question + unique information) |
+
+`current-relevance` / `regime-relevance` / `portfolio-relevance` stay DROPPED (predictive framing). The A1 anchor
+thresholds now apply to the **three axes**, not four dimensions. The two earlier supersessions still stand and
+are retained below for the audit trail.
+
+---
+
+The (now-superseded) four-dimension research-maturity confidence model had itself **superseded two earlier
+models**:
 
 **(a) The earlier three-dimension model** — measurement · interpretation · regime-relevance — recorded in
 `.planning/REGIME-SENSOR-ARCHITECTURE.md` §"The three confidence dimensions" and in ROADMAP.md Success-Criterion
@@ -173,16 +204,19 @@ The state-vector element. Exactly the D-08 fields, no more:
   extreme_conditions:   "<explicit at-a-historical-extreme flag + which tail, e.g. 'at 95th-pctile extreme' | 'not extreme'>",
   cross_signal_relationships: "<known relationships to other signals from template Q4.3, e.g. 'co-moves with concentration; leads credit ~1-2y' | 'none characterized yet'>",
   clock:                "<daily|weekly|monthly|structural>",
-  confidence: {
-     measurement_quality:    "H|M|L",
-     mechanism_support:      "H|M|L",
-     evidence_robustness:    "H|M|L",
-     implementation_maturity:"H|M|L"
+  assessment: {
+     mechanism:            "pass|rejected",   // binary prerequisite gate (§1.0)
+     measurement_validity: "H|M|L",
+     investment_usefulness:"H|M|L",
+     evidence_maturity:    "H|M|L"
   },
   maturity:             "production|research|rejected",   // DERIVED (§2)
   spec_version:         "<semver of the template filled>"
 }
 ```
+
+This is a **closed field set** — the schema the code pass will enforce (see the code-level enforcement note at
+the end of §4).
 
 `trend`, `extreme_conditions`, and `cross_signal_relationships` were added 2026-08-03 (the observatory-framing
 refinement) so each signal describes not just its level but its *direction*, whether it sits at a historical
@@ -200,7 +234,7 @@ buy/sell trigger.
 ### 4.2 Level 1 — historical context (the assumption ledger, THE product)
 
 Each monitored market assumption × `{status ∈ intact | under-test | violated · sensor evidence · rarity ·
-confidence}`. **Status is an OBSERVATION, never an instruction** — "the bond-hedge assumption is under test,"
+the admission assessment}`. **Status is an OBSERVATION, never an instruction** — "the bond-hedge assumption is under test,"
 never any directive to act. The canonical worked example (from CONTEXT.md §Specific Ideas), which must stay
 legible as independent readings:
 
@@ -220,7 +254,9 @@ point of the shape is that the readings remain independent and the disagreement 
 
 Joint rarity ("how unusual is the whole configuration") + nearest-neighbour historical analogues (configurations
 — "resembles 2018-Q4 / early-2022"), forecasting-free. **The system STOPS here** — Level 2 is context for the
-human, never a call.
+human, never a call. **Analogues read strictly as "these conditions occurred before and these were the observed
+outcomes," NEVER "this will happen again"** — a nearest-neighbour match is a historical resemblance, not a
+forecast.
 
 ### 4.4 The composite-scalar prohibition AND the joint-rarity distinction
 
@@ -247,6 +283,14 @@ single signal override the vector. Signal **disagreement is information**, not a
 consensus. This extends D-07 (independent research modules) into the presentation layer and sits alongside the
 composite-scalar prohibition: both defend the same invariant — the full per-signal vector is the product, and it
 is never collapsed, never rank-ordered, never overruled by one dimension.
+
+### 4.6 Code-level enforcement (architecture, not documentation-only)
+
+The Level-0 `assessment{}` + closed field set above is enforced in the code pass by a **schema allowlist** (only
+the enumerated fields may appear in a Level-0 record) plus a runnable **boundary-audit test** (asserts no
+allocation / decision / composite-scalar field is ever emitted). Enforcement is part of the architecture — the
+boundary lives in executable checks, not in prose alone (D-18). The code itself is built in the next pass; this
+spec fixes the field set it will enforce.
 
 ---
 <!-- LINKS:AUTO -->
