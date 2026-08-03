@@ -1,16 +1,16 @@
 {
   "state": "CALM",
   "state_code": 0,
-  "as_of": "2026-07-27",
+  "as_of": "2026-07-31",
   "last_switch": "2026-04-23",
-  "days_in_state": 95,
+  "days_in_state": 99,
   "p_stay": 0.9954,
   "gauge": {
-    "markov_expected_dwell": 216.8,
+    "markov_expected_dwell": 217.0,
     "markov_half_life": 150.0,
     "empirical_median": 61.5,
     "empirical_n": 30,
-    "position": "53rd percentile of 30 completed episodes (currently 95d in)"
+    "position": "53rd percentile of 30 completed episodes (currently 99d in)"
   },
   "health": {
     "splice_corr": 0.9957,
@@ -125,5 +125,5 @@
       "state": 0
     }
   ],
-  "generated": "2026-07-27"
+  "generated": "2026-08-03"
 }
