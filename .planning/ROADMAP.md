@@ -46,11 +46,11 @@ out-of-hypothesis-sample on Japan/Europe before any SUPPORT claim, and (e) emits
   3. The historical-context output format is specified — reading · rarity percentile · assumption monitored, carried with the three confidence dimensions (measurement · interpretation · regime-relevance) and a maturity tag (production / research / rejected) — with zero allocation/decision fields
   4. The assumption-ledger output shape is defined as the composition target (Level 0 state vector · Level 1 assumption ledger · Level 2 context) so validated signals have a known place to render, never a score
   5. Each later signal phase can declare against this spec without reinterpreting it (the template is the single source of truth)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Write the 8-attribute signal-spec template and validation-standards document
-- [ ] 01-02: Specify the historical-context output format, confidence dimensions, maturity model, and assumption-ledger shape
+- [ ] 01-01-PLAN.md — merged 8-attribute signal-spec template + validation-standards doc
+- [ ] 01-02-PLAN.md — historical-context output format, four-dimension confidence model, maturity model, assumption-ledger shape (L0/1/2) + retro-fit
 
 ### Phase 2: Stock-Bond Correlation Signal (intl OOS)
 **Goal**: The built inflation/real-rate signal reaches SUPPORT standard — its hedge-behavior mechanism confirmed out-of-hypothesis-sample
