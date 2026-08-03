@@ -17,6 +17,11 @@ it survives being known, (c) is validated causally with confound-checks, (d) is 
 out-of-hypothesis-sample on Japan/Europe before any SUPPORT claim, and (e) emits its historical-context output
 (reading · rarity · assumption monitored) with zero allocation/decision content.
 
+**Gate-zero precondition (framework v1.1, D-19):** before opening its research charter, every signal phase MUST
+first pass the **Stage-0 Relevance Gate** (`.planning/framework/validation-standards.md` §Stage 0 — 5 questions,
+default = NO, leave-one-out / marginal-information test). No charter is opened and no research time is spent on a
+candidate that has not passed the gate — the observatory is a curated set, not an indicator library.
+
 ## Phases
 
 **Phase Numbering:**

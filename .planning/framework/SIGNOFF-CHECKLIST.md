@@ -65,6 +65,23 @@ Recorded per Adam's explicit close-off decision, 2026-08-03:
 
 ---
 
+## Amendment log
+
+Amendments to the frozen v1.0 follow the semver amendment process — additive, never editing a v1.0 decision to fit
+one signal. The v1.0 sign-off record above, the open **RF** item, and the tracked `gauge.position` rename are
+unchanged.
+
+- **v1.1 (2026-08-03)** — **Stage-0 Relevance Gate + quality-over-quantity philosophy (D-19).** Added a
+  pre-charter triage (5 questions · default = NO · leave-one-out / marginal-information test) ahead of the charter
+  and all research time, plus the curated-observatory philosophy (scarce resource = research time / attention, not
+  code; smallest high-quality set; popularity is not evidence; TA faces an extremely high bar). The gate's Q4
+  leave-one-out was added to the investment-usefulness admission axis as the rigorous post-research form of the
+  same concern. Touched `validation-standards.md`, `research-charter-template.md`, `signal-output-spec.md`,
+  `signal-spec-template.md` (all bumped v1.0 → v1.1), `REGIME-SENSOR-ARCHITECTURE.md`, `01-CONTEXT.md` (D-19), and
+  `ROADMAP.md` (per-phase DoD). Purely additive; no frozen v1.0 rule altered.
+
+---
+
 ## Known deferred issues (tracked, not silent)
 
 - **`gauge.position` → `gauge.dwell_rank` rename.** The boundary-audit test caught a real HARD-BOUNDARY vocabulary

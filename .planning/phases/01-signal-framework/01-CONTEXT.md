@@ -148,6 +148,23 @@ consumer. Those are Phases 2–10.
   of or referencing any allocation / decision system). The rules are fixed in the framework docs this pass; the
   code that enforces them is built in the next pass.
 
+### Pre-charter Relevance Gate + quality-over-quantity (framework v1.1 amendment)
+- **D-19:** A **pre-charter Relevance Gate** (Stage 0) is added ahead of the charter and all research time, with
+  **default = NO**. Before a charter is opened or any research / mechanism / validation effort is spent, a
+  candidate signal must convincingly answer five questions: (1) what important investment question it answers ·
+  (2) why that question matters to long-term investors · (3) whether it provides information NOT already available
+  from the existing signals · (4) the **leave-one-out / marginal-information test** — would REMOVING it make the
+  observatory meaningfully less informative (the sharp new bar) · (5) whether a strong theoretical/empirical prior
+  says the relationship exists before weeks are invested. If it cannot answer convincingly, it does not enter the
+  pipeline. This encodes the **quality-over-quantity curated-observatory philosophy**: the scarce resource is
+  research time / validation / maintenance / the investor's attention (NOT code); the objective is the smallest
+  set of high-quality signals explaining the most investor-relevant behaviour; popularity is not evidence and
+  technical-analysis indicators face an extremely high bar; litmus — *"if this signal disappeared tomorrow and the
+  observatory were essentially unchanged, it never belonged."* The gate is the cheap pre-research triage form of
+  the investment-usefulness admission axis (which re-judges the same concern rigorously post-research); the gate's
+  Q4 leave-one-out is added as an explicit consideration in that axis. Landed as the framework's first semver
+  amendment, **v1.0 → v1.1** (2026-08-03), additive only — no frozen v1.0 decision altered.
+
 ### Separation (core design requirement)
 The separation between the Regime Sensor (this repo) and the downstream decision system is a **core design
 requirement**, already locked in D-01/D-02 and the HARD BOUNDARY. The Regime Sensor never answers "what
@@ -228,6 +245,9 @@ tail, stock-bond intl OOS) is already scoped to its own later phase (2–9), and
 - [[_planning/regime-detection/phases/01-signal-framework/01-01-SUMMARY|01-01-SUMMARY]]
 - [[_planning/regime-detection/phases/01-signal-framework/01-02-PLAN|01-02-PLAN]]
 - [[_planning/regime-detection/phases/01-signal-framework/01-02-SUMMARY|01-02-SUMMARY]]
+- [[_planning/regime-detection/phases/01-signal-framework/01-03-SUMMARY|01-03-SUMMARY]]
+- [[_planning/regime-detection/phases/01-signal-framework/01-04-SUMMARY|01-04-SUMMARY]]
+- [[_planning/regime-detection/phases/01-signal-framework/01-05-SUMMARY|01-05-SUMMARY]]
 - [[_planning/regime-detection/phases/01-signal-framework/01-RESEARCH|01-RESEARCH]]
 - [[_planning/regime-detection/phases/01-signal-framework/01-VERIFICATION|01-VERIFICATION]]
 
