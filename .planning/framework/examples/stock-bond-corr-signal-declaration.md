@@ -12,7 +12,10 @@
 - **Signal name** — Stock-bond correlation (inflation / real-rate axis, PC2)
 - **Assumption monitored** — "bonds hedge equity drawdowns"
 - **Native clock / frequency** — monthly (slow)
-- **Maturity tag** — research *(DERIVED — Japan/Europe OOS pending per SIG-01)*
+- **Maturity tag** — research *(DERIVED — mechanism = pass, but evidence maturity = M: Japan/Europe OOS pending per SIG-01)*
+- **Investor question (production bar)** — "Is the bond-hedge working right now — are bonds diversifying equities
+  or co-moving with them?" A first-order question for anyone relying on the stock-bond hedge; clearly answerable.
+  (The investor-question is answered; the production bar is not yet cleared because evidence maturity = M.)
 - **Spec/template version** — v0.1-draft
 - **Dated sign-off** — (blank — not signed; international OOS gate open)
 
@@ -27,6 +30,10 @@
   the state: corr < −band → intact (demand-shock world, bonds rally as equities fall); corr > +band → violated
   (supply/inflation world, bonds and equities fall together); |corr| ≤ band → under-test.
 - **Q1.2 Which market assumption does it monitor?** "Bonds hedge equity drawdowns" — the header ledger key.
+- **Q1.5 What UNIQUE INFORMATION does it provide?** The slow inflation / real-rate axis (PC2) — the nominal-real
+  covariance regime that governs whether bonds hedge or co-move. Mechanistically orthogonal to the volatility
+  PC1 stress axis and to every other admitted signal; no admitted signal captures the demand-vs-supply-shock
+  covariance state. Statistical correlation with vol in crises does not collapse the distinct mechanism.
 
 ### 2. Mechanism
 
@@ -80,18 +87,21 @@
   trailing-window lag around fast flips; a structural change in the inflation-growth regime that the trailing
   window is slow to register.
 
-### 7. Confidence (four research-maturity dimensions)
+### 7. Admission Assessment (mechanism gate + three axes)
 
-- **measurement quality: H** — causal, from asset returns, no vintage surface, history back to 1962.
-- **mechanism support: H** — the nominal-real covariance channel is literature-grounded and durable; passes the
-  mechanism gate.
-- **evidence robustness: M** — US sub-periods hold and confounds are checked, but international
+- **mechanism: pass** — the nominal-real covariance channel is literature-grounded and durable; clears the binary
+  prerequisite gate.
+- **measurement validity: H** — causal, from asset returns, no vintage surface, history back to 1962.
+- **investment usefulness: H** — answers the "is the bond-hedge working" question and carries unique information
+  (the slow PC2 inflation/real-rate axis, mechanistically orthogonal to vol).
+- **evidence maturity: M** — US sub-periods hold and confounds are checked, but international
   out-of-hypothesis-sample confirmation is pending.
-- **implementation maturity: M → research** — built and characterized, but the international OOS gap keeps it at
-  research; renders as human context only.
 
-> Confidence here states research maturity, not predictive likelihood — it does not mean the signal is more
-> likely to be correct or predicts the market.
+Derived tag: **research** — mechanism passed and the signal is built + characterized, but evidence maturity = M
+(the international OOS gap) blocks production; renders as human context only, not investor-facing.
+
+> The admission assessment states whether the signal earned its place, not predictive likelihood — it does not
+> mean the signal is more likely to be correct or predicts the market.
 
 ### 8. Limitations
 
@@ -113,11 +123,11 @@
   reading:              "<current state + 126d/63d/252d corr from results/stockbond_corr.csv>",
   rarity:               "<trailing percentile of 1962-2026, expanding-z level>",
   clock:                "monthly",
-  confidence: {
-     measurement_quality:    "H",
-     mechanism_support:      "H",
-     evidence_robustness:    "M",
-     implementation_maturity:"M"
+  assessment: {
+     mechanism:            "pass",
+     measurement_validity: "H",
+     investment_usefulness:"H",
+     evidence_maturity:    "M"
   },
   maturity:             "research",
   spec_version:         "v0.1-draft"

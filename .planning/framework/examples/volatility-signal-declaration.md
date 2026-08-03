@@ -11,7 +11,10 @@
 - **Signal name** — Volatility / risk-off (statistical jump-model instrument)
 - **Assumption monitored** — "the market is in its normal low-stress operating range"
 - **Native clock / frequency** — daily (fast)
-- **Maturity tag** — production *(DERIVED — see attribute 5 + attribute 7 §implementation maturity)*
+- **Maturity tag** — production *(DERIVED — mechanism = pass + three axes + investor-question; see attribute 7)*
+- **Investor question (production bar)** — "Is the market in a persistent elevated-volatility / risk-off state
+  right now, and how does this run compare to historical episodes?" A first-order environmental question any
+  investor asks; clearly answerable → clears the production bar.
 - **Spec/template version** — v0.1-draft
 - **Dated sign-off** — (blank — the shipped signal predates this framework; not re-signed here)
 
@@ -26,6 +29,10 @@
   state 1 = stressed/bear, by the downside-deviation sort convention in `jumpmodel.py`.
 - **Q1.2 Which market assumption does it monitor?** "The market is in its normal low-stress operating range" —
   the header ledger key.
+- **Q1.5 What UNIQUE INFORMATION does it provide?** The fast, coincident risk-off / stress axis (PC1) read from
+  return dynamics — the persistence of the current volatility state. Distinct in mechanism and clock from every
+  other admitted signal (the slow inflation/real-rate correlation axis is PC2, mechanistically orthogonal); no
+  admitted signal captures the fast vol-clustering state.
 
 ### 2. Mechanism
 
@@ -79,18 +86,22 @@
   risk) → detection lag; splice drift breaking the live-to-frozen alignment; a structural break in volatility
   dynamics that the fitted centers no longer describe.
 
-### 7. Confidence (four research-maturity dimensions)
+### 7. Admission Assessment (mechanism gate + three axes)
 
-- **measurement quality: H** — causal, from asset returns, no vintage surface, full history.
-- **mechanism support: H** — volatility persistence is a durable, literature-grounded risk-management channel;
-  passes the mechanism gate.
-- **evidence robustness: H** — stable across the frozen chapter-1 OOS; property is a universal stylized fact
-  (see the Q5.2 caveat / amendment candidate).
-- **implementation maturity: H → production** — built, validated, failure-mapped, shipped, and consumed by a
-  separate downstream repo via `results/regime_card.json`.
+- **mechanism: pass** — volatility persistence is a durable, literature-grounded risk-management channel; clears
+  the binary prerequisite gate.
+- **measurement validity: H** — causal, from asset returns, no vintage surface, full history.
+- **investment usefulness: H** — answers the first-order "is the market in a risk-off state" question and carries
+  unique information (the fast PC1 stress axis, distinct in mechanism + clock from the other admitted signals).
+- **evidence maturity: H** — stable across the frozen chapter-1 OOS; property is a universal stylized fact (see
+  the Q5.2 caveat / RF amendment candidate below).
 
-> Confidence here states research maturity, not predictive likelihood — it does not mean the signal is more
-> likely to be correct or predicts the market.
+Derived tag: **production** (mechanism pass · measurement ≥ M · usefulness H · evidence maturity H ·
+investor-question answered) — built, validated, failure-mapped, shipped, and consumed by a separate downstream
+repo via `results/regime_card.json`.
+
+> The admission assessment states whether the signal earned its place, not predictive likelihood — it does not
+> mean the signal is more likely to be correct or predicts the market.
 
 ### 8. Limitations
 
@@ -112,11 +123,11 @@
   reading:              "CALM (state 0), 95 days in",
   rarity:               "53rd percentile of 30 completed episodes (dwell length)",
   clock:                "daily",
-  confidence: {
-     measurement_quality:    "H",
-     mechanism_support:      "H",
-     evidence_robustness:    "H",
-     implementation_maturity:"H"
+  assessment: {
+     mechanism:            "pass",
+     measurement_validity: "H",
+     investment_usefulness:"H",
+     evidence_maturity:    "H"
   },
   maturity:             "production",
   spec_version:         "v0.1-draft"
@@ -131,7 +142,7 @@
   qualitative fast/slow tempo descriptor. A MINOR additive amendment could add an optional tempo field. Low
   priority — daily fills cleanly.
 - **Production tag vs literal Japan/Europe OOS.** The maturity derivation rule (`signal-output-spec.md` §2)
-  requires evidence robustness = H via international out-of-hypothesis-sample confirmation, but this shipped
+  requires evidence maturity = H via international out-of-hypothesis-sample confirmation, but this shipped
   signal's production status rests on frozen-US OOS + the universal vol-persistence stylized fact rather than a
   literal Japan/Europe panel run. Either the rule needs a "universal-stylized-fact" clause or the signal needs
   the explicit panel run — surfaced for sign-off (see `SIGNOFF-CHECKLIST.md`).
