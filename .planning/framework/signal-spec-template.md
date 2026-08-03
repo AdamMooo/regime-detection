@@ -21,9 +21,14 @@ universal-required.
 - **Assumption monitored** — the ledger key: the abstract market assumption this signal exists to check
   (e.g. "bonds hedge equity drawdowns"). Also surfaced in attribute 1.
 - **Native clock / frequency** — daily / weekly / monthly / structural. Also surfaced in attribute 3.
-- **Maturity tag** — production / research / rejected. **DERIVED, not authored** — computed from the
-  attribute-5 validation status and the attribute-7 confidence vector. See `signal-output-spec.md` for the
-  derivation rule. Do not hand-set this field.
+- **Maturity tag** — production / research / rejected. **DERIVED, not authored** — derived from {the mechanism
+  prerequisite gate = pass · the three admission axes (attribute 7) · a dated sign-off · an answerable
+  investor-question (see below)}. See `signal-output-spec.md` §2 for the derivation rule. Do not hand-set this
+  field.
+- **Investor question (production bar)** — the answer to *"Why does this deserve to be in front of an investor
+  making decisions?"* This is a required question gating the **production** tag: a signal with no clear answer
+  cannot reach production (it stays research). It is a question about understanding-relevance, never a forecast
+  or an action.
 - **Spec/template version** — semver of the template this declaration was filled against (e.g. `v0.1-draft`).
 - **Dated sign-off** — the registered-report freeze marker: the dated, explicit sign-off gating any positive
   claim. Blank until signed.
@@ -47,6 +52,11 @@ if they do not apply to this signal's shape, answer `Not applicable, because …
   existence by its contribution to understanding — never by data availability. Data being available is *not* a
   sufficient reason to build a signal. (This is a declaration about understanding-relevance, not a forecast or
   applicability claim.) **[universal-required]**
+- Q1.5 **What UNIQUE INFORMATION does this signal provide that existing signals do not?** The
+  incremental-information declaration feeding the investment-usefulness admission axis. Supported by the
+  ΔR²-vs-admitted-axes orthogonality diagnostic, **mechanism-first** — a signal statistically correlated with an
+  admitted one is still unique if its mechanism is distinct; orthogonality is never a hard statistical
+  accept/reject. **[universal-required]**
 
 ### 2. Mechanism
 
@@ -100,14 +110,18 @@ out-of-hypothesis-sample confirmation, the one-look + prereg + cooling-off + dat
 
 These declared-before-testing failure modes are the pre-registration artifact. They are echoed in attribute 8.
 
-### 7. Confidence
+### 7. Admission Assessment
 
-- Q7.1 What is the reading on each of the four confidence dimensions (measurement quality · mechanism support ·
-  evidence robustness · implementation maturity), each anchored, never a single number? **[universal-required]**
+- Q7.1 State the admission assessment: **(a)** the mechanism prerequisite gate (**pass / rejected** — binary, a
+  written structural reason it survives being known; fail = rejected, never admitted), then **(b)** the reading
+  on each of the three graded axes — **measurement validity · investment usefulness · evidence maturity** — each
+  anchored H/M/L, never a single number, and **non-compensatory** (a high axis never offsets a low one).
+  **[universal-required]**
 
-Confidence describes **research maturity, not predictive likelihood** — it never implies the signal is more
-likely to be correct or predicts the market. The four dimensions and their anchored rubric are defined in
-`signal-output-spec.md`; point at it, do not restate the anchors here.
+The admission assessment describes whether the signal has **earned its place, not predictive likelihood** — it
+never implies the signal is more likely to be correct or predicts the market. The mechanism gate, the three axes,
+and their anchored rubric are defined in `signal-output-spec.md` §1; point at it, do not restate the anchors
+here.
 
 ### 8. Limitations
 
@@ -134,9 +148,9 @@ This template is authoritative and refines the earlier mini-study spec + six-poi
 | historical-context output; false positives / false negatives | attribute 4 |
 | validation process = the six-point evaluation; intl OOS; confound-check | attribute 5 |
 | failure modes (declared before testing) | attribute 6 (echoed in attribute 8) |
-| the confidence dimensions | attribute 7 |
+| the admission assessment (mechanism gate + three axes) | attribute 7 |
 | model-card "caveats" pattern | attribute 8 |
-| maturity tag | header (DERIVED) |
+| maturity tag | header (DERIVED — mechanism gate + three axes + sign-off + investor-question) |
 
 The deliberate split preserved here: **structural failure modes → attribute 6** (declared before testing);
 **empirical false-positives / false-negatives → attribute 4** (the observed record). The two are kept
