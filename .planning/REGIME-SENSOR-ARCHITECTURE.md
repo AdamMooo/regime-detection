@@ -2,7 +2,14 @@
 
 **Status:** ARCHITECTURE LOCKED, sensors EXPLORATORY. No look spent, nothing preregistered, nothing
 implemented. This documents the *framework*, not any sensor build.
-**Last updated:** 2026-08-02
+**Last updated:** 2026-08-03
+
+> **Governing specification:** `.planning/framework/` is now the governing specification every signal declares
+> against — `signal-spec-template.md` (the 8-attribute template), `validation-standards.md` (the cross-signal
+> validation law), and `signal-output-spec.md` (confidence model, maturity, and the Level 0/1/2 ledger shape).
+> The three docs split roles: **framework = the research + validation rules every signal declares against ·
+> the phase roadmap = the execution order · this architecture doc = the system design.** Where this doc's
+> per-sensor spec or confidence text differs from the framework, the framework governs.
 
 This is the governing design doc for what regime-detection becomes. The decisive reframe (Adam, 2026-08-02):
 this is **high-resolution regime detection.** It still finds *what regime we are in* — but in full detail,
@@ -374,5 +381,5 @@ and with the crisis-reconvergence caveat above front of mind.
 ---
 <!-- LINKS:AUTO -->
 ## Related
-**Project:** [[regime-detection/regime-detection|Hub]]
+**Project:** [[_planning/regime-detection/ROADMAP|ROADMAP]] · [[_planning/regime-detection/STATE|STATE]] · [[regime-detection/regime-detection|Hub]]
 <!-- LINKS:END -->
