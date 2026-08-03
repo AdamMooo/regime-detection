@@ -1,4 +1,0 @@
-strategy,ann_ret,ann_vol,sharpe,max_dd,universe
-static_equalwt,0.0828,0.0867,0.467,-0.2754,equity+bond 1962+
-voltarget_only,0.063,0.0477,0.408,-0.1635,equity+bond 1962+
-voltarget_PLUS_trend,0.0611,0.0421,0.413,-0.0806,equity+bond 1962+
