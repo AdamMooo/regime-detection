@@ -26,7 +26,7 @@ presentation layer only organizes validated signals into multiple lenses — nev
 (EBP) · funding stress · crowding · tail (data-gated).** Then the presentation layer (assumption ledger + joint
 rarity + historical analogues).
 
-## PHASE 1 COMPLETE (2026-08-03) — framework frozen (pending sign-off)
+## PHASE 1 COMPLETE (2026-08-03) — framework FROZEN v1.0 (signed off; see below)
 
 **Phase 1 (Signal Framework) built + verified 7/7.** The shared spec every future signal declares against now
 lives under **`.planning/framework/`**:
@@ -63,19 +63,38 @@ Config note: `auto_advance` + `use_worktrees` disabled (sequential docs workflow
 doc still say "three confidence dimensions" — superseded to FOUR (recorded in the new spec, not silently edited);
 patch those two frozen docs to "four" once the framework is signed off.
 
+## FRAMEWORK FROZEN v1.0 (2026-08-03) — Phase 1 CLOSED
+
+Adam signed off the framework 2026-08-03 (`.planning/framework/SIGNOFF-CHECKLIST.md`). Dispositions: **A1**
+(three-axis anchors) ACCEPTED · **A2** (maturity-derivation rule, structure) ACCEPTED · **A3** (forbid composite
+scalar) ACCEPTED · **ADM** (unified admission model, D-17) CONFIRMED · **ENF** (code enforcement is architecture,
+D-18) CONFIRMED · **OBS** (observatory framing) CONFIRMED. D-06 swap RESOLVED (superseded by ADM). All framework
+docs bumped to v1.0; ROADMAP SC#3 + architecture stale "three confidence dims" text patched to the admission model.
+
+**Enforcement is LIVE (code, not docs):** `scripts/signal_output_schema.py` (closed Level-0 allowlist + denylist +
+`validate()`) and `tests/test_boundary_audit.py` (34 passed). On day one it caught a real HARD-BOUNDARY leak that
+every prose "reviewed grep" had missed — vindicating D-18.
+
+**Two open/tracked items (do NOT lose):**
+- **RF (OPEN, cooling-off):** the shipped volatility signal's `production` tag rests on frozen-US OOS + the
+  universal vol-persistence stylized fact, NOT a literal Japan/Europe run. Tag carried PROVISIONALLY. Decide the
+  universal-stylized-fact clause vs a literal panel run when volatility is formally admitted (or at Phase 2).
+- **`gauge.position` → `gauge.dwell_rank` rename (deferred cleanup):** boundary leak in `results/regime_card.json`
+  (produced by `scripts/regime_signal.py`), a downstream contract. Carried as a single documented exception in
+  `tests/test_boundary_audit.py` (`KNOWN_DEFERRED_EXCEPTIONS`). Coordinated rename (this repo + downstream repo) +
+  remove the exception = end-of-project cleanup.
+
 ## NEXT ACTION
 
-**Adam to review + dated sign-off `.planning/framework/SIGNOFF-CHECKLIST.md`** before the framework freezes to
-v1.0. Open items now **A1 · A2 · A3 · RF · OBS · ADM · ENF**: A1 (three-axis anchor thresholds) · A2
-(maturity-derivation rule) · A3 (forbid-composite wording) · RF (the shipped volatility signal's production tag
-rests on frozen-US OOS + a universal stylized fact, not literal Japan/Europe OOS — decide whether that satisfies
-the maturity rule) · OBS (observatory framing + new output fields — confirm) · **ADM (the unified
-signal-admission model, D-17 — confirm)** · **ENF (code-level boundary enforcement is architecture, D-18 —
-confirm)**. The old D-06 current-relevance→implementation-maturity swap is RESOLVED (superseded by ADM). Then
-patch ROADMAP SC#3 + architecture doc "three→four→admission-model" dims.
+**Start building the layers (the signals).** Every signal MUST begin with a research charter (D-15, the six
+pre-registration questions) BEFORE any implementation — the framework's own admission discipline. Then it runs
+through: charter → research/build → validation (mechanism gate · confound · Japan/Europe OOS) → admission review
+(3 non-compensatory axes + "why in front of an investor?") → cooling-off + dated sign-off → production.
 
-**Then Phase 2** — stock-bond correlation intl OOS (gated on JGB/Bund series). First NEW signal is **valuation**
-(Phase 3). Per Adam: review Phase 1 before moving to future signal phases; do NOT auto-advance.
+Build targets: **Phase 2** = stock-bond correlation intl OOS (GATED on JGB/Bund series — needs data Adam
+provides). **Phase 3 = valuation** = the first fully-new signal, buildable now (starting CAPE → long-horizon
+return context; present as context, never "avoid equities"). Recommend starting Phase 3 valuation unless the
+JGB/Bund data is ready for Phase 2. Per Adam: no auto-advance.
 
 ## Signal-research discipline (full text in CLAUDE.md)
 
