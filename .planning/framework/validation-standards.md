@@ -1,9 +1,13 @@
 # Validation Standards
 
-**Version: v1.0**
+**Version: v1.1**
 
 The cross-signal law every signal is held to. `signal-spec-template.md` attributes 2 and 5 point here. These
 are enforceable rules, not aspirations: a signal that does not meet them does not earn a positive claim.
+
+**Amendment log:** v1.1 (2026-08-03) — added Stage-0 Relevance Gate (pre-charter triage; 5 questions, default = NO,
+leave-one-out test) and the signal lifecycle; the quality-over-quantity observatory philosophy (D-19). Additive
+amendment to the frozen v1.0 per the semver process; no v1.0 rule was altered.
 
 ---
 
@@ -22,6 +26,55 @@ These bind every signal and every document in this framework.
   preserved — signals are never forced into agreement or reconciled into consensus.
 - **D-07 — independent research modules.** Each signal has its own research process, validation, assumptions,
   and limitations. The framework must not induce a shared latent state or force cross-signal agreement.
+
+---
+
+## Stage 0 — Relevance Gate (pre-charter triage; DEFAULT = NO) (D-19)
+
+**The scarce resource is research time, validation effort, maintenance, and the investor's attention — NOT code.**
+Every added signal permanently increases literature review, historical + international-OOS validation, docs and
+governance, maintenance as data/methods evolve, and investor cognitive load. Therefore the **default answer to any
+proposed signal is NO** until it proves it deserves inclusion. The objective is the **smallest set of high-quality
+signals explaining the most investor-relevant market behaviour** — not the largest indicator library.
+
+**Before a research charter is opened and BEFORE any research / mechanism / measurement / validation time is
+spent**, a candidate must answer all five questions convincingly:
+
+1. What important investment question does this signal answer?
+2. Why is that question important to long-term investors?
+3. Does this provide information NOT already available from the existing signals?
+4. Would REMOVING this signal make the observatory meaningfully less informative? (the leave-one-out /
+   marginal-information test — the sharp bar)
+5. Is there a strong theoretical or empirical reason to believe this relationship exists BEFORE we invest weeks
+   researching it?
+
+If these cannot be answered convincingly, the candidate **does NOT enter the research pipeline** — no charter is
+opened and no research time is spent. Only after the gate passes does mechanism review / measurement design /
+historical validation / confound analysis / international OOS begin.
+
+**Quality over quantity — the observatory is a CURATED research system, not an indicator collection.** A signal may
+be rejected even if it is measurable AND predictive if it: duplicates existing information, lacks a convincing
+economic mechanism, answers an unimportant question, adds unnecessary complexity, or fails to materially improve
+investor understanding. Popularity / visual appeal / trader-popularity is **not evidence**. Traditional
+technical-analysis indicators face an extremely high bar (must show a mechanism + unique information +
+cross-market/history robustness + long-term-investor value, not just predictive ability). Litmus: *"if this signal
+disappeared tomorrow and the observatory were essentially unchanged, it never belonged."*
+
+**Relationship to the existing admission gates (avoid apparent redundancy).** The Relevance Gate is the **cheap,
+pre-research TRIAGE** form of the same concern the **investment-usefulness admission axis** (§(l), `signal-output-spec.md`
+§1.2) assesses **rigorously AFTER research**. Gate first (before spending), axis later (after measuring). The gate's
+Q4 leave-one-out / marginal-information test is carried into the investment-usefulness axis as an explicit
+consideration.
+
+## The signal lifecycle (the ordered gate sequence)
+
+> **relevance gate → charter → research / build → validation (mechanism gate · confound-check · Japan/Europe OOS)
+> → admission review (three graded axes + the investor-question) → cooling-off + dated sign-off → production.**
+
+Stage 0 (this section) is the entry triage; the charter (§(k)) is opened only once it passes; the mechanism gate
+(§(b)), confound-check (§(c)), and out-of-hypothesis-sample confirmation (§(d)) are the validation gates; the
+three non-compensatory axes + investor-question (§(l)) are the admission review; the one-look + prereg +
+cooling-off + dated sign-off (§(e)) freeze precedes any `production` tag.
 
 ---
 

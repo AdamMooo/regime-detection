@@ -1,6 +1,10 @@
 # Signal Output Specification
 
-**Spec version: v1.0**
+**Spec version: v1.1**
+
+**Amendment log:** v1.1 (2026-08-03) — the investment-usefulness axis (§1) gains the leave-one-out /
+marginal-information consideration and the note that it is the rigorous post-research form of the pre-research
+Stage-0 Relevance Gate (D-19). Additive; no v1.0 rule altered.
 
 The scoring + output half of the framework. `signal-spec-template.md` attribute 7 (Admission Assessment) and the
 DERIVED maturity header field point here; `validation-standards.md` supplies the law the admission axes read
@@ -58,6 +62,14 @@ question already answered by an existing signal is not useful, and unique noise 
 useful either. This is a **per-signal admission decision made ONCE at admission**, NEVER a per-reading,
 time-varying applicability / prediction score (that is the killed "current-relevance" framing and must not
 return — see §3).
+
+**Leave-one-out / marginal-information consideration (D-19).** The uniqueness half is assessed as a
+leave-one-out test: *would REMOVING this signal make the observatory meaningfully less informative?* A signal that
+could disappear with the observatory essentially unchanged does not clear the axis. This axis is the **rigorous,
+post-research form** of the cheap **pre-research Stage-0 Relevance Gate** (`validation-standards.md` §Stage 0 —
+Relevance Gate): the gate triages the same concern with default = NO *before* any research time is spent, and this
+axis re-judges it *after* the signal is measured and characterized. Gate first (before spending), axis later
+(after measuring) — they are the same standard at two points in the lifecycle, not two separate hurdles.
 
 - **H:** Answers a concrete, important investor question about the environment AND carries information not
   already captured by an admitted signal (incremental-information requirement met, mechanism-first).

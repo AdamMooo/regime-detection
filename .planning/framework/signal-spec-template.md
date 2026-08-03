@@ -1,10 +1,15 @@
 # Signal Specification Template
 
-**Template version: v1.0**
+**Template version: v1.1**
 
 This is the single source of truth every signal declares against. It is filled **question-form**: each
 attribute is a question the signal author must answer explicitly. No field may be left blank — a conditional
 field that does not apply is answered `Not applicable, because …`, never omitted.
+
+**The Stage-0 Relevance Gate precedes this template and the charter** (`validation-standards.md` §Stage 0 —
+Relevance Gate, D-19). A candidate that has not passed the pre-charter triage (5 questions, default = NO,
+leave-one-out test) is never declared against this template — no research time is spent filling it. v1.1
+(2026-08-03) records this ordering; no attribute changed.
 
 Version discipline: this template is semver-versioned and is never edited to fit one signal. A genuine gap
 becomes a versioned amendment applied uniformly (see `validation-standards.md` §Template versioning). Each

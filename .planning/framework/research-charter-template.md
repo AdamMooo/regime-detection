@@ -1,10 +1,21 @@
 # Research Charter Template
 
-**Template version: v1.0**
+**Template version: v1.1**
 
 The research charter is the pre-registration front-matter subset of the 8-attribute signal spec
 (`signal-spec-template.md`). It is written and dated **BEFORE any implementation**. No signal (Phases 2–10)
 is implemented before its charter exists — see `validation-standards.md` §Charter before implementation.
+
+**The charter may be opened only AFTER the Stage-0 Relevance Gate passes** (`validation-standards.md` §Stage 0 —
+Relevance Gate). The gate is the pre-charter triage with default = NO; a candidate that has not answered its five
+questions convincingly does not reach this template, and no research time is spent on it. Carry the five gate
+answers as the charter's opening block so the admission decision is auditable:
+
+- **G1 — important investment question this signal answers:**
+- **G2 — why that question is important to long-term investors:**
+- **G3 — information not already available from the existing signals:**
+- **G4 — leave-one-out: would removing this signal make the observatory meaningfully less informative?**
+- **G5 — strong theoretical/empirical prior the relationship exists (before weeks of research):**
 
 The charter is the registered-report Stage-1 artifact: it is frozen before the validation look and answers
 exactly the six questions below, in order. It maps onto template attributes 1 / 2 / 5 / 6 / 8. Carries the
