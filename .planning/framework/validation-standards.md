@@ -1,6 +1,6 @@
 # Validation Standards
 
-**Version: v0.1-draft**
+**Version: v1.0**
 
 The cross-signal law every signal is held to. `signal-spec-template.md` attributes 2 and 5 point here. These
 are enforceable rules, not aspirations: a signal that does not meet them does not earn a positive claim.

@@ -16,7 +16,7 @@
 - **Investor question (production bar)** — "Is the bond-hedge working right now — are bonds diversifying equities
   or co-moving with them?" A first-order question for anyone relying on the stock-bond hedge; clearly answerable.
   (The investor-question is answered; the production bar is not yet cleared because evidence maturity = M.)
-- **Spec/template version** — v0.1-draft
+- **Spec/template version** — v1.0
 - **Dated sign-off** — (blank — not signed; international OOS gate open)
 
 ---
@@ -130,7 +130,7 @@ Derived tag: **research** — mechanism passed and the signal is built + charact
      evidence_maturity:    "M"
   },
   maturity:             "research",
-  spec_version:         "v0.1-draft"
+  spec_version:         "v1.0"
 }
 ```
 

@@ -12,10 +12,12 @@
 - **Assumption monitored** — "the market is in its normal low-stress operating range"
 - **Native clock / frequency** — daily (fast)
 - **Maturity tag** — production *(DERIVED — mechanism = pass + three axes + investor-question; see attribute 7)*
+  — **carried PROVISIONALLY at the v1.0 freeze pending RF** (the universal-stylized-fact clause vs a literal
+  Japan/Europe OOS; RF left OPEN by design — see `SIGNOFF-CHECKLIST.md`)
 - **Investor question (production bar)** — "Is the market in a persistent elevated-volatility / risk-off state
   right now, and how does this run compare to historical episodes?" A first-order environmental question any
   investor asks; clearly answerable → clears the production bar.
-- **Spec/template version** — v0.1-draft
+- **Spec/template version** — v1.0
 - **Dated sign-off** — (blank — the shipped signal predates this framework; not re-signed here)
 
 ---
@@ -74,7 +76,8 @@
   volatility clustering is a documented universal stylized fact across international equity markets, and the
   instrument's own OOS was the frozen chapter-1 US labels + Lunde-Timmermann scoring. A literal Japan/Europe
   panel replication of this specific instrument was not separately run — see the versioned-amendment candidate
-  below (this tension between the derivation rule and the shipped production tag is flagged for sign-off).
+  below (RF: this tension between the derivation rule and the shipped production tag is **OPEN — deferred at the
+  v1.0 freeze under the cooling-off rule**; the production tag is carried PROVISIONALLY pending its resolution).
 - **Q5.3 Robust or regime-dependent, confounds ruled out?** Robust — the persistence property is not
   regime-conditional; the splice-gate rules out the live-panel-drift confound.
 
@@ -130,7 +133,7 @@ repo via `results/regime_card.json`.
      evidence_maturity:    "H"
   },
   maturity:             "production",
-  spec_version:         "v0.1-draft"
+  spec_version:         "v1.0"
 }
 ```
 
@@ -145,7 +148,8 @@ repo via `results/regime_card.json`.
   requires evidence maturity = H via international out-of-hypothesis-sample confirmation, but this shipped
   signal's production status rests on frozen-US OOS + the universal vol-persistence stylized fact rather than a
   literal Japan/Europe panel run. Either the rule needs a "universal-stylized-fact" clause or the signal needs
-  the explicit panel run — surfaced for sign-off (see `SIGNOFF-CHECKLIST.md`).
+  the explicit panel run — **RF: OPEN, deferred at the v1.0 freeze** (decide when the volatility signal is
+  formally admitted, or at Phase 2; see `SIGNOFF-CHECKLIST.md`).
 
 ---
 <!-- LINKS:AUTO -->

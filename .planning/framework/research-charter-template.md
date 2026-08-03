@@ -1,6 +1,6 @@
 # Research Charter Template
 
-**Template version: v0.1-draft**
+**Template version: v1.0**
 
 The research charter is the pre-registration front-matter subset of the 8-attribute signal spec
 (`signal-spec-template.md`). It is written and dated **BEFORE any implementation**. No signal (Phases 2–10)
@@ -16,7 +16,7 @@ same semver version line as the spec it precedes.
 
 - **Signal name** —
 - **Assumption monitored** —
-- **Charter/spec version** — semver (e.g. `v0.1-draft`)
+- **Charter/spec version** — semver (e.g. `v1.0`)
 - **Charter dated** — the date this charter was frozen (before implementation)
 
 ---

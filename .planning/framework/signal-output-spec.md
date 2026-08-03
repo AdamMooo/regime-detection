@@ -1,13 +1,13 @@
 # Signal Output Specification
 
-**Spec version: v0.1-draft**
+**Spec version: v1.0**
 
 The scoring + output half of the framework. `signal-spec-template.md` attribute 7 (Admission Assessment) and the
 DERIVED maturity header field point here; `validation-standards.md` supplies the law the admission axes read
 from. This document defines three things: the unified signal-admission model (a binary mechanism prerequisite
 gate + three graded admission axes), the descriptive DERIVED maturity model, and the Level 0/1/2
-historical-context output / assumption-ledger shape (added in the second half of this spec). Nothing here freezes
-to v1.0 until Adam's dated sign-off (see `SIGNOFF-CHECKLIST.md`).
+historical-context output / assumption-ledger shape (added in the second half of this spec). Frozen to v1.0 by
+Adam 2026-08-03; amendable only via semver amendment (see `SIGNOFF-CHECKLIST.md`). RF remains OPEN by design.
 
 ---
 
@@ -93,9 +93,9 @@ mirroring the standing rule that nothing is SUPPORT before Japan / Europe replic
 > usefulness is NOT their replacement: it is a static, one-time admission judgment about unique information + an
 > answerable question, never a time-varying "does this currently matter" score. See §3 (Supersession).
 
-**Anchor thresholds + declared starting points for the three axes are `[ASSUMED — requires Adam's dated sign-off
-before the admission model is frozen at v1.0]`** (research A1). The unified-model *structure* (binary mechanism
-gate + three non-compensatory axes) is decided; only the threshold wording and starting points are proposed.
+**Anchor thresholds + declared starting points for the three axes are `[ADOPTED v1.0 — Adam 2026-08-03; amendable
+via semver]`** (research A1). The unified-model *structure* (binary mechanism gate + three non-compensatory axes)
+and the threshold wording + starting points are all adopted at v1.0.
 
 ---
 
@@ -122,8 +122,9 @@ Derivation rule (proposed):
 | **research** | Mechanism passed and built + characterized, but not all of the above are cleared (e.g. no international OOS yet, an unresolved placebo / control, or a vintage-sensitivity risk). Renders as human context, NOT investor-facing / production. |
 | **rejected** | Terminal. Failed the mechanism prerequisite gate, or failed a specific validation gate — did not generalize, no unique information, or a disguised forecast. Recorded WITH the reason so it is not silently revived. *(Today: dispersion-as-lead; raw-credit-as-a-vol-feature; VIX/VRP as a separate axis.)* |
 
-**The derivation rule is `[ASSUMED — requires Adam's dated sign-off]`** (research A2). A wrong rule could
-over-trust an under-validated signal, so the specific thresholds are proposed, not frozen.
+**The derivation rule is `[ADOPTED v1.0 — Adam 2026-08-03; amendable via semver]`** (research A2). The one open
+sub-point — whether a documented universal stylized fact substitutes for a literal Japan/Europe OOS in reaching
+evidence-maturity = H — is RF, left OPEN by design (see `SIGNOFF-CHECKLIST.md`).
 
 ---
 
@@ -173,14 +174,15 @@ current-relevance (the interim naming in 01-RESEARCH §Confidence Model). Mappin
 
 **Why current-relevance was dropped:** it leaned predictive / regime-applicability framing (whether a reading
 "currently matters"), which D-06 now forbids. Implementation maturity replaces it with a strictly
-research-process meaning. The current-relevance → implementation-maturity swap (D-06) is flagged for Adam's
-dated **veto** in `SIGNOFF-CHECKLIST.md`.
+research-process meaning. The current-relevance → implementation-maturity swap (D-06) is **RESOLVED — superseded
+by ADM (D-17)** (Adam, 2026-08-03): the entire four-dimension model is replaced by the unified admission model,
+so this swap no longer stands as an independent change.
 
-**Upstream docs are STALE, not silently rewritten** (research A5). ROADMAP.md SC#3 and
-REGIME-SENSOR-ARCHITECTURE.md §"The three confidence dimensions" / §"Level 0" (which lists "the three confidence
-scores") still carry the superseded three-dimension text. Editing those upstream docs is an **optional
-follow-up for Adam**, not performed here — this spec records the supersession so the drift is documented rather
-than left as a silent contradiction.
+**Upstream docs PATCHED at v1.0 sign-off** (research A5; 2026-08-03). ROADMAP.md SC#3 and
+REGIME-SENSOR-ARCHITECTURE.md previously carried the superseded three-dimension ("three confidence dimensions" /
+"the three confidence scores") text. At the framework freeze (Adam, 2026-08-03) that stale text was patched to
+the unified admission-model wording, so the drift the deferral guarded against is now resolved rather than merely
+documented. This supersession record is retained for the audit trail.
 
 ---
 
@@ -223,8 +225,8 @@ refinement) so each signal describes not just its level but its *direction*, whe
 *extreme*, and how it *relates* to the other signals — the descriptive richness that makes the set an
 observatory rather than disconnected readings. `cross_signal_relationships` carries the *known / characterized*
 relationships (template Q4.3); the **live joint** reading (this configuration's joint rarity + analogues) is a
-Level-2 lens (§4.3), never collapsed into a per-signal field. These field definitions are `[ASSUMED — pending
-Adam's dated sign-off]` alongside the other v1.0 items.
+Level-2 lens (§4.3), never collapsed into a per-signal field. These field definitions are **CONFIRMED v1.0 (Adam
+2026-08-03)** alongside the other OBS observatory-framing items.
 
 **Zero allocation / decision fields.** No allocation, exposure, weight, sleeve, tilt, cash, action,
 recommendation, or "portfolio" — the record names a monitored market assumption and its reading (level, trend,
@@ -273,7 +275,7 @@ scalar is the other failure.
   per-signal readings. Allowed form: "joint configuration at the 92nd percentile of historical unusualness,
   driven by concentration + stock-bond-corr."
 
-**A3 (forbid any composite-scalar output field) is flagged for Adam's dated sign-off** in
+**A3 (forbid any composite-scalar output field) is CONFIRMED v1.0 (Adam, 2026-08-03)** in
 `SIGNOFF-CHECKLIST.md`.
 
 ### 4.5 No-dominance / co-equal presentation (D-11)

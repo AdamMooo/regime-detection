@@ -1,6 +1,6 @@
 # Signal Specification Template
 
-**Template version: v0.1-draft**
+**Template version: v1.0**
 
 This is the single source of truth every signal declares against. It is filled **question-form**: each
 attribute is a question the signal author must answer explicitly. No field may be left blank — a conditional
@@ -8,7 +8,7 @@ field that does not apply is answered `Not applicable, because …`, never omitt
 
 Version discipline: this template is semver-versioned and is never edited to fit one signal. A genuine gap
 becomes a versioned amendment applied uniformly (see `validation-standards.md` §Template versioning). Each
-signal records the version it filled. Nothing freezes to v1.0 until Adam's dated sign-off.
+signal records the version it filled. Frozen to v1.0 by Adam 2026-08-03; amendable only via semver amendment.
 
 ---
 
@@ -29,7 +29,7 @@ universal-required.
   making decisions?"* This is a required question gating the **production** tag: a signal with no clear answer
   cannot reach production (it stays research). It is a question about understanding-relevance, never a forecast
   or an action.
-- **Spec/template version** — semver of the template this declaration was filled against (e.g. `v0.1-draft`).
+- **Spec/template version** — semver of the template this declaration was filled against (e.g. `v1.0`).
 - **Dated sign-off** — the registered-report freeze marker: the dated, explicit sign-off gating any positive
   claim. Blank until signed.
 

@@ -46,7 +46,7 @@ out-of-hypothesis-sample on Japan/Europe before any SUPPORT claim, and (e) emits
 
   1. A written 8-attribute signal-spec template exists (research question · mechanism · data+vintage · metric · validation · failure modes · historical-context output · maturity) that a new signal can be filled in against unambiguously
   2. The validation standards are documented in one place: causal-only / point-in-time rule, the mechanism gate (a written structural reason the signal survives being known), confound-check requirement, out-of-hypothesis-sample (Japan/Europe) confirmation rule, and the one-look + prereg + cooling-off + dated sign-off protocol for any SUPPORT claim
-  3. The historical-context output format is specified — reading · rarity percentile · assumption monitored, carried with the three confidence dimensions (measurement · interpretation · regime-relevance) and a maturity tag (production / research / rejected) — with zero allocation/decision fields
+  3. The historical-context output format is specified — reading · rarity percentile · assumption monitored, carried with the signal-admission assessment (a binary mechanism prerequisite gate + three non-compensatory axes: measurement validity · investment usefulness · evidence maturity) and a DERIVED maturity tag (production / research / rejected) — with zero allocation/decision fields
   4. The assumption-ledger output shape is defined as the composition target (Level 0 state vector · Level 1 assumption ledger · Level 2 context) so validated signals have a known place to render, never a score
   5. Each later signal phase can declare against this spec without reinterpreting it (the template is the single source of truth)
 
@@ -259,10 +259,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 ---
 <!-- LINKS:AUTO -->
-
 ## Related
-
-**Project:** [[regime-detection/regime-detection|Hub]]
+**Project:** [[_planning/regime-detection/STATE|STATE]] · [[regime-detection/regime-detection|Hub]]
 <!-- LINKS:END -->
 </content>
 </invoke>
