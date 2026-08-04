@@ -84,13 +84,35 @@ every prose "reviewed grep" had missed — vindicating D-18.
   `tests/test_boundary_audit.py` (`KNOWN_DEFERRED_EXCEPTIONS`). Coordinated rename (this repo + downstream repo) +
   remove the exception = end-of-project cleanup.
 
+## VALUATION CHARTER FROZEN (2026-08-03) — Phase 3 pre-registration written, sign-off pending
+
+`.planning/phases/03-valuation-signal/03-VALUATION-CHARTER.md` written this session (worked Q3/Q4/Q5 with Adam,
+no data look). Registered: **mechanism = risk-premium-primary** via the Campbell–Shiller discount-rate identity
+(behavioral = non-load-bearing amplifier; survives-being-known argued from the un-arbitrageability of a low risk
+premium; horizon structure = the mechanism's signature). **Validation bar (V1–V6):** horizon-conditional shape ·
+excess returns · sub-period incl./excl. 1982–2021 · metric-robustness panel · Japan/Europe OOS · bias-aware
+inference. **Reject conditions (R1–R9)**, each paired to the test it trips — R1 (Adam's primary) = *no evidence
+valuation carries useful info about future EXCESS returns consistent with the mechanism* (a growth-forecast
+finding is a category change → separate signal, NOT a bury). **Analysis spec frozen:** CAPE-primary + cap/GDP +
+P/D + total-payout-yield panel (anti-metric-shopping) · excess over short real risk-free · three-test rate-regime
+battery (excess + sub-period + intl OOS) · Stambaugh/Hodrick + effective-N inference · point-in-time
+reconstruction. Boundary self-audit clean (forbidden vocab only in the Q6 prohibition).
+
+**Two open items before research/build starts:**
+- The three defaulted analysis choices (metric / excess benchmark / rate battery) are registered as *recommended,
+  not yet Adam's* — Adam reviews the "Pre-registered analysis specification" block and overrides any line.
+- **Dated sign-off pending.** Signing the charter = Stage-1 freeze of the pre-registration only (NOT a positive
+  claim, so no cooling-off needed). Research/build begins after sign-off. Emphasis (Adam): get this right — the
+  signal must come out **clear and definable**, not a fuzzy composite.
+
 ## NEXT ACTION
 
-**▶ FRESH-WINDOW START HERE:** open the valuation research charter. Read
-`.planning/phases/03-valuation-signal/03-CHARTER-KICKOFF.md` — it is self-contained (state, relevance-gate
-result, charter template, skepticism scaffold, file map). Valuation already PASSED the Relevance Gate; the next
-artifact is `03-VALUATION-CHARTER.md` (pre-registration, no data look, declare what would REJECT it). Objective =
-does valuation EARN admission, not prove it works.
+**▶ FRESH-WINDOW START HERE:** Adam reviews `03-VALUATION-CHARTER.md` (esp. the Pre-registered analysis
+specification block), overrides any analysis-spec line he disagrees with, then gives the dated sign-off that
+freezes the pre-registration. AFTER sign-off: begin Phase-3 research/build (charter → research → validation
+[mechanism gate · confound · Japan/Europe OOS] → admission review → cooling-off + dated sign-off → production).
+Charter context is self-contained in `03-CHARTER-KICKOFF.md` + the charter itself. Objective = does valuation
+EARN admission, not prove it works.
 
 **Start building the layers (the signals).** Every signal MUST begin with a research charter (D-15, the six
 pre-registration questions) BEFORE any implementation — the framework's own admission discipline. Then it runs
