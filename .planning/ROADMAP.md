@@ -22,6 +22,13 @@ first pass the **Stage-0 Relevance Gate** (`.planning/framework/validation-stand
 default = NO, leave-one-out / marginal-information test). No charter is opened and no research time is spent on a
 candidate that has not passed the gate — the observatory is a curated set, not an indicator library.
 
+**Build discipline (efficiency, D-20):** the DoD is IDENTICAL across signals, so its machinery is built ONCE and
+reused, never rebuilt per signal. Shared harness — causal primitives (expanding percentile · EWMA · drift ·
+rarity), the Japan/Europe OOS runner (one dynamic `run_oos(construct_fn, regions)` over
+`build_intl_panel.build_region`), and the historical-context output (through `signal_output_schema.validate`).
+Each signal contributes only its construct-function + charter; no signal builds its own panel loader, OOS
+harness, or output schema. Built first on Phase 1.5 (vol) as the template, then reused by every later signal.
+
 ## Phases
 
 **Phase Numbering:**
@@ -30,6 +37,7 @@ candidate that has not passed the gate — the observatory is a curated set, not
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Signal Framework** - The shared 8-attribute spec, validation standards, output format, and maturity model every signal declares against (completed 2026-08-03)
+- [ ] **Phase 1.5: Volatility Signal (INSERTED 2026-08-04)** - Continuous vol descriptors (level · percentile · drift · rarity) replacing the inherited jump-model STATE; the foundational (PC1) barometer, buildable now; executes before the data-gated Phase 2
 - [ ] **Phase 2: Stock-Bond Correlation Signal (intl OOS)** - Complete the built inflation/real-rate signal to SUPPORT via Japan/Europe confirmation
 - [ ] **Phase 3: Valuation Signal** - Starting-valuation → long-horizon-return context, monitoring "equities priced for normal returns"
 - [ ] **Phase 4: Concentration Signal** - Index concentration / breadth, monitoring "the index isn't dependent on a few names"
@@ -65,6 +73,26 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 01-02-PLAN.md — historical-context output format, four-dimension confidence model, maturity model, assumption-ledger shape (L0/1/2) + retro-fit
+
+### Phase 1.5: Volatility Signal (INSERTED 2026-08-04)
+
+**Goal**: The inherited jump-model vol signal is replaced by continuous volatility descriptors (level · percentile · drift · rarity) — measured, never a CALM/STRESSED state — and earns admission through the standard DoD
+**Depends on**: Phase 1
+**Why inserted**: the no-look detector benchmark (`results/detector_benchmark.csv`) showed the jump-model STATE loses to a continuous vol + hysteresis read on every skill axis (LT20 BAC 0.75 vs 0.66; 11/11 vs 9/11 episodes; 21d vs 56d lag) and the threshold step destroys σ's graded information; vol is the foundational (PC1) barometer and is buildable now, whereas Phase 2 is data-gated
+**Success Criteria** (what must be TRUE):
+
+  1. The signal declares its 8-attribute spec (a measured level + percentile + drift, no latent state); the charter names vol as a CONTEXT dimension, not an intact/violated assumption-monitor
+  2. The mechanism gate is passed: volatility clustering (Mandelbrot 1963 / Engle 1982 / Bollerslev 1986) — a written structural reason it survives being known (a proven stylized fact)
+  3. Causal validation with confound-checks: EWMA σ + expanding percentile are causal/PIT; the JM-vs-vol+hysteresis benchmark is formalized as the skill evidence
+  4. Out-of-hypothesis-sample confirmation on Japan/Europe (`ohlc_nikkei` / `ohlc_stoxx`): the clustering + percentile construction replicates — closes the long-standing RF open item (the vol production tag never had a literal intl run)
+  5. The historical-context output is emitted through `signal_output_schema.validate` — reading · rarity percentile · drift, zero decision content; the continuous read (`vol_read.py`) feeds the daily brief's vol row, replacing VIX
+
+**Plans**: TBD
+
+Plans:
+
+- [ ] 1.5-01: Charter + Stage-0 gate; centralize causal primitives + build the generic `run_oos` harness (D-20, reused by all later signals)
+- [ ] 1.5-02: Japan/Europe OOS replication + emit historical-context output + dated sign-off
 
 ### Phase 2: Stock-Bond Correlation Signal (intl OOS)
 
@@ -247,11 +275,12 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 1 → 1.5 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Signal Framework | 2/2 | Complete   | 2026-08-03 |
+| 1.5 Volatility Signal (INSERTED) | 0/2 | Not started | - |
 | 2. Stock-Bond Correlation (intl OOS) | 0/2 | Not started | - |
 | 3. Valuation Signal | 0/2 | Not started | - |
 | 4. Concentration Signal | 0/2 | Not started | - |
@@ -262,6 +291,11 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 9. Tail Signal | 0/1 | Not started | - |
 | 10. Presentation / Assumption Ledger | 0/2 | Not started | - |
 
+---
+---
+---
+---
+---
 ---
 <!-- LINKS:AUTO -->
 ## Related

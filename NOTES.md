@@ -13,8 +13,11 @@ historical-context output · maturity). The intelligence is the quality of each 
 presentation layer only organizes validated signals into multiple lenses — never a score, never a decision.
 
 **Built / shipped:**
-- **Volatility / risk-off** — the jump-model instrument (shipped: `live_label.py` → `regime_signal.py` →
-  `results/regime_card.json`).
+- **Volatility / risk-off** — REFRAMED 2026-08-04 from the jump-model STATE to continuous DESCRIPTORS
+  (`scripts/vol_descriptors.py` measurement spine + `scripts/vol_read.py` presentation). The K=2 jump label loses
+  to a continuous vol+hysteresis read on every skill axis (`results/detector_benchmark.csv`) and the threshold
+  destroys σ's graded info. Now Phase 1.5 (INSERTED, executes next); still owes the full DoD (charter · Stage-0 ·
+  Japan/Europe OOS · sign-off). Old jump-model card/`regime_signal.py` still generates but is being retired.
 - **Stock-bond correlation** (inflation/real-rate) — `scripts/stockbond_corr.py`, built this session. Validated
   on US 1962-2026: sign matches known regimes; hedge-behavior-by-state confirms the signal (on equity-down days
   bonds cushioned 32% of the time in the "intact"/negative-corr regime vs fell-too 57% in the "violated"/
@@ -107,12 +110,17 @@ reconstruction. Boundary self-audit clean (forbidden vocab only in the Q6 prohib
 
 ## NEXT ACTION
 
-**▶ FRESH-WINDOW START HERE:** Adam reviews `03-VALUATION-CHARTER.md` (esp. the Pre-registered analysis
-specification block), overrides any analysis-spec line he disagrees with, then gives the dated sign-off that
-freezes the pre-registration. AFTER sign-off: begin Phase-3 research/build (charter → research → validation
-[mechanism gate · confound · Japan/Europe OOS] → admission review → cooling-off + dated sign-off → production).
-Charter context is self-contained in `03-CHARTER-KICKOFF.md` + the charter itself. Objective = does valuation
-EARN admission, not prove it works.
+**▶ FRESH-WINDOW START HERE (2026-08-04):** Phase 1.5 VOLATILITY is next (INSERTED; before the data-gated Phase 2).
+The continuous-descriptor reframe is BUILT (`scripts/vol_descriptors.py` + `scripts/vol_read.py`) and validates
+against every crisis 1926-2026, but has NOT run the framework DoD. Next: open the vol charter + Stage-0 gate, then
+build the shared generic `run_oos` harness (D-20) WHILE running vol's Japan/Europe OOS (`ohlc_nikkei`/`ohlc_stoxx`
+— the real remaining work; closes the RF open item), then emit the historical-context output + dated sign-off.
+Mechanism (vol clustering) is trivial; vol = a CONTEXT dimension, not an assumption-monitor. Presentation model =
+"barometer not switch" (level · percentile · drift · rarity, never a label). Emails already cleaned of states +
+weekly regime email blanked/parked (portfolio-manager). See the volatility-signal-reframe memory. CHARTER FRAMING (Adam, 2026-08-04): build vol around the ~4 questions it
+ANSWERS — how high (level/percentile) · which way (drift) · how unusual (rarity: century vs trailing-year) · how
+durable a shock is (persistence/half-life) — NO state, ever. Valuation (Phase 3 charter frozen, sign-off pending)
+follows vol.
 
 **Start building the layers (the signals).** Every signal MUST begin with a research charter (D-15, the six
 pre-registration questions) BEFORE any implementation — the framework's own admission discipline. Then it runs
