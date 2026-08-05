@@ -108,19 +108,74 @@ reconstruction. Boundary self-audit clean (forbidden vocab only in the Q6 prohib
   claim, so no cooling-off needed). Research/build begins after sign-off. Emphasis (Adam): get this right — the
   signal must come out **clear and definable**, not a fuzzy composite.
 
+## VOLATILITY CHARTER FROZEN (2026-08-05) — Phase 1.5 pre-registration written, sign-off pending
+
+`.planning/phases/01.5-volatility-signal/1.5-VOLATILITY-CHARTER.md` written this session (Stage-0 gate + 6 charter
+questions + analysis spec; boundary grep clean — hits only in the Q6 prohibition). Two framing decisions locked
+with Adam (2026-08-05): **(1) validation shape = measurement correctness + international replication** (vol is
+DESCRIPTIVE, not predictive — mechanism = vol clustering, trivial/universal; no forecastability claim, so Q5
+falsification targets the MEASUREMENT being an artifact, never a missed forecast). **(2) ledger key = N/A, vol is
+a CONTEXT axis (PC1 barometer), not an assumption-monitor** — no {intact/under-test/violated} status, deliberately,
+to avoid re-importing a state. V1–V5 / R1–R5 registered; V5 (Japan/Europe replication) is the run that **closes the
+RF open item**. Charter-first inversion disclosed: level/pct/drift/rarity built during the 2026-08-04 reframe
+before the charter; the 4th descriptor (**shock persistence / half-life**) is NOT built and is registered here.
+
+**Two open items before build starts (mirror the valuation charter):**
+- Analysis-spec lines marked **[recommended — Adam to confirm/override]**: the estimator-robustness panel (λ=0.97 +
+  range-based Parkinson/Garman–Klass) and the persistence estimator (AR(1) on log realized vol → half-life =
+  ln2/(−ln φ), in trading days). Adam reviews + overrides any line.
+- **Dated sign-off pending.** Signing = Stage-1 freeze of the pre-registration only (not a positive claim → no
+  cooling-off needed). Build begins after sign-off.
+
+## TASK 1.5-01 COMPLETE (2026-08-05) — charter signed off + infra + persistence descriptor
+
+Charter **signed off by Adam 2026-08-05** (both [recommended] analysis-spec lines confirmed); build authorised.
+Built + tested (34 pass):
+- `scripts/causal.py` — shared causal primitives (D-20, built ONCE): `ewma_vol`, `realized_vol`,
+  `expanding_percentile`. Reused by the harness + every later signal.
+- `scripts/run_oos.py` — generic OOS harness (D-20): `load_region` + `run_oos(build_region, regions)`; region-
+  agnostic, all panels share `date,mkt_ret`. Drives any signal's `build(r)` over US/Japan/Europe.
+- `scripts/vol_descriptors.py` — refactored onto `causal`; `build(r)` accepts any region's returns;
+  `shock_half_life(r)` = **GARCH(1,1)-t persistence** (half-life = ln0.5/ln(α+β)), trailing ~5yr window refit
+  quarterly, NaN when α+β≥1. Wired into `build` + `vol_read` as the 4th reading.
+- `scripts/vol_read.py` — now renders all four questions (level·pctile / drift / rarity / **durability**).
+
+**Persistence estimator = GARCH (DEVIATION from the AR(1) originally registered — disclosed in the charter,
+2026-08-05, Adam-directed "do this right").** The AR(1)-on-realized-vol was caught in construction as a V2
+estimator artifact: fitting AR(1) to a rolling-window realized-vol series manufactures autocorrelation from the
+shared-return overlap (φ→(m−1)/m), so its half-life just tracked the smoothing window. GARCH models latent
+conditional variance directly (no artifact); α+β is the canonical persistence. Trailing (not expanding) window
+because a century fit mixes regimes → near-IGARCH inflation (Lamoureux–Lastrapes). **US finding:** persistence
+strong everywhere (α+β≥0.92) but half-life is REGIME-CONDITIONAL — ~9d (last 3yr) → ~123d (last 10yr) → undefined
+(1930–50, α+β=1); latest live read ~35d. **v-next registered:** component/spline-GARCH (Engle–Rangel) to split
+short-run persistence from baseline drift (version A = trailing-window GARCH = v1.0).
+
+**Sanity is INFORMAL, construction-time — NOT the frozen one-look.** See the one-look note below before 1.5-02.
+
+## TASK 1.5-02 — VALIDATION ONE-LOOK DONE (2026-08-05), PASSES; sign-off + cooling-off pending
+
+Ran `scripts/validate_vol.py` (frozen one-look) → `results/vol_validation.txt`. Rolling-only LOCKED (horse race
+= rolling≈expanding, DM t=0.65; expanding fails D-19 leave-one-out as a live reading). Descriptor finalized:
+`half_life_pctile` (rarity of durability from its own history) added. Honest read vs charter bars:
+- **V5 OOS replication (closes RF):** GARCH structure REMARKABLY consistent — α≈0.09, β≈0.89 in US/Japan/Europe;
+  rolling half-life median 42/17/40d (same order of magnitude). Clustering is universal, not a US artifact. PASS.
+- **V2 robustness:** corr(λ0.94,λ0.97)=0.975 (soft caveat: exact 5-band bucket agrees 78% — adjacent drift, not
+  flips); close-to-close vs Parkinson corr 0.91–0.95 all regions. PASS (stable, not identical).
+- **V3 persistence:** GARCH identifiable all regions, IGARCH guard works. PASS.
+- **V4 rarity:** expanding pctile uniform/monotone. PASS.
+
+**REMAINING for vol to be DONE:** (1) overnight cooling-off then Adam's DATED sign-off of the results (his rule,
+never inferred — feedback-no-rushing-four-rules); (2) emit the Level-0 historical-context output record; (3)
+optional: fold the horse-race into results/ as formal V-evidence; (4) commit the whole phase. Maturity tag stays
+DERIVED/unset until sign-off.
+
 ## NEXT ACTION
 
-**▶ FRESH-WINDOW START HERE (2026-08-04):** Phase 1.5 VOLATILITY is next (INSERTED; before the data-gated Phase 2).
-The continuous-descriptor reframe is BUILT (`scripts/vol_descriptors.py` + `scripts/vol_read.py`) and validates
-against every crisis 1926-2026, but has NOT run the framework DoD. Next: open the vol charter + Stage-0 gate, then
-build the shared generic `run_oos` harness (D-20) WHILE running vol's Japan/Europe OOS (`ohlc_nikkei`/`ohlc_stoxx`
-— the real remaining work; closes the RF open item), then emit the historical-context output + dated sign-off.
-Mechanism (vol clustering) is trivial; vol = a CONTEXT dimension, not an assumption-monitor. Presentation model =
-"barometer not switch" (level · percentile · drift · rarity, never a label). Emails already cleaned of states +
-weekly regime email blanked/parked (portfolio-manager). See the volatility-signal-reframe memory. CHARTER FRAMING (Adam, 2026-08-04): build vol around the ~4 questions it
-ANSWERS — how high (level/percentile) · which way (drift) · how unusual (rarity: century vs trailing-year) · how
-durable a shock is (persistence/half-life) — NO state, ever. Valuation (Phase 3 charter frozen, sign-off pending)
-follows vol.
+**▶ After vol sign-off:** move to the next signal. **Phase 2** (stock-bond intl OOS) is GATED on JGB/Bund data
+(Adam provides). **Phase 3 valuation** (charter frozen 2026-08-03, sign-off pending) is buildable now → the
+recommended next unless JGB/Bund is ready. Vol validation PASSES (above); per Adam "if it passes move to the next
+signal" — but honor the dated sign-off + cooling-off first. `scratchpad/garch_horserace.py` holds the rolling-vs-
+expanding evidence.
 
 **Start building the layers (the signals).** Every signal MUST begin with a research charter (D-15, the six
 pre-registration questions) BEFORE any implementation — the framework's own admission discipline. Then it runs

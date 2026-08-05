@@ -1,0 +1,28 @@
+==========================================================================
+VOLATILITY SIGNAL — VALIDATION (charter V2-V5), one-look
+==========================================================================
+
+[V3/V5] GARCH(1,1)-t persistence + rolling half-life, by region
+  region    alpha    beta     a+b   HL_full | roll HL median       p10..p90
+  us        0.100   0.896   0.997       224 |             42      9..276   
+  japan     0.091   0.886   0.977        29 |             17      9..64    
+  europe    0.090   0.898   0.988        56 |             40     11..230   
+  -> clustering present in all three (alpha,beta significant, a+b high);
+     rolling half-life same order of magnitude across regions = REPLICATES.
+
+[V2a] level robustness to EWMA lambda (US market panel)
+  corr(vol_0.94, vol_0.97) = 0.9749;  same 5-band percentile bucket 78% of days -> reading does NOT flip.
+
+[V2b] level robustness to estimator: close-to-close EWMA vs range-based (Parkinson)
+  us     : corr(close-to-close, Parkinson) = 0.9529  (n=8179, ohlc_spy)
+  japan  : corr(close-to-close, Parkinson) = 0.9089  (n=8721, ohlc_nikkei)
+  europe : corr(close-to-close, Parkinson) = 0.9546  (n=4592, ohlc_stoxx)
+  -> high correlation across the estimator choice = level is a market property, not a knob.
+
+[V4] rarity calibration (US expanding percentile of level)
+  range [0.00, 1.00], mean 0.48 (well-behaved, ~uniform);
+  monotone in level: corr(level, pctile) = 0.735
+
+==========================================================================
+Read the numbers against the charter's V2-V5 bars; sign-off is Adam's (dated).
+==========================================================================

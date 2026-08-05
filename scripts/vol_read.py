@@ -30,7 +30,14 @@ def current_read(df: pd.DataFrame) -> dict:
     trend = "rising" if drift > 3 else ("cooling" if drift < -3 else "holding")
     # what fraction of the past year ran hotter than today (stable context read)
     yr_higher = float((d["vol_annual"].tail(252) > latest["vol_annual"]).mean() * 100)
-    return dict(asof=asof.date(), vol=vol, pct=pct, drift=drift, trend=trend, yr_higher=yr_higher)
+    # how durable is the current shock: mean-reversion half-life in trading days,
+    # plus how unusual that durability is vs its own history
+    hl = df["half_life"].dropna()
+    half_life = float(hl.iloc[-1]) if len(hl) else float("nan")
+    hlp = df["half_life_pctile"].dropna()
+    half_life_pct = float(hlp.iloc[-1] * 100) if len(hlp) else float("nan")
+    return dict(asof=asof.date(), vol=vol, pct=pct, drift=drift, trend=trend,
+                yr_higher=yr_higher, half_life=half_life, half_life_pct=half_life_pct)
 
 
 def text_read(r: dict) -> str:
@@ -42,6 +49,10 @@ def text_read(r: dict) -> str:
         f"  Moving:   {r['trend']}  ({r['drift']:+.0f} pctile pts over 10 sessions)",
     ]
     lines.append(f"  Context:  vol ran hotter than today on {r['yr_higher']:.0f}% of the past year")
+    if np.isfinite(r["half_life"]):
+        rare = (f", {r['half_life_pct']:.0f}th pctile of its own history" if np.isfinite(r["half_life_pct"]) else "")
+        lines.append(f"  Durable:  a vol shock half-fades in ~{r['half_life']:.0f} trading days"
+                     f" (mean-reversion{rare})")
     return "\n".join(lines)
 
 

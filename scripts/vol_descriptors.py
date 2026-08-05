@@ -22,10 +22,9 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
 
-TRADING_DAYS = 252
-EWMA_LAMBDA = 0.94   # RiskMetrics daily decay; lam == the vol process's persistence
-BURN_IN = 252        # seed the recurrence on year 1; report NaN until warmed up
+from causal import ewma_vol, expanding_percentile, realized_vol
 
 
 def load_returns() -> pd.Series:
@@ -33,55 +32,64 @@ def load_returns() -> pd.Series:
     return df["mkt_ret"].astype(float)
 
 
-def ewma_vol(r: pd.Series, lam: float = EWMA_LAMBDA, burn_in: int = BURN_IN) -> pd.Series:
-    """>>> YOU WRITE THIS <<<  Annualised EWMA volatility, causal.
+def shock_half_life(r: pd.Series, garch_window: int = 1260, step: int = 63) -> pd.Series:
+    """Mean-reversion half-life of a volatility shock, in trading days (descriptor v1.0).
 
-    The variance recurrence (RiskMetrics / IGARCH):
+    The 4th descriptor ("how durable is the current shock"), via GARCH(1,1)-t
+    persistence — the canonical tool, since volatility clustering IS the GARCH
+    stylized fact (Bollerslev 1986):
 
-        sigma2_t = lam * sigma2_{t-1} + (1 - lam) * r_t**2
+        sigma2_t = omega + alpha * eps2_{t-1} + beta * sigma2_{t-1}
+        persistence = alpha + beta       (fraction of a variance shock surviving one day)
+        half_life   = ln(0.5) / ln(alpha + beta)
 
-    Then  sigma_t = sqrt(sigma2_t),  annualise by  * sqrt(TRADING_DAYS).
+    - Fit on a TRAILING `garch_window` (~5yr), refit every `step` days (quarterly)
+      and forward-filled. A trailing window is deliberate: a full-sample / expanding
+      GARCH over a century mixes volatility regimes and inflates alpha+beta toward 1
+      (near-IGARCH, spurious persistence — Lamoureux-Lastrapes 1990). So this reads
+      the CURRENT regime's persistence, which is genuinely regime-conditional and
+      MOVES over time (a feature: sticky-vol vs fast-mean-reverting regimes).
+    - Student-t innovations (equity returns are fat-tailed); returns scaled x100 for
+      the optimiser. Causal: each fit uses only returns through its refit date.
+    - Guard: half-life undefined (NaN) when alpha+beta >= 1 (IGARCH / non-stationary)
+      or the fit fails.
 
-    - Seed sigma2 with the sample variance of the first `burn_in` returns.
-    - Return NaN for the burn-in window (estimate not warmed up yet).
-    - Causal: sigma_t may use r_t and everything before it, nothing after.
-    - Return a pd.Series aligned to r's index.
+    v-next (registered upgrade, charter): component / spline-GARCH (Engle-Rangel) to
+    split short-run shock persistence from the slow-drifting baseline level.
     """
-    x = r.to_numpy(dtype=float)
-    r2 = x * x
-    n = len(x)
-    sig2 = np.full(n, np.nan)
-    prev = float(np.nanvar(x[:burn_in]))            # seed: year-1 sample variance
-    for t in range(burn_in, n):
-        prev = lam * prev + (1.0 - lam) * r2[t]      # RiskMetrics/IGARCH, causal
-        sig2[t] = prev
-    vol = np.sqrt(sig2) * np.sqrt(TRADING_DAYS)      # daily -> annualised
-    return pd.Series(vol, index=r.index, name="vol_annual")
+    import warnings
 
+    from arch import arch_model
 
-def expanding_percentile(x: pd.Series) -> pd.Series:
-    """Causal expanding-window percentile, in [0, 1].
-
-    For each t:  p_t = (# of valid {x_s : s <= t} with x_s <= x_t) / (# valid s <= t)
-
-    Use ONLY data through t (EXPANDING window, not full-sample). A full-sample
-    rank would leak the future distribution into today's reading — the exact
-    look-ahead this repo forbids. Return a pd.Series in [0, 1] aligned to x,
-    NaN where x is NaN.
-
-    Hint: `x.expanding().rank(pct=True)` is the one-liner. Worth writing the
-    loop by hand once first, to feel why "expanding" is what makes it causal.
-    """
-    return x.expanding().rank(pct=True).rename("vol_pctile")
+    x = (100.0 * r).dropna()
+    hl = pd.Series(np.nan, index=x.index, name="half_life")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        for i in range(garch_window, len(x), step):
+            sub = x.iloc[i - garch_window:i]
+            try:
+                res = arch_model(sub, mean="Constant", vol="GARCH", p=1, q=1, dist="t").fit(disp="off")
+                persistence = res.params["alpha[1]"] + res.params["beta[1]"]
+                hl.iloc[i] = np.log(0.5) / np.log(persistence) if 0.0 < persistence < 1.0 else np.nan
+            except Exception:
+                hl.iloc[i] = np.nan
+    return hl.ffill().reindex(r.index)
 
 
 # ── driver / presentation (wired for you) ───────────────────────────────────────
 
-def build() -> pd.DataFrame:
-    r = load_returns()
+def build(r: pd.Series | None = None) -> pd.DataFrame:
+    """Descriptor spine for a returns series. Defaults to the US market panel;
+    pass any region's returns (the OOS harness does) to build the same
+    descriptors elsewhere."""
+    if r is None:
+        r = load_returns()
     vol = ewma_vol(r)
     pct = expanding_percentile(vol)
-    out = pd.DataFrame({"mkt_ret": r, "vol_annual": vol, "vol_pctile": pct})
+    hl = shock_half_life(r)
+    hl_pct = expanding_percentile(hl).rename("half_life_pctile")   # "how unusual" from its OWN history
+    out = pd.DataFrame({"mkt_ret": r, "vol_annual": vol, "vol_pctile": pct,
+                        "half_life": hl, "half_life_pctile": hl_pct})
     return out
 
 
