@@ -169,13 +169,39 @@ never inferred — feedback-no-rushing-four-rules); (2) emit the Level-0 histori
 optional: fold the horse-race into results/ as formal V-evidence; (4) commit the whole phase. Maturity tag stays
 DERIVED/unset until sign-off.
 
+## WARM-START — remaining signals prepped (2026-08-05)
+
+Triage (orthogonality evidence + a data-source scout): **5 signals warm-started, crowding (Phase 8) DROPPED**
+(proxy-only, real positioning data infeasible solo, risks re-reading the vol axis — the curse-of-dimensionality
+waste). Each warm-started signal has a `NN-CHARTER-KICKOFF.md` (Stage-0 gate + header + mechanism + data plan +
+scope) under `.planning/phases/`, and its data pulled to `data/processed/`:
+- **04 Concentration** (FULL, proxy-scoped): French VW−EW leadership spread from `assets_daily.csv` (true
+  cap-HHI needs paywalled constituents — do NOT fake with today's membership). No new fetch.
+- **05 Diversification/absorption** (NARROW, lead-only): absorption ratio = PCA of `assets_daily.csv` panel; the
+  LEAD is the whole justification — kill if it fails to generalize (dispersion-lead bar). No new fetch.
+- **06 Credit/EBP** (FULL, residual only): `scripts/build_credit.py` → `credit_monthly.csv` (Fed EBP 1973+,
+  restated monthly = PIT caveat) + `credit_daily.csv` (OAS proxies 1986+).
+- **07 Funding** (NARROW binary flag, fold-into-Tail candidate): `scripts/build_funding.py` →
+  `funding_weekly.csv` (STLFSI4/NFCI) + `funding_daily.csv` (CP−bill, SOFR−EFFR). LIBOR→SOFR splice hazard;
+  OFR FSI funding sub-index = preferred PIT source, wire later.
+- **09 Tail** (FULL, options-implied): `scripts/build_tail.py` → `tail_daily.csv` (CBOE SKEW 1990+ + VIX term
+  slope). NO LONGER data-gated (realized-jump/bipower is the gated part, excluded). SKEW methodology-rebasing caveat.
+
+Each is a WARM START, not a charter: next step per signal = expand the kickoff into a full charter (V/R
+conditions worked with Adam) → build → one-look → dated sign-off. Boundary grep clean on all 5.
+
 ## NEXT ACTION
 
-**▶ After vol sign-off:** move to the next signal. **Phase 2** (stock-bond intl OOS) is GATED on JGB/Bund data
-(Adam provides). **Phase 3 valuation** (charter frozen 2026-08-03, sign-off pending) is buildable now → the
-recommended next unless JGB/Bund is ready. Vol validation PASSES (above); per Adam "if it passes move to the next
-signal" — but honor the dated sign-off + cooling-off first. `scratchpad/garch_horserace.py` holds the rolling-vs-
-expanding evidence.
+**▶ After vol's dated sign-off:** pick the next signal to take from kickoff → full charter → build. All are warm:
+- **Phase 2 (stock-bond intl OOS)** — un-gated (correction 2026-08-05): `scripts/build_intl_bonds.py` →
+  `intl_bonds_monthly.csv` (JP 10y 1989+, DE Bund 1956+, monthly = the signal's honest frequency). Pair with
+  monthly-resampled equity, run causal corr + hedge-behavior-by-state on JP+DE. Closest to done (US signal built).
+- **Phase 3 valuation** (charter frozen 2026-08-03, sign-off pending) — first fully-new signal.
+- **Phases 4/5/6/7/9** — warm-started (above); expand kickoff → charter first (D-15).
+Recommend Phase 2 first (most built), then valuation. No auto-advance; each signal gets its own one-look + sign-off.
+
+Vol validation PASSES; per Adam "if it passes move to the next signal" — but honor vol's dated sign-off +
+cooling-off first. `scratchpad/garch_horserace.py` holds the rolling-vs-expanding evidence.
 
 **Start building the layers (the signals).** Every signal MUST begin with a research charter (D-15, the six
 pre-registration questions) BEFORE any implementation — the framework's own admission discipline. Then it runs
