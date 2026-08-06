@@ -52,18 +52,23 @@ def test_vol_descriptors_build_is_causal(returns):
 
 
 def test_stockbond_corr_is_causal():
-    """The other built signal. Two-input (equity x bond), so this also exercises
-    the guard's DataFrame path — which credit / funding / tail will need."""
+    """The other built signal, guarded through its REAL `build()` — two-input
+    (equity x bond), so this also exercises the guard's DataFrame path, which
+    credit / funding / tail will need."""
     import stockbond_corr as sb
 
-    eq, bond = sb.load_returns()
-    panel = pd.DataFrame({"eq": eq, "bond": bond}).tail(4000)
+    assert_causal(sb.build, sb.load_us_panel().tail(4000))
 
-    def build(d: pd.DataFrame) -> pd.DataFrame:
-        corr = sb.rolling_corr(d["eq"], d["bond"], sb.PRIMARY_W)
-        return pd.DataFrame({"corr": corr, "z": sb.expanding_z(corr), "state": sb.sign_state(corr)})
 
-    assert_causal(build, panel)
+def test_stockbond_build_is_region_agnostic():
+    """`build(panel)` must not reach for the US panel behind the caller's back —
+    that was the Phase-2 blocker (it used to take no arguments at all)."""
+    import stockbond_corr as sb
+
+    panel = sb.load_us_panel().tail(3000)
+    half = sb.build(panel.tail(1500))
+    full = sb.build(panel)
+    assert len(half) < len(full), "build() ignored the panel it was handed"
 
 
 def test_guard_catches_a_real_leak(returns):

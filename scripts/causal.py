@@ -57,6 +57,20 @@ def expanding_percentile(x: pd.Series) -> pd.Series:
     return x.expanding().rank(pct=True).rename("vol_pctile")
 
 
+def expanding_z(x: pd.Series, min_periods: int = TRADING_DAYS) -> pd.Series:
+    """Causal expanding-window z-score: how unusual is today's level against its
+    OWN past only. The full-sample mean/std that most write-ups use leaks the
+    future distribution into every historical reading.
+
+    Companion to `expanding_percentile`: the z-score is scale-aware (how many
+    sigmas), the percentile is distribution-free (how often). Signals with
+    fat-tailed or bounded readings should prefer the percentile.
+    """
+    mean = x.expanding(min_periods=min_periods).mean()
+    std = x.expanding(min_periods=min_periods).std()
+    return ((x - mean) / std.replace(0.0, np.nan)).rename(f"{x.name or 'x'}_z")
+
+
 # ── the look-ahead guard ────────────────────────────────────────────────────────
 
 def _as_frame(obj: pd.Series | pd.DataFrame) -> pd.DataFrame:

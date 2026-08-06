@@ -22,6 +22,9 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from causal import ewma_vol, expanding_z
 
 PRIMARY_W = 126          # 6-month primary window (pre-committed 2026-08-02, before looking)
 ROBUST_W = (63, 252)     # quarter / year robustness windows
@@ -36,11 +39,20 @@ EPISODES = {
 }
 
 
-def load_returns():
+PANEL_COLUMNS = ("eq", "bond")   # the two-column schema every region must supply
+
+
+def load_us_panel() -> pd.DataFrame:
+    """US equity x 10y-bond daily returns, the signal's home panel (1962+)."""
     df = pd.read_csv(ROOT / "data" / "processed" / "assets_daily.csv",
                      parse_dates=["date"]).set_index("date")
-    both = df[["mkt_ret", "bond10_ret"]].dropna()   # bond10_ret starts 1962
-    return both["mkt_ret"], both["bond10_ret"]
+    panel = df[["mkt_ret", "bond10_ret"]].dropna()   # bond10_ret starts 1962
+    return panel.rename(columns={"mkt_ret": "eq", "bond10_ret": "bond"})
+
+
+def load_returns():
+    p = load_us_panel()
+    return p["eq"], p["bond"]
 
 
 def rolling_corr(eq, bond, window):
@@ -49,23 +61,11 @@ def rolling_corr(eq, bond, window):
     return eq.rolling(window).corr(bond)
 
 
-def expanding_z(x, min_periods=252):
-    """Causal 'how unusual is today's level' as a standardized score against its own past."""
-    mean = x.expanding(min_periods=min_periods).mean()
-    std = x.expanding(min_periods=min_periods).std()
-    return (x - mean) / std.replace(0.0, np.nan)
-
-
 def sign_state(corr, band=NEUTRAL_BAND):
     """Map the correlation to the assumption's status (observation, never an instruction)."""
     s = pd.Series(np.where(corr < -band, "intact",
                   np.where(corr > band, "violated", "under_test")), index=corr.index)
     return s.where(corr.notna())
-
-
-def realized_vol(eq, halflife=20):
-    """EWM realized equity vol, annualized — the vol sensor, for the orthogonality diagnostic."""
-    return eq.ewm(halflife=halflife).std() * np.sqrt(252)
 
 
 def monthly_corr(eq, bond, window_m=24):
@@ -132,25 +132,36 @@ def hedge_behavior_by_state(state, eq, bond):
     return pd.DataFrame(rows)
 
 
-def build():
-    eq, bond = load_returns()
+def build(panel: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Descriptor frame for ANY region's equity x bond panel (columns: eq, bond).
+
+    Region-agnostic by signature so the shared OOS harness can drive it (D-20);
+    defaults to the US home panel. Causal throughout — guarded by
+    `assert_causal` in tests/test_causal.py.
+    """
+    if panel is None:
+        panel = load_us_panel()
+    eq, bond = panel["eq"], panel["bond"]
+
     corr = {w: rolling_corr(eq, bond, w) for w in (PRIMARY_W, *ROBUST_W)}
     primary = corr[PRIMARY_W]
-    vol = realized_vol(eq)
 
-    out = pd.DataFrame({
+    return pd.DataFrame({
         "corr_126": primary,
         "corr_63": corr[63],
         "corr_252": corr[252],
         "level_z": expanding_z(primary),
         "state": sign_state(primary),
-        "eq_vol": vol,
+        # the vol sensor's own estimator, so the orthogonality diagnostic compares
+        # against the real signal rather than a local one-off (was ewm halflife=20)
+        "eq_vol": ewma_vol(eq),
     }).dropna(subset=["corr_126"])
-    return eq, bond, out
 
 
 def main():
-    eq, bond, out = build()
+    panel = load_us_panel()
+    eq, bond = panel["eq"], panel["bond"]
+    out = build(panel)
     (ROOT / "results").mkdir(exist_ok=True)
     out.to_csv(ROOT / "results" / "stockbond_corr.csv")
 
