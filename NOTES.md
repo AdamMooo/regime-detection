@@ -298,9 +298,33 @@ through: charter → research/build → validation (mechanism gate · confound �
 (3 non-compensatory axes + "why in front of an investor?") → cooling-off + dated sign-off → production.
 New in the DoD (2026-08-06): **`assert_causal(build, data)` must pass before the one-look.**
 
-**Phase 2 is next** (stock-bond intl OOS) — un-gated, data pulled (`intl_bonds_monthly.csv`, JP 10y 1989+, DE Bund
-1956+). Order: refactor `stockbond_corr.build()` onto `build(r)` + `causal.py` (see blocker above) → charter
-(no `.planning/phases/02-*` directory exists yet — Phase 2 has neither charter nor kickoff) → run → one-look.
+## PHASE 2 IN PROGRESS (2026-08-06) — refactor DONE, charter FROZEN, sign-off pending
+
+**Refactor done (no look spent).** `stockbond_corr.build(panel)` is now region-agnostic over a two-column
+`(eq, bond)` schema and sits on `causal.py`; `expanding_z` promoted to a shared primitive; the local
+`realized_vol` dropped in favour of the vol signal's own `ewma_vol` (so the orthogonality diagnostic compares
+against the real signal — its value moves slightly; it is a diagnostic, no reject condition rests on it).
+Guarded through the REAL `build()` in `test_causal.py`, plus a test that it cannot silently reach for the US
+panel behind the caller's back. `results/stockbond_corr.csv` regenerated to match its producer.
+
+**Charter frozen:** `.planning/phases/02-stockbond-signal/02-STOCKBOND-CHARTER.md` (v1.0, dated 2026-08-06,
+boundary grep clean). **Sign-off pending — the OOS run does NOT start until Adam signs.**
+
+**THE REGISTERED SCOPE LIMITATION (Adam's ruling 2026-08-06, before any look — do not lose this).** Both
+international equity panels start **1990-07**; JGB starts 1989. **The OOS sample does not contain the 1970s–80s
+inflation regime**, which is the era that makes the sign-flip mechanism interesting. Phase 2 can therefore test
+the 2022 flip + by-state hedge behaviour on 1990–2026 ONLY. Consequence: **`production` is unavailable to this
+phase; `research` is the ceiling.** Free deeper history does not exist — yfinance reaches only 1985 (Nikkei) /
+1987 (DAX) and is price-only, mismatching the bond total-return leg; MSCI and Global Financial Data are paywalled.
+Revisiting means buying data — a separate decision.
+
+**Two registered guards against reading noise as a result:** V4 is a **power pre-check** that runs BEFORE any
+by-state contrast is interpreted (a region with <24 months in any state → "insufficient coverage", not a weak
+finding); R5 makes **INCONCLUSIVE** a distinct registered outcome. Primary metric is hedge-behaviour-by-state,
+NOT average returns by state — the latter is confounded by the secular rate cycle (found 2026-08-02).
+
+**Open before the run:** Adam's dated charter sign-off, plus two `[recommended]` analysis-spec lines (24-month
+primary correlation window; equity-down defined as monthly equity return < 0).
 
 ## Signal-research discipline (full text in CLAUDE.md)
 
