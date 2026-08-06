@@ -32,8 +32,21 @@ momentum) was REMOVED from this repo 2026-08-02 — a separate concern; recovera
 
 ## File Map (scripts/)
 
-- `jumpmodel.py` — jump-model estimator (volatility/risk-off signal core); `walkforward.py` — walk-forward
-  pipeline; `backtest.py` — evaluation lib; `run_config.py` — protocol constants.
+**Shared signal infra (built ONCE, D-20 — every signal reuses it):**
+- `causal.py` — causal primitives (`ewma_vol`, `realized_vol`, `expanding_percentile`) + **`assert_causal`**, the
+  perturb-the-future look-ahead guard every signal's `build()` must pass before its one-look.
+- `run_oos.py` — generic Japan/Europe out-of-hypothesis-sample harness over any `build_region(returns)`.
+- `signal_output_schema.py` — executable HARD BOUNDARY (closed Level-0 allowlist + denylist + `validate()`).
+- `data_manifest.py` → `data/processed/MANIFEST.csv` — sha256/shape/date-span provenance for every panel.
+
+**Volatility signal (Phase 1.5, COMPLETE — signed off 2026-08-06, maturity `production`):**
+- `vol_descriptors.py` (measurement spine: level · rarity · drift · GARCH half-life) · `vol_read.py`
+  (presentation) · `validate_vol.py` (the frozen one-look → `results/vol_validation.txt`) · `vol_level0.py`
+  (emits + schema-validates `results/vol_level0.json`).
+
+**Retired jump-model program (being wound down, do not extend):**
+- `jumpmodel.py` — jump-model estimator; `walkforward.py` — walk-forward pipeline; `backtest.py` — evaluation
+  lib; `run_config.py` — protocol constants.
 - `build_panel.py` / `build_assets.py` / `build_intl_panel.py` / `build_trend_proxy.py` — data builders
   (US market TR, multi-asset incl. bond10/gold, Japan/Europe panels, trend proxy).
 - `stockbond_corr.py` — **stock-bond correlation signal** (inflation/real-rate; built this session).
@@ -44,13 +57,17 @@ momentum) was REMOVED from this repo 2026-08-02 — a separate concern; recovera
 - `validate_sensor.py`, `synthetic_validation.py`, `benchmark_detector.py` — signal validation / QA.
 - `regime_read.py`, `regime_panel.py`, `build_ohlc_panel.py`, `build_report.py` — human-facing read / report.
 
-Tests: `tests/{test_jumpmodel,test_backtest,test_regime_signal}.py` (23 passing). venv: `.venv`.
+Tests: `tests/{test_jumpmodel,test_backtest,test_regime_signal,test_boundary_audit,test_causal,
+test_reproducibility}.py` — **50 passing**, run with bare `pytest` (`pytest.ini` scopes collection to `tests/`).
+venv: `.venv`.
 
 ## Discipline (signal research — non-negotiable)
 
 - **Find → Validate → Present → STOP.** Each signal declares its 8-attribute spec (research question ·
   mechanism · data · metric · validation · failure modes · historical-context output · maturity) before it runs.
 - **Causal only** — trailing/forward filtering, no look-ahead, point-in-time data (macro series get revised).
+  **`assert_causal(build, data)` must pass before the one-look** — `tests/test_reproducibility.py` fails on any
+  new module defining `build()` that is not registered under the guard, so it cannot be skipped by omission.
 - **Validate honestly** — mechanism first; statistical orthogonality is a *diagnostic*, not the gate (keep
   signals that are statistically correlated but mechanistically distinct); confound-check every context stat;
   **out-of-hypothesis-sample confirmation on Japan/Europe** before any SUPPORT.
