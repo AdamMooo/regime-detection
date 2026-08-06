@@ -2,6 +2,7 @@ name: Tests
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     branches: [main]
 
@@ -13,7 +14,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - name: Install test dependencies
-        run: pip install numpy pandas pytest
-      - name: Jump-model and backtest suites
-        run: pytest tests/test_jumpmodel.py tests/test_backtest.py -v --tb=short
+          cache: pip
+
+      # Install the declared requirements, not a hand-picked subset. A subset is
+      # how `arch` stayed missing from requirements.txt while CI stayed green.
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Bare pytest = the whole suite, including the guards that matter:
+      # test_boundary_audit (HARD BOUNDARY), test_causal (look-ahead),
+      # test_reproducibility (declared deps, artifact/producer agreement,
+      # causal-guard registry). Never narrow this to named files again.
+      - name: Full suite
+        run: pytest -q

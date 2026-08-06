@@ -55,7 +55,7 @@ momentum) was REMOVED from this repo 2026-08-02 — a separate concern; recovera
 - `live_label.py` → `regime_signal.py` — live volatility label → `results/regime_card.json` (shipped; consumed
   by a separate downstream repo).
 - `validate_sensor.py`, `synthetic_validation.py`, `benchmark_detector.py` — signal validation / QA.
-- `regime_read.py`, `regime_panel.py`, `build_ohlc_panel.py`, `build_report.py` — human-facing read / report.
+- `build_ohlc_panel.py` — range-based (Parkinson) estimator inputs.
 
 Tests: `tests/{test_jumpmodel,test_backtest,test_regime_signal,test_boundary_audit,test_causal,
 test_reproducibility}.py` — **50 passing**, run with bare `pytest` (`pytest.ini` scopes collection to `tests/`).

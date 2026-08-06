@@ -252,8 +252,27 @@ whole purpose of this funnel").** Every test below exists because that exact fai
   structural enforcement, same pattern as the boundary audit); **(6)** the guard registry names no dead modules.
 - The registry test earned its keep immediately: it flagged `data_manifest.build()`, so that was renamed
   `build_manifest()` — `build()` in `scripts/` now unambiguously means "a signal construction."
-- `regime_read.build()` is the one documented exception (retired jump-model read path).
-- **50 tests pass.**
+- `CAUSAL_GUARD_EXCEPTIONS` is **empty** — the correct state; an entry there is a debt, not a design.
+
+**DEAD-CODE PURGE (2026-08-06).** Deleted: `scripts/{build_report,regime_read,regime_panel}.py`,
+`results/{regime_panel.csv, regime_read_latest.json, explore_dispersion_intl_japan.csv,
+explore_dispersion_intl_europe.csv}`, `.planning/MONITOR-VALIDATION-SPEC.md` (spec for a monitor whose runner was
+never built, on the retired K=2 label), `.planning/archive/V2-JUMPMODEL-PLAN.md` (a build plan, not a
+pre-registration). **KEPT deliberately:** all six `.planning/archive/*-PREREG.md` + `CH3-D2-MEMO` — frozen
+pre-registrations are the evidence the nulls were called honestly and in advance; stale-looking is what a
+scientific record looks like.
+
+**NOT deleted — the live chain.** `live_label.py` → `regime_signal.py` → `results/regime_card.json` is a REAL
+contract: `.github/workflows/weekly-regime-card.yml` regenerates it weekly and a separate downstream repo fetches
+it PAT-authed. `jumpmodel/walkforward/backtest/run_config` are its dependencies. Retiring it = coordinating with
+the consumer repo first. Do not delete unilaterally.
+
+**CI GAP FOUND + FIXED — this one mattered.** `.github/workflows/tests.yml` installed only `numpy pandas pytest`
+and ran only `test_jumpmodel.py` + `test_backtest.py` — the two suites for the RETIRED program. **The boundary
+audit, the causal guard and the reproducibility tests never ran in CI.** Now: `pip install -r requirements.txt`
++ bare `pytest -q` (whole suite), and it runs on PRs too. Never narrow it to named files again.
+
+- **49 tests pass** (was 50; the boundary audit had a per-JSON case for the deleted `regime_read_latest.json`).
 
 **Phase-2 blocker found (no look spent):** `stockbond_corr.py:135` `build()` takes NO arguments — it loads its own
 US panel, so it cannot feed `run_oos(build_region)`, which requires `build(r)`. It also re-implements

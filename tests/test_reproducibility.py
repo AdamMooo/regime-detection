@@ -111,9 +111,8 @@ def test_data_manifest_covers_every_processed_panel():
 
 # Modules exposing a signal `build()` that are NOT under the causal guard, with
 # the reason. Anything else defining `build()` must be covered in test_causal.py.
-CAUSAL_GUARD_EXCEPTIONS = {
-    "regime_read": "retired jump-model read path (superseded by vol_descriptors, 2026-08-04)",
-}
+# Empty is the correct state — an entry here is a debt, not a design.
+CAUSAL_GUARD_EXCEPTIONS: dict[str, str] = {}
 CAUSALLY_GUARDED = {"vol_descriptors", "stockbond_corr"}
 
 

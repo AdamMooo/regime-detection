@@ -140,13 +140,16 @@ All code is flat in `scripts/` (there is no `src/` package).
 `build_ohlc_panel.py` (range-based estimator inputs) · `build_trend_proxy.py`.
 
 **Retired-program code still in the tree** — `jumpmodel.py`, `walkforward.py`, `backtest.py`, `run_config.py`,
-`live_label.py`, `regime_signal.py`, `validate_sensor.py`, `synthetic_validation.py`, `benchmark_detector.py`,
-`regime_read.py`, `regime_panel.py`, `build_report.py`. These implement the K=2 jump-model state label and its
-evaluation. The volatility signal was reframed away from that label on 2026-08-04 —
-`results/detector_benchmark.csv` shows a plain causal vol threshold with hysteresis matching or beating the jump
-model on precision, recall and BAC at both bear datings, with shorter detection lag. `live_label.py` →
-`regime_signal.py` still generates `results/regime_card.json` for a downstream consumer and is being retired;
-`build_report.py` still renders the retired chapter-1/2 framing.
+`live_label.py`, `regime_signal.py`, `validate_sensor.py`, `synthetic_validation.py`, `benchmark_detector.py`.
+These implement the K=2 jump-model state label and its evaluation. The volatility signal was reframed away from
+that label on 2026-08-04 — `results/detector_benchmark.csv` shows a plain causal vol threshold with hysteresis
+matching or beating the jump model on precision, recall and BAC at both bear datings, with shorter detection lag.
+
+They remain because `live_label.py` → `regime_signal.py` → `results/regime_card.json` is a **live data contract**:
+a weekly GitHub Action (`.github/workflows/weekly-regime-card.yml`) regenerates the card, and a separate
+downstream repo fetches it. Retiring the chain means coordinating with that consumer, so it is deliberate but
+unscheduled. The dead read/report scripts around it (`build_report.py`, `regime_read.py`, `regime_panel.py`) were
+deleted 2026-08-06.
 
 ## Quickstart
 

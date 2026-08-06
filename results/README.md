@@ -63,19 +63,15 @@ them.
 - `regime_card.json` — `scripts/regime_signal.py`, the data contract consumed by a separate downstream repo. It
   contains the one documented deferred boundary exception, `gauge.position` (rename to `dwell_rank` needs
   coordinating with the consumer); see `tests/test_boundary_audit.py`.
-- `regime_panel.csv` — `scripts/regime_panel.py` (multi-timescale / multi-lens agreement characterisation).
-- `regime_read_latest.json` — `scripts/regime_read.py`.
-
-## Orphans — no producer left in the tree
-
-- `explore_dispersion_intl_japan.csv`, `explore_dispersion_intl_europe.csv` — the international confirmation that
-  CLOSED the sector-dispersion lead candidate (the US −40d lead did not generalize: Japan +154d, Europe +94d). The
-  exploration script was removed with the direction; the files are kept as the record of the closure.
-
 ## Removed
 
+- **2026-08-06 cleanup** — `regime_panel.csv`, `regime_read_latest.json` (producers `regime_panel.py` /
+  `regime_read.py` deleted with them: retired jump-model read paths, superseded by `vol_descriptors.py` +
+  `vol_read.py`), and `explore_dispersion_intl_{japan,europe}.csv` (the orphaned record of the CLOSED
+  sector-dispersion lead candidate — the US −40d lead did not generalize: Japan +154d, Europe +94d). All
+  recoverable in git history; the closure itself is recorded in `RESEARCH-RECORD.md` and the memory index.
+- `report.html` + `scripts/build_report.py` — deleted 2026-08-06. The report rendered the retired chapter-1/2
+  framing; the current human-facing read is `vol_read.py` and the Level-0 records.
 - `backtest_*.csv` (chapter-1/2 battery output) — no longer regenerable; the runners were removed 2026-07-27
   (one-looks spent, both chapters closed). Reproducible at git commit `51fbeff`.
-- `report.html` — not currently present; `scripts/build_report.py` regenerates it, but it still renders the
-  retired chapter-1/2 framing.
 - v1-era result files (and the HDP pipeline) were removed 2026-07-23; recover at git tag `v1-convergence`.

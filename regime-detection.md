@@ -108,14 +108,13 @@ No auto-advance. Every signal gets its own one-look and its own dated sign-off.
 
 ## Known Issues
 
-- **`scripts/build_report.py` renders the retired v2 program.** It does *not* crash on the deleted
-  chapter-2 CSVs — `build_alloc_data()` guards with `if not p.exists(): return None` (`build_report.py:145`) and
-  `main()` runs clean; the earlier "will crash if run as-is" note was wrong. The real problem is content: the
-  report is still chapter-1/2 framing built on the jump-model label. It needs refocusing on signals, or retiring.
-- **Retired jump-model code still in the tree.** `live_label.py` → `regime_signal.py` still generates
-  `results/regime_card.json` for a downstream consumer, and `jumpmodel.py` / `walkforward.py` / `backtest.py` /
-  `regime_read.py` / `regime_panel.py` remain. Retirement is deliberate-but-unscheduled; the downstream contract
-  has to be handled first.
+- **Retired jump-model code still in the tree — and it is LIVE, not merely stale.** `live_label.py` →
+  `regime_signal.py` → `results/regime_card.json` is a real data contract: a weekly GH Action
+  (`.github/workflows/weekly-regime-card.yml`) regenerates the card and a separate downstream repo fetches it
+  PAT-authed. `jumpmodel.py` / `walkforward.py` / `backtest.py` / `run_config.py` are its dependencies and must
+  stay until the consumer is migrated. Retirement is deliberate-but-unscheduled — **coordinate with the consumer
+  first**. (The dead scripts *around* the chain — `build_report.py`, `regime_read.py`, `regime_panel.py` — were
+  deleted 2026-08-06.)
 - **`gauge.position` → `gauge.dwell_rank` rename outstanding.** A boundary leak in `results/regime_card.json`,
   carried as the single documented exception in `tests/test_boundary_audit.py`. Needs a coordinated rename with the
   consumer repo, then the exception is removed. End-of-project cleanup.

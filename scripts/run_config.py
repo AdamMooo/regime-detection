@@ -2,9 +2,9 @@
 
 Extracted from run_backtest.py (2026-07-27) when the Ch1/Ch2 one-look battery runners were
 removed from the tree (one-look spent, chapters closed — see NOTES.md). This module holds only
-what the living instrument pipeline (live_label.py, build_report.py) still needs: the frozen
-protocol's constants and two small arm-return helpers. Reproducible battery logic at git commit
-51fbeff (last commit before removal).
+what the live label pipeline (live_label.py → regime_signal.py → results/regime_card.json) still
+needs: the frozen protocol's constants and two small arm-return helpers. Reproducible battery
+logic at git commit 51fbeff (last commit before removal).
 """
 
 import numpy as np
