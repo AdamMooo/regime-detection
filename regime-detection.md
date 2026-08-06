@@ -4,126 +4,128 @@ project: regime-detection
 ---
 # Regime Detection
 
-Market regime detection under prereg/causal discipline. **v1** (HDP-HMM + four successor
-formulations): five preregistered nulls, CONVERGED, sealed at git tag `v1-convergence` — durable
-narrative in `RESEARCH-RECORD.md`. **v2** (statistical jump model, the field-standard estimator,
-on Ken French daily data 1926+): chapter 1 closed 2026-07-23 with a preregistered one-look
-backtest. **v3** (2026-08-02): repo refocused to a **market-signal research system** — finds/validates/presents
-independent signals + historical context, then STOPS (no allocation/decisions; see CLAUDE.md HARD BOUNDARY,
-`.planning/PROJECT.md`). Everything below dated ≤2026-07-29 is v2 history.
+A **market-signal observatory**: `market data → independent validated signals → historical context → regime
+relevance → STOP`. Each signal is a standalone research module measuring one market mechanism, saying how unusual
+the current reading is against its own long history, and naming the abstract market assumption it bears on — then
+stopping. No forecast, no score, no decision (see [[regime-detection/CLAUDE|CLAUDE.md]] HARD BOUNDARY). The
+intelligence is the quality of each individual signal, never a combination of them.
+
+Governing docs: [[_planning/regime-detection/REGIME-SENSOR-ARCHITECTURE|REGIME-SENSOR-ARCHITECTURE.md]] (system
+design, incl. the 2026-08-06 objective restatement) and `.planning/framework/` (frozen v1.0 2026-08-03, now v1.1
+after the Stage-0 gate amendment — the spec every signal declares against).
 
 ## Status
 
-**2026-08-03 — PIVOT to the market-signal system + GSD roadmap set up.** The equity-ownership / allocation
-program was removed from this repo 2026-08-02 (constitution, offense/defense, factor, momentum — a separate
-concern, recoverable in git history). The repo is now a market-*understanding* layer: independent, mechanism-
-validated signals each monitoring one abstract market assumption. Two signals exist (volatility/risk-off shipped;
-**stock-bond correlation** built + US-validated this session, `scripts/stockbond_corr.py`). GSD is now set up as a
-**10-phase roadmap** (`.planning/ROADMAP.md`): Phase 1 = shared signal framework, Phases 2–9 = one signal each
-(stock-bond intl-OOS · valuation · concentration · absorption · credit/EBP · funding · crowding · tail), Phase 10 =
-presentation/assumption ledger — every phase's DoD identical: **Find → Validate → Present → STOP**. Governing
-design: `.planning/REGIME-SENSOR-ARCHITECTURE.md`. **Next action: `/gsd:plan-phase 1`.**
+**2026-08-06 — volatility signal COMPLETE (first signal through the full DoD).** Adam's dated results sign-off
+landed (`.planning/phases/01.5-volatility-signal/1.5-VOLATILITY-CHARTER.md` §RESULTS SIGN-OFF): V2–V5 pass, no
+reject condition tripped, **maturity derived = `production`**, and the **RF open item is CLOSED** — the
+out-of-hypothesis-sample evidence is now a literal Japan/Europe run, not an appeal to the universal vol-clustering
+stylized fact. Scope is deliberately narrow: a *measurement* claim, never forecastability. Level-0 record emitted
+and schema-validated (`scripts/vol_level0.py` → `results/vol_level0.json`). Reproducibility hardening the same
+day, each test written against a failure that actually happened: `requirements.txt` completed (arch / statsmodels /
+scikit-learn / matplotlib), `tests/test_reproducibility.py` added, `causal.assert_causal` added to the DoD
+(a signal's `build` must pass it before its one-look), `scripts/data_manifest.py` → `data/processed/MANIFEST.csv`
+for data provenance, and `pytest.ini` so bare `pytest` works (50 pass).
 
-**2026-07-29 — the downstream consumer integration LIVE, verified end-to-end.** `REGIME_REPO_PAT`
-created; confirmed via real (not dry-run) GH Actions: `Weekly Regime Card` here, plus
-`Daily Market Brief` and `Weekly Regime Brief` in the downstream consumer, all green on both their
-own cron and manual dispatch. The regime sections now actually populate in the real emails.
-One disclosed fragility, not a bug: PAT expiry is a silent self-omit, no alert wired — a
-manual calendar check before it lapses is the only safeguard. **Focus now shifts to improving
-report content/quality**, not shipping the pipe.
+**2026-08-06 — objective restated; measurement system ≠ prediction system.** Recorded in the architecture doc: the
+signals are *expected* to be mostly known relationships (Engle, Campbell–Shiller, Kritzman, Gilchrist–Zakrajšek) —
+reproducing them point-in-time, causally, cross-regionally is the pass condition of an instrument, not a thin
+result. The edge hypothesis is explicitly **not** "signal X predicts the market" but "multiple validated
+measurements of different mechanisms describe market state more completely than any single indicator." Prohibited
+by name: market-timing labels · predictive models without economic justification · weights optimized on historical
+returns · composite scores built to maximize backtests. No backtesting engine enters the repo. Sequencing
+consequence: build the remaining signals out first — the joint-configuration question is deferred to Phase 10 and
+must not be pre-empted signal by signal. Same day: the stale root docs (`README.md`, this hub, `results/README.md`)
+rewritten to match reality.
 
-**2026-07-27 — repo refocused to instrument+paper+live-feed only; regime_card.json now feeds
-the downstream consumer (daily one-liner + weekly deep-dive email).** Removed the closed-chapter
-battery runners (`run_backtest.py`/`run_allocation.py`/`allocation.py` — one-looks spent,
-reproducible at commit `51fbeff`); extracted the constants the live pipeline still needs into
-`scripts/run_config.py`. Finished `regime_signal.py`'s `persistence_gauge()` (Markov expected
-dwell/half-life + empirical position vs history) and added a weekly GH Action
-(`weekly-regime-card.yml`, verified live) that regenerates and commits `regime_card.json`.
-Enriched the card same day (prompted by "what's still missing"): `health` (today's live-splice
-correlation/pass-fail, the earliest warning of a bad reading), `skill` (the real bear-catch
-track record — 15/18 at 20d lag, 9/11 at 56d lag — vs `validate_sensor.py`), and `history`
-(trailing 24-month state timeline for a sparkline). the downstream consumer consumes all three via
-`src/regime.py`; vol-diagnostics is explicitly NOT a consumer (stays a separate showcase
-project). Considered reopening the parked asymmetric-λ/K=3-severity speed work now that a real
-downstream consumer exists — Adam's call: **stay parked**, the lag is an honest, disclosed
-tradeoff (monitor spec C7), not a bug to chase. Only remaining step: Adam creates
-`REGIME_REPO_PAT` so the emails actually populate.
+**2026-08-05 — volatility one-look run and passed + 5 signals warm-started.** Vol charter signed off, then the
+frozen one-look ran (`scripts/validate_vol.py` → `results/vol_validation.txt`): V2–V5 all pass — GARCH structure
+remarkably consistent across US/Japan/Europe (α≈0.09, β≈0.89), level robust to λ and to a range-based estimator,
+rarity percentile well-behaved. Rolling-only locked (rolling ≈ expanding, DM t=0.65; expanding fails the D-19
+leave-one-out as a live reading). Shared infra built once (D-20): `scripts/causal.py` (causal primitives),
+`scripts/run_oos.py` (generic Japan/Europe harness). Persistence estimator **deviates** from the registered AR(1)
+to GARCH(1,1)-t — disclosed: AR(1) on rolling realized vol manufactures autocorrelation from return overlap, so its
+half-life just tracked the smoothing window. Separately, triage warm-started 5 signals (concentration ·
+absorption · credit/EBP · funding · tail) with kickoff briefs + pulled data, and **dropped crowding (Phase 8)** —
+proxy-only, and it risks re-reading the vol axis.
 
-**2026-07-23 — Chapters 1 AND 2 CLOSED same day; program direction decided: the paper.**
-Chapter 1 (Case B): the "regime switching beats buy-and-hold" claim is an exposure artifact
-(fee +488 bps inside every null band); **vol targeting dominates the overlay** (−256 bps, CI
-excl. 0). Chapter 2 (NULL, prereg Rev 2.1 after same-day outside audit + synthetic smoke):
-state-conditional covariance in a multi-asset ERC adds +2.8 bps vs its unconditional twin
-(inside all bands) and **loses −29 bps to a plain EWMA-covariance twin** — the v1 chapter-3
-lesson, preregistered. Program lesson: reactive estimators win daily-horizon lag races.
-**The label itself remains the asset**: 100.0% stability (±2y shifts), live to today via
-SPY splice (CALM since 2026-04-23). Visual: `results/report.html` (rehauled as a living
-program report: status tiles, claims-vs-honest-bar ladder, sensor section, fork).
+**2026-08-04 — volatility reframed from a STATE to continuous DESCRIPTORS (Phase 1.5 inserted).** The K=2
+jump-model label loses to a plain causal vol threshold with hysteresis on every skill axis
+(`results/detector_benchmark.csv`) and the thresholding step throws away σ's graded information. Vol is now
+`scripts/vol_descriptors.py` (measurement spine) + `scripts/vol_read.py` (presentation): level/percentile · drift ·
+rarity · durability. "Barometer, not switch."
 
-**2026-07-23 evening — chapter 3 designed + both gates run; program restated to three
-layers (measurement ≠ risk characterization ≠ decision value, `PROGRAM.md`).**
-Probability layer KILLED (calibration gate: the filter's evidence margin loses to plain
-EWMA vol on Brier AND AUC in all 8 synthetic DGP cells — classification is robust, the
-margin is not a portable confidence measure). K=3 probe: stable severity ladder (1.000
-both ±2y shifts), phase-tilted but NO phase state → M3 dead. Episode anatomy: real phase
-structure, but the ex-post rebound premium collapses under causal conditioning; episode
-age = the surviving causal coordinate, unvalidated. **D2 ruled (Adam): REGISTERED NULL** —
-chapter 3 is the clean state-only dial (VT vs VT·g(S), g∈[0,2], hard label), draft Rev 3;
-M2/age deferred to screened ch4 candidate (`CH3-D2-MEMO.md`). Risk-state monitor spec'd
-claim-by-claim (`MONITOR-VALIDATION-SPEC.md`).
+**2026-08-03 — Phase 1 framework FROZEN v1.0 (signed off).** `.planning/framework/` holds the 8-attribute signal
+spec, the validation standards, the charter template, and the unified admission model (D-17: a binary mechanism
+prerequisite gate + three non-compensatory axes — measurement validity · investment usefulness · evidence
+maturity — with the maturity tag *derived*, never asserted; composite scalars forbidden). Enforcement is live in
+code, not prose (D-18): `scripts/signal_output_schema.py` + `tests/test_boundary_audit.py`, which on day one caught
+a real boundary leak every manual grep had missed. System framing locked as **factor observatory /
+decision-support layer**; module = **signal** (canonical). Valuation charter frozen the same day (Phase 3,
+sign-off pending, no data look spent).
 
-**2026-07-24 — TOOL-FIRST PIVOT (Adam: "we have a strong regime tool, that's the
-focus").** Both pending rulings dissolved: **ch3 one-look PARKED, not spent** (scarce +
-irreversible; §6b smoke half-blind — de-risk power only; two nulls already banked; reserve
-for a post-Sensor-v3 test), runner/prereg kept intact; §6b one-directional-power logged as
-a paper methods finding. Roadmap → three parallel tool streams. Autonomous burst this day:
-`paper/OUTLINE.md` reframed instrument-first ("Measurement Validity ≠ Decision Value" —
-instrument to §3, three Layer-3 races §§4–6, monitor §8, graded-exposure demoted to §10
-"parked"); paper §1 + §3 drafted (v0); Sensor v3 tier-1 data foundation built
-(`scripts/build_dispersion.py` — realized cross-sectional dispersion 1926+, gate PASS, 0.78
-own-vol corr = modest distinct axis). Guardrail: "strong tool" = Layers 1–2 only; never
-relaunder a Layer-3 null.
+**2026-08-02 — PIVOT to the market-signal system.** The equity-ownership program (a separate concern) was removed
+from this repo; recoverable in git history. Ten-phase roadmap set up, every phase's DoD identical: Find → Validate
+→ Present → STOP. Stock-bond correlation signal built and US-validated 1962–2026 (`scripts/stockbond_corr.py`) —
+the hedge-behaviour-by-state metric confirms the mechanism; average-return-by-state is confounded by the rate cycle
+and was rejected as the metric.
 
-**2026-07-26 — Path-B cross-asset candidate opened + de-risked (descriptive, no look).**
-Adam surfaced Shu–Yu–Mulvey **2025** (allocation sequel); opened cross-sectional defensive
-rotation — the one Layer-3 door where the auto-loss-to-reactive condition is absent. Findings
-(`PROGRAM.md` candidate; scripts `rotation_precondition` / `hedge_anatomy` / `build_trend_proxy`):
-per-asset regimes diverge (mixed ~76% of days); **bonds aren't a reliable hedge in this market
-(failed 2022/2025)** — confirmed; **gold = only both-regime hedge, trend = best in the
-bonds-failed crisis + positive carry, BTC = amplifier not hedge**; feature lens = conditional
-return (B), not own-vol. Trend proxy GATE PASS (corr vs DBMF 0.69). **Go/no-go backtest → NULL:
-timing adds no return/Sharpe beyond exposure, and a matched vol-target matches/beats its drawdown
-protection (ch.1, 3rd reconfirm). Direction CLOSED.** Survivors: the descriptive hedge facts, the
-trend-proxy tool, and a 4th dominated-use race for the paper. All committed + pushed.
+**History — v1 and v2 (both closed, worth remembering).** *v1* (sticky HDP-HMM plus four successor formulations)
+converged through five preregistered nulls and is sealed at git tag `v1-convergence`. *v2* (the K=2 statistical
+jump model on Ken French daily data 1926+) ran three chapters through 2026-07: **chapter 1 closed 2026-07-23** —
+"regime switching beats buy-and-hold" is an exposure artifact (fee inside every null band) and vol targeting
+dominates the overlay; **chapter 2 closed the same day as a registered NULL** — state-conditional covariance adds
+nothing over its unconditional twin and loses to a plain EWMA twin; the **probability layer was KILLED** on a
+calibration gate (the filter's evidence margin loses to plain EWMA vol on Brier *and* AUC in all 8 synthetic DGP
+cells); **chapter 3's one-look was deliberately never spent**. Two further directions closed the same way: the
+sector-dispersion lead did not generalize (Japan +154d, Europe +94d) and the cross-asset defensive-rotation probe
+returned NULL. Program lesson, reconfirmed three times: *reactive estimators win daily-horizon lag races* — which
+is exactly why this repo now measures rather than decides. Durable narrative:
+[[regime-detection/RESEARCH-RECORD|RESEARCH-RECORD.md]].
 
 ## Next
 
-**`/gsd:plan-phase 1`** — decompose the Signal Framework phase (lock the shared 8-attribute spec + validation
-standards + output format + maturity model before building more signals). Then Phase 2 (stock-bond intl OOS,
-gated on JGB/Bund series) and Phase 3 (valuation) — full sequence in `.planning/ROADMAP.md`. Discipline per
-signal: mechanism gate → causal validation with confound-checks → Japan/Europe out-of-hypothesis-sample
-confirmation before any SUPPORT → historical-context output, zero decision content.
+Volatility is done. Take the next signal kickoff → full charter → build → one-look → dated sign-off. All are warm:
 
-_v2 standing work (paper, sensor-v3, monitor) is deprioritized under the v3 refocus — the durable record lives in
-`RESEARCH-RECORD.md`; parked/killed items were in the now-removed `PROGRAM.md` (git history)._
+- **Phase 2 — stock-bond correlation intl OOS.** Closest to done; un-gated since 2026-08-05
+  (`scripts/build_intl_bonds.py` → `intl_bonds_monthly.csv`, JP 10y 1989+, Bund 1956+, monthly = the signal's
+  honest frequency). Recommended first. Order: refactor `stockbond_corr.build()` onto `build(r)` + `causal.py`
+  (it currently takes no arguments and loads its own US panel, so it cannot feed `run_oos` — and it re-implements
+  primitives instead of importing them, D-20 drift) → charter (no `.planning/phases/02-*` directory exists yet)
+  → run → one-look.
+- **Phase 3 — valuation.** Charter frozen 2026-08-03, sign-off pending; the first fully-new signal.
+- **Phases 4 / 5 / 6 / 7 / 9** — warm-started with kickoff briefs and data; each needs its charter expanded first
+  (D-15, charter before implementation).
+
+No auto-advance. Every signal gets its own one-look and its own dated sign-off.
 
 ## Memory
 
-- **Operations:** [[regime-detection/CLAUDE|CLAUDE.md]] (file map, live-vs-frozen, discipline)
+- **Operations:** [[regime-detection/CLAUDE|CLAUDE.md]] (boundary, file map, discipline)
 - **Notes:** [[regime-detection/NOTES|NOTES.md]] (session state, read first)
 - **Research narrative:** [[regime-detection/RESEARCH-RECORD|RESEARCH-RECORD.md]] (newest-first)
+- **Public orientation:** [[regime-detection/README|README.md]] (what the repo is, signal status, quickstart)
 
 ## Known Issues
 
-- **`scripts/build_report.py` renders a "Chapter 2 — allocator" section that reads now-deleted
-  `results/allocation_*.csv`** (equity-program removal, 2026-08-02) — it will crash if run as-is. Needs the
-  Chapter-2 block removed and the report refocused on signals. Deferred (real refactor, not a doc fix). `README.md`
-  similarly still lists deleted `run_allocation.py`/`allocation.py` (README is maintained separately).
-- French data publishes with a 1–2 month lag — handled by the SPY-splice live tail
-  (`scripts/live_label.py`, gate PASS corr 0.9957, 1.0000 agreement on overlap); the
-  splice must be refreshed when displaying a current state (monitor claim C0).
-- Chapter-3 prereg has one recorded defect (§10a): the M3 phase-separation criterion was
-  frozen qualitatively — resolved by Adam's explicit ruling, kept on record for referees.
-- HDP pipeline fully retired 2026-07-23 (its label was never consumed by anything). Recoverable
-  in git history if ever needed. The jump-model label's downstream integration is real and
-  **live** (2026-07-27 built, 2026-07-29 verified via actual GH Actions runs — no longer blocked).
+- **`scripts/build_report.py` renders the retired v2 program.** It does *not* crash on the deleted
+  chapter-2 CSVs — `build_alloc_data()` guards with `if not p.exists(): return None` (`build_report.py:145`) and
+  `main()` runs clean; the earlier "will crash if run as-is" note was wrong. The real problem is content: the
+  report is still chapter-1/2 framing built on the jump-model label. It needs refocusing on signals, or retiring.
+- **Retired jump-model code still in the tree.** `live_label.py` → `regime_signal.py` still generates
+  `results/regime_card.json` for a downstream consumer, and `jumpmodel.py` / `walkforward.py` / `backtest.py` /
+  `regime_read.py` / `regime_panel.py` remain. Retirement is deliberate-but-unscheduled; the downstream contract
+  has to be handled first.
+- **`gauge.position` → `gauge.dwell_rank` rename outstanding.** A boundary leak in `results/regime_card.json`,
+  carried as the single documented exception in `tests/test_boundary_audit.py`. Needs a coordinated rename with the
+  consumer repo, then the exception is removed. End-of-project cleanup.
+- **`scripts/stockbond_corr.py` is off the shared spine.** `build()` takes no arguments (loads its own US panel),
+  so it cannot feed `run_oos(build_region)`, and it re-implements `realized_vol` / `expanding_z` locally instead of
+  importing `causal.py` (D-20 drift). Blocks the Phase-2 Japan/Germany run; fix first, no look spent.
+- **`.planning/ROADMAP.md` still lists Phase 8 (crowding)**, dropped 2026-08-05, and still shows Phase 9 (tail) as
+  data-gated, which it no longer is. GSD-managed file, not hand-edited.
+- French data publishes with a 1–2 month lag — handled by the SPY-splice live tail (`scripts/live_label.py`, gate
+  PASS corr 0.9957, 1.0000 agreement on overlap); the splice must be refreshed when displaying a current reading.
+- **Resolved 2026-08-06, kept for the record:** the RF open item (volatility's provisional `production` tag) is
+  closed by the literal Japan/Europe V5 run and the dated sign-off; `results/vol_descriptors.csv` is back in sync
+  with its producer's columns; bare `pytest` works again via `pytest.ini`.

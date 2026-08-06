@@ -10,6 +10,8 @@ Volatility signal (Phase 1.5) is the first consumer; later signals import the
 same primitives.
 """
 
+from typing import Callable
+
 import numpy as np
 import pandas as pd
 
@@ -53,3 +55,59 @@ def expanding_percentile(x: pd.Series) -> pd.Series:
     future distribution into today's reading.
     """
     return x.expanding().rank(pct=True).rename("vol_pctile")
+
+
+# ── the look-ahead guard ────────────────────────────────────────────────────────
+
+def _as_frame(obj: pd.Series | pd.DataFrame) -> pd.DataFrame:
+    return obj.to_frame() if isinstance(obj, pd.Series) else obj
+
+
+def assert_causal(
+    build_fn: Callable[[pd.Series | pd.DataFrame], pd.Series | pd.DataFrame],
+    r: pd.Series | pd.DataFrame,
+    cut: pd.Timestamp | None = None,
+    seed: int = 0,
+) -> None:
+    """Property check that a construction cannot see the future.
+
+    Every reading at or before `cut` must be BIT-IDENTICAL when the input
+    strictly after `cut` is replaced with different data. This is the one test
+    that actually proves the absence of look-ahead: reading the code proves
+    intent, this proves behaviour. Reasoning about `.rolling()` vs `.expanding()`
+    vs a stray `.shift(-1)` is exactly the kind of thing that is right in review
+    and wrong in the pipeline.
+
+    Every signal's `build()` is required to pass this before its one-look
+    (validation-standards §(b), causal/PIT). Raises AssertionError naming the
+    first column and date that moved.
+    """
+    if cut is None:
+        cut = r.index[int(len(r) * 0.7)]
+
+    base = _as_frame(build_fn(r))
+
+    rng = np.random.default_rng(seed)
+    perturbed = r.copy()
+    future = perturbed.index > cut
+    n_future = int(future.sum())
+    if isinstance(r, pd.DataFrame):
+        for col in r.columns:
+            perturbed.loc[future, col] = rng.normal(0.0, 5.0 * float(r[col].std()), n_future)
+    else:
+        perturbed.loc[future] = rng.normal(0.0, 5.0 * float(r.std()), n_future)
+    pert = _as_frame(build_fn(perturbed))
+
+    a = base.loc[:cut]
+    b = pert.loc[:cut].reindex(a.index)
+
+    for col in a.columns:
+        if a[col].equals(b[col]):
+            continue
+        same = (a[col] == b[col]) | (a[col].isna() & b[col].isna())
+        first = a.index[~same][0]
+        raise AssertionError(
+            f"LOOK-AHEAD LEAK in column '{col}': the reading at {first.date()} changed "
+            f"when data after {pd.Timestamp(cut).date()} was replaced "
+            f"({a[col][first]!r} -> {b[col][first]!r})."
+        )

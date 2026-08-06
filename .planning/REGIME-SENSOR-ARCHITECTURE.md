@@ -27,6 +27,55 @@ conclusion. It is NOT a return-timing engine and NOT a decision engine: detectin
 smuggle back the prediction goal three closed nulls already killed, nor drift into deciding what to do about it.
 *Better-informed human judgment* is the claim; *forecasts, or machine decisions,* is the trap.
 
+## Objective restatement (Adam, 2026-08-06) — measurement system ≠ prediction system
+
+Recorded verbatim in substance because it settles what "success" means for every remaining phase.
+
+**The purpose is not a market-prediction engine or an alpha signal.** No drifting into optimizing a model to
+forecast returns, predict crashes, or generate buy/sell labels.
+
+**The individual signals are EXPECTED to be mostly known relationships. That is not a failure.** Vol clustering
+is Engle (1982); valuation → long-horizon returns is Campbell–Shiller (1988); absorption is Kritzman et al.
+(2011); EBP is Gilchrist–Zakrajšek (2012). Reproducing them is the *pass condition* of a measurement instrument,
+not a thin result. The research value is in building a **point-in-time, causal, out-of-sample, cross-regional
+measurement framework** and in understanding **how multiple orthogonal mechanisms combine** — which almost
+nobody does, because the published versions are typically in-sample, US-only, and single-signal.
+
+**The edge hypothesis is NOT** "signal X predicts the market."
+**The edge hypothesis IS:** *multiple validated measurements of different market mechanisms provide a more
+complete assessment of market state than any single indicator.*
+
+Each signal is a **sensor** of one mechanism: volatility measures instability · breadth measures participation ·
+credit measures funding stress · valuation measures long-term expected return · liquidity measures market
+conditions · dispersion measures internal disagreement. The objective is to understand the **joint
+configuration** of these sensors — never to collapse them into a black-box score.
+
+**Prohibited by name (do not introduce):**
+- market-timing labels
+- predictive models without economic justification
+- optimized weights trained on historical returns
+- composite scores designed to maximize backtests
+
+**Output remains a decision-support observatory:** *what is the current evidence across mechanisms, and how
+reliable is each measurement?* — and STOP. (Adam's phrasing added "and what does that imply for risk budgeting";
+that question is the **human's, downstream**. Risk budgeting is an allocation concept and stays OUT of this repo
+per the HARD BOUNDARY — the observatory supplies the evidence, never the budget.)
+
+**The biggest risk is confusing a better measurement system with a better prediction system. Keep the
+distinction enforced.**
+
+**Sequencing consequence (Adam, 2026-08-06):** the joint-configuration question cannot be answered until the
+sensor set exists — "we will never know unless we have them all built." So the remaining signals are built out
+first, each to the same DoD; the analysis of what the joint configuration *means* is deliberately deferred to
+Phase 10, and is not to be pre-empted signal-by-signal.
+
+**Tooling consequence:** no backtesting engine enters this repo (vectorbt / backtrader / zipline / bt). The
+outputs are measurements, not strategies; a fast parameter-sweep-over-returns affordance is precisely what pulls
+a project toward "optimize until it forecasts." Tooling shapes research. Permitted and encouraged instead:
+`arch` (GARCH, realized-variance estimators, stationary bootstrap / SPA), `statsmodels` (HAC/Newey–West for
+overlapping-return inference), `scikit-learn` (PCA for absorption) — noting sklearn will not write the
+expanding-window refit loop for you, and that loop is where look-ahead leaks live.
+
 ## The flow (and where it STOPS)
 
 > **Market data → independent sensors → historical context → regime relevance → STOP.**
@@ -481,6 +530,7 @@ Each sensor's mini-study is a no-look descriptive characterization producing a m
 layer (vector + joint rarity + analogue matching) is built *after* there are ≥2 validated sensors to compose —
 and with the crisis-reconvergence caveat above front of mind.
 
+---
 ---
 <!-- LINKS:AUTO -->
 ## Related

@@ -1,6 +1,13 @@
 numpy==2.4.3
 pandas==3.0.1
+scipy==1.17.1
 requests>=2.31
 yfinance==1.2.0
 pytest==9.0.2
 openpyxl==3.1.5
+
+# signal estimation / inference
+arch==8.0.0            # GARCH persistence (vol descriptors), stationary bootstrap
+statsmodels==0.14.6    # HAC/Newey-West inference (valuation overlapping returns)
+scikit-learn==1.8.0    # PCA (absorption ratio)
+matplotlib==3.9.2      # signal read plots

@@ -164,10 +164,23 @@ Ran `scripts/validate_vol.py` (frozen one-look) → `results/vol_validation.txt`
 - **V3 persistence:** GARCH identifiable all regions, IGARCH guard works. PASS.
 - **V4 rarity:** expanding pctile uniform/monotone. PASS.
 
-**REMAINING for vol to be DONE:** (1) overnight cooling-off then Adam's DATED sign-off of the results (his rule,
-never inferred — feedback-no-rushing-four-rules); (2) emit the Level-0 historical-context output record; (3)
-optional: fold the horse-race into results/ as formal V-evidence; (4) commit the whole phase. Maturity tag stays
-DERIVED/unset until sign-off.
+## PHASE 1.5 CLOSED — vol RESULTS SIGNED OFF by Adam 2026-08-06
+
+Cooling-off observed (one-look 2026-08-05 → sign-off 2026-08-06), explicit and dated. Recorded in
+`.planning/phases/01.5-volatility-signal/1.5-VOLATILITY-CHARTER.md` §RESULTS SIGN-OFF with the V2–V5 verdict
+table; R1–R5 none tripped.
+- **RF open item CLOSED** — the OOS evidence is now a literal Japan/Europe run, not an appeal to the universal
+  stylized fact. The provisional clause is retired.
+- **Maturity DERIVED = `production`** (mechanism `pass` · measurement validity `H` · investment usefulness `H` ·
+  evidence maturity `H`).
+- **Level-0 record emitted** — `results/vol_level0.json` via `scripts/vol_level0.py`, generated from the artifact
+  and passed through `signal_output_schema.validate()` (boundary enforced by allowlist, not by care).
+- Claim scope is deliberately narrow: a MEASUREMENT claim, not forecastability. α+β≈0.99 means vol forecasts vol.
+
+**Bug caught while emitting the record:** the committed `results/vol_descriptors.csv` predated the half-life
+descriptor (only `mkt_ret, vol_annual, vol_pctile`) — a result artifact that silently disagreed with the code
+that claims to produce it. Regenerated; live read = **34.8d half-life, 12.0% vol, 51.9th pctile, as of 2026-05-29**
+(French publishes 1–2mo lagged). Now guarded by a test.
 
 ## WARM-START — remaining signals prepped (2026-08-05)
 
@@ -190,6 +203,63 @@ scope) under `.planning/phases/`, and its data pulled to `data/processed/`:
 Each is a WARM START, not a charter: next step per signal = expand the kickoff into a full charter (V/R
 conditions worked with Adam) → build → one-look → dated sign-off. Boundary grep clean on all 5.
 
+## OBJECTIVE RESTATED + INFRA HARDENED (2026-08-06)
+
+**Adam restated the objective** (recorded durably in `.planning/REGIME-SENSOR-ARCHITECTURE.md` §"Objective
+restatement", near the top): this is a **measurement system, not a prediction system**. The signals are EXPECTED
+to be mostly known relationships (Engle 1982, Campbell–Shiller 1988, Kritzman 2011, Gilchrist–Zakrajšek 2012) —
+that is the pass condition, not a failure. The research value is the point-in-time / causal / OOS / cross-regional
+framework plus the **joint configuration** of orthogonal mechanisms. Edge hypothesis = *multiple validated
+measurements beat any single indicator*, NOT "signal X predicts." Prohibited by name: timing labels · predictive
+models without economic justification · weights optimized on historical returns · composites that maximize
+backtests. Sequencing: **build all the sensors first**, defer the joint analysis to Phase 10 (can't know until
+they exist). "Risk budgeting" was flagged back to Adam as the human's downstream question — stays out of the repo.
+
+**Three real defects found + fixed (they were breaking reproducibility, the repo's whole selling point):**
+- `requirements.txt` was missing `arch`, `matplotlib`, `scipy`, `statsmodels`, `scikit-learn` — all imported
+  (`vol_descriptors.py:62`, `:113`) but unlisted. **A fresh clone could not run the vol signal.** Fixed + the
+  no-backtest-engine decision recorded inline.
+- Bare `pytest` was broken: it collected `archive/research-v1/scripts/significance_test.py` (matches `*_test.py`,
+  imports a deleted `src` package). The "34 passed" figure came from `pytest tests/`. Fixed with a 3-line
+  `pytest.ini` (`testpaths=tests`, `norecursedirs=archive scratchpad .venv`).
+- **No look-ahead test covered the new spine.** The only causality tests (`test_jumpmodel.py:93`,
+  `test_backtest.py:26`) guard the RETIRED jump-model program; `causal.py` / `vol_descriptors.py` had none.
+
+**`assert_causal()` added to `scripts/causal.py` (D-20, the shared guard).** Property test: perturb the input
+strictly after `cut`, assert every reading at ≤ `cut` is bit-identical; raises naming the first offending
+column/date. Accepts a Series or a DataFrame (multi-input signals — credit/funding/tail). `tests/test_causal.py`
+applies it to `ewma_vol`, `realized_vol`, `expanding_percentile`, `shock_half_life` (GARCH refit loop),
+`vol_descriptors.build`, and `stockbond_corr` — **plus two deliberately-leaky functions (full-sample rank,
+centered rolling window) that the guard MUST reject**, so the test cannot silently become a no-op. **42 pass.**
+Every future signal's `build()` goes through this before its one-look.
+
+**Tooling decision (recorded in `requirements.txt` + the architecture doc): NO backtesting engine** (vectorbt /
+backtrader / zipline / bt). This repo emits measurements, not strategies; a sweep-over-returns affordance is the
+exact thing that pulls a project toward "optimize until it forecasts." Permitted instead: `arch` (already used),
+`statsmodels` (HAC/Newey–West — the valuation charter's registered inference), `scikit-learn` (PCA for absorption).
+
+**REPRODUCIBILITY HARDENING (2026-08-06, Adam-directed: "reproducibility guaranteed and not leaking — that's the
+whole purpose of this funnel").** Every test below exists because that exact failure ALREADY happened here:
+- `scripts/data_manifest.py` → `data/processed/MANIFEST.csv`: sha256 + rows + columns + date span of all 19
+  processed panels. French restates, FRED revises, SKEW gets rebased, yfinance back-adjusts — a filename is not
+  a dataset identifier. The manifest is a RECORD, not a lock: refresh data → regenerate → commit, so the diff
+  shows which panels moved.
+- `tests/test_reproducibility.py` (6 tests): **(1)** every third-party import across `scripts/` is declared in
+  `requirements.txt` (would have caught the missing `arch`); **(2)** `results/vol_descriptors.csv` carries the
+  columns its producer emits (would have caught the stale artifact); **(3)** the Level-0 record is schema-valid;
+  **(4)** every processed panel is in the manifest; **(5)** **every module defining `build()` is under
+  `assert_causal` or explicitly excepted** — a new signal CANNOT skip the look-ahead guard by omission (D-18
+  structural enforcement, same pattern as the boundary audit); **(6)** the guard registry names no dead modules.
+- The registry test earned its keep immediately: it flagged `data_manifest.build()`, so that was renamed
+  `build_manifest()` — `build()` in `scripts/` now unambiguously means "a signal construction."
+- `regime_read.build()` is the one documented exception (retired jump-model read path).
+- **50 tests pass.**
+
+**Phase-2 blocker found (no look spent):** `stockbond_corr.py:135` `build()` takes NO arguments — it loads its own
+US panel, so it cannot feed `run_oos(build_region)`, which requires `build(r)`. It also re-implements
+`realized_vol` / `expanding_z` locally instead of importing `causal.py` (D-20 drift). **Refactor onto the shared
+spine is task 1 of Phase 2**, before the Japan/Europe run.
+
 ## NEXT ACTION
 
 **▶ After vol's dated sign-off:** pick the next signal to take from kickoff → full charter → build. All are warm:
@@ -207,11 +277,11 @@ cooling-off first. `scratchpad/garch_horserace.py` holds the rolling-vs-expandin
 pre-registration questions) BEFORE any implementation — the framework's own admission discipline. Then it runs
 through: charter → research/build → validation (mechanism gate · confound · Japan/Europe OOS) → admission review
 (3 non-compensatory axes + "why in front of an investor?") → cooling-off + dated sign-off → production.
+New in the DoD (2026-08-06): **`assert_causal(build, data)` must pass before the one-look.**
 
-Build targets: **Phase 2** = stock-bond correlation intl OOS (GATED on JGB/Bund series — needs data Adam
-provides). **Phase 3 = valuation** = the first fully-new signal, buildable now (starting CAPE → long-horizon
-return context; present as context, never "avoid equities"). Recommend starting Phase 3 valuation unless the
-JGB/Bund data is ready for Phase 2. Per Adam: no auto-advance.
+**Phase 2 is next** (stock-bond intl OOS) — un-gated, data pulled (`intl_bonds_monthly.csv`, JP 10y 1989+, DE Bund
+1956+). Order: refactor `stockbond_corr.build()` onto `build(r)` + `causal.py` (see blocker above) → charter
+(no `.planning/phases/02-*` directory exists yet — Phase 2 has neither charter nor kickoff) → run → one-look.
 
 ## Signal-research discipline (full text in CLAUDE.md)
 

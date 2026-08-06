@@ -1,0 +1,20 @@
+file,sha256,bytes,rows,columns,first,last
+assets_daily.csv,94a15c97d49a096fad8cbead95dc837f1b4df02e30769196537d8722ba4a1965,4844956,26190,date;mkt_ret;rf;ind_nodur;ind_durbl;ind_manuf;ind_enrgy;ind_hitec;ind_telcm;ind_shops;ind_hlth;ind_utils;ind_other;smb;hml;mom;bond10_ret;gold_ret,1926-09-17,2026-05-29
+credit_daily.csv,5833e87d85fe546b45dc393a3e1479a74628fe688eb2c728433bc9af0ab95e86,198524,10186,Unnamed: 0;ig_oas;hy_oas;baa_10y,1986-01-02,2026-08-04
+credit_monthly.csv,7daa29a7c31512b5efcfa3150c5781b4eb9d95627f84a3995788044c75c15f87,44247,642,date;gz_spread;ebp;est_prob,1973-01-01,2026-06-01
+europe_assets_daily.csv,63212df33c59818bf279c4b7958852bf697ad2efef76fa726dbcea50780825ec,2651441,9370,date;p0;p1;p2;p3;p4;p5;p6;p7;p8;p9;p10;p11;p12;p13;p14;p15;p16;p17;p18;p19;p20;p21;p22;p23;p24,1990-07-02,2026-05-29
+europe_market_daily.csv,a4a3a7c9fc16ac73b0ec4f0c1aa1e32f40cb4d3984e81102e09f9c5ff0fccf2d,227565,9370,date;mkt_ret,1990-07-02,2026-05-29
+funding_daily.csv,31700cd0193cf0188892bf3a7a512a414d58b266a2ab4992f37a51665a1293c5,566529,18173,Unnamed: 0;cp3m;tbill3m;sofr;effr;cp_bill_spread;sofr_effr,1954-01-04,2026-08-04
+funding_weekly.csv,b934eecb62a2e518f36f514b2c055bcd04c59a6f6fc62436abdf9f9f31592115,68005,2900,Unnamed: 0;stlfsi;nfci,1971-01-08,2026-07-31
+industry10_daily.csv,cce7f9806afad42044b4fb8a4818e4eefb70afbf2a45d65091d3ade6d3926e0f,3138441,26253,date;NoDur;Durbl;Manuf;Enrgy;HiTec;Telcm;Shops;Hlth;Utils;Other,1926-07-01,2026-05-29
+industry48_daily.csv,35caddd7160315a139a095ca2e9ad882cadcc5b3002d64907517e29b34c8d4c4,13451086,26253,date;Agric;Food;Soda;Beer;Smoke;Toys;Fun;Books;Hshld;Clths;Hlth;MedEq;Drugs;Chems;Rubbr;Txtls;BldMt;Cnstr;Steel;FabPr;Mach;ElcEq;Autos;Aero;Ships;Guns;Gold;Mines;Coal;Oil;Util;Telcm;PerSv;BusSv;Comps;Chips;LabEq;Paper;Boxes;Trans;Whlsl;Rtail;Meals;Banks;Insur;RlEst;Fin;Other,1926-07-01,2026-05-29
+intl_bonds_monthly.csv,c0a2ea9c2580601e5e96e427130a0700d764234e4f7dbbd68ca04248b125a9e6,47104,842,Unnamed: 0;jp_y10;jp_bond10_ret;de_y10;de_bond10_ret,1956-05-31,2026-06-30
+japan_assets_daily.csv,73b0b3332a17612e872d699b4c5fcc9623b6d9c9af0e6a5183578114f1ff741f,2676950,9370,date;p0;p1;p2;p3;p4;p5;p6;p7;p8;p9;p10;p11;p12;p13;p14;p15;p16;p17;p18;p19;p20;p21;p22;p23;p24,1990-07-02,2026-05-29
+japan_market_daily.csv,71c6b822ad24e1927f443fe9a909f6d46277a0642943acc81c630f248515217b,226913,9370,date;mkt_ret,1990-07-02,2026-05-29
+market_daily.csv,8cf0375db8e38a4128c6a92ce41d6e5ad52e31ac7c725d9ff4286b549f28406b,2373768,26190,date;mkt_ret;rf;dd10;sortino20;sortino60,1926-09-17,2026-05-29
+ohlc_nikkei.csv,d09d6ce7738524f8786ef609ece370756314cba7599f14d4f8c38667764cf0f7,649684,8974,Date;open;high;low;close,1990-01-04,2026-07-29
+ohlc_spy.csv,9f52c55f6ff2ae2edd52451e88e666b8c3d97c41f8c2a617564b609fbb9ed54e,627677,8432,Date;open;high;low;close,1993-01-29,2026-07-30
+ohlc_stoxx.csv,c1ba074e9b0ee68cb7f6ab0e38c41fdb3eea0009fc879d4ac7ad70d8f12fc01a,378410,4845,Date;open;high;low;close,2007-03-30,2026-07-30
+regime_monthly.csv,01f685fb4951e22bc12d9a893daaaf6daa99548553bebb7452ad92f141819c32,25564,435,date;state_eom;stress_eom;stress_mean;frac_stressed,1990-03-31,2026-05-31
+tail_daily.csv,101a9d2c9d0a2f13ec003190b2ddde5c44b59259c6feb3f859c5b93b2f27250a,376818,9248,DATE;skew;vix9d;vix;vix3m;term_slope,1990-01-02,2026-08-05
+trend_proxy_daily.csv,d0c4d89ddd53f8ee241cdb95ebf8ceba4b04092ea45afa1a91f272f890d37373,198225,5402,Date;trend_ret;n_markets,2005-02-02,2026-07-24

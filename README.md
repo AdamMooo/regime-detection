@@ -1,59 +1,156 @@
 # Regime Detection
 
-**Market regime detection via a statistical jump model — validated as an instrument, tested for decision value.**
+**A market-signal observatory.** `market data → independent validated signals → historical context → regime relevance → STOP.`
 
-A K=2 weighted statistical jump model (Bemporad/Boyd 2018; Nystrup et al. 2020–21; Shu/Yu/Mulvey 2024) fit to Ken French daily market data (1926+), run under strict preregistration and causal discipline. The program builds a market risk-state label, validates it to an unusually high measurement standard, and then — under preregistered, one-look, exposure-matched tests — asks whether that label has economic *decision* value at a daily horizon.
+Each signal is a standalone research module that measures one market mechanism, states how unusual the current
+reading is against its own long history, and names the abstract market assumption the reading bears on. The system
+stops there. The intelligence is in the quality of each individual signal, never in combining them into a score.
 
-The short answer, and the thesis: **measurement validity ≠ decision value.** The label is an exceptional *instrument* (100.0% stability under ±2y training-window shifts, vs 80.9% for the retired v1 HMM ensemble). But every economic use tested so far is dominated by a simpler reactive estimator — vol targeting for exposure, EWMA for covariance — unified by one mechanism: causal filters lag the regime by 5–20 days, and at a daily horizon that lag erases the edge. This is a comparative-negative result, held to a higher standard than the source literature (which omits exposure-matched nulls and a reactive incumbent).
+## The boundary (read this before anything else)
 
----
+**This is a measurement layer, not a trading or decision system.** It does not decide, recommend, or imply any
+investment action — no exposure changes, cash calls, instrument selection, tilts, or one-word "risk-on/risk-off"
+summaries. A single label destroys the information: a market can be low-vol but fragile, cheap but illiquid, so the
+full multi-signal vector is preserved and presented. The code knows nothing about capital deployment or
+implementation; it knows only which *abstract market assumptions* to monitor ("bonds hedge equity drawdowns", "the
+index is genuinely diversified", "funding markets function"). Decisions live downstream — a separate system and a
+human. Full statement: `CLAUDE.md` (HARD BOUNDARY) and `.planning/PROJECT.md`.
 
-## What's proven, parked, and killed
+Prohibited by name (`.planning/REGIME-SENSOR-ARCHITECTURE.md` §"Objective restatement", 2026-08-06): market-timing
+labels · predictive models without economic justification · weights optimized on historical returns · composite
+scores designed to maximize backtests. No backtesting engine (vectorbt / backtrader / zipline / bt) enters this
+repo — a fast sweep-over-returns affordance is exactly what pulls a project toward "optimize until it forecasts."
 
-| Layer | Result | Status |
-|---|---|---|
-| **Instrument** (measurement) | K=2 label, causal forward filter, 100.0% ±2y stability; 15/18 −15% bears caught, 20d median lag | ✅ Validated |
-| **Chapter 1** — regime overlay vs buy-and-hold | "Switching beats B&H" is an exposure artifact (fee inside every null band); vol targeting dominates the overlay (−256 bps, CI excl. 0) | ✅ Closed (one-look spent) |
-| **Chapter 2** — state-conditional covariance (ERC) | NULL: +2.8 bps vs unconditional twin (inside all bands), loses −29 bps to a plain EWMA-covariance twin | ✅ Closed (one-look spent) |
-| **Probability layer** — confidence margin | KILLED: the filter's evidence margin loses to plain EWMA-vol on Brier *and* AUC across all 8 synthetic DGP cells | ❌ Killed |
-| **Chapter 3** — graded state-conditioned exposure dial | Runner + prereg built; the one-look is deliberately **not spent** (scarce, irreversible) | ⏸ Parked |
-| **Monitor** (Layer 2 nowcast) | Spec'd claim-by-claim (`MONITOR-VALIDATION-SPEC.md`); `monitor_gate.py` not yet built | 🔨 In build |
+The boundary is enforced in code, not by convention — see `scripts/signal_output_schema.py` and
+`tests/test_boundary_audit.py` below.
 
-Full parked/killed ledger and program framing: `PROGRAM.md`.
+## What is actually being claimed
 
----
+The individual signals are *expected* to be mostly known relationships: volatility clustering (Engle 1982),
+valuation → long-horizon returns (Campbell–Shiller 1988), absorption (Kritzman et al. 2011), the excess bond
+premium (Gilchrist–Zakrajšek 2012). Reproducing them is the pass condition of a measurement instrument, not a thin
+result. What is uncommon is doing it **point-in-time, causally, out-of-hypothesis-sample, across regions, for
+several mechanisms at once** — the published versions are typically in-sample, US-only, and single-signal.
 
-## What's here
+The edge hypothesis is **not** "signal X predicts the market." It is: *multiple validated measurements of different
+market mechanisms give a more complete assessment of market state than any single indicator.* Whether the joint
+configuration of the sensor set says anything is a question deliberately deferred until the set exists (Phase 10);
+it is not to be pre-empted signal by signal.
 
-All code is flat in `scripts/` (there is no `src/` package):
+## Signal set and status
 
-**Core pipeline**
-- `jumpmodel.py` — estimator: return-only causal features (downside-deviation halflife-10, Sortino halflife-20/60), exact DP state assignment (k=2/k=3 fast paths, verified vs brute force), sparse feature-weighted fit, causal DP-endpoint filter (never smoothed)
-- `walkforward.py` — shared expanding walk-forward (annual refits, λ selected causally by 8y-validation Sharpe); imported byte-identically by the synthetic battery and the real runner so the two cannot drift
-- `backtest.py` — strategy construction (next-close delay, costs), VT/SMA200/B&H baselines, FKO (Fleming–Kirby–Ostdiek 2001) utility fee, paired stationary bootstrap (Politis–Romano 1994)
+Nine signals were scoped; crowding was dropped 2026-08-05 (proxy-only construction, real positioning data
+infeasible solo, and it risks re-reading the volatility axis). Status as of **2026-08-06**:
 
-**Data**
-- `build_panel.py` — French daily panel + SPY cross-check → `data/processed/market_daily.csv` (public Dartmouth URL + yfinance; **no API key**)
-- `build_assets.py` — chapter-2 bond/gold assets (this is the only script that needs a FRED key)
+| # | Signal | Assumption / question it monitors | Status |
+|---|---|---|---|
+| 1.5 | **Volatility** | how large is uncertainty, how unusual, how durable (a context axis, not an assumption monitor) | **Complete.** Charter signed off 2026-08-05; one-look run 2026-08-05 (`results/vol_validation.txt`), V2–V5 pass, no reject condition tripped; results signed off dated 2026-08-06. Maturity derived = `production`. Level-0 record at `results/vol_level0.json`. |
+| 2 | **Stock-bond correlation** | "bonds hedge equity drawdowns" | Built and US-validated 1962–2026 (`scripts/stockbond_corr.py`). Japan/Germany out-of-sample run not yet done; the bond leg is now in `data/processed/intl_bonds_monthly.csv`. First task is refactoring `build()` onto the shared spine — it currently takes no arguments and loads its own US panel, so it cannot feed `run_oos`. |
+| 3 | **Valuation** | "equities are priced for normal forward returns" | Charter frozen 2026-08-03 (`.planning/phases/03-valuation-signal/03-VALUATION-CHARTER.md`), sign-off pending, no data look spent. |
+| 4 | **Concentration** | "the index is not dependent on a few names" | Warm start only: kickoff brief + data (French VW−EW leadership spread from `assets_daily.csv`; true cap-HHI needs paywalled constituents). |
+| 5 | **Diversification / absorption** | "diversification is intact" | Warm start only: absorption ratio via PCA of the `assets_daily.csv` panel. Scoped narrow — the lead is the whole justification. |
+| 6 | **Credit (EBP)** | "credit conditions are benign" | Warm start only: `scripts/build_credit.py` → `credit_monthly.csv` (Fed EBP 1973+, restated monthly = PIT caveat), `credit_daily.csv` (OAS proxies 1986+). |
+| 7 | **Funding stress** | "funding markets function" | Warm start only, narrow binary flag: `scripts/build_funding.py` → `funding_weekly.csv` (STLFSI4/NFCI), `funding_daily.csv` (CP−bill, SOFR−EFFR). LIBOR→SOFR splice hazard noted. |
+| 8 | ~~Crowding~~ | — | **DROPPED 2026-08-05.** (`.planning/ROADMAP.md` still lists it; not yet reconciled.) |
+| 9 | **Tail** | "the distribution is its normal shape" | Warm start only: `scripts/build_tail.py` → `tail_daily.csv` (CBOE SKEW 1990+ and VIX term slope). SKEW methodology-rebasing caveat. |
+| 10 | Presentation / assumption ledger | — | Not started. Organizes validated signals into lenses; no score, no summary, no decision. |
 
-**Preregistered batteries (one-looks spent — frozen evidence in `results/`)**
-- `run_backtest.py` — chapter-1 battery; refuses to run without `--confirm-frozen`
-- `run_allocation.py` + `allocation.py` — chapter-2 ERC allocation battery
-- `synthetic_validation.py` — capability battery on simulated panels with known truth (incl. oracle and oracle-lag ceilings)
+"Warm start" means a Stage-0 gate + kickoff brief (`.planning/phases/NN-*/NN-CHARTER-KICKOFF.md`) and the data
+pulled — **not** a charter, not a build, not a validated signal.
 
-**Live + reporting**
-- `live_label.py` — SPY-splice live tail so the frozen protocol runs to today (French publishes 1–2 months lagged; splice gate corr ≥0.98)
-- `build_report.py` — regenerates `results/report.html`, the living program report (status tiles, claims-vs-honest-bar ladder, sensor section)
+## Shared infrastructure
 
-**Gates & probes** (rerunnable): `calibration_gate.py` (the killed probability layer's reproduction path), `explore_k3.py` (K=3 severity-ladder probe), `validate_sensor.py` (label vs ex-post bear datings).
+The Definition of Done is identical for every signal, so its machinery is built once (D-20) rather than once per
+signal:
 
-The primary visual is **`results/report.html`** — open it directly. There is no `figures/` directory yet (figure export is a pending paper task).
+- **`scripts/causal.py`** — the causal primitives every signal imports: `ewma_vol` (RiskMetrics/IGARCH),
+  `realized_vol`, `expanding_percentile`, plus `assert_causal`, the perturb-the-future check a signal's `build`
+  must pass before its one-look. Every function here uses data through `t` only; if a function needs the future it
+  does not belong in this module.
+- **`scripts/run_oos.py`** — the generic out-of-hypothesis-sample harness. Given any signal's
+  `build_region(returns) -> DataFrame`, it runs the identical construction over US / Japan / Europe panels (all
+  share a `date,mkt_ret` schema). It runs the construction and asserts nothing; interpretation stays with the
+  caller's one-look.
+- **`scripts/signal_output_schema.py`** — the executable boundary: a closed Level-0 field allowlist plus a
+  forbidden-vocabulary denylist and `validate()`. A Level-0 record may contain only the enumerated fields.
+- **`tests/test_boundary_audit.py`** — asserts no decision-shaped or composite-scalar field is ever emitted. On the
+  day it was written it caught a real leak that every prose "reviewed grep" had missed. One documented deferred
+  exception is carried: `gauge.position` in `results/regime_card.json` (a downstream data contract; the rename to
+  `dwell_rank` needs coordinating with the consumer repo).
+- **`tests/test_causal.py`** — the look-ahead guard: it perturbs future values and demands past values do not move,
+  and includes a test proving the guard itself catches a deliberately leaky function.
+- **`tests/test_reproducibility.py`** — every test in it exists because the corresponding failure actually
+  happened here: imports missing from `requirements.txt`, a committed result artifact whose columns disagreed with
+  the code that produces it, `assert_causal` existing but nothing forcing a signal to use it.
+- **`scripts/data_manifest.py`** → `data/processed/MANIFEST.csv` — sha256, shape and date span of every processed
+  panel, so a result can be tied to the bytes it was computed from. French restates, FRED revises, SKEW gets
+  rebased, yfinance back-adjusts; a filename is not a dataset identifier. It is a record, not a lock — regenerate
+  and commit it alongside any data refresh.
 
----
+`pytest` → **50 passed** (`pytest.ini` scopes collection to `tests/`).
+
+## Research discipline
+
+- **Charter first (D-15).** Every signal pre-registers six questions — mechanism, measurement, validation bars
+  (V1…), reject conditions (R1…), and the boundary prohibition — *before* any implementation.
+  Templates: `.planning/framework/research-charter-template.md`, `.planning/framework/signal-spec-template.md`.
+- **Stage-0 relevance gate.** Five questions, default NO, leave-one-out marginal-information test. No charter is
+  opened for a candidate that fails it. The observatory is a curated set, not an indicator library.
+- **Mechanism gate.** A signal needs a written structural reason it survives being known. Novelty or a good
+  backtest is disqualifying as the sole basis.
+- **Causal / point-in-time only.** Trailing or forward filtering, expanding or trailing windows, no look-ahead;
+  macro series get revised, so vintage matters.
+- **Out-of-hypothesis-sample confirmation on Japan/Europe** before any SUPPORT claim, or a documented failure.
+- **One look, plus overnight cooling-off and an explicit dated sign-off** for any positive claim. Never inferred
+  from a conversational go-ahead.
+- **Honest reporting.** Statistical orthogonality is a diagnostic, not the gate (signals that correlate but are
+  mechanistically distinct are kept); every historical-context statistic gets a confound check; the maturity tag is
+  *derived* from the admission model, never asserted.
+
+Governing docs: `.planning/framework/` (frozen v1.0 2026-08-03, currently v1.1 after the Stage-0 gate amendment —
+the spec every signal declares against) and
+`.planning/REGIME-SENSOR-ARCHITECTURE.md` (the system design). Where they differ, the framework governs.
+
+## Repo layout
+
+All code is flat in `scripts/` (there is no `src/` package).
+
+**Shared spine:** `causal.py` · `run_oos.py` · `signal_output_schema.py`
+
+**Signal modules**
+- `vol_descriptors.py` — the volatility measurement spine: EWMA level, expanding-percentile rarity, and
+  GARCH(1,1)-t shock persistence (half-life = ln0.5 / ln(α+β), trailing ~5y window, NaN when α+β ≥ 1).
+- `vol_read.py` — presentation of the volatility signal (level/percentile · drift · rarity · durability) + figure.
+- `validate_vol.py` — the volatility one-look (charter V2–V5) → `results/vol_validation.txt`.
+- `vol_level0.py` — emits the volatility signal's Level-0 historical-context record
+  (`results/vol_level0.json`), generated from the committed descriptor artifact and passed through
+  `signal_output_schema.validate()` so the boundary is enforced by the allowlist rather than by care.
+- `stockbond_corr.py` — causal trailing equity/10y-bond correlation, its sign read as the state of the
+  bonds-hedge-equities assumption → `results/stockbond_corr.csv`, `results/stockbond_context.csv`.
+- `internals_gauge.py`, `internals_h1.py`, `internals_h2.py`, `internals_controls.py`, `internals_dial.py`,
+  `run_internals_prereg.py` — breadth/fragility construction and validation infra frozen against
+  `.planning/INTERNALS-BETA-DIAL-PREREG.md`. Predates the current concentration scoping (Phase 4) and has a failing
+  Europe placebo control; treat as prior work, not a shipped signal.
+
+**Provenance** — `data_manifest.py` → `data/processed/MANIFEST.csv`
+
+**Data builders** — `build_panel.py` (Ken French daily US market TR 1926+, SPY cross-check) · `build_assets.py`
+(multi-asset incl. 10y bond and gold) · `build_intl_panel.py` (Japan/Europe equity panels) ·
+`build_intl_bonds.py` (JGB / Bund monthly 10y TR) · `build_credit.py` · `build_funding.py` · `build_tail.py` ·
+`build_ohlc_panel.py` (range-based estimator inputs) · `build_trend_proxy.py`.
+
+**Retired-program code still in the tree** — `jumpmodel.py`, `walkforward.py`, `backtest.py`, `run_config.py`,
+`live_label.py`, `regime_signal.py`, `validate_sensor.py`, `synthetic_validation.py`, `benchmark_detector.py`,
+`regime_read.py`, `regime_panel.py`, `build_report.py`. These implement the K=2 jump-model state label and its
+evaluation. The volatility signal was reframed away from that label on 2026-08-04 —
+`results/detector_benchmark.csv` shows a plain causal vol threshold with hysteresis matching or beating the jump
+model on precision, recall and BAC at both bear datings, with shorter detection lag. `live_label.py` →
+`regime_signal.py` still generates `results/regime_card.json` for a downstream consumer and is being retired;
+`build_report.py` still renders the retired chapter-1/2 framing.
 
 ## Quickstart
 
-Python 3.13 (see `runtime.txt`).
+Python 3.13 (`runtime.txt`).
 
 ```bash
 python -m venv .venv
@@ -61,36 +158,34 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-The frozen chapter-1/2 evidence and the current label are already tracked in `results/` and `data/processed/` — a fresh clone can read every headline number and open `results/report.html` with no network and no keys.
-
-To rebuild the data panel from source (needs network — public Dartmouth French URL + yfinance, no key):
-
 ```bash
-python scripts/build_panel.py
+pytest                            # 50 tests — causal guard, boundary audit, reproducibility, estimator core
+python scripts/vol_descriptors.py # rebuild the volatility measurement spine + figure
+python scripts/vol_read.py        # the human-facing volatility read
+python scripts/vol_level0.py      # emit + schema-validate the volatility Level-0 record
+python scripts/stockbond_corr.py  # stock-bond correlation signal + its historical context
+python scripts/data_manifest.py   # refresh the processed-data provenance manifest
 ```
 
-A FRED key (`cp .env.example .env`, set `FRED_API_KEY`) is required **only** for `build_assets.py` (the chapter-2 assets), not for the core pipeline.
+Rebuilding data from source needs network but **no credentials**. `build_panel.py` uses the public Dartmouth
+French files + yfinance; `build_assets.py`, `build_credit.py` and `build_funding.py` use FRED's key-free
+`fredgraph.csv` endpoint; `build_tail.py` pulls CBOE index history directly. `build_intl_bonds.py` is the only
+script that will *use* a `FRED_API_KEY` if one is present in `.env`, and it falls back to the key-free endpoint
+when it is not.
 
-```bash
-pytest                            # jump-model + backtest test suites
-python scripts/live_label.py      # refresh the label's live tail to today
-python scripts/build_report.py    # regenerate results/report.html
-```
-
-The preregistered batteries (`run_backtest.py`, `run_allocation.py`) are **one-look experiments whose looks are already spent** — they require `--confirm-frozen` and are not meant to be casually rerun. See `CLAUDE.md` and `PROGRAM.md` for the discipline.
-
----
-
-## Method & discipline (why this is more than a fitted model)
-
-- **Estimator:** statistical jump model — a k-means-like objective plus a jump penalty λ on state changes that enforces persistence, the field's answer to the HMM over-segmentation failure mode. λ=0 recovers k-means; λ→∞ collapses to one state.
-- **Causal by construction:** forward filtering only (no smoothed/backtracked labels), expanding windows, parameters frozen per refit. Mechanically unit-tested — perturbing a future value provably cannot change any past state. This is the primary guard against the look-ahead bias that inflates most published regime backtests.
-- **Preregistration in git history:** the freeze commit precedes the run; one look per chapter; exposure-matched null bands; reactive co-primary baselines. The protocol is stricter than the papers it engages.
-
-Canonical references: Bemporad/Boyd (2018) and Nystrup–Lindström–Madsen (2020) for the jump model; Nystrup–Kolm–Lindström (2021) for the sparse variant; Shu–Yu–Mulvey (2024) for the regime-allocation application; Hamilton (1989) for the Markov-switching lineage; Moreira–Muir (2017) vs Cederburg et al. (2020) for the vol-managed debate this result speaks to.
-
----
+`results/` ships with the current artifacts, so a fresh clone can read every number offline —
+see `results/README.md` for what is frozen and what is regenerable.
 
 ## History
 
-The v1 program (a sticky HDP-HMM plus four successor formulations, five preregistered nulls) converged and is sealed at git tag `v1-convergence`; its narrative lives in `RESEARCH-RECORD.md` (newest-first) and its code in `archive/research-v1/`. The v2 jump-model program described above superseded it on 2026-07-23.
+Two programs were retired out of this repo; both are recoverable in git history and neither is being revived.
+
+- **v1** — a sticky HDP-HMM plus four successor formulations, five preregistered nulls. Converged, sealed at git
+  tag `v1-convergence`; code inert in `archive/research-v1/`.
+- **v2** — the K=2 statistical jump-model program (chapters 1–3). Chapter 1 closed 2026-07-23: "switching beats
+  buy-and-hold" was an exposure artifact. Chapter 2 closed the same day as a registered null. The probability layer
+  was killed on a calibration gate. The one-look for chapter 3 was deliberately never spent. The chapter-1/2
+  evidence stays frozen in `results/`; the runners were removed 2026-07-27.
+- The **equity-ownership program** (a separate concern entirely) was removed from this repo 2026-08-02.
+
+The durable newest-first narrative is `RESEARCH-RECORD.md`. Current session state is `NOTES.md`.
