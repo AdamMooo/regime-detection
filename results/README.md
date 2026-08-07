@@ -3,6 +3,54 @@
 What is in here, what produced it, and what may be overwritten. Last reconciled against the directory listing
 2026-08-06.
 
+---
+
+## WHAT HAS ACTUALLY PASSED — read this first
+
+Only **two** signals have spent a one-look. Everything else in this directory is either a construction output
+with no claim attached, a living gate, or retired-program evidence. Built ≠ validated.
+
+### Volatility — PASSED, SIGNED OFF 2026-08-06, maturity `production`
+
+Evidence: `vol_validation.txt` · record: `vol_level0.json` · descriptors: `vol_descriptors.csv`
+
+| bar | result |
+|---|---|
+| V5 international replication | **PASS** — GARCH α≈0.09 / β≈0.89 in US, Japan AND Europe; rolling half-life median 42 / 17 / 40d |
+| V2 robustness | **PASS** — corr(λ0.94, λ0.97)=0.975; close-to-close vs Parkinson 0.91–0.95 all regions. Caveat: exact 5-band bucket agrees 78% of days |
+| V3 persistence | **PASS** — GARCH identifiable everywhere, IGARCH guard fires correctly |
+| V4 rarity | **PASS** — expanding percentile ~uniform (mean 0.48), corr(level, pctile)=0.735 |
+
+Live read: **12.0% annualised vol, 51.9th percentile, 34.8d shock half-life** (as of 2026-05-29).
+**Claims a measurement, NOT forecastability.** α+β≈0.99 means volatility forecasts volatility — nothing about
+returns or direction.
+
+### Stock-bond correlation — PASSED ITS BARS, RESULTS SIGN-OFF PENDING
+
+Evidence: `stockbond_validation.txt` · descriptors: `stockbond_corr.csv`, `stockbond_context.csv`
+
+V2, the primary on-mechanism metric — share of **equity-down months on which bonds also fell**, by state:
+
+| region | intact | under_test | violated | |
+|---|---|---|---|---|
+| US | 28% | 44% | 56% | monotone |
+| Japan | 25% | 29% | 51% | monotone |
+| Europe | 27% | 32% | 48% | monotone |
+
+V4 power pre-check: all three regions POWERED. R1/R2 not tripped. V5 window robustness is the soft spot —
+sign agreement 74–85% at 12m, 85–91% at 36m; stable at 24m and above, noisy below.
+**Maturity capped at `research`** — the international sample starts 1990 and contains no inflation regime, so
+this does not test the sign-flip cycle out-of-sample. Registered before the look, not after.
+
+### Built but NOT validated — no look spent, no claim
+
+`valuation_descriptors.csv` · `concentration_descriptors.csv` · `credit_descriptors.csv` · `tail_skew.csv`
+
+These are construction outputs only. Their charters are unsigned and their one-looks unspent. The numbers in
+them are readings, **not evidence of anything**.
+
+---
+
 ## Frozen one-look evidence — NEVER overwrite
 
 - `stage1.csv`, `stage1_run.log`, `oos_labels.csv` — the chapter-1 one-look (2026-07-23). Renamed by Adam
@@ -48,6 +96,38 @@ chapter-1 labels — a fixed fact, not part of any refresh. `CLAUDE.md` lists bo
   days plus the derived assumption state (`intact` / `under_test` / `violated`).
 - `stockbond_context.csv` — same script: historical behaviour by state (annualised return, vol, Sharpe for equity /
   bond10 / gold). Descriptive context only.
+- `stockbond_validation.txt` — `scripts/validate_stockbond.py`, the Phase-2 one-look (charter V2–V5, run
+  2026-08-06). **One look, spent.** Do not rerun to refresh.
+
+## Constructions built 2026-08-06 — NO look spent, NO claim attached
+
+Charters unsigned, one-looks unspent. These are readings, not evidence.
+
+- `valuation_descriptors.csv` — `scripts/valuation.py` (built by `build_valuation.py`). Shiller CAPE 1881-06 →
+  2026-08, 1743 rows: `real_price, real_earn_10y, cape, cape_pctile, cape_z`. **Point-in-time**: a 5-month
+  earnings publication lag is applied (S&P aggregate quarterlies land ~3mo after quarter end, and Shiller
+  interpolates monthly between endpoints). Removes the *publication* look-ahead, **not** the *revision*
+  look-ahead — the source is a single current vintage.
+- `concentration_descriptors.csv` + `concentration_gate.csv` — `scripts/concentration.py` /
+  `build_concentration.py`. Effective-N across the 25 French size/BM buckets, monthly 1926-07 → 2026-06, 1200
+  rows: `eff_n, top_share, eff_n_pctile, eff_n_z`. Free firm-count × average-market-cap blocks, so no constituent
+  list is needed — but 25 buckets cannot resolve individual names inside the top bucket, which is the registered
+  make-or-break limitation.
+- `credit_descriptors.csv` + `credit_vintage.json` — `scripts/credit_ebp.py`. Fed EBP 1973 → 2026, 642 rows.
+  Indexed by **as-of date** (when a reading was readable), not by what it describes: a 2-month publication lag is
+  applied. The vintage JSON stamps the source sha256 because the EBP is a regression residual refit monthly on the
+  full sample, so every historical value can move.
+- `tail_skew.csv` + `tail_vintage.json` — `scripts/tail_skew.py`. CBOE SKEW as the **price of downside
+  protection** (not a crash probability), 2000-01 → 2026-08, 6671 rows. Restricted to 2000+ because the BKM
+  strike-grid error is confounded with the index level and would manufacture a trend in the rarity descriptor.
+  The vintage JSON exists because **Cboe silently revised this history** — see `--check` below.
+
+## Provenance
+
+`data/processed/MANIFEST.csv` records sha256, shape, index span and **per-column** spans for every panel.
+Run `python scripts/data_manifest.py --check` after any data refresh: it diffs current hashes against the
+committed manifest. A change is not a failure — it is a prompt to confirm the refresh was yours and not a vendor
+restating history underneath a frozen result.
 
 ## Retired-program artifacts — regenerable, jump-model era
 
