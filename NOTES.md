@@ -280,6 +280,30 @@ was live only in the sense that a cron kept regenerating something nobody read.
 - Downstream leftover (**other repo, not touched**): `portfolio-manager/src/regime.py` + the `REGIME_REPO_PAT` env
   in `daily-report.yml` are now dead weight there. Remove them in that repo; the PAT can then be revoked.
 
+## JUMP MODEL ARCHIVED (2026-08-06) — `scripts/` is now signal-only
+
+Adam: *"keep the jump model as history and parked as its own thing, something we learned, but remove it from any
+of the signals."* Done.
+- **`archive/jumpmodel-v2/`** — `jumpmodel`, `walkforward`, `backtest`, `run_config`, `synthetic_validation`,
+  `validate_sensor`, `benchmark_detector` + `tests/{test_jumpmodel,test_backtest}.py`. **README records what was
+  learned** (measurement validity ≠ decision value · causal filters lag 5–20d and that erases the daily-horizon
+  edge · thresholding a continuous quantity piles error at the boundary and discards σ's graded info — the reason
+  vol became continuous descriptors and "no single-word summary" is a standing rule · the evidence margin is not a
+  portable confidence measure).
+- **`archive/internals-gauge/`** — the `internals_*` set + `run_internals_prereg`. README records the **failing
+  Europe placebo control** as the reason it is parked, and warns Phase 4 not to import it (Phase 4 warm-started a
+  different construction).
+- **`scripts/` now holds ONLY data builders + the signal spine** (verified: no live script imports anything
+  archived). **26 tests pass.**
+
+**The one decoupling that mattered:** `build_panel.py` used `jumpmodel.build_features` for its construction gate
+(G4/G5 key off `dd10`). That function is a generic causal return descriptor, not jump-model machinery, so it moved
+to `causal.py` as **`downside_features`** — **verified bit-identical to the original on the same input**, so
+`market_daily.csv` is unchanged and the signed-off vol numbers do not move. This is what the "byte-identical
+check" below was for; it is now DONE.
+
+**Superseded — the caution below is resolved.** Kept for the reasoning only:
+
 **WHERE I STOPPED, AND WHY (do not "finish the cleanup" casually).** The retired estimator —
 `jumpmodel/walkforward/backtest/run_config`, `synthetic_validation/validate_sensor/benchmark_detector`, and the
 `internals_*` set — is still in the tree, held up by ONE dependency: **`build_panel.py:34,88` calls

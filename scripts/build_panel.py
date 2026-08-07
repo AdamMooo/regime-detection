@@ -31,7 +31,7 @@ import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from jumpmodel import build_features
+from causal import downside_features
 
 FF_URL = ("https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/"
           "F-F_Research_Data_Factors_daily_CSV.zip")
@@ -85,7 +85,7 @@ def main():
     rf = ff["rf"] / 100.0
     spy = download_spy()
 
-    feats = build_features(mkt_ret.to_numpy())
+    feats = downside_features(mkt_ret.to_numpy())
     feats.index = mkt_ret.index
     panel = pd.DataFrame({"mkt_ret": mkt_ret, "rf": rf}).join(feats)
     panel = panel.iloc[63:]  # feature burn-in

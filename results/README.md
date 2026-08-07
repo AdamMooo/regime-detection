@@ -25,8 +25,8 @@ What is in here, what produced it, and what may be overwritten. Last reconciled 
 | `intl_panel_gate.csv` | `scripts/build_intl_panel.py` |
 | `ohlc_gate.csv` | `scripts/build_ohlc_panel.py` |
 | `trend_proxy_gate.csv` | `scripts/build_trend_proxy.py` |
-| `synthetic_validation.csv` + `_run.log` (were `v2_synthetic_validation.*`) | `scripts/synthetic_validation.py` |
-| `sensor_validation.csv` + `_run.log` | `scripts/validate_sensor.py` |
+| `synthetic_validation.csv` + `_run.log` (were `v2_synthetic_validation.*`) | `archive/jumpmodel-v2/scripts/synthetic_validation.py` |
+| `sensor_validation.csv` + `_run.log` | `archive/jumpmodel-v2/scripts/validate_sensor.py` |
 
 `sensor_validation.*` scores the jump-model label against ex-post Lunde–Timmermann bear datings using the *frozen*
 chapter-1 labels — a fixed fact, not part of any refresh. `CLAUDE.md` lists both `sensor_validation.*` and
@@ -55,7 +55,7 @@ The volatility signal was reframed off the K=2 state label on 2026-08-04. These 
 program and are kept because they are the evidence for the reframe, or because a downstream consumer still reads
 them.
 
-- `detector_benchmark.csv` — `scripts/benchmark_detector.py`. The exposure-matched head-to-head that ended the
+- `detector_benchmark.csv` — `archive/jumpmodel-v2/scripts/benchmark_detector.py`. The exposure-matched head-to-head that ended the
   state label: a plain causal vol threshold (with hysteresis) matches or beats the jump model on precision, recall
   and BAC at both the LT15 and LT20 bear datings, and detects with shorter median lag.
 - `regime_card.json` — **PARKED PLACEHOLDER, deliberately blank since 2026-08-06.** It has no producer: the

@@ -44,23 +44,25 @@ momentum) was REMOVED from this repo 2026-08-02 — a separate concern; recovera
   (presentation) · `validate_vol.py` (the frozen one-look → `results/vol_validation.txt`) · `vol_level0.py`
   (emits + schema-validates `results/vol_level0.json`).
 
-**Retired jump-model program (being wound down, do not extend):**
-- `jumpmodel.py` — jump-model estimator; `walkforward.py` — walk-forward pipeline; `backtest.py` — evaluation
-  lib; `run_config.py` — protocol constants.
-- `build_panel.py` / `build_assets.py` / `build_intl_panel.py` / `build_trend_proxy.py` — data builders
-  (US market TR, multi-asset incl. bond10/gold, Japan/Europe panels, trend proxy).
-- `stockbond_corr.py` — **stock-bond correlation signal** (inflation/real-rate; built this session).
-- `internals_gauge.py` (+ `internals_h1/h2/controls/dial.py`, `run_internals_prereg.py`) — market-internals
-  (breadth / concentration) signal construction + validation infra.
-- ~~`live_label.py` → `regime_signal.py`~~ — **DELETED 2026-08-06.** The K=2 state label was retired 2026-08-04;
-  `results/regime_card.json` is now a deliberate **parked placeholder** and stays blank until the multi-signal
-  observatory can fill it (Phase 10). Nothing downstream reads it. Never repopulate it with a single-label
-  summary — one word destroys the multi-signal vector.
-- `validate_sensor.py`, `synthetic_validation.py`, `benchmark_detector.py` — signal validation / QA.
-- `build_ohlc_panel.py` — range-based (Parkinson) estimator inputs.
+**Stock-bond correlation signal (Phase 2, charter frozen 2026-08-06, sign-off pending):**
+- `stockbond_corr.py` — `build(panel)` over a region-agnostic `(eq, bond)` schema, on the shared spine.
 
-Tests: `tests/{test_jumpmodel,test_backtest,test_boundary_audit,test_causal,test_reproducibility}.py` —
-**47 passing**, run with bare `pytest` (`pytest.ini` scopes collection to `tests/`). venv: `.venv`.
+**Data builders:** `build_panel.py` (US market TR + the construction gate) · `build_assets.py` (multi-asset incl.
+bond10/gold) · `build_intl_panel.py` (Japan/Europe equity) · `build_intl_bonds.py` (JGB/Bund monthly) ·
+`build_credit.py` · `build_funding.py` · `build_tail.py` · `build_ohlc_panel.py` (Parkinson inputs) ·
+`build_trend_proxy.py`.
+
+**ARCHIVED 2026-08-06 — `scripts/` now holds ONLY data builders + the signal spine.** The retired jump-model
+program (`jumpmodel`, `walkforward`, `backtest`, `run_config`, `synthetic_validation`, `validate_sensor`,
+`benchmark_detector` + its tests) moved to **`archive/jumpmodel-v2/`**, and the market-internals gauge
+(`internals_*`, `run_internals_prereg`) to **`archive/internals-gauge/`**. Each has a README recording what was
+learned and why it is parked — **read those before reviving anything.** Nothing in `scripts/` imports them.
+`live_label.py` / `regime_signal.py` were DELETED (not archived — nothing consumed them);
+`results/regime_card.json` is a deliberate parked blank until Phase 10. Never repopulate it with a single-label
+summary — one word destroys the multi-signal vector.
+
+Tests: `tests/{test_boundary_audit,test_causal,test_reproducibility}.py` — **26 passing**, run with bare `pytest`
+(`pytest.ini` scopes collection to `tests/`, excluding `archive/`). venv: `.venv`.
 
 ## Discipline (signal research — non-negotiable)
 

@@ -57,6 +57,25 @@ def expanding_percentile(x: pd.Series) -> pd.Series:
     return x.expanding().rank(pct=True).rename("vol_pctile")
 
 
+def downside_features(r) -> pd.DataFrame:
+    """EWM downside deviation (halflife 10d) and EWM Sortino ratios (halflife
+    20d, 60d). Causal by construction — EWMs only look back.
+
+    Generic return descriptors (Shu/Yu/Mulvey 2024), NOT jump-model specific:
+    lifted out of the retired estimator 2026-08-06 so `build_panel.py` keeps its
+    construction gate (G4 crisis coverage / G5 episode count both key off `dd10`)
+    while the jump model itself moves to archive/. Math and column order are
+    unchanged, so `market_daily.csv` is byte-identical across the move.
+    """
+    r = pd.Series(np.asarray(r, dtype=float))
+    neg2 = np.minimum(r, 0.0) ** 2
+    feats = {"dd10": np.sqrt(neg2.ewm(halflife=10).mean())}
+    for hl in (20, 60):
+        dd = np.sqrt(neg2.ewm(halflife=hl).mean())
+        feats[f"sortino{hl}"] = r.ewm(halflife=hl).mean() / dd.replace(0.0, np.nan)
+    return pd.DataFrame(feats)
+
+
 def expanding_z(x: pd.Series, min_periods: int = TRADING_DAYS) -> pd.Series:
     """Causal expanding-window z-score: how unusual is today's level against its
     OWN past only. The full-sample mean/std that most write-ups use leaks the

@@ -45,7 +45,7 @@ infeasible solo, and it risks re-reading the volatility axis). Status as of **20
 | # | Signal | Assumption / question it monitors | Status |
 |---|---|---|---|
 | 1.5 | **Volatility** | how large is uncertainty, how unusual, how durable (a context axis, not an assumption monitor) | **Complete.** Charter signed off 2026-08-05; one-look run 2026-08-05 (`results/vol_validation.txt`), V2–V5 pass, no reject condition tripped; results signed off dated 2026-08-06. Maturity derived = `production`. Level-0 record at `results/vol_level0.json`. |
-| 2 | **Stock-bond correlation** | "bonds hedge equity drawdowns" | Built and US-validated 1962–2026 (`scripts/stockbond_corr.py`). Japan/Germany out-of-sample run not yet done; the bond leg is now in `data/processed/intl_bonds_monthly.csv`. First task is refactoring `build()` onto the shared spine — it currently takes no arguments and loads its own US panel, so it cannot feed `run_oos`. |
+| 2 | **Stock-bond correlation** | "bonds hedge equity drawdowns" | Built and US-validated 1962–2026; refactored onto the shared spine 2026-08-06 (`build(panel)`, region-agnostic). **Charter frozen 2026-08-06, sign-off pending; the Japan/Germany run has NOT been made.** Registered limitation: the international panels start 1990-07, so the out-of-sample period does not contain the 1970s–80s inflation regime — `research` is this phase's maturity ceiling. |
 | 3 | **Valuation** | "equities are priced for normal forward returns" | Charter frozen 2026-08-03 (`.planning/phases/03-valuation-signal/03-VALUATION-CHARTER.md`), sign-off pending, no data look spent. |
 | 4 | **Concentration** | "the index is not dependent on a few names" | Warm start only: kickoff brief + data (French VW−EW leadership spread from `assets_daily.csv`; true cap-HHI needs paywalled constituents). |
 | 5 | **Diversification / absorption** | "diversification is intact" | Warm start only: absorption ratio via PCA of the `assets_daily.csv` panel. Scoped narrow — the lead is the whole justification. |
@@ -64,9 +64,9 @@ The Definition of Done is identical for every signal, so its machinery is built 
 signal:
 
 - **`scripts/causal.py`** — the causal primitives every signal imports: `ewma_vol` (RiskMetrics/IGARCH),
-  `realized_vol`, `expanding_percentile`, plus `assert_causal`, the perturb-the-future check a signal's `build`
-  must pass before its one-look. Every function here uses data through `t` only; if a function needs the future it
-  does not belong in this module.
+  `realized_vol`, `expanding_percentile`, `expanding_z`, `downside_features`, plus `assert_causal`, the
+  perturb-the-future check a signal's `build` must pass before its one-look. Every function here uses data through
+  `t` only; if a function needs the future it does not belong in this module.
 - **`scripts/run_oos.py`** — the generic out-of-hypothesis-sample harness. Given any signal's
   `build_region(returns) -> DataFrame`, it runs the identical construction over US / Japan / Europe panels (all
   share a `date,mkt_ret` schema). It runs the construction and asserts nothing; interpretation stays with the
@@ -87,7 +87,7 @@ signal:
   rebased, yfinance back-adjusts; a filename is not a dataset identifier. It is a record, not a lock — regenerate
   and commit it alongside any data refresh.
 
-`pytest` → **50 passed** (`pytest.ini` scopes collection to `tests/`).
+`pytest` → **26 passed** (`pytest.ini` scopes collection to `tests/`).
 
 ## Research discipline
 
@@ -127,11 +127,6 @@ All code is flat in `scripts/` (there is no `src/` package).
   `signal_output_schema.validate()` so the boundary is enforced by the allowlist rather than by care.
 - `stockbond_corr.py` — causal trailing equity/10y-bond correlation, its sign read as the state of the
   bonds-hedge-equities assumption → `results/stockbond_corr.csv`, `results/stockbond_context.csv`.
-- `internals_gauge.py`, `internals_h1.py`, `internals_h2.py`, `internals_controls.py`, `internals_dial.py`,
-  `run_internals_prereg.py` — breadth/fragility construction and validation infra frozen against
-  `.planning/INTERNALS-BETA-DIAL-PREREG.md`. Predates the current concentration scoping (Phase 4) and has a failing
-  Europe placebo control; treat as prior work, not a shipped signal.
-
 **Provenance** — `data_manifest.py` → `data/processed/MANIFEST.csv`
 
 **Data builders** — `build_panel.py` (Ken French daily US market TR 1926+, SPY cross-check) · `build_assets.py`
@@ -139,21 +134,26 @@ All code is flat in `scripts/` (there is no `src/` package).
 `build_intl_bonds.py` (JGB / Bund monthly 10y TR) · `build_credit.py` · `build_funding.py` · `build_tail.py` ·
 `build_ohlc_panel.py` (range-based estimator inputs) · `build_trend_proxy.py`.
 
-**Retired-program code still in the tree** — `jumpmodel.py`, `walkforward.py`, `backtest.py`, `run_config.py`,
-`validate_sensor.py`, `synthetic_validation.py`, `benchmark_detector.py`, and the `internals_*.py` set. These
-implement the K=2 jump-model state label and its evaluation. The volatility signal was reframed away from that
-label on 2026-08-04 — `results/detector_benchmark.csv` shows a plain causal vol threshold with hysteresis
-matching or beating the jump model on precision, recall and BAC at both bear datings, with shorter detection lag.
+**Archived, not in the signal path** (2026-08-06) — `scripts/` now contains only data builders and the signal
+spine. The retired K=2 jump-model program moved to **`archive/jumpmodel-v2/`** and the market-internals gauge to
+**`archive/internals-gauge/`**. Each carries a README recording *what was learned* and why it is parked; read
+those before reviving anything.
 
-The label's **live pipeline was deleted 2026-08-06** (`live_label.py`, `regime_signal.py`, the weekly GitHub
-Action, and the label artifacts). `results/regime_card.json` is now a deliberate **parked placeholder**: serving a
-retired reading is worse than serving nothing. It stays blank until the multi-signal observatory can fill it
-(Phase 10), and must never be repopulated with a single-label summary.
+The jump model is worth knowing about even though it is retired, because the current design is a reaction to how
+it failed: the label was an excellent *instrument* (100.0% stability under ±2y window shifts) that lost every
+economic use to something simpler, because causal filters lag the regime by 5–20 days. And
+`results/detector_benchmark.csv` showed a plain causal vol threshold with hysteresis matching or beating it on
+precision, recall and BAC at both bear datings with shorter lag — **thresholding a continuous quantity piles the
+error at the boundary and discards the graded information in σ.** That is why the volatility signal is now
+continuous descriptors, and why "no single-word regime summary" is a standing rule here.
 
-The estimator itself is the last block still standing, and only because `build_panel.py` uses
-`jumpmodel.build_features` when writing `data/processed/market_daily.csv`. Cutting it changes that panel's start
-date, which would shift the expanding-percentile baseline behind results that are already signed off — so it is a
-deliberate, verified step, not a cleanup. See `NOTES.md` for the sequence.
+Its live pipeline (`live_label.py`, `regime_signal.py`, the weekly GitHub Action) was **deleted** rather than
+archived — nothing consumed it. `results/regime_card.json` is now a deliberate **parked placeholder**: serving a
+retired reading is worse than serving nothing. It stays blank until the observatory can fill it (Phase 10).
+
+The one piece kept out of the archive is `build_features` (EWM downside deviation + Sortino), lifted into
+`causal.py` as `downside_features` because it is a generic causal return descriptor and `build_panel.py`'s
+construction gate keys off `dd10`. The move was verified bit-identical, so `market_daily.csv` is unchanged.
 
 ## Quickstart
 
