@@ -138,6 +138,27 @@ exposure change, no sizing, no timing — none of these concepts exist in this r
 
 ---
 
+## Post-look dispositions (2026-08-06) — decided by Claude, ratified by Adam
+
+Three judgment calls arising from the one-look. Recorded here so the reasoning is attributable, and because
+ratifying a recommendation is not the same act as signing off the results.
+
+- **D-02a — V5 window softness: ACCEPT, no re-specification.** Sign agreement with the 24m primary is 74–85% at
+  12m and 85–91% at 36m. A 12-month correlation is estimated from 12 observations and *should* be noisier; the
+  registered primary is 24m and the state is stable at 24m and above. R3 is not tripped. The caveat stays on the
+  record rather than being smoothed away, and the neutral-band concentration check remains a **registered
+  follow-up** — not run, because it would be a second look.
+- **D-02b — the `under_test` middle band: KEEP the three-state ledger.** In Japan and Europe the
+  `intact → under_test` step is small and most discrimination sits at `violated`. That is an honest description of
+  an ambiguous transition zone, which is exactly what the band is labelled as. Collapsing to violated / not-violated
+  would destroy information to make the presentation tidier — the failure mode this repo exists to avoid.
+- **D-02c — maturity ceiling `research`: STANDS.** V2 replicating in all three regions does not change the sample:
+  the international panels begin 1990 and contain no inflation regime. A strong result is precisely when this cap
+  is most tempting to drop, which is why it was registered before the look.
+
+**Results sign-off remains PENDING** — overnight cooling-off, then Adam's dated sign-off. These dispositions are
+not that sign-off.
+
 ## Pre-registered analysis specification
 
 Frozen before the look. Lines marked **[recommended — Adam to confirm/override]** are my defaults, not yet his.
