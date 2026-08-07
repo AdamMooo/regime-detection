@@ -11,3 +11,8 @@ arch==8.0.0            # GARCH persistence (vol descriptors), stationary bootstr
 statsmodels==0.14.6    # HAC/Newey-West inference (valuation overlapping returns)
 scikit-learn==1.8.0    # PCA (absorption ratio)
 matplotlib==3.9.2      # signal read plots
+
+# Transitive-by-use: pandas imports these engines, our scripts never import them
+# directly, so tests/test_reproducibility.py::test_every_third_party_import_is_declared
+# CANNOT catch them by AST scan. Pin them by hand or a fresh clone fails at runtime.
+xlrd==2.0.2            # legacy .xls engine — Shiller's ie_data.xls (build_valuation.py)

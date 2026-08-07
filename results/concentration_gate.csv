@@ -1,0 +1,6 @@
+gate,passed,detail
+C1_coverage,True,n=1200 span=1926-07-31..2026-06-30
+C2_blocks_agree,True,cols=25/25 index_match=True
+C3_eff_n_bounds,True,eff_n range=2.064..10.627
+C4_shares_sum,True,max|sum(s)-1|=4.44e-16
+C5_no_gaps,True,nans=0 missing_months=0

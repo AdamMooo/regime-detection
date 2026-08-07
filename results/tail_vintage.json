@@ -1,0 +1,17 @@
+{
+  "source": "data/processed/tail_daily.csv",
+  "sha256": "101a9d2c9d0a2f13ec003190b2ddde5c44b59259c6feb3f859c5b93b2f27250a",
+  "build_date": "2026-08-06",
+  "span": [
+    "1990-01-02",
+    "2026-08-04"
+  ],
+  "skew_min": {
+    "value": 101.23,
+    "date": "1991-03-19"
+  },
+  "skew_max": {
+    "value": 183.12,
+    "date": "2025-02-18"
+  }
+}

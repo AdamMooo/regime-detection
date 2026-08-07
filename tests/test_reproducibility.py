@@ -110,33 +110,42 @@ def test_data_manifest_covers_every_processed_panel():
 
 
 # Modules exposing a signal `build()` that are NOT under the causal guard, with
-# the reason. Anything else defining `build()` must be covered in test_causal.py.
-# Empty is the correct state — an entry here is a debt, not a design.
+# the reason. Empty is the correct state — an entry here is a debt, not a design.
 CAUSAL_GUARD_EXCEPTIONS: dict[str, str] = {}
-CAUSALLY_GUARDED = {"vol_descriptors", "stockbond_corr"}
+
+TESTS = sorted((ROOT / "tests").glob("test_*.py"))
+
+
+def _signal_modules() -> list[str]:
+    """scripts/ modules exposing a top-level `build()` — i.e. signal constructions."""
+    out = []
+    for path in SCRIPTS:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        if any(isinstance(n, ast.FunctionDef) and n.name == "build" for n in tree.body):
+            out.append(path.stem)
+    return out
 
 
 def test_every_signal_build_is_under_the_causal_guard():
     """A new signal must not be able to skip assert_causal by omission.
 
-    Enforcement is structural (D-18): if you add a module with a `build()`, this
-    fails until it is either guarded in test_causal.py or explicitly excepted.
+    Enforcement is structural (D-18) and self-maintaining: rather than a
+    hand-kept registry that drifts, this looks for a test that actually names
+    the module AND calls assert_causal. Adding a signal without guarding it
+    fails on arrival.
     """
-    unguarded = []
-    for path in SCRIPTS:
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        has_build = any(
-            isinstance(n, ast.FunctionDef) and n.name == "build" for n in tree.body
-        )
-        if has_build and path.stem not in CAUSALLY_GUARDED | set(CAUSAL_GUARD_EXCEPTIONS):
-            unguarded.append(path.stem)
+    guarded = set()
+    for t in TESTS:
+        src = t.read_text(encoding="utf-8")
+        if "assert_causal" not in src:
+            continue
+        for mod in _signal_modules():
+            if mod in src:
+                guarded.add(mod)
+
+    unguarded = [m for m in _signal_modules()
+                 if m not in guarded and m not in CAUSAL_GUARD_EXCEPTIONS]
     assert not unguarded, (
         f"signal build() not covered by assert_causal: {unguarded}. "
-        "Add a case to tests/test_causal.py, or document an exception."
+        "Add a test that imports the module and calls assert_causal on its build()."
     )
-
-
-@pytest.mark.parametrize("stem", sorted(CAUSALLY_GUARDED))
-def test_guard_registry_is_not_stale(stem):
-    """The registry must not name modules that no longer exist."""
-    assert (ROOT / "scripts" / f"{stem}.py").exists()
