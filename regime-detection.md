@@ -16,6 +16,26 @@ after the Stage-0 gate amendment — the spec every signal declares against).
 
 ## Status
 
+**2026-08-06 (late) — the signal set is now CURATED: 9 scoped → 5 live.** Phase 2 stock-bond refactored onto the
+shared spine, charter frozen + signed, and its **one-look spent: V2 hedge-behaviour is monotone in all three
+regions** (US 28→44→56%, Japan 25→29→51%, Europe 27→32→48% of equity-down months where bonds also fell) — R1/R2
+not tripped. Results sign-off pending cooling-off; maturity capped at `research` because the international sample
+starts 1990 and contains no inflation regime (registered *before* the look). Then five research agents produced
+five charter drafts and four build agents produced **four working signal constructions**: valuation (Shiller CAPE
+1881+, 5-month earnings publication lag derived, not guessed), concentration (effective-N across the 25 French
+size/BM buckets, 1926+), credit (EBP on an as-of index so the frame is indexed by when a reading was *readable*),
+and tail (price of downside protection, 2000+ only). **Absorption and funding were DROPPED at the charter stage,
+no look spent** — archived with why in `.planning/archive/dropped-signals/`. The jump-model program is archived to
+`archive/jumpmodel-v2/` with its lessons written down, `results/regime_card.json` is a deliberate parked blank, and
+the last boundary-audit exception is gone. **41 tests pass.**
+
+**Two findings that outlive their phases.** (1) **Market data is not vintage-free** — Cboe's 2011 documentation
+gives SKEW all-time low/high 101.09 / 146.88 where today's file gives 101.31 / 146.22 *on the same dates*, and the
+all-time-low date itself moved. `assert_causal` cannot catch this; it guards the construction, not the data.
+Mitigation: `python scripts/data_manifest.py --check` diffs every panel's sha256 against the committed manifest.
+(2) **CI was never running the guards** — `tests.yml` installed a hand-picked subset and ran only the retired
+program's suites, so the boundary audit, causal guard and reproducibility tests had never executed in CI. Fixed.
+
 **2026-08-06 — volatility signal COMPLETE (first signal through the full DoD).** Adam's dated results sign-off
 landed (`.planning/phases/01.5-volatility-signal/1.5-VOLATILITY-CHARTER.md` §RESULTS SIGN-OFF): V2–V5 pass, no
 reject condition tripped, **maturity derived = `production`**, and the **RF open item is CLOSED** — the
