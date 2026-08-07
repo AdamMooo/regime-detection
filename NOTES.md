@@ -262,10 +262,34 @@ pre-registration). **KEPT deliberately:** all six `.planning/archive/*-PREREG.md
 pre-registrations are the evidence the nulls were called honestly and in advance; stale-looking is what a
 scientific record looks like.
 
-**NOT deleted — the live chain.** `live_label.py` → `regime_signal.py` → `results/regime_card.json` is a REAL
-contract: `.github/workflows/weekly-regime-card.yml` regenerates it weekly and a separate downstream repo fetches
-it PAT-authed. `jumpmodel/walkforward/backtest/run_config` are its dependencies. Retiring it = coordinating with
-the consumer repo first. Do not delete unilaterally.
+**CARD BLANKED + LIVE CHAIN DELETED (2026-08-06, Adam-directed: "if we've proven the new thinking is better, make
+it BLANK for now until we can actually combine all the signals into the regime card").** Verified first, in the
+downstream repo: **nothing in `portfolio-manager` imports `src/regime.py` or calls `collect_regime_card()`**, and
+its weekly-regime-brief cron was disabled 2026-08-04. The card was orphaned on BOTH ends — the "live contract"
+was live only in the sense that a cron kept regenerating something nobody read.
+- **`results/regime_card.json` is now a deliberate parked placeholder** (status/reason/replaced_by), not deleted:
+  it stays blank until the observatory can fill it (Phase 10). **Never repopulate it with a single-label summary.**
+- Deleted: `scripts/{live_label,regime_signal}.py`, `tests/test_regime_signal.py`,
+  `results/{label_live.csv, label_live_run.log, live_label_meta.json}`,
+  `.github/workflows/weekly-regime-card.yml`.
+- **Last boundary-audit exception RESOLVED** — `gauge.position` was a leak from the retired state, so deleting the
+  state deleted the leak (better than the planned `dwell_rank` rename + downstream coordination).
+  `KNOWN_DEFERRED_EXCEPTIONS` is now empty. Both exception registries in this repo are empty.
+- Consequence: the SPY-splice to-today bridge is gone; signal reads now end at the French vintage (2026-05-29).
+  The new stack never used the splice. Any signal needing a to-today read brings its own causal splice.
+- Downstream leftover (**other repo, not touched**): `portfolio-manager/src/regime.py` + the `REGIME_REPO_PAT` env
+  in `daily-report.yml` are now dead weight there. Remove them in that repo; the PAT can then be revoked.
+
+**WHERE I STOPPED, AND WHY (do not "finish the cleanup" casually).** The retired estimator —
+`jumpmodel/walkforward/backtest/run_config`, `synthetic_validation/validate_sensor/benchmark_detector`, and the
+`internals_*` set — is still in the tree, held up by ONE dependency: **`build_panel.py:34,88` calls
+`jumpmodel.build_features`** when writing `market_daily.csv`, then truncates `.iloc[63:]` for feature burn-in.
+Removing the feature join changes the panel's START DATE by 63 rows → shifts the expanding-percentile baseline →
+**moves vol numbers that were signed off today.** Sequence to finish it properly:
+1. Drop the feature join from `build_panel.py` but KEEP the `.iloc[63:]` offset (as a documented legacy constant).
+2. Regenerate and assert `mkt_ret` is byte-identical to the committed panel — a diff of zero rows and zero values.
+3. Only then delete the estimator + its tests; decide `internals_*` separately (it has a frozen prereg and a
+   FAILING Europe placebo, and Phase 4 warm-started a different approach).
 
 **CI GAP FOUND + FIXED — this one mattered.** `.github/workflows/tests.yml` installed only `numpy pandas pytest`
 and ran only `test_jumpmodel.py` + `test_backtest.py` — the two suites for the RETIRED program. **The boundary

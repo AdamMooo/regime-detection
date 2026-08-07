@@ -1,7 +1,0 @@
-splice gate PASS (corr 0.9957); French ends 2026-05-29, SPY tail 37 days -> 2026-07-23
-
-CURRENT STATE (2026-07-23): CALM
-last switch: 2026-04-23 (91 days ago)
-agreement with frozen chapter-1 labels on overlap: 1.0000 (9120 days)
-final-year lambda: 25.0
-wrote results/label_live.csv

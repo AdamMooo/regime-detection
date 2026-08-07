@@ -1,9 +1,9 @@
 """Shared run constants + arm-construction helpers for the frozen chapter-1 protocol.
 
 Extracted from run_backtest.py (2026-07-27) when the Ch1/Ch2 one-look battery runners were
-removed from the tree (one-look spent, chapters closed — see NOTES.md). This module holds only
-what the live label pipeline (live_label.py → regime_signal.py → results/regime_card.json) still
-needs: the frozen protocol's constants and two small arm-return helpers. Reproducible battery
+removed from the tree (one-look spent, chapters closed — see NOTES.md). Its last live consumer
+(live_label.py → regime_signal.py) was deleted 2026-08-06; only internals_dial.py still imports
+this module. Slated for removal with the rest of the retired estimator. Reproducible battery
 logic at git commit 51fbeff (last commit before removal).
 """
 

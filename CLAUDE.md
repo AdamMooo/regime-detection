@@ -52,14 +52,15 @@ momentum) was REMOVED from this repo 2026-08-02 — a separate concern; recovera
 - `stockbond_corr.py` — **stock-bond correlation signal** (inflation/real-rate; built this session).
 - `internals_gauge.py` (+ `internals_h1/h2/controls/dial.py`, `run_internals_prereg.py`) — market-internals
   (breadth / concentration) signal construction + validation infra.
-- `live_label.py` → `regime_signal.py` — live volatility label → `results/regime_card.json` (shipped; consumed
-  by a separate downstream repo).
+- ~~`live_label.py` → `regime_signal.py`~~ — **DELETED 2026-08-06.** The K=2 state label was retired 2026-08-04;
+  `results/regime_card.json` is now a deliberate **parked placeholder** and stays blank until the multi-signal
+  observatory can fill it (Phase 10). Nothing downstream reads it. Never repopulate it with a single-label
+  summary — one word destroys the multi-signal vector.
 - `validate_sensor.py`, `synthetic_validation.py`, `benchmark_detector.py` — signal validation / QA.
 - `build_ohlc_panel.py` — range-based (Parkinson) estimator inputs.
 
-Tests: `tests/{test_jumpmodel,test_backtest,test_regime_signal,test_boundary_audit,test_causal,
-test_reproducibility}.py` — **50 passing**, run with bare `pytest` (`pytest.ini` scopes collection to `tests/`).
-venv: `.venv`.
+Tests: `tests/{test_jumpmodel,test_backtest,test_boundary_audit,test_causal,test_reproducibility}.py` —
+**47 passing**, run with bare `pytest` (`pytest.ini` scopes collection to `tests/`). venv: `.venv`.
 
 ## Discipline (signal research — non-negotiable)
 

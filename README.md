@@ -74,9 +74,9 @@ signal:
 - **`scripts/signal_output_schema.py`** — the executable boundary: a closed Level-0 field allowlist plus a
   forbidden-vocabulary denylist and `validate()`. A Level-0 record may contain only the enumerated fields.
 - **`tests/test_boundary_audit.py`** — asserts no decision-shaped or composite-scalar field is ever emitted. On the
-  day it was written it caught a real leak that every prose "reviewed grep" had missed. One documented deferred
-  exception is carried: `gauge.position` in `results/regime_card.json` (a downstream data contract; the rename to
-  `dwell_rank` needs coordinating with the consumer repo).
+  day it was written it caught a real leak that every prose "reviewed grep" had missed. It now carries **no
+  exceptions**: the one deferred entry (`gauge.position`) was resolved 2026-08-06 by retiring the card's generator
+  rather than renaming the field — the leak came from the retired state, so deleting the state deleted the leak.
 - **`tests/test_causal.py`** — the look-ahead guard: it perturbs future values and demands past values do not move,
   and includes a test proving the guard itself catches a deliberately leaky function.
 - **`tests/test_reproducibility.py`** — every test in it exists because the corresponding failure actually
@@ -140,16 +140,20 @@ All code is flat in `scripts/` (there is no `src/` package).
 `build_ohlc_panel.py` (range-based estimator inputs) · `build_trend_proxy.py`.
 
 **Retired-program code still in the tree** — `jumpmodel.py`, `walkforward.py`, `backtest.py`, `run_config.py`,
-`live_label.py`, `regime_signal.py`, `validate_sensor.py`, `synthetic_validation.py`, `benchmark_detector.py`.
-These implement the K=2 jump-model state label and its evaluation. The volatility signal was reframed away from
-that label on 2026-08-04 — `results/detector_benchmark.csv` shows a plain causal vol threshold with hysteresis
+`validate_sensor.py`, `synthetic_validation.py`, `benchmark_detector.py`, and the `internals_*.py` set. These
+implement the K=2 jump-model state label and its evaluation. The volatility signal was reframed away from that
+label on 2026-08-04 — `results/detector_benchmark.csv` shows a plain causal vol threshold with hysteresis
 matching or beating the jump model on precision, recall and BAC at both bear datings, with shorter detection lag.
 
-They remain because `live_label.py` → `regime_signal.py` → `results/regime_card.json` is a **live data contract**:
-a weekly GitHub Action (`.github/workflows/weekly-regime-card.yml`) regenerates the card, and a separate
-downstream repo fetches it. Retiring the chain means coordinating with that consumer, so it is deliberate but
-unscheduled. The dead read/report scripts around it (`build_report.py`, `regime_read.py`, `regime_panel.py`) were
-deleted 2026-08-06.
+The label's **live pipeline was deleted 2026-08-06** (`live_label.py`, `regime_signal.py`, the weekly GitHub
+Action, and the label artifacts). `results/regime_card.json` is now a deliberate **parked placeholder**: serving a
+retired reading is worse than serving nothing. It stays blank until the multi-signal observatory can fill it
+(Phase 10), and must never be repopulated with a single-label summary.
+
+The estimator itself is the last block still standing, and only because `build_panel.py` uses
+`jumpmodel.build_features` when writing `data/processed/market_daily.csv`. Cutting it changes that panel's start
+date, which would shift the expanding-percentile baseline behind results that are already signed off — so it is a
+deliberate, verified step, not a cleanup. See `NOTES.md` for the sequence.
 
 ## Quickstart
 

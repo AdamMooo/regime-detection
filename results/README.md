@@ -58,11 +58,12 @@ them.
 - `detector_benchmark.csv` — `scripts/benchmark_detector.py`. The exposure-matched head-to-head that ended the
   state label: a plain causal vol threshold (with hysteresis) matches or beats the jump model on precision, recall
   and BAC at both the LT15 and LT20 bear datings, and detects with shorter median lag.
-- `label_live.csv` + `live_label_meta.json` — `scripts/live_label.py` (SPY-splice live tail; the meta file carries
-  the splice health: gate pass/fail, correlation, agreement with the frozen chapter-1 labels).
-- `regime_card.json` — `scripts/regime_signal.py`, the data contract consumed by a separate downstream repo. It
-  contains the one documented deferred boundary exception, `gauge.position` (rename to `dwell_rank` needs
-  coordinating with the consumer); see `tests/test_boundary_audit.py`.
+- `regime_card.json` — **PARKED PLACEHOLDER, deliberately blank since 2026-08-06.** It has no producer: the
+  generator (`live_label.py` → `regime_signal.py`) and its weekly GitHub Action were deleted. Serving a retired
+  reading is worse than serving nothing. It stays blank until the multi-signal observatory can fill it (Phase 10),
+  and must never be repopulated with a single-label summary — one word destroys the multi-signal vector. Blanking
+  it also resolved the last boundary-audit exception (`gauge.position`).
+
 ## Removed
 
 - **2026-08-06 cleanup** — `regime_panel.csv`, `regime_read_latest.json` (producers `regime_panel.py` /

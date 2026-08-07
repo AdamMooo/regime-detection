@@ -108,23 +108,22 @@ No auto-advance. Every signal gets its own one-look and its own dated sign-off.
 
 ## Known Issues
 
-- **Retired jump-model code still in the tree — and it is LIVE, not merely stale.** `live_label.py` →
-  `regime_signal.py` → `results/regime_card.json` is a real data contract: a weekly GH Action
-  (`.github/workflows/weekly-regime-card.yml`) regenerates the card and a separate downstream repo fetches it
-  PAT-authed. `jumpmodel.py` / `walkforward.py` / `backtest.py` / `run_config.py` are its dependencies and must
-  stay until the consumer is migrated. Retirement is deliberate-but-unscheduled — **coordinate with the consumer
-  first**. (The dead scripts *around* the chain — `build_report.py`, `regime_read.py`, `regime_panel.py` — were
-  deleted 2026-08-06.)
-- **`gauge.position` → `gauge.dwell_rank` rename outstanding.** A boundary leak in `results/regime_card.json`,
-  carried as the single documented exception in `tests/test_boundary_audit.py`. Needs a coordinated rename with the
-  consumer repo, then the exception is removed. End-of-project cleanup.
-- **`scripts/stockbond_corr.py` is off the shared spine.** `build()` takes no arguments (loads its own US panel),
-  so it cannot feed `run_oos(build_region)`, and it re-implements `realized_vol` / `expanding_z` locally instead of
-  importing `causal.py` (D-20 drift). Blocks the Phase-2 Japan/Germany run; fix first, no look spent.
+- **The retired jump-model estimator is the last block still standing.** Its live pipeline was deleted
+  2026-08-06 (`live_label.py`, `regime_signal.py`, the weekly GH Action, the label artifacts) and
+  `results/regime_card.json` is now a parked blank. What remains — `jumpmodel.py` / `walkforward.py` /
+  `backtest.py` / `run_config.py`, plus `synthetic_validation.py` / `validate_sensor.py` /
+  `benchmark_detector.py` and the `internals_*.py` set — is held up by ONE dependency: `build_panel.py` calls
+  `jumpmodel.build_features` when writing `market_daily.csv`, and cutting it shifts that panel's start date and
+  therefore the expanding-percentile baseline behind already-signed-off vol results. Sequence to finish it is in
+  [[regime-detection/NOTES|NOTES.md]]; it needs a byte-identical `mkt_ret` check, not a casual delete.
+- **Downstream leftover (other repo).** `portfolio-manager/src/regime.py` still contains a fetcher for the now-blank
+  card, and `daily-report.yml` still passes `REGIME_REPO_PAT`. **Nothing imports either** — verified 2026-08-06.
+  Dead weight in that repo, to be removed there; the PAT can be revoked once it is.
 - **`.planning/ROADMAP.md` still lists Phase 8 (crowding)**, dropped 2026-08-05, and still shows Phase 9 (tail) as
   data-gated, which it no longer is. GSD-managed file, not hand-edited.
-- French data publishes with a 1–2 month lag — handled by the SPY-splice live tail (`scripts/live_label.py`, gate
-  PASS corr 0.9957, 1.0000 agreement on overlap); the splice must be refreshed when displaying a current reading.
+- French data publishes with a 1–2 month lag. The SPY-splice live tail that used to bridge it was deleted with the
+  label pipeline, so signal reads now end at the French vintage (currently 2026-05-29). Any signal needing a
+  to-today read must bring its own causal splice.
 - **Resolved 2026-08-06, kept for the record:** the RF open item (volatility's provisional `production` tag) is
   closed by the literal Japan/Europe V5 run and the dated sign-off; `results/vol_descriptors.csv` is back in sync
   with its producer's columns; bare `pytest` works again via `pytest.ini`.

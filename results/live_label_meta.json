@@ -1,8 +1,0 @@
-{
-  "splice_corr": 0.9957,
-  "splice_gate_threshold": 0.98,
-  "splice_gate_pass": true,
-  "agreement_with_frozen": 1.0,
-  "agreement_n_days": 9120,
-  "final_lambda": 25.0
-}

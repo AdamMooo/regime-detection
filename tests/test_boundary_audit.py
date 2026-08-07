@@ -37,11 +37,12 @@ def _level0_keys_from_declaration(text):
 
 # --- Test A: shipped outputs carry no forbidden field name -------------------
 
-# KNOWN BOUNDARY EXCEPTION (deferred, tracked): gauge.position is a dwell-rank
-# descriptor (percentile of completed episodes), NOT a trading position. Rename to
-# gauge.dwell_rank is deferred pending a coordinated downstream-repo update -- see
-# SIGNOFF-CHECKLIST.md. Do NOT add new exceptions; this one is scheduled for removal.
-KNOWN_DEFERRED_EXCEPTIONS = {("regime_card.json", "position")}
+# No exceptions. The one that used to live here (gauge.position in
+# regime_card.json) was resolved 2026-08-06 by retiring the card's generator
+# rather than renaming the field -- the leak came from the retired jump-model
+# state, so deleting the state deleted the leak. Empty is the correct state:
+# an entry here is a debt, not a design.
+KNOWN_DEFERRED_EXCEPTIONS: set[tuple[str, str]] = set()
 
 
 @pytest.mark.parametrize("path", sorted(RESULTS.glob("*.json")), ids=lambda p: p.name)
