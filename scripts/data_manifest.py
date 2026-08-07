@@ -72,7 +72,52 @@ def build_manifest() -> pd.DataFrame:
     return pd.DataFrame([describe(p) for p in files])
 
 
+def check() -> int:
+    """Detect SILENT UPSTREAM REVISION: recompute hashes and diff against the
+    committed manifest.
+
+    Motivated by a real discovery (2026-08-06): Cboe's published SKEW all-time
+    low/high were 101.09 / 146.88 in the 2011 white paper and are 101.31 / 146.22
+    in today's file — same dates, different values. Vendors silently restate
+    history, and `assert_causal` cannot see it because the leak is in the data,
+    not the code.
+
+    A hash change is NOT a failure — refreshing data legitimately changes it. It
+    is a prompt: confirm the change is the refresh you intended and not a vendor
+    rewriting the past underneath a frozen result.
+    """
+    if not OUT.exists():
+        print("no committed manifest; run without --check first")
+        return 1
+    old = pd.read_csv(OUT).set_index("file")
+    new = build_manifest().set_index("file")
+
+    changed = [f for f in old.index.intersection(new.index)
+               if old.loc[f, "sha256"] != new.loc[f, "sha256"]]
+    gone = sorted(set(old.index) - set(new.index))
+    added = sorted(set(new.index) - set(old.index))
+
+    for f in changed:
+        o, n = old.loc[f], new.loc[f]
+        print(f"CHANGED  {f}  rows {o['rows']}->{n['rows']}  span {o['last']}->{n['last']}")
+        if str(o["column_spans"]) != str(n["column_spans"]):
+            print(f"         column spans moved:\n           was {o['column_spans']}\n           now {n['column_spans']}")
+    for f in gone:
+        print(f"MISSING  {f}  (in manifest, not on disk)")
+    for f in added:
+        print(f"NEW      {f}  (on disk, not in manifest)")
+
+    if not (changed or gone or added):
+        print(f"clean — all {len(new)} panels byte-identical to the committed manifest")
+        return 0
+    print("\nIf a span moved BACKWARDS or rows changed without a refresh, a vendor "
+          "restated history under you. Investigate before trusting any frozen result built on it.")
+    return 1
+
+
 def main() -> int:
+    if "--check" in sys.argv:
+        return check()
     m = build_manifest()
     m.to_csv(OUT, index=False)
     print(f"{len(m)} panels -> {OUT.relative_to(ROOT)}")
