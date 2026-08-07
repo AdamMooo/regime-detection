@@ -15,6 +15,15 @@ tilt budgets / deployment) — only which ABSTRACT MARKET assumptions to monitor
 the human. Value = fewer blind spots for the human's judgment, never prediction or decisions. **The word
 "portfolio" and every allocation/implementation concept stay OUT of this repo — zero references.**
 
+**One documented exception, and only one: VENDOR IDENTIFIERS.** Ken French's filenames and block headers
+literally contain the word (`25_Portfolios_5x5_CSV.zip`, `Number of Firms in Portfolios`,
+`{Region}_25_Portfolios_ME_BE-ME_daily_CSV.zip`). You cannot fetch or parse the data without writing them.
+These are **source identifiers, never concepts** — the same class as `signal_output_schema.py` naming forbidden
+words as denylist data. This is why `tests/test_boundary_audit.py::test_no_script_imports_allocation_system`
+scans **import lines**, not all text: the rule that matters is that no code here reaches for a decision system,
+not that a vendor's spelling is scrubbed. Do not "fix" these strings; do not treat them as licence to use the
+concept.
+
 ## What This Project Is
 
 A **market-signal research system.** Each signal is an independent research module answering: *what is happening ·
