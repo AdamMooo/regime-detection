@@ -327,6 +327,47 @@ US panel, so it cannot feed `run_oos(build_region)`, which requires `build(r)`. 
 `realized_vol` / `expanding_z` locally instead of importing `causal.py` (D-20 drift). **Refactor onto the shared
 spine is task 1 of Phase 2**, before the Japan/Europe run.
 
+## FIVE CHARTER DRAFTS DELIVERED (2026-08-06) — parallel research agents, no look spent
+
+Five agents ran the research + draft-charter stage for Phases 4/5/6/7/9 in parallel. Charter sign-offs, one-looks
+and results sign-offs were deliberately NOT delegated — agents finalizing their own pre-registrations would make
+the charter paperwork. Every draft is marked DRAFT — NOT FROZEN, NOT SIGNED. Boundary greps clean.
+
+| Phase | Verdict | The deciding fact |
+|---|---|---|
+| **4 Concentration** | PROCEED **if respecified** | Kickoff's data verdict was WRONG — French publishes firm-count + avg-market-cap blocks free (verified, from 1926-08), so effective-N `1/Σsᵢ²` is buildable with no constituent list. VW−EW is the *derivative* of concentration; the phase's motivating claim is about the LEVEL. Spread-only ⇒ **DROP** (relabelled size factor). |
+| **5 Absorption** | **DROP** | Only unique content is a ~1-month lead; the matched cross-region panel publishes ~2 months late (verified: 69-day lag in our own manifest) ⇒ unreadable live. Also no matched US cross-section exists and French publishes no international industry sorts. |
+| **6 Credit (EBP)** | PROCEED, `research` ceiling | EBP is a **regression residual** refit monthly on the full sample ⇒ today's March-2008 value embeds coefficients fitted through 2026. No ALFRED vintages. Intl replication NOT feasible. |
+| **7 Funding** | **DROP** (see conflict below) | Only PIT-clean, credit-free, unspliced series (SOFR99−SOFR) starts 2018. `cp3m` is 28.8% missing since 1997 with **endogenous** missingness — the Fed publishes only when trade data suffice, so it goes dark exactly when funding seizes and its silence reads as `intact`. All three composites rejected. |
+| **9 Tail** | PROCEED, conditional, reduced priority | Measures **the PRICE of downside protection, not the probability of a crash** (Bollerslev–Todorov: the left/right asymmetry exists only under Q). Intl replication IMPOSSIBLE — no risk-neutral skew index for JP/EU at any tier. First signal `run_oos` cannot serve. |
+
+**CONFLICT RESOLVED:** Phase 7 recommended folding itself into Phase 9; **Phase 9 refused, and is right.** Impaired
+funding reduces dealers' capacity to supply protection, *raising its price* — funding is a candidate **cause** of
+the tail signal's moves. Folding a cause into the price it moves destroys the ability to observe them disagreeing.
+So funding is DROP, not fold, unless Adam wants it standalone-limited.
+
+**REPO-WIDE FINDING — market data is NOT vintage-free.** Cboe's 2011 documentation gives SKEW all-time low/high
+**101.09 / 146.88**; today's file gives **101.31 / 146.22** on the SAME dates. Silently revised, date and cause
+unestablished. We had assumed only macro series had a revision surface. **`assert_causal` cannot catch this — it
+guards the construction, not the data.** Mitigation shipped: `python scripts/data_manifest.py --check` recomputes
+every panel's sha256 and diffs against the committed manifest (changed rows, moved spans, moved per-column spans).
+A command, not a test — a test would fail on every legitimate refresh. Currently clean across 19 panels.
+Related: a further SKEW recalculation is **announced but unscheduled** (Cboe determination 2025-07-17, no effective
+date), so forward vintage capture should start now.
+
+**Also caught: a defect in `data_manifest.py` from earlier the same day** — `first`/`last` recorded only the INDEX
+span, so ragged-start wide panels read as though every column spanned the full range. That is exactly how the
+false "OAS proxies 1986+" claim formed (`ig_oas`/`hy_oas` actually start **2023-08-07**; FRED serves a rolling
+~3yr window of ICE BofA series). Manifest now records per-column first/last valid dates.
+
+**THE OBSERVATORY SHRINKS, and that is the gate working (D-19 quality over quantity).** Plausible final set is
+**5 signals, not 9**: volatility · stock-bond · valuation · concentration (respecified) · credit. Tail is
+conditional on Adam accepting the price-of-protection reframe; absorption, funding and crowding are out.
+
+**Decisions waiting on Adam:** (1) Phase 4 respecify-or-drop · (2) Phase 5 drop vs US-only descriptive ·
+(3) Phase 7 drop vs standalone-limited · (4) Phase 9 reframe-and-proceed vs drop · (5) each charter's dated
+sign-off before its build. Nine `[recommended]` items are marked inside the Phase 9 draft alone.
+
 ## NEXT ACTION
 
 **▶ After vol's dated sign-off:** pick the next signal to take from kickoff → full charter → build. All are warm:
