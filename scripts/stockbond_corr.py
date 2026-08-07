@@ -24,7 +24,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from causal import ewma_vol, expanding_z
+from causal import ewma_vol, expanding_percentile, expanding_z
 
 PRIMARY_W = 126          # 6-month primary window (pre-committed 2026-08-02, before looking)
 ROBUST_W = (63, 252)     # quarter / year robustness windows
@@ -87,12 +87,19 @@ def load_region_monthly(region: str) -> pd.DataFrame:
 
 def build_monthly(panel: pd.DataFrame, window: int = MONTHLY_W) -> pd.DataFrame:
     """The registered cross-region construction: causal trailing monthly
-    correlation + the assumption state. Same estimator as `build`, monthly clock."""
+    correlation + the assumption state. Same estimator as `build`, monthly clock.
+
+    `level_pctile` was added 2026-08-07, AFTER the one-look, and is disclosed as
+    such: it is a rarity descriptor for the Level-0 record (D-02b forbids emitting
+    the state without the number AND its rarity beside it). No validation bar or
+    reject condition reads it, so it is presentation, not a second look.
+    """
     eq, bond = panel["eq"], panel["bond"]
     corr = rolling_corr(eq, bond, window)
     return pd.DataFrame({
         "eq": eq, "bond": bond, "corr": corr,
         "level_z": expanding_z(corr, min_periods=60),
+        "level_pctile": expanding_percentile(corr).rename("level_pctile"),
         "state": sign_state(corr),
     }).dropna(subset=["corr"])
 
@@ -219,6 +226,9 @@ def main():
     out = build(panel)
     (ROOT / "results").mkdir(exist_ok=True)
     out.to_csv(ROOT / "results" / "stockbond_corr.csv")
+    # monthly is the REGISTERED native clock (charter header); the daily frame above is
+    # the domestic high-frequency view only. The Level-0 record reads the monthly file.
+    build_monthly(load_region_monthly("us")).to_csv(ROOT / "results" / "stockbond_monthly.csv")
 
     line = "=" * 78
     print(line)

@@ -89,15 +89,21 @@ def test_vol_descriptor_artifact_matches_its_producer():
     )
 
 
-def test_level0_record_is_schema_valid():
-    """The emitted signal record must satisfy the closed Level-0 allowlist."""
+def test_level0_records_are_schema_valid():
+    """Every emitted signal record must satisfy the closed Level-0 allowlist.
+
+    Globbed, not named: a signal that emits a record must not be able to skip the
+    boundary check by not being listed here (same structural argument as the
+    causal-guard registry below).
+    """
     import json
 
     from signal_output_schema import validate
 
-    path = ROOT / "results" / "vol_level0.json"
-    assert path.exists(), "results/vol_level0.json missing — run scripts/vol_level0.py"
-    validate(json.loads(path.read_text(encoding="utf-8")))
+    records = sorted((ROOT / "results").glob("*_level0.json"))
+    assert records, "no Level-0 records found — run scripts/<signal>_level0.py"
+    for path in records:
+        validate(json.loads(path.read_text(encoding="utf-8")))
 
 
 def test_data_manifest_covers_every_processed_panel():

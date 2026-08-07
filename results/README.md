@@ -25,9 +25,10 @@ Live read: **12.0% annualised vol, 51.9th percentile, 34.8d shock half-life** (a
 **Claims a measurement, NOT forecastability.** α+β≈0.99 means volatility forecasts volatility — nothing about
 returns or direction.
 
-### Stock-bond correlation — PASSED ITS BARS, RESULTS SIGN-OFF PENDING
+### Stock-bond correlation — PASSED, SIGNED OFF 2026-08-07, maturity `research`
 
-Evidence: `stockbond_validation.txt` · descriptors: `stockbond_corr.csv`, `stockbond_context.csv`
+Evidence: `stockbond_validation.txt` · record: `stockbond_level0.json` · descriptors: `stockbond_monthly.csv`
+(the registered native clock), `stockbond_corr.csv` (US daily view), `stockbond_context.csv`
 
 V2, the primary on-mechanism metric — share of **equity-down months on which bonds also fell**, by state:
 
@@ -41,6 +42,12 @@ V4 power pre-check: all three regions POWERED. R1/R2 not tripped. V5 window robu
 sign agreement 74–85% at 12m, 85–91% at 36m; stable at 24m and above, noisy below.
 **Maturity capped at `research`** — the international sample starts 1990 and contains no inflation regime, so
 this does not test the sign-flip cycle out-of-sample. Registered before the look, not after.
+
+Live read: **24m correlation +0.15, 53rd percentile, status `violated`, 51 months in (since 2022-03)** (as of
+2026-05-31). The status and the rarity disagree by design — positive correlation, only mid-percentile, because
+the 1970s–80s were positive too. **Violated is not the same as unprecedented.** In Japan and Europe nearly all
+the discrimination sits at `violated`; the intact→under_test step is small. The number leads, the label follows
+(D-02b) — never one without the other.
 
 ### Built but NOT validated — no look spent, no claim
 
@@ -92,8 +99,16 @@ chapter-1 labels — a fixed fact, not part of any refresh. `CLAUDE.md` lists bo
   signed-off measurement claim — regenerate it from the committed descriptors, never hand-edit.
 - `vol_read.png` — `scripts/vol_read.py`, the human-facing volatility read (level/percentile · drift · rarity ·
   durability).
-- `stockbond_corr.csv` — `scripts/stockbond_corr.py`: causal trailing equity/10y-bond correlation at 63/126/252
-  days plus the derived assumption state (`intact` / `under_test` / `violated`).
+- `stockbond_monthly.csv` — `scripts/stockbond_corr.py` (`build_monthly`): the **registered native clock** —
+  causal 24-month trailing correlation, expanding z, expanding percentile, and the derived assumption state, US
+  1963–2026. `level_pctile` was added 2026-08-07 after the look (disclosed in the charter): the Level-0 record
+  may not emit a state without the number and its rarity beside it (D-02b).
+- `stockbond_level0.json` — `scripts/stockbond_level0.py`: the signal's Level-0 record, generated from
+  `stockbond_monthly.csv` and passed through `signal_output_schema.validate()`. Encodes a signed-off measurement
+  claim — regenerate from the committed descriptors, never hand-edit.
+- `stockbond_corr.csv` — `scripts/stockbond_corr.py`: the US daily high-frequency view — causal trailing
+  equity/10y-bond correlation at 63/126/252 days plus the derived assumption state. Not the cross-region object:
+  the daily 126d calendar mean HID the 2022 flip, which is why monthly is the registered clock.
 - `stockbond_context.csv` — same script: historical behaviour by state (annualised return, vol, Sharpe for equity /
   bond10 / gold). Descriptive context only.
 - `stockbond_validation.txt` — `scripts/validate_stockbond.py`, the Phase-2 one-look (charter V2–V5, run

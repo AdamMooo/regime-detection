@@ -170,8 +170,48 @@ ratifying a recommendation is not the same act as signing off the results.
   the international panels begin 1990 and contain no inflation regime. A strong result is precisely when this cap
   is most tempting to drop, which is why it was registered before the look.
 
-**Results sign-off remains PENDING** — overnight cooling-off, then Adam's dated sign-off. These dispositions are
-not that sign-off.
+**Results sign-off is now GIVEN — see §RESULTS SIGN-OFF below.** These dispositions were ratified separately and
+are not themselves that sign-off.
+
+---
+
+## RESULTS SIGN-OFF — Adam, dated 2026-08-07
+
+One look spent 2026-08-06 (`scripts/validate_stockbond.py` → `results/stockbond_validation.txt`); overnight
+cooling-off observed; signed off 2026-08-07. **Maturity DERIVED = `research`**, the registered ceiling.
+
+| bar | verdict | evidence |
+|---|---|---|
+| **V4** power pre-check (gates everything) | **PASS** | All three regions POWERED — every state clears 24 months: US 246/123/381, Japan 242/69/95, Europe 160/119/129 |
+| **V2** hedge behaviour by state (PRIMARY) | **PASS** | Share of equity-down months on which bonds ALSO fell is monotone increasing intact→under_test→violated in all three regions: US 28→44→56%, Japan 25→29→51%, Europe 27→32→48% |
+| **V3** cross-region levels | **PASS** | Means +0.09 / −0.11 / −0.02, ranges ≈ −0.8..+0.7 — the same object measured three times |
+| **V5** window robustness | **PASS with a recorded caveat** | Sign agreement vs the 24m primary: 85/79/74% at 12m, 91/88/85% at 36m; corr(12m,36m) 0.62–0.75. Stable at the registered 24m and above, noisy below. R3 not tripped (D-02a) |
+
+**Reject conditions: none tripped.** R1 (US monotonicity fails) no · R2 (fails in every powered region) no ·
+R3 (window artifact) no, per D-02a · R4 (relabelling of vol) no · R5 (all regions underpowered) no.
+
+**The honest wrinkle, kept on the record:** in Japan and Europe the intact→under_test step is small (25→29%,
+27→32%); nearly all the discrimination sits at `violated`. The signal separates violated-from-not better than it
+grades a smooth three-way ladder. That is why D-02b makes the reading continuous-first.
+
+**Maturity derivation** — mechanism `pass` · measurement validity `H` · investment usefulness `H` · **evidence
+maturity `M`** ⇒ **`research`**. Evidence maturity is `M`, not `H`, for one registered reason: the international
+out-of-hypothesis sample begins 1990 and contains no inflation regime, so the sign-flip cycle — the part of the
+mechanism that makes the signal interesting — is **not** tested out-of-sample. D-02c stands; `production` was
+unavailable to this phase before the look and remains unavailable after it.
+
+**Level-0 record emitted** — `results/stockbond_level0.json` via `scripts/stockbond_level0.py`, generated from
+`results/stockbond_monthly.csv` and passed through `signal_output_schema.validate()`. Live read as of 2026-05-31:
+**24m correlation +0.15, 53rd percentile, status `violated`, 51 months into the current episode (since 2022-03).**
+Note the status and the rarity disagree by design — positive correlation, only mid-percentile, because the
+1970s–80s were positive too. **Violated is not the same as unprecedented.**
+
+**Disclosed post-look addition:** `build_monthly` gained a `level_pctile` column on 2026-08-07 (after the look) so
+the Level-0 record can satisfy D-02b — no state without the number and its rarity. No validation bar or reject
+condition reads it; it is presentation, not a second look.
+
+**Still registered, still NOT run:** the V5 neutral-band follow-up (does the 12m disagreement concentrate inside
+the ±0.10 band?). It is a second look and needs its own pre-registration first.
 
 ## Pre-registered analysis specification
 

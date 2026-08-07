@@ -435,9 +435,24 @@ calendar mean hid the 2022 flip).
 - **V3:** levels look like the same object across regions (means +0.09/−0.11/−0.02, ranges ≈ −0.8..+0.7). All
   three read **violated** as of 2026-05 (US +0.15, Japan +0.31, Europe +0.12).
 
-**REMAINING for Phase 2 to be DONE:** (1) overnight cooling-off → Adam's DATED sign-off of the RESULTS (never
-inferred); (2) emit the Level-0 record via a `stockbond_level0.py` mirroring `vol_level0.py`; (3) maturity is
-capped at `research` by the registered limitation — do not let a strong V2 result tempt a `production` tag.
+## PHASE 2 CLOSED — stock-bond RESULTS SIGNED OFF by Adam 2026-08-07
+
+Cooling-off observed (one-look 2026-08-06 → sign-off 2026-08-07), explicit and dated. Recorded in
+`.planning/phases/02-stockbond-signal/02-STOCKBOND-CHARTER.md` §RESULTS SIGN-OFF with the V2–V5 verdict table;
+R1–R5 none tripped.
+- **Maturity DERIVED = `research`** — mechanism `pass` · measurement validity `H` · investment usefulness `H` ·
+  **evidence maturity `M`**. The `M` is the registered scope limitation doing its job: the intl sample begins
+  1990 and contains no inflation regime, so the sign-flip cycle is untested OOS. D-02c held under a strong V2.
+- **Level-0 record emitted** — `results/stockbond_level0.json` via `scripts/stockbond_level0.py`, generated from
+  `results/stockbond_monthly.csv` and schema-validated.
+- **New artifact `results/stockbond_monthly.csv`** — the registered native clock was monthly but nothing committed
+  was monthly; `stockbond_corr.py:main()` now writes it. Disclosed post-look addition: `build_monthly` gained
+  `level_pctile` so the record can satisfy D-02b (no state without the number AND its rarity). No bar reads it.
+- **Live read (2026-05-31):** 24m corr **+0.15**, **53rd percentile**, status **`violated`**, **51 months in**
+  (since 2022-03). Status and rarity disagree by design — violated ≠ unprecedented, because the 1970s–80s were
+  positive too. That disagreement is information; do not smooth it.
+- `test_level0_records_are_schema_valid` now **globs** `results/*_level0.json` — a future signal cannot skip the
+  boundary check by not being named in the test. **42 pass.**
 
 ## Signal-research discipline (full text in CLAUDE.md)
 
