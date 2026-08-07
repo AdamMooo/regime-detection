@@ -38,14 +38,30 @@ def describe(path: Path) -> dict:
     if date_col is None and df.columns[0].startswith("Unnamed"):
         date_col = df.columns[0]      # panels written with an unnamed date index
     dates = pd.to_datetime(df[date_col], errors="coerce") if date_col else None
+    # Per-column first/last VALID date, not just the index span. A wide panel with
+    # ragged starts (credit_daily: baa_10y from 1986, ig_oas/hy_oas only from 2023
+    # because FRED serves a rolling ~3yr window of ICE BofA series) otherwise reads
+    # as 40 years of every column. That exact misreading produced a false
+    # "OAS proxies 1986+" claim in a phase kickoff.
+    spans = []
+    if dates is not None:
+        for c in df.columns:
+            if c == date_col:
+                continue
+            valid = dates[df[c].notna()]
+            if valid.notna().any():
+                spans.append(f"{c}:{valid.min().date()}..{valid.max().date()}")
+            else:
+                spans.append(f"{c}:EMPTY")
+
     return {
         "file": path.name,
         "sha256": sha256(path),
         "bytes": path.stat().st_size,
         "rows": len(df),
-        "columns": ";".join(df.columns),
         "first": dates.min().date().isoformat() if dates is not None and dates.notna().any() else "",
         "last": dates.max().date().isoformat() if dates is not None and dates.notna().any() else "",
+        "column_spans": ";".join(spans),
     }
 
 
