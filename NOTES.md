@@ -371,8 +371,32 @@ by-state contrast is interpreted (a region with <24 months in any state → "ins
 finding); R5 makes **INCONCLUSIVE** a distinct registered outcome. Primary metric is hedge-behaviour-by-state,
 NOT average returns by state — the latter is confounded by the secular rate cycle (found 2026-08-02).
 
-**Open before the run:** Adam's dated charter sign-off, plus two `[recommended]` analysis-spec lines (24-month
-primary correlation window; equity-down defined as monthly equity return < 0).
+**Charter SIGNED OFF by Adam 2026-08-06** (both `[recommended]` lines confirmed: 24-month primary window;
+equity-down = monthly return < 0). Stage-1 freeze only — not a positive claim, so no cooling-off applied.
+
+## TASK 02 — ONE-LOOK SPENT 2026-08-06 → `results/stockbond_validation.txt`
+
+`scripts/validate_stockbond.py`. Infra added first and causally guarded BEFORE the look: `build_monthly` +
+`load_region_monthly` (monthly is the registered native clock — intl bond series are monthly, and the daily 126d
+calendar mean hid the 2022 flip).
+
+- **V4 power pre-check (ran FIRST, gates everything): ALL THREE REGIONS POWERED.** The underpowered risk did not
+  materialize — Japan 242/69/95, Europe 160/119/129, US 246/123/381 months per state; every state clears the
+  24-month bar. Japan/Europe spans start 1992-06 (24m burn-in off the 1990-07 panels).
+- **V2 (PRIMARY, on-mechanism) — MONOTONE IN ALL THREE.** Fraction of equity-down months on which bonds ALSO fell:
+  **US 28→44→56% · Japan 25→29→51% · Europe 27→32→48%** across intact→under_test→violated. **R1 and R2 not
+  tripped.** *Honest wrinkle:* in Japan/Europe the intact→under_test step is small; nearly all discrimination sits
+  at `violated`. The signal separates violated-vs-not more than it grades a smooth three-way ladder.
+- **V5 window robustness — the soft spot, NOT a clean pass.** Sign agreement vs the 24m primary: 85/79/74% at 12m,
+  91/88/85% at 36m; corr(12m,36m) 0.62–0.75. Stable at 24m and above, noisy below.
+  **REGISTERED FOLLOW-UP (deliberately NOT run — it would be a second look):** test whether the 12m disagreement
+  concentrates inside the neutral band, where ambiguity is already flagged. Register it before running it.
+- **V3:** levels look like the same object across regions (means +0.09/−0.11/−0.02, ranges ≈ −0.8..+0.7). All
+  three read **violated** as of 2026-05 (US +0.15, Japan +0.31, Europe +0.12).
+
+**REMAINING for Phase 2 to be DONE:** (1) overnight cooling-off → Adam's DATED sign-off of the RESULTS (never
+inferred); (2) emit the Level-0 record via a `stockbond_level0.py` mirroring `vol_level0.py`; (3) maturity is
+capped at `research` by the registered limitation — do not let a strong V2 result tempt a `production` tag.
 
 ## Signal-research discipline (full text in CLAUDE.md)
 
