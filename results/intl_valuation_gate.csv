@@ -1,0 +1,7 @@
+gate,passed,detail
+G1_span,True,1975-01-31 .. 2025-12-31 n=612 months x 6 regions
+G2_no_negative_dividends,True,"negative months={'europe_ex_uk_dy_local': 0, 'europe_dy_local': 0, 'uk_dy_local': 0, 'scandinavia_dy_local': 0, 'asia_pacific_dy_local': 0, 'all_dy_local': 0}"
+G3_yield_magnitude,True,europe_ex_uk=3.34% europe=3.61% uk=4.11% scandinavia=3.05% asia_pacific=2.03% all=2.83%
+G4_known_extremes,True,asia_pacific min 0.69% @ 1989-03-31 | europe_ex_uk min 1.63% @ 1999-11-30
+G5_monthly_grid,True,contiguous=True dups=0
+G6_ratios_block,True,"annual VW market BE/ME 1975-2025, n=51, regions=['europe_ex_uk', 'europe', 'uk', 'scandinavia', 'asia_pacific', 'all']"

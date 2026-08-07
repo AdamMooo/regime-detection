@@ -24,8 +24,10 @@ spec below are disclosed with a dated note, never silently edited (registered-re
 - **Investor question (production bar)** — *"Given today's price level relative to history, is the starting point
   for long-horizon equity returns historically normal, high, or low?"* A context reading about the environment,
   never a forecast or an action.
-- **Charter/spec version** — v1.0
-- **Charter dated** — 2026-08-03 (frozen pre-registration; dated sign-off pending)
+- **Charter/spec version** — v1.1 (data-availability respecification of V4 + V5, 2026-08-07 — see the amendment
+  block at the end of the analysis spec). v1.0 was written 2026-08-03 and **never signed**, so this completes an
+  unsigned pre-registration rather than amending a frozen one.
+- **Charter dated** — 2026-08-03, respecified 2026-08-07 (frozen pre-registration; dated sign-off pending)
 
 ---
 
@@ -212,6 +214,94 @@ Operationalizes V1–V6 / R1–R9. Any deviation is logged with a dated note.
   has a look-ahead trap.
 - **Out-of-hypothesis-sample:** Japan + Europe, same construction, before any SUPPORT claim.
 
+---
+
+## AMENDMENT 2026-08-07 — data-availability respecification (BEFORE any look)
+
+Two registered bars were not runnable as written. Both were checked against the actual sources, not assumed. The
+substitutions are registered here **before** the one-look; Adam confirmed both routes 2026-08-07.
+
+### V4 — the robustness panel loses its payout leg
+
+**Registered:** CAPE + cap/GDP + P/D + **total-payout yield** (dividends + net buybacks).
+**Amended:** CAPE (primary) + **P/D** (Shiller's dividend series, already in `valuation_monthly.csv`) +
+**total market cap / GDP** (FRED, quarterly from 1947). **Total-payout yield is DROPPED — no free history of net
+buybacks exists** (S&P publishes S&P-500 buybacks from 1998; longer history is Compustat, paywalled).
+
+**Consequence, registered as a named hole rather than a silent one: R5 (payout confound) becomes UNTESTABLE with
+this data.** Buybacks displaced dividends after 1982, so a dividend-based reading can look artificially expensive
+in exactly the modern era. The signal therefore cannot clear the payout-policy confound, and that is a standing
+limitation on its evidence maturity — not something a strong CAPE result buys off. P/D is retained *because* it is
+the metric most exposed to this confound: keeping it makes the hole visible in the panel instead of hiding it.
+
+### V5 — the international sample is respecified
+
+**Registered:** Japan + Europe, same construction (CAPE).
+**Fact:** no free CAPE exists for Japan or Europe. Barclays/Research Affiliates CAPE and MSCI are paywalled;
+French's regional datasets (Japan / Europe, 1990-07+) publish no valuation ratio at market level.
+
+**Amended source (verified numerically 2026-08-07):** French publishes the **F-F International Indices** as a
+matched pair — **`F-F_International_Indices.zip`** (value-weight returns **with** dividends) and
+**`F-F_International_Indices_Wout_Div.zip`** (the identical indices **without** dividends) — monthly, **1975-01 to
+2025-12**, for **Europe ex UK · Europe incl. UK · UK · Scandinavia · Asia Pacific · All**, in both USD and local
+currency.
+
+**The construction:** for the same index and month,
+
+&nbsp;&nbsp;&nbsp;&nbsp;`R_with − R_without = (P_t + D_t)/P_{t−1} − P_t/P_{t−1} = D_t / P_{t−1}`
+
+so the difference of the two published return series **is** the period's dividend yield on lagged price, exactly.
+Cumulated over 12 months it is the trailing dividend yield — the canonical Campbell–Shiller **D/P** object. The
+numerator, the denominator and the forward-return leg all come from the same file on the same universe, so they
+cannot drift apart across sources.
+
+**Integrity check run 2026-08-07 (data construction, NOT the hypothesis test — no valuation-to-return relationship
+was examined):** 612 monthly observations per region, **zero negative implied monthly D/P**, and the level series
+lands on the right history — Europe ex UK ranges 1.60% (1999, the TMT peak) to 5.95% (1980), Asia Pacific ranges
+**0.69% (1989 — the Japanese bubble peak)** to 3.17%. The two canonical valuation extremes outside the US sample
+are both present and correctly signed.
+
+**This is stronger than the annual `Value-Weight Ratios` block also present in the same file** (which publishes a
+market-level `Mkt` ratio plus High/Low portfolio ratios, annual only). That block is retained as a **secondary
+cross-check on market BE/ME**, not as the primary international object.
+
+**Downgrades that remain, disclosed in advance — the international leg is still weaker than the US leg:**
+1. **D/P, not CAPE.** No 10-year earnings smoothing exists for these indices. Dividend yield is smoother and more
+   internationally comparable than a one-year E/P, and is a canonical object in its own right, but it is exposed
+   to the same payout-policy confound that R5 can no longer test (above).
+2. **No Japan alone.** Asia Pacific is the closest available aggregate — Japan-dominated by weight through the
+   bubble era, but not Japan. The canonical Japan test is *approximated*, not run.
+3. **Starts 1975**, so the international leg cannot see any pre-1975 valuation extreme.
+4. **Overlapping long-horizon returns on 612 months ⇒ ~5 non-overlapping decades per region** at the 10-year
+   horizon. Monthly frequency buys precision on the *level*, not independent observations of the *relationship*.
+
+**V5a — power pre-check, registered to run FIRST and to gate every international contrast** (the device that
+turned a feared-underpowered Phase 2 into a clean verdict). Report the effective independent-N per region and
+horizon. **A cell below the registered floor is reported as "insufficient coverage" — NOT as a weak finding and
+NOT as refutation.** Registered floor: **≥ 10 effective independent observations**.
+
+**V5 bar, as amended:** a **sign-and-direction** check, not a powered R² claim — higher starting D/P must be
+associated with higher subsequent returns in the adequately-powered regions, with the horizon profile rising where
+estimable. **R8 is correspondingly narrowed:** it trips only on a *sign reversal* in an adequately-powered region,
+never on a failure to reach significance in a cell the power pre-check already flagged.
+
+### A third disclosure — the US excess-return leg is shorter than the price history
+
+V2's excess-return object needs a short risk-free rate. Shiller's file carries none; the panel uses **Ken French's
+one-month T-bill, which begins 1926-07**. So **V1/V3/V4 run on 1881–2026 while V2 — the primary discriminator —
+runs on 1926–2026.** A century is ample, but the two are not the same sample and results must not be reported as
+though they were.
+
+### Standing consequence for maturity
+
+R5 untestable + an international leg that is annual, regional-not-Japan, and on a different metric ⇒ **evidence
+maturity cannot reach `H` in this phase, so `production` is unavailable and `research` is the ceiling.** Registered
+now, before the look, for the same reason Phase 2 registered its ceiling: a strong result is exactly when the cap
+is most tempting to drop.
+
+---
+---
+---
 ---
 <!-- LINKS:AUTO -->
 ## Related

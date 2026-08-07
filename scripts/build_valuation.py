@@ -15,6 +15,13 @@ Short rate: Ken French monthly RF (one-month T-bill, 1926-07+). Shiller's file
 carries no short rate, and the daily RF already in market_daily.csv is rounded to
 1bp/day, i.e. ~2.5%/yr steps — too coarse to deflate.
 
+Market cap / GDP (charter v1.1 V4 robustness leg, added 2026-08-07): FRED
+NCBEILQ027S (nonfinancial corporate business, corporate equities, liability level,
+quarterly 1945Q4+) over GDP (quarterly 1947Q1+). Written RAW and quarterly — the
+publication lag is applied downstream, where the metric is read, not baked in here.
+FRED stamps quarterly observations at the quarter START; both legs are re-stamped
+to the quarter END so the row is dated by the period it describes.
+
 NOT carried through from the source workbook:
   - its trailing "10 Year Annualized ... Real Return" columns are REALIZED FORWARD
     returns (look-ahead by construction, and the object of the frozen one-look);
@@ -131,11 +138,30 @@ def ff_short_rate() -> pd.Series:
     return pd.Series((1.0 + monthly) ** 12 - 1.0, index=idx, name="short_rate")
 
 
+def cap_gdp_quarterly() -> pd.DataFrame:
+    """Nonfinancial-corporate equity market value and GDP, quarter-end stamped.
+
+    NCBEILQ027S is in millions, GDP in billions — rescaled to a common unit here
+    so the downstream ratio is dimensionless.
+    """
+    from build_intl_bonds import _fred_key, fred_series
+
+    key = _fred_key()
+    cap = fred_series("NCBEILQ027S", key) / 1000.0        # $mn -> $bn
+    gdp = fred_series("GDP", key)                          # $bn
+    out = pd.DataFrame({"mktcap_nfc": cap, "gdp": gdp})
+    out.index = pd.DatetimeIndex(out.index) + pd.offsets.QuarterEnd(0)
+    return out
+
+
 def main() -> int:
     df, url = fetch_shiller()
     retrieved = pd.Timestamp.today().normalize()
 
     df["short_rate"] = ff_short_rate().reindex(df.index)
+    cg = cap_gdp_quarterly()
+    df["mktcap_nfc"] = cg["mktcap_nfc"].reindex(df.index)
+    df["gdp"] = cg["gdp"].reindex(df.index)
     # ex-post real short rate: nominal deflated by trailing 12m inflation, and the
     # CPI leg carries its publication lag so the row is readable at its own date
     infl = (df["cpi"] / df["cpi"].shift(12) - 1.0).shift(CPI_PUBLICATION_LAG_M)
@@ -172,6 +198,14 @@ def main() -> int:
     gate.append(("G6_short_rate", bool(sr_ok),
                  f"{sr.index[0].date()}..{sr.index[-1].date()} latest={sr.iloc[-1]:.2%} "
                  f"real={df['short_rate_real'].dropna().iloc[-1]:+.2%}"))
+
+    cg_ratio = (df["mktcap_nfc"] / df["gdp"]).dropna()
+    cg_ok = bool(cg_ratio.index[0] <= pd.Timestamp("1950-12-31")
+                 and (0.1 < cg_ratio).all() and (cg_ratio < 5.0).all())
+    gate.append(("G7_cap_gdp", cg_ok,
+                 f"{cg_ratio.index[0].date()}..{cg_ratio.index[-1].date()} n={len(cg_ratio)} "
+                 f"min={cg_ratio.min():.2f} ({cg_ratio.idxmin().date()}) "
+                 f"max={cg_ratio.max():.2f} ({cg_ratio.idxmax().date()})"))
 
     res = pd.DataFrame(gate, columns=["gate", "passed", "detail"])
     print(res.to_string(index=False))
