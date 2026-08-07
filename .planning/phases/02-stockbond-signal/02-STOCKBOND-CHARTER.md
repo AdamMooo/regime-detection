@@ -148,10 +148,24 @@ ratifying a recommendation is not the same act as signing off the results.
   registered primary is 24m and the state is stable at 24m and above. R3 is not tripped. The caveat stays on the
   record rather than being smoothed away, and the neutral-band concentration check remains a **registered
   follow-up** — not run, because it would be a second look.
-- **D-02b — the `under_test` middle band: KEEP the three-state ledger.** In Japan and Europe the
-  `intact → under_test` step is small and most discrimination sits at `violated`. That is an honest description of
-  an ambiguous transition zone, which is exactly what the band is labelled as. Collapsing to violated / not-violated
-  would destroy information to make the presentation tidier — the failure mode this repo exists to avoid.
+- **D-02b — the state: CONTINUOUS-FIRST. The label may never stand alone.** *(Amended 2026-08-06 after Adam
+  challenged whether this re-imports the state thing we killed. He was right to push; the original wording was too
+  comfortable with the label.)*
+
+  The distinction that holds: for volatility, CALM/STRESSED was an **arbitrary threshold on a continuous
+  magnitude** — nothing mechanical happens at 18% annualized — and the benchmark proved a continuous read beat it.
+  Here, **sign zero is a real mechanical boundary**: corr < 0 means bonds move *against* equity (the hedge
+  operates), corr > 0 means they move *with* it. That is a property of the world, not a knob.
+
+  **But the ±0.10 neutral band IS a knob**, and the one-look showed exactly the predicted symptom — in Japan and
+  Europe `intact → under_test` barely separates (25→29%, 27→32%) while nearly all discrimination sits at
+  `violated`. So the vol lesson applies, just not by collapsing to two states (that would be *more* thresholding):
+
+  **The reading is the continuous correlation plus its rarity. The ledger status is a DERIVED label and must never
+  be emitted, presented, or stored without the underlying number beside it.** Same shape as the volatility signal,
+  where level and percentile lead and any banding is presentation only. The three states stay — an ambiguous
+  transition zone honestly labelled as ambiguous is information, not noise — but they are a view of the number,
+  never a replacement for it. To be enforced in the Level-0 record: no `state` field without `corr` and its rarity.
 - **D-02c — maturity ceiling `research`: STANDS.** V2 replicating in all three regions does not change the sample:
   the international panels begin 1990 and contain no inflation regime. A strong result is precisely when this cap
   is most tempting to drop, which is why it was registered before the look.
