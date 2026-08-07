@@ -27,7 +27,11 @@ spec below are disclosed with a dated note, never silently edited (registered-re
 - **Charter/spec version** — v1.1 (data-availability respecification of V4 + V5, 2026-08-07 — see the amendment
   block at the end of the analysis spec). v1.0 was written 2026-08-03 and **never signed**, so this completes an
   unsigned pre-registration rather than amending a frozen one.
-- **Charter dated** — 2026-08-03, respecified 2026-08-07 (frozen pre-registration; dated sign-off pending)
+- **Charter dated** — 2026-08-03, respecified 2026-08-07. **SIGNED OFF by Adam 2026-08-07** at v1.1, both
+  respecifications confirmed (V5 → international D/P; V4 → CAPE + P/D + cap/GDP with the payout leg dropped and
+  R5 recorded untestable). Build/run authorised. This signs the *pre-registration* only — a Stage-1 freeze, not a
+  positive claim, so no cooling-off applies here. Any SUPPORT claim arising from the run still requires one look +
+  overnight cooling-off + a separate dated sign-off of the *results*.
 
 ---
 
@@ -292,13 +296,88 @@ one-month T-bill, which begins 1926-07**. So **V1/V3/V4 run on 1881–2026 while
 runs on 1926–2026.** A century is ample, but the two are not the same sample and results must not be reported as
 though they were.
 
-### Standing consequence for maturity
+### Standing consequence for maturity (written before the look)
 
 R5 untestable + an international leg that is annual, regional-not-Japan, and on a different metric ⇒ **evidence
 maturity cannot reach `H` in this phase, so `production` is unavailable and `research` is the ceiling.** Registered
 now, before the look, for the same reason Phase 2 registered its ceiling: a strong result is exactly when the cap
 is most tempting to drop.
 
+---
+
+## ONE-LOOK RESULTS — 2026-08-07, `results/valuation_validation.txt` — SIGN-OFF PENDING
+
+One look spent (`scripts/validate_valuation.py`, seed 20260807). **Five of six bars clear. The one that does not
+is V6 — the pre-registered statistical bar — and R9 is therefore live.** Read below; the disposition is Adam's,
+after overnight cooling-off. Nothing here is a claim yet.
+
+### What cleared
+
+| bar | verdict | evidence |
+|---|---|---|
+| **V1** horizon structure | **PASS on shape** | β −0.0033 (1m) → −0.079 (1y) → −0.331 (5y) → **−0.610 (10y)**; R² 0.001 → 0.034 → 0.140 → **0.257**. Monotone in both, and ~silent sub-1yr (R²=0.001 at 1m, t_NW −1.12). This is the registered signature of a slowly mean-reverting discount rate, not a generic "cheap is good" |
+| **V2** excess returns | **PASS on shape** | Same profile on returns in excess of the short rate, slightly stronger: β −0.098 (1y) → −0.347 (5y) → −0.652 (10y), R² 0.045 → 0.131 → 0.251. **The relationship is not merely the falling-rate level**, which is what R4 was written to catch |
+| **V3** sub-period stability | **PASS** | β@60m: full −0.331, **pre-1982 −0.522**, 1982–2021 −0.476. Stronger *outside* the secular rate-decline window. `EXCL 1982–2021` is numerically identical to `pre-1982` because post-2021 starting points have no realized 5y/10y returns yet — a structural fact of the test, not a coding accident |
+| **V4** metric robustness | **PASS on sign + shape** | All three pre-committed metrics show the same monotone profile with the predicted sign: log CAPE −0.0033→−0.610, log D/P **+0.0035→+0.377**, log cap/GDP −0.0043→−0.653. **cap/GDP contains no earnings at all**, so R6 (the accounting/Siegel confound) does not trip |
+| **V5** international | **PASS, heavily qualified** | The power pre-check gated this correctly: at 10y every region has eff N 3–4 ⇒ **INSUFFICIENT COVERAGE**, and the spectacular-looking R² 0.36–0.79 there must be ignored. At the only interpretable horizon (12m, eff N 49) the **primary local-currency specification has the correct positive sign in all six regions** (+0.039 to +0.206). In the secondary USD-real specification **Scandinavia reverses** (−0.033), disclosed |
+
+### What did NOT clear — V6, and it is the load-bearing one
+
+**Bootstrap under the null (2000 block-bootstrap paths, no predictability imposed, (u,v) pairs resampled so the
+Stambaugh correlation survives): p = 0.089 / 0.087 / 0.071 / 0.106 / 0.097 / 0.145 / 0.103 across the seven
+horizons on real returns, and 0.105 / 0.127 / 0.079 / 0.125 / 0.196 / 0.256 / 0.174 on excess returns.
+Not one horizon reaches conventional significance.**
+
+The 10-year cell is the clearest illustration of why the charter registered this bar. Raw OLS gives R² = 0.257 and
+t = −23.7; Newey–West still gives t = −4.93. Both look overwhelming. But a regressor with **ρ = 0.9965** and
+**corr(return innovation, regressor innovation) = +0.96** reproduces an R² that large, in the predicted direction,
+in about **10% of paths with zero true predictability**. That corr(u,v) is near-tautological here — CAPE's
+numerator *is* the price, so the same price move drives both the return and the regressor. This is the
+maximum-Stambaugh case, not an unlucky one.
+
+**Stambaugh closed-form correction at h=1 removes 64% of the raw slope on real returns (−0.00334 → −0.00120) and
+72% on excess returns (−0.00449 → −0.00125).**
+
+**R9 as written — "once the persistent-regressor / overlapping-data bias is corrected, predictability is
+statistically indistinguishable from the spurious-R² null" — is satisfied at conventional thresholds.**
+
+### The honest interpretation, stated without spin
+
+Two readings are defensible and the choice between them is a judgment call, which is why it is not being made here:
+
+1. **R9 trips.** The bar was pre-registered at conventional significance, and nothing cleared it. The
+   forward-return-predictability claim fails, and the signal is demoted to a pure *measurement* — "CAPE is 41.5,
+   the 99.0th percentile of its own history" — with no forward-return claim attached. That is still a real signal
+   under this repo's own objective (measurement, not prediction), and it is exactly the shape volatility took.
+2. **R9 does not trip, but the evidence is weak-and-consistent.** Every horizon, both return objects, three
+   independent metrics, four sub-periods and six international regions point the same way, and the p-values sit
+   in the 0.07–0.15 band rather than at 0.5. A single p-value per cell does not capture agreement *across* 20+
+   independent specifications. The counter-argument to this reading is that the specifications are not
+   independent — they share the same price series — so the agreement is far less informative than it looks.
+
+**What is NOT in dispute:** with ~13 effective independent 10-year observations in 145 years of US data, this
+evidence cannot statistically separate the Campbell–Shiller mechanism from a persistent-regressor artifact. That
+is not a defect in the analysis; it is the actual information content of the data, and it is precisely what R9
+was written to detect. **Reading the raw t = −23.7 as the answer would have been the error the charter existed to
+prevent.**
+
+### Registered but deliberately NOT run (each would be a second look)
+
+- No bootstrap was run on the V4 metric panel or the V5 international leg — V4 was specified as a sign-and-shape
+  robustness check and V5 as sign-and-direction. Adding significance testing there now is a second look and needs
+  its own pre-registration.
+- No horizon beyond 120 months, no alternative block length, no alternative seed. Re-running the bootstrap with a
+  different seed to see if p crosses 0.05 would be the single worst thing that could be done to this result.
+
+### Maturity, if admitted
+
+Ceiling remains `research` per the pre-look registration. If reading (1) is taken, the derived tag would rest on
+measurement validity alone with investment usefulness re-assessed, since the forward-return claim is what made the
+signal interesting. **That re-assessment is part of the sign-off decision, not a prerequisite to it.**
+
+---
+---
+---
 ---
 ---
 ---

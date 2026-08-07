@@ -454,6 +454,43 @@ R1–R5 none tripped.
 - `test_level0_records_are_schema_valid` now **globs** `results/*_level0.json` — a future signal cannot skip the
   boundary check by not being named in the test. **42 pass.**
 
+## PHASE 3 (VALUATION) — CHARTER v1.1 SIGNED 2026-08-07, ONE-LOOK SPENT SAME DAY, RESULTS SIGN-OFF PENDING
+
+**Charter respecified to v1.1 before signing** (two registered bars were not runnable; both checked against the
+real sources, not assumed):
+- **V5** — no free CAPE exists for Japan or Europe. French publishes the International Indices **twice**, with and
+  without dividends, on the same universe, so `R_with − R_without = D_t/P_{t−1}` **exactly**; 12-month cumulation
+  gives the canonical Campbell–Shiller D/P. `scripts/build_intl_valuation.py` → `intl_valuation_monthly.csv`,
+  **612 months × 6 regions, 1975-01..2025-12**, local + USD. Six gates pass, incl. the two that matter: zero
+  negative implied dividends, and both canonical out-of-US extremes present and correctly signed (Asia Pacific
+  bottoms **0.69% in 1989-03**, the Japanese bubble; Europe ex UK **1.63% in 1999-11**, TMT).
+- **V4** — total-payout yield DROPPED (no free net-buyback history). Panel = CAPE + P/D + **cap/GDP** (FRED
+  NCBEILQ027S / GDP, added to `build_valuation.py`, G7 passes: 0.32 at the 1982 trough, 2.29 in 2025-12).
+  **R5 (payout confound) recorded as an UNTESTABLE reject condition** — a named hole, not a silent one.
+
+**ONE-LOOK RESULT (`results/valuation_validation.txt`): five of six bars clear; V6, the statistical bar, does not.**
+- **V1/V2/V3/V4 clear on shape and sign.** log CAPE slope −0.0033 (1m) → −0.331 (5y) → **−0.610 (10y)**, R² 0.001
+  → 0.140 → **0.257**, ~silent sub-1yr. Survives on **excess** returns (so it is not just the rate level — R4
+  safe). **Stronger pre-1982 (β@60m −0.522) than in 1982–2021**, so it is not a creature of the rate decline.
+  Reproduces on **P/D and cap/GDP**, and cap/GDP uses **no earnings at all**, so R6/Siegel does not trip.
+- **V5 clears, heavily qualified.** The power pre-check earned its keep: at 10y every region has **eff N 3–4 ⇒
+  INSUFFICIENT COVERAGE**, and the R² 0.36–0.79 sitting there is exactly the trap. At the only interpretable
+  horizon (12m, eff N 49) the primary local specification is **correctly signed in all six regions**; the
+  secondary USD-real specification **reverses in Scandinavia**, disclosed.
+- **V6 FAILS. Bootstrap under the no-predictability null: p = 0.07–0.26 at EVERY horizon, both return objects.**
+  ρ = 0.9965 and corr(return innovation, regressor innovation) = **+0.96** — near-tautological, since CAPE's
+  numerator IS the price. The 10y cell's raw t = −23.7 / NW t = −4.93 looks overwhelming; that R² is reproduced
+  by chance in ~10% of null paths. **Stambaugh removes 64–72% of the raw one-month slope.**
+- **R9 is live.** With **~13 effective independent 10-year observations in 145 years**, the data cannot separate
+  the Campbell–Shiller mechanism from a persistent-regressor artifact. Not an analysis defect — the actual
+  information content, and exactly what R9 was written to detect. **Reading the t-stat as the answer is the error
+  the charter existed to prevent.**
+
+**Disposition is Adam's, after cooling-off. Two defensible readings are laid out in the charter's ONE-LOOK RESULTS
+section** — (1) R9 trips, demote to a pure measurement with no forward-return claim (the shape volatility took), or
+(2) weak-but-consistent across 20+ specifications, with the honest counter that those specifications share one
+price series. **Do NOT rerun the bootstrap with another seed or block length to see if p crosses 0.05.**
+
 ## Signal-research discipline (full text in CLAUDE.md)
 
 Causal-only; mechanism-first (orthogonality is a diagnostic, not the gate); confound-check every context stat;

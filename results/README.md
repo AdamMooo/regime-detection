@@ -49,12 +49,35 @@ the 1970s–80s were positive too. **Violated is not the same as unprecedented.*
 the discrimination sits at `violated`; the intact→under_test step is small. The number leads, the label follows
 (D-02b) — never one without the other.
 
+### Valuation — LOOK SPENT 2026-08-07, FIVE OF SIX BARS CLEAR, **V6 DID NOT**; sign-off pending
+
+Evidence: `valuation_validation.txt` · descriptors: `valuation_descriptors.csv`
+
+Shape is textbook and robust: on log CAPE the slope runs −0.0033 (1m) → −0.331 (5y) → **−0.610 (10y)** with R²
+0.001 → 0.140 → **0.257**, ~silent sub-1yr; it survives on **excess** returns, holds **stronger pre-1982** than
+in the 1982–2021 rate decline, reproduces on **P/D and cap/GDP** (neither of which uses earnings), and carries
+the correct sign in **all six international regions** at the only interpretable horizon.
+
+**And none of that clears the pre-registered statistical bar.** A bootstrap under the no-predictability null —
+2000 paths preserving both ρ = 0.9965 and corr(return innovation, regressor innovation) = **+0.96** — gives
+**p = 0.07–0.26 at every horizon**. The 10-year cell's raw t = −23.7 and Newey–West t = −4.93 look
+overwhelming, yet that R² is reproduced by chance in ~10% of null paths. The Stambaugh correction removes
+**64–72% of the raw one-month slope**.
+
+With ~13 effective independent 10-year observations in 145 years, this data cannot statistically separate the
+Campbell–Shiller mechanism from a persistent-regressor artifact. **R9 is live and the disposition is Adam's.**
+Reading the t-stat as the answer is the exact error the charter existed to prevent.
+
 ### Built but NOT validated — no look spent, no claim
 
-`valuation_descriptors.csv` · `concentration_descriptors.csv` · `credit_descriptors.csv` · `tail_skew.csv`
+`concentration_descriptors.csv` · `credit_descriptors.csv` · `tail_skew.csv`
 
 These are construction outputs only. Their charters are unsigned and their one-looks unspent. The numbers in
 them are readings, **not evidence of anything**.
+
+`valuation_validation.txt` — `scripts/validate_valuation.py`, the Phase-3 one-look (charter v1.1 V1–V6, run
+2026-08-07, seed 20260807). **One look, spent.** Do not rerun with a different seed or block length to see
+whether p crosses 0.05 — that is the single worst thing that could be done to this result.
 
 ---
 
