@@ -41,6 +41,61 @@ EPISODES = {
 
 PANEL_COLUMNS = ("eq", "bond")   # the two-column schema every region must supply
 
+# Monthly is the signal's registered native clock (charter Q-header): the slow
+# nominal-real covariance is a monthly object, the daily 126d calendar-mean read
+# HID the 2022 flip, and the international bond series exist only monthly.
+MONTHLY_W = 24                   # primary window, months (charter, Adam-confirmed 2026-08-06)
+MONTHLY_ROBUST = (12, 36)        # V5 window-robustness panel
+
+# Region → (equity panel, bond series). Europe pairs pan-European equity with the
+# German Bund, registered in the charter as the available proxy.
+REGION_SOURCES = {
+    "us":     ("assets_daily.csv",        "mkt_ret", None,                    "bond10_ret"),
+    "japan":  ("japan_market_daily.csv",  "mkt_ret", "intl_bonds_monthly.csv", "jp_bond10_ret"),
+    "europe": ("europe_market_daily.csv", "mkt_ret", "intl_bonds_monthly.csv", "de_bond10_ret"),
+}
+
+
+def _to_monthly(daily: pd.Series) -> pd.Series:
+    """Compound daily simple returns into monthly. Causal: each month uses only
+    its own days."""
+    return (1.0 + daily).resample("ME").prod() - 1.0
+
+
+def load_region_monthly(region: str) -> pd.DataFrame:
+    """Monthly (eq, bond) panel for a region — the cross-region comparison object.
+
+    US bonds come from the daily asset panel (compounded); Japan/Europe bonds are
+    natively monthly, which is why monthly is the registered clock.
+    """
+    eq_file, eq_col, bond_file, bond_col = REGION_SOURCES[region]
+    proc = ROOT / "data" / "processed"
+
+    eq_daily = pd.read_csv(proc / eq_file, parse_dates=["date"]).set_index("date")[eq_col].astype(float)
+    eq = _to_monthly(eq_daily)
+
+    if bond_file is None:
+        bond_daily = pd.read_csv(proc / eq_file, parse_dates=["date"]).set_index("date")[bond_col].astype(float)
+        bond = _to_monthly(bond_daily.dropna())
+    else:
+        b = pd.read_csv(proc / bond_file, index_col=0, parse_dates=True)
+        bond = b[bond_col].astype(float).dropna()
+        bond.index = bond.index + pd.offsets.MonthEnd(0)   # align to month-end
+
+    return pd.DataFrame({"eq": eq, "bond": bond}).dropna()
+
+
+def build_monthly(panel: pd.DataFrame, window: int = MONTHLY_W) -> pd.DataFrame:
+    """The registered cross-region construction: causal trailing monthly
+    correlation + the assumption state. Same estimator as `build`, monthly clock."""
+    eq, bond = panel["eq"], panel["bond"]
+    corr = rolling_corr(eq, bond, window)
+    return pd.DataFrame({
+        "eq": eq, "bond": bond, "corr": corr,
+        "level_z": expanding_z(corr, min_periods=60),
+        "state": sign_state(corr),
+    }).dropna(subset=["corr"])
+
 
 def load_us_panel() -> pd.DataFrame:
     """US equity x 10y-bond daily returns, the signal's home panel (1962+)."""

@@ -1,0 +1,65 @@
+==============================================================================
+STOCK-BOND CORRELATION — ONE-LOOK VALIDATION (charter V2-V5)
+assumption monitored: 'bonds hedge equity drawdowns'
+==============================================================================
+clock: monthly | primary window 24m | robustness (12, 36) | neutral band |corr| <= 0.10
+REGISTERED LIMITATION: the international sample begins 1990 and therefore does
+NOT contain the 1970s-80s inflation regime. This run cannot test the full
+sign-flip cycle out-of-sample; 'production' is unavailable to this phase.
+
+==============================================================================
+[V4] POWER PRE-CHECK (runs FIRST; gates every contrast below)
+==============================================================================
+  bar: every state needs >= 24 months, else the region is UNDERPOWERED
+  region   span                           n      intact  under_test    violated   verdict
+  us       1963-12-31 .. 2026-05-31     750         246         123         381   POWERED
+  japan    1992-06-30 .. 2026-05-31     406         242          69          95   POWERED
+  europe   1992-06-30 .. 2026-05-31     408         160         119         129   POWERED
+
+==============================================================================
+[V3] CROSS-REGION LEVELS — does the measurement look like the same object?
+==============================================================================
+  region        mean      min      max   latest    latest state
+  us           +0.09    -0.78    +0.74    +0.15        violated
+  japan        -0.11    -0.71    +0.58    +0.31        violated
+  europe       -0.02    -0.83    +0.62    +0.12        violated
+
+==============================================================================
+[V2] HEDGE BEHAVIOUR BY STATE — the on-mechanism read (PRIMARY)
+==============================================================================
+  on months when equity fell, how often did bonds ALSO fall?
+  bar: monotone INCREASING across intact -> under_test -> violated
+
+  US
+    state         eq-down mths   bonds also fell   avg bond ret
+    intact                  86              28%         +1.33%
+    under_test              50              44%         +0.16%
+    violated               142              56%         -0.40%
+    -> across intact < under_test < violated: 28% -> 44% -> 56%  MONOTONE (bar met)
+
+  JAPAN
+    state         eq-down mths   bonds also fell   avg bond ret
+    intact                 102              25%         +0.46%
+    under_test              38              29%         +0.64%
+    violated                41              51%         +0.00%
+    -> across intact < under_test < violated: 25% -> 29% -> 51%  MONOTONE (bar met)
+
+  EUROPE
+    state         eq-down mths   bonds also fell   avg bond ret
+    intact                  63              27%         +0.90%
+    under_test              47              32%         +0.34%
+    violated                50              48%         -0.21%
+    -> across intact < under_test < violated: 27% -> 32% -> 48%  MONOTONE (bar met)
+
+==============================================================================
+[V5] WINDOW ROBUSTNESS — is the state an artifact of the window?
+==============================================================================
+  region       sign agree 12m    sign agree 36m   corr(12m,36m)
+  us                     85%              91%            0.75
+  japan                  79%              88%            0.65
+  europe                 74%              85%            0.62
+
+==============================================================================
+Read against the charter's V2-V5 bars and R1-R5 reject conditions.
+Results sign-off is Adam's, dated, after overnight cooling-off.
+==============================================================================

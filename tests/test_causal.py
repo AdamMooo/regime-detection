@@ -71,6 +71,13 @@ def test_stockbond_build_is_region_agnostic():
     assert len(half) < len(full), "build() ignored the panel it was handed"
 
 
+def test_stockbond_monthly_is_causal():
+    """The monthly construction the OOS one-look actually runs."""
+    import stockbond_corr as sb
+
+    assert_causal(sb.build_monthly, sb.load_region_monthly("us"))
+
+
 def test_guard_catches_a_real_leak(returns):
     """A full-sample (not expanding) rank is the classic leak: today's reading
     depends on the whole future distribution. The guard must reject it."""

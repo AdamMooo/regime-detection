@@ -20,7 +20,11 @@ after the Japan/Germany run; deviations caught during construction are disclosed
 - **Investor question** — *"Right now, are bonds behaving as a hedge against equity drawdowns, how unusual is
   that versus history, and how long have similar environments lasted?"*
 - **Charter/spec version** — v1.0
-- **Charter dated** — 2026-08-06. **Sign-off pending.** No look spent.
+- **Charter dated** — 2026-08-06. **SIGNED OFF by Adam 2026-08-06**, both `[recommended]` analysis-spec lines
+  confirmed (24-month primary correlation window; equity-down = monthly equity return < 0). Build/run authorised.
+  This signs the *pre-registration* only — a Stage-1 freeze, not a positive claim, so no cooling-off applies here.
+  Any SUPPORT claim arising from the run still requires one look + overnight cooling-off + a separate dated
+  sign-off of the *results*.
 
 **Charter-first status.** Partially inverted and disclosed: the US signal was built 2026-08-02 before this
 charter existed. The **international OOS run — the subject of this charter — has NOT been run**, and no
