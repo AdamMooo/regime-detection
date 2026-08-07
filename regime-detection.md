@@ -16,6 +16,37 @@ after the Stage-0 gate amendment — the spec every signal declares against).
 
 ## Status
 
+**2026-08-07 — two signals now carry dated results sign-offs; the third's look is spent and its verdict is the
+interesting one.**
+
+**Phase 2 (stock-bond, PC2) CLOSED — signed off 2026-08-07, maturity `research`.** Cooling-off observed; V2–V5
+verdict table in the charter's §RESULTS SIGN-OFF; R1–R5 none tripped. Evidence maturity is `M` rather than `H`
+because the international sample begins 1990 and holds no inflation regime — the sign-flip cycle is untested
+out-of-sample, and D-02c held even under a strong result. Level-0 record at `results/stockbond_level0.json`; live
+read 2026-05-31 is **24m corr +0.15, 53rd percentile, `violated`, 51 months in**. The status and the rarity
+disagree by design — the 1970s–80s were positive too, so **violated is not unprecedented**. Also added
+`results/stockbond_monthly.csv`: the registered native clock had no committed artifact, which was a real gap.
+
+**Phase 3 (valuation) — charter respecified to v1.1, signed, and its one-look spent the same day. Five of six bars
+clear; V6, the pre-registered statistical bar, does not, so R9 is live and the disposition is Adam's.** The shape
+is textbook and robust — log CAPE slope −0.0033 (1m) → −0.331 (5y) → **−0.610 (10y)**, R² rising to **0.257**,
+~silent sub-1yr; it survives on **excess** returns, holds **stronger pre-1982** than inside the 1982–2021 rate
+decline, and reproduces on P/D and cap/GDP (the latter using **no earnings at all**, which is what kills the
+Siegel confound). **And none of that clears the null.** A bootstrap under no-predictability — 2000 block paths
+preserving ρ = 0.9965 and corr(return innovation, regressor innovation) = **+0.96**, near-tautological because
+CAPE's numerator *is* the price — gives **p = 0.07–0.26 at every horizon**. The 10y raw t = −23.7 is reproduced by
+chance in ~10% of null paths, and Stambaugh removes **64–72%** of the raw one-month slope. With **~13 effective
+independent 10-year observations in 145 years**, the data cannot separate the Campbell–Shiller mechanism from a
+persistent-regressor artifact. That is the information content, not an analysis defect — and it is exactly what
+R9 was written to detect.
+
+Two things that made Phase 3 possible without paid data. **Free international valuation history:** no CAPE exists
+for Japan or Europe, but French publishes the International Indices **twice**, with and without dividends, on the
+same universe — so `R_with − R_without = D_t/P_{t−1}` exactly, giving market-level D/P for 6 regions, 1975–2025
+(`scripts/build_intl_valuation.py`, 612 months; Asia Pacific bottoms 0.69% in 1989-03, Europe ex UK 1.63% in
+1999-11). **And a named hole:** total-payout yield has no free history, so **R5 (payout confound) is registered
+UNTESTABLE** — P/D was kept precisely because it is most exposed to it. **42 tests pass.**
+
 **2026-08-06 (late) — the signal set is now CURATED: 9 scoped → 5 live.** Phase 2 stock-bond refactored onto the
 shared spine, charter frozen + signed, and its **one-look spent: V2 hedge-behaviour is monotone in all three
 regions** (US 28→44→56%, Japan 25→29→51%, Europe 27→32→48% of equity-down months where bonds also fell) — R1/R2
@@ -128,14 +159,18 @@ No auto-advance. Every signal gets its own one-look and its own dated sign-off.
 
 ## Known Issues
 
-- **The retired jump-model estimator is the last block still standing.** Its live pipeline was deleted
-  2026-08-06 (`live_label.py`, `regime_signal.py`, the weekly GH Action, the label artifacts) and
-  `results/regime_card.json` is now a parked blank. What remains — `jumpmodel.py` / `walkforward.py` /
-  `backtest.py` / `run_config.py`, plus `synthetic_validation.py` / `validate_sensor.py` /
-  `benchmark_detector.py` and the `internals_*.py` set — is held up by ONE dependency: `build_panel.py` calls
-  `jumpmodel.build_features` when writing `market_daily.csv`, and cutting it shifts that panel's start date and
-  therefore the expanding-percentile baseline behind already-signed-off vol results. Sequence to finish it is in
-  [[regime-detection/NOTES|NOTES.md]]; it needs a byte-identical `mkt_ret` check, not a casual delete.
+- **OPEN DECISION — R9 on the valuation signal.** The Phase 3 one-look is spent and five of six bars clear, but
+  the pre-registered statistical bar does not. Two defensible readings are written into the charter's ONE-LOOK
+  RESULTS section without one being chosen: **(1)** R9 trips, the forward-return claim fails, and valuation is
+  demoted to a pure measurement — the shape volatility already took; **(2)** the evidence is weak-but-consistent
+  across 20+ specifications, with the honest counter that those specifications share one price series. **The call
+  is Adam's, after cooling-off. Do NOT rerun the bootstrap with another seed or block length to see whether p
+  crosses 0.05** — seed 20260807 is fixed and the look is spent.
+- **RESOLVED 2026-08-06, kept for the reasoning** — the retired jump-model estimator is no longer in the tree. It
+  moved to `archive/jumpmodel-v2/` (and the internals gauge to `archive/internals-gauge/`), each with a README
+  recording what was learned. The one real dependency, `build_panel.py`'s call to `jumpmodel.build_features`, was
+  broken by moving that function to `causal.py` as `downside_features` and **verifying it bit-identical on the
+  same input**, so `market_daily.csv` is unchanged and the signed-off vol numbers did not move.
 - **Downstream leftover (other repo).** `portfolio-manager/src/regime.py` still contains a fetcher for the now-blank
   card, and `daily-report.yml` still passes `REGIME_REPO_PAT`. **Nothing imports either** — verified 2026-08-06.
   Dead weight in that repo, to be removed there; the PAT can be revoked once it is.
