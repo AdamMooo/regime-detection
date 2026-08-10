@@ -279,7 +279,7 @@ Found while preparing this document. None blocks the migration; all would confus
 |---|---|
 | `algo-trading-bot/CLAUDE.md` "First-time setup" / "Running" | Told a fresh clone to run `python -m regime.train`, `python -m backtest.regime_replay` and `scripts/daily_regime_report.py` — **all three deleted** in the strip-down (`9f6e4a28`). A fresh setup following them failed at step one. Rewritten. |
 | `regime-detection/CLAUDE.md:73` | Claimed "26 passing"; actual is **42**. Corrected — this closes the `IMPLEMENTATION-PLAN.md` §10 "test counts not verified" item for all three repos (42 / 52 / 103, measured). |
-| 15 references to `../IMPLEMENTATION-PLAN.md` etc. across both consumer repos | Would have dangled after the governance docs moved. All rewritten to `../regime-detection/governance/…`, depth-corrected (`.planning/STATE.md` was already off by one level before the move). |
+| Every reference that climbed out of a repo into a sibling | Would have dangled once the repos stopped sharing a parent directory. All rewritten to absolute GitHub URLs — 15 in markdown, 2 in the live `trading.yml`, 3 in `main.py`'s docstrings, 5 vault-only `[[regime-detection]]` wikilinks in portfolio-manager. Verified zero remaining. |
 
 ### Found and deliberately NOT fixed — the top follow-up
 
