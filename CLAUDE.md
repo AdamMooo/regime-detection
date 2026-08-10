@@ -98,6 +98,32 @@ momentum) was REMOVED from this repo 2026-08-02 — a separate concern; recovera
   shared spine · `validate_stockbond.py` (the frozen one-look → `results/stockbond_validation.txt`) ·
   `stockbond_level0.py` (emits + schema-validates `results/stockbond_level0.json`).
 
+**Presentation layer, THE PRODUCT (Phase 10, plan 10-02 — the informativeness map):**
+- `informativeness_map.py` → `results/informativeness_map.{json,html}`. **This is the output object;
+  the assumption ledger is a SECTION inside it.** Every axis is a first-class row whether or not it
+  carries a status, because the `{intact|under_test|violated}` vocabulary is only honest for a quantity
+  with a mechanical boundary and **exactly one here has one** (correlation sign) — volatility,
+  concentration and tail each refused a status in their own charters, and those refusals stand.
+- **Two independent dimensions per axis, never merged, no one-word axis summary.** `standing` = what
+  the axis says about the world now (its declared status, plus the tail mass beyond the reading,
+  `min(p, 1-p)`, against the tail **the axis itself declares** in `extreme_conditions.threshold_percentile`
+  — this module owns no threshold, same discipline as `status_of`). `novelty` = whether the reading
+  changed (the trend descriptor its signed charter registered, how long its status has held, how long
+  since it was last inside its tail; **bands nothing**). `persistence` is context for BOTH and never a
+  rank: "52 months in, median 52, longest 129" makes today's print unsurprising **and** says the
+  situation still is not holding. Nothing is sequenced, grouped or styled by either dimension —
+  alphabetical only — so an axis with extreme standing and zero novelty stays as prominent as any other.
+- **Concentration renders as a CANDIDATE**, in its own list and its own dashed-border section: charter
+  UNSIGNED, no validation bar run, `maturity: null`, reading **recomputed** by `concentration.build()`
+  because no `observations/concentration/` log exists, and **excluded from `--known-at` replay** for the
+  same reason. It carries `promotion_requires` naming what Adam must rule. `EMITTERS` is untouched, so a
+  candidate cannot reach the admitted set.
+- Causal by construction: every percentile was ranked expanding-only at its own date, every summary is
+  taken over the log **as filtered to `known_at`**, and a past map is not revised by later data.
+  `build()` is under `assert_causal`. **No forward-looking statistic anywhere** — the tail charter's
+  registered constraint is carried verbatim and enforced by a forward-looking-key test over both
+  artifacts.
+
 **Presentation layer (Phase 10, plan 10-01 — Level 0 + Level 1 only):**
 - `assumption_ledger.py` — reads the **current view** of each admitted signal's
   `observations/<signal>/history.ndjson` (never the `results/*.csv` spines, never a recomputation) and
@@ -151,11 +177,13 @@ ledger has its own name and path (`results/assumption_ledger.{json,html}`), and
 Never repopulate it with a single-label summary — one word destroys the multi-signal vector.
 
 Tests: `tests/{test_boundary_audit,test_causal,test_reproducibility,test_contract_conformance,test_observation_history,
-test_assumption_ledger,test_concentration,test_credit_ebp,test_tail_skew,test_valuation,test_run_oos}.py` —
-**179 passing** (2026-08-10), run with bare `pytest` (`pytest.ini` scopes collection to `tests/`, excluding
-`archive/`). venv: `.venv`. The boundary audit now scans the ledger's **prose and its HTML**, not only field
-names, with the vendor-identifier exception stripped first (`_VENDOR_IDENTIFIER_RE`) so an honest Ken French
-citation cannot fail the audit.
+test_assumption_ledger,test_informativeness_map,test_concentration,test_credit_ebp,test_tail_skew,test_valuation,
+test_run_oos}.py` — **215 passing** (2026-08-10), run with bare `pytest` (`pytest.ini` scopes collection to
+`tests/`, excluding `archive/`). venv: `.venv`. The boundary audit scans **both** presentation artifacts' prose
+and HTML, not only field names, with the vendor-identifier exception stripped first (`_VENDOR_IDENTIFIER_RE`) so
+an honest Ken French citation cannot fail the audit — plus three closed key sets per artifact as **literals in
+the test**, a **forward-looking-key ban** over both artifacts, and a no-negative-`.shift()` check on both
+presentation modules.
 
 ## Discipline (signal research — non-negotiable)
 

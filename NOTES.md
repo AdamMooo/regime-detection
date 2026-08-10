@@ -762,6 +762,98 @@ distribution from). The choices left open on purpose: covariance window (expandi
 regime-mixing hazard), shrinkage against the degenerate n=2 case, causality of the reference distribution, the
 analogue distance metric, and whether analogues are matched on levels or on percentiles.
 
+## PHASE 10 — PLAN 10-02 SHIPPED (2026-08-10): the informativeness map. **215 tests.**
+
+`scripts/informativeness_map.py` → `results/informativeness_map.{json,html}`. **The output object
+changed; the ledger did not.** Plan 10-01 shipped a ledger with **one** monitored assumption, and an
+audit found the cause is not signal scarcity: the `{intact | under_test | violated}` vocabulary is only
+honest for a quantity with a **natural mechanical boundary, and exactly one quantity here has one** —
+correlation sign. Volatility, concentration (`04-…-DRAFT.md:16-17`) and tail (`09-…-DRAFT.md:7`) each
+refused a status in their own charters for exactly that reason. **Those refusals are correct and are
+preserved.** So a statusless axis became a first-class row instead of a footnote, and the question each
+axis answers became *"when has this axis carried information, and what is it saying now"* — never *"what
+should I do."* `results/assumption_ledger.{json,html}` still ship unchanged; the ledger is a **section**
+inside the map.
+
+**TWO INDEPENDENT DIMENSIONS PER AXIS, NEVER MERGED — the design correction that matters most.** The
+first cut collapsed them into one `live | dormant` word, which is wrong: *"this axis is not moving"* and
+*"this axis is not important"* are different claims, and a 52-month break in the bond hedge is
+**maximally important and minimally novel**. Calling that "dormant" buries a live structural fact — the
+single-label failure this repo exists to prevent, one level down. So:
+- **`standing`** — what the axis says about the world now, independent of whether it just changed: its
+  own declared status, plus the tail mass beyond the reading (`min(p, 1-p)`) against the tail **the axis
+  itself declares** (`extreme_conditions.threshold_percentile`). **This module owns no threshold**, the
+  same discipline as `status_of`; an admitted record that declares none **raises**.
+- **`novelty`** — whether the reading changed: the trend descriptor its **signed charter** registered,
+  how long its declared status has held, how long since it was last inside its own tail. **Novelty bands
+  nothing at all**, so a low novelty read can never be mistaken for "this does not matter."
+- **`persistence` is context for BOTH and never a rank.** "52 months in, median 52, longest 129" informs
+  novelty (an ordinary duration, so today's print is not news) **and** standing (still not holding, and
+  half of comparable episodes ran longer). Carried verbatim from `stockbond_level0.build_record`, which
+  already computes it — one comparison added, nothing reimplemented.
+- Nothing is sequenced, grouped or styled by either dimension (**alphabetical only**), and there is no
+  combined field: `informativeness` is a closed `{standing, novelty, persistence, history}` set, so a
+  fifth key — the merge — fails the boundary audit.
+
+**The live read, and it is the point of the whole reframe** (as_of 2026-06-30):
+- **stock_bond_correlation** — *standing:* "the declared status reads **violated**, and has since
+  2022-03-31 (52 months); comparable episodes ran 52 at the median and 129 at the longest, so this one is
+  at or past the median — **it is still not holding, and half of comparable episodes ran longer**; the
+  reading sits at the 52.1st percentile of its own causal history, with 47.9% of that history further
+  out, outside the tail this axis declares distinguishing." *novelty:* "the declared status has not
+  changed for 52 months (since 2022-03-31), **so today's print is not news**; its level percentile moved
+  −0.3332 over the last 12 observations (falling); it last sat inside that tail at 2025-01-31, 17
+  observations ago." **Unchanged AND still extreme, neither fact subordinated to the other.**
+- **concentration (CANDIDATE)** — `eff_n` **2.5372**, `top_share` **0.6100**, **1.8th percentile** of a
+  century, **INSIDE** its declared tail, 14 consecutive months against a median spell of 6. Informative
+  on its face and rendered nowhere before this.
+- **volatility** — 69.7th percentile, 30.3% of its own history further out, **outside** its tail; falling
+  −0.0589 over 10 observations. Its level is unremarkable, which is itself a reading.
+
+**Concentration is a CANDIDATE and cannot be mistaken for an admitted signal.** Separate JSON list,
+separate dashed-border HTML section, `CANDIDATE` badge, `maturity: null` with "NO MATURITY: not
+admitted", `charter_state: "DRAFT - NOT FROZEN, NOT SIGNED"`, `validation_bars_run: "NONE"`. Its reading
+is **recomputed** by `concentration.build()` — there is **no `observations/concentration/` log**, which
+is exactly why it is a candidate: a recomputation can silently disagree with a published record, so it is
+admissible where no record exists and inadmissible where one does. It is **excluded from `--known-at`
+replay** (no vintage log ⇒ no honest point-in-time answer) and carries `promotion_requires`, naming the
+five open charter items plus V3. `observation_history.EMITTERS` was **not touched**, and a test fails if a
+candidate ever appears in the admitted set.
+
+**Both hazards of the reframe are closed in code, not prose.** (1) **No forward-looking statistic
+anywhere** — the tail charter's constraint (`09-…-DRAFT.md:36`) is carried **verbatim** into the artifact,
+and a boundary test bans forward-looking **key names** in both artifacts (keys, not prose: the records
+legitimately say "does not forecast when the sign will flip", so a prose scan would fail on the
+disclaimer and miss the field), with a guard-the-guard test and a no-negative-`.shift()` check on both
+presentation modules. (2) **Causal and expanding** — every percentile was ranked expanding-only at its own
+date by `causal.expanding_percentile` and published in the log; every summary is taken over the log **as
+filtered to `known_at`**, and a test asserts every spell an earlier map closed appears **identically** in
+the later one, so history is never re-ranked against the future. `informativeness_map.build()` is
+registered under `assert_causal`.
+
+**No look was spent and no preregistration was needed.** Every figure is a min, a mean, a run-length
+count, or a comparison against a number the axis published itself — no hypothesis, no fitted parameter,
+no outcome variable, so there is nothing for a specification search to search over. **Disclosed rather
+than tuned:** an expanding percentile is mechanically extreme during its own burn-in, so every
+share/spell count is inflated by early history (the same inflation already sits in the records' own
+`extreme_conditions.share_of_history`). A burn-in cut would have been a new knob.
+
+**Ledger bookkeeping, separate commit.** `governance/RESEARCH-LEDGER.md` ran MI-001..MI-010 while
+**concentration, tail and crowding had no rows at all** — two live and half-built, one dropped, invisible
+in the file whose purpose is preventing rediscovery. Added **MI-011** (concentration: built, gated,
+charter unsigned, no bar run, V3 pre-called against it), **MI-012** (tail: built, charter unsigned, the
+**reframe itself unaccepted**, own registered prior that R4 fires), **MI-013** (crowding: **DROPPED
+2026-08-05 with no charter and no Stage-0 record** — rationale quoted verbatim, plus the two problems
+with it: "real positioning data infeasible solo" objects to a form the architecture had already scoped
+out at `REGIME-SENSOR-ARCHITECTURE.md:368`, and "risks re-reading the volatility axis" was **never
+tested**). **No result invented, no drop resolved.**
+
+**What was deliberately NOT done:** `send_ledger.py` still delivers the ledger artifact, not the map —
+changing the delivery target is a separate decision and no schedule was enabled and no email sent. Tail
+was not rendered as a second candidate: its *assumption* is still unsettled (the reframe is unaccepted),
+where concentration's assumption already clears Stage 0. `results/regime_card.json` untouched;
+`scripts/validate_credit.py` untouched, the credit look still **UNSPENT**.
+
 ## Signal-research discipline (full text in CLAUDE.md)
 
 Causal-only; mechanism-first (orthogonality is a diagnostic, not the gate); confound-check every context stat;
