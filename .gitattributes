@@ -23,3 +23,12 @@
 # contract, and normalising it would be churn without a reason.
 contracts/**    text eol=lf
 observations/** text eol=lf
+
+# Archived third-party payloads: `-text` disables newline conversion entirely, which
+# is stronger than pinning eol=lf and is the right guarantee here. These files are a
+# vendor's ORIGINAL bytes, held because the source restates them and the Internet
+# Archive may not keep them; `data/vintages/*/MANIFEST.csv` records each one's sha256
+# as its provenance. Normalising to LF would still be a rewrite — it would silently
+# "fix" a payload the vendor happened to ship with CRLF, and the stored checksum would
+# then attest to our edit rather than to what was published. Never reformat evidence.
+data/vintages/** -text
