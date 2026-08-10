@@ -634,6 +634,59 @@ BEFORE it runs (legitimate as clarifications now, specification search if resolv
 1. **Bar B aggregation across the 19 vintages is unspecified** — min (strictest), median, or pooled?
 2. **Bar C is "share of settled months"** — pooled across all vintages, or per-vintage then aggregated?
 
+## DATA REFRESHED + CORRECTION PATH BUILT (2026-08-10) — `d85e51d`, `ff22be0`. **147 tests.**
+
+The read was 10 weeks stale. Refreshed the French panel → **2026-06-30**; gates G1–G5 and A1–A4 all PASS.
+
+**LIVE READ (as of 2026-06-30, knowable 2026-07-15) — the two axes disagree for the first time:**
+- **Volatility 15.21% annualised, 69.7th percentile** (was 12.03% / 51.9th), half-life 36.8d, **falling**
+  (−0.059 over 10 sessions — June held a spike that was resolving by month-end).
+- **Stock-bond +0.136, 52nd percentile, `violated`, 52 months in** (since 2022-03-31) — and the historical
+  median for a major violated episode is **also 52 months**, max 129. Falling hard (−0.333 over 12 months)
+  toward the +0.10 band edge.
+- Read together: **volatility elevated while the usual shock absorber is not working.** In May both axes sat at
+  ~52nd percentile and carried one piece of information between them. This is the "low-vol but fragile" case
+  inverted, and neither axis alone produces it.
+
+**THE APPEND-ONLY GUARD EARNED ITS KEEP ON FIRST CONTACT.** The refresh **restated 5 stock-bond and 2 volatility
+readings at `as_of` dates already published**; the writer refused to overwrite. 4th-decimal magnitudes (0.1494 →
+0.1492), so nothing quantitative moves — but it **falsifies the credit charter's claim** that credit is "the first
+admitted signal with a vintage surface at all." **Every signal here has one**; credit's is the only one where the
+mechanism (monthly full-sample refit of a residual) makes it first-order rather than rounding. Amended
+struck-through in the charter — a signed pre-registration that quietly changes its factual claims is not one.
+
+**Which control caught it matters.** `data/processed/MANIFEST.csv` **could not isolate it** — it records rows,
+span and sha256, so a within-span value revision arriving *alongside* an append presents as a plain append. The
+observation log located it per reading. **Panel-level and reading-level provenance catch different failures.**
+
+**NEW — the correction path**, specified in the contract but never implemented (the writer could *detect* a needed
+correction and refuse, but not *emit* one):
+- `corrections_for()` appends a NEW record with `available_at = now` (the moment of rediscovery — using the
+  original instant would both collide and backdate knowledge) and `supersedes` = the superseded sha256.
+- `current_view()` = latest `available_at` per `as_of`. **This is the consumer's query**, and the reason
+  superseded rows are kept rather than edited.
+- Records append in `available_at` order, so the log reads in the order knowledge arrived. **Consequence: the
+  newest LINE is no longer the current belief** — a correction found today lands after a routine record for a
+  later `as_of` published weeks ago. Two tests encoded that false invariant and moved to `current_view`.
+- **Two bugs, both caught by running it twice.** (1) Not idempotent: it compared each rebuilt record against the
+  **original** row, which keeps its old content by design and so never stops differing — every run re-emitted the
+  same corrections with a fresh timestamp. Now compares against `current_view` on a payload hash excluding
+  `available_at`/`supersedes`. (2) `append()` was still handed the superseded originals, so it kept refusing.
+  Verified: second run appends **0 new, 0 corrections**.
+
+**▶ NEXT (unchanged): the four credit statistics in `scripts/validate_credit.py`.** Adam writes
+`revisions`/`bar_a`/`bar_b`/`bar_c`; scaffolding self-tests 6/6; script refuses to run without
+`--i-am-spending-the-one-look`. **The trap:** compute `causal_deciles` on the FULL vintage series *then* subset to
+`settled_index(v)` — reversed, every reading is ranked against a shorter, later-starting history, and it looks
+entirely plausible.
+
+**Also queued:** write up **MI-004** (jump-model regime as a priced cross-sectional factor — `TESTING (ambiguous)`,
+two constructions disagree, the Step-4 confirmatory test was never run; the only open ledger row with real upside
+and nothing on the roadmap resolves it) · bring the ledger current (**MI-003 still says `VALIDATING`** with the
+Japan/Europe OOS "owed" — it ran, Phase 2 closed 2026-08-07 at `research`; **valuation and credit have no rows**)
+· this file's own CLAUDE.md claims "42 passing" and "sign-off pending" for stock-bond, and never mentions
+`contracts/` or `observations/`.
+
 ## Signal-research discipline (full text in CLAUDE.md)
 
 Causal-only; mechanism-first (orthogonality is a diagnostic, not the gate); confound-check every context stat;

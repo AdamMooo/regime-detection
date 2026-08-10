@@ -16,6 +16,46 @@ after the Stage-0 gate amendment — the spec every signal declares against).
 
 ## Status
 
+**2026-08-10 — the boundary this repo exports is now a real contract, the read is current, and credit's charter is
+signed with its look staged.** 147 tests (was 42 on 2026-08-09).
+
+**The observation contract shipped (plan §5).** `contracts/market-observation-v1.schema.json` + 18 conformance
+vectors, every one run through **both** the JSON Schema and `signal_output_schema.py` with a required-identical
+verdict. Consumers **vendor** a pinned copy by sha256 — no Python import, so drift is a red test in the consumer.
+`rarity.basis` is a required enum, which resolves the cross-repo audit's **D2** at the interface, and
+`full_sample` can never be `production`. `observations/<signal>/history.ndjson` holds the point-in-time history —
+volatility **1190 records from 1927-07-30**, stock-bond **756 from 1963-12-31**. Deviated from plan §5.4's
+one-file-per-`as_of` layout and disclosed why in `contracts/CHANGELOG.md`: that path **cannot express its own
+correction model**, and daily granularity was **22× redundant** (25,938 `as_of` dates → 1,187 real
+`available_at` vintages). **These records are reconstructions, not contemporaneous prints** — the data-derived
+numbers are causal, the *specification* is today's, and the manifest says which via `provenance`.
+
+**LIVE READ, as of 2026-06-30 (knowable 2026-07-15) — and for the first time the two axes disagree.**
+Volatility **15.21% annualised, 69.7th percentile**, half-life 36.8d, falling. Stock-bond **+0.136, 52nd
+percentile, `violated`, 52 months in** — against a historical median of **52** months for a major violated
+episode (max 129), and falling hard (−0.333 over 12 months) toward the +0.10 band edge. In May both axes read
+~52nd percentile and carried one piece of information between them; now volatility is elevated *while* the usual
+shock absorber is not working. That is the "low-vol but fragile" case inverted, and no single axis gives it.
+
+**EVERY signal has a vintage surface — found by refreshing the data.** The refresh to 2026-06-30 **restated 5
+stock-bond and 2 volatility readings at `as_of` dates already published**, and the append-only log **refused to
+overwrite them** on its first contact with live data. Magnitudes are 4th-decimal, so nothing quantitative moves,
+but it **falsifies the credit charter's claim** that credit is "the first admitted signal with a vintage surface
+at all (the others are built from returns)." Return data revises too. Note which control caught it:
+`data/processed/MANIFEST.csv` **could not** — it records rows, span and sha256, so a within-span revision
+arriving alongside an append presents as a plain append. Panel-level and reading-level provenance catch different
+failures.
+
+**Phase 6 (credit/EBP) — CHARTER FROZEN v1.0, signed 2026-08-09, build authorised, look UNSPENT.** PROCEED at a
+`research` ceiling registered pre-look and **explicitly not reopenable on a strong result**; **R2 ⇒ DROP**, not
+demotion; Bar B gates on the **minimum** Spearman and Bar C is **pooled**, both clarified before any value
+existed. **19 archived EBP vintages harvested** (2022-08-18..2025-12-03) — V2's decisive-bar evidence base, which
+did not exist in the repo, committed because Archive coverage is not guaranteed to persist. Two amendments cut
+*against* the phase: **G4 is unopposed, not confirmed** (Phase 7 was dropped, so the registered leave-one-out can
+never run — uniqueness is untested), and publication timing is **bounded from above** by captures, not verified.
+`scripts/validate_credit.py` is scaffolded and self-tests 6/6 on synthetic data; the four statistics are Adam's
+to write, and the script refuses to run without `--i-am-spending-the-one-look`.
+
 **2026-08-07 — two signals now carry dated results sign-offs; the third's look is spent and its verdict is the
 interesting one.**
 
