@@ -6,7 +6,7 @@
       "Bash(python -m pytest tests/ *)",
       "Bash(pytest tests/test_causality.py -v)",
       "Bash(.venv/bin/python -m pytest tests/test_pipeline_stages.py tests/test_regime_results_schema.py tests/test_exit_codes.py -q --tb=short -m \"not slow\")",
-      "Bash(truncate -s 0 /home/adam/projects/regime-detection/logs/pipeline.log /home/adam/projects/regime-detection/logs/pipeline_run.log)"
+      "Bash(truncate -s 0 /home/adam/dev/regime-detection/logs/pipeline.log /home/adam/dev/regime-detection/logs/pipeline_run.log)"
     ]
   },
   "prefersReducedMotion": false
