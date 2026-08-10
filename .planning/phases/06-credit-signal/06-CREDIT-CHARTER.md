@@ -120,7 +120,20 @@ It reports the level, its rarity against its own history, the descriptive charac
 
 ## Vintage / point-in-time — the phase's defining constraint
 
-The first admitted signal with a vintage surface at all (the others are built from returns). The Board states that **"the entire history of the EBP may revise each month"** (FEDS Notes 2016-10-06). Three channels: balance-sheet restatement and bond-panel composition (both "modest, concentrated in recent months" per the Board), plus the one the Board does not name and that matters most — **full-sample re-estimation of the predicted-spread regression**: the EBP is a residual, so a monthly refit moves *every* historical value, and the number printed today for March 2008 embeds coefficients estimated through 2026.
+~~The first admitted signal with a vintage surface at all (the others are built from returns).~~
+**AMENDED 2026-08-10 — this claim is FALSIFIED, by evidence, and the correction matters.** A routine
+data refresh (French panel 2026-05-29 → 2026-06-30) **restated 5 stock-bond and 2 volatility
+readings at `as_of` dates already published.** Return data revises too. Magnitudes were 4th-decimal
+(a reading 0.1494 → 0.1492; a percentile 0.5187 → 0.5189) — trivial in size, but the *existence* of
+the surface is the point. The honest statement is: **every signal in this repo has a vintage
+surface; credit's is merely the first large enough to have been noticed, and the only one where the
+mechanism (monthly full-sample refit of a residual) makes it first-order rather than rounding.** No
+V bar changes — V2's thresholds are untouched — but the framing that motivated V2 as *exceptional*
+was wrong, and V2 is better understood as the first instance of a check every signal deserves.
+Caught by `observations/*/history.ndjson`'s append-only guard, which refused to overwrite the
+restated rows. Note that `data/processed/MANIFEST.csv` could **not** isolate it: it records rows,
+span and sha256, so a within-span value revision arriving alongside an append presents as a plain
+append. Panel-level and reading-level provenance catch different failures, and this needed both. The Board states that **"the entire history of the EBP may revise each month"** (FEDS Notes 2016-10-06). Three channels: balance-sheet restatement and bond-panel composition (both "modest, concentrated in recent months" per the Board), plus the one the Board does not name and that matters most — **full-sample re-estimation of the predicted-spread regression**: the EBP is a residual, so a monthly refit moves *every* historical value, and the number printed today for March 2008 embeds coefficients estimated through 2026.
 
 **Achievable:** release timing (verified from captures — month *t* publishes during *t*+1; **registered rule: unavailable until the end of *t*+1**, enforced in `build()`); forward vintage capture from now at zero cost; and *measuring* restatement on the 2022-08→2026-03 archive. **Not achievable:** no ALFRED vintages (the EBP is a FEDS-Notes CSV, not a FRED series — zero search matches), and no pre-2022 PIT reconstruction without paid bond-level and balance-sheet data. **Registered consequence: whatever V2 returns, the pre-2022-08 history remains final-revision data** — bounded contamination is still contamination, hence the `research` cap. Path to `production`, both outside this phase: accumulate ~a decade of forward vintages, or buy the inputs and refit expanding. **REJECTED alternative:** a home-made "PIT EBP" regressing free Baa−10y on causally-available default proxies — the only free proxies are volatility-derived, so the residual would be *mechanically* orthogonalised against the volatility signal, manufacturing the very independence V4 exists to test, and it would not be the literature's EBP, forfeiting the G5 prior. Precedent this section is written against: Orphanides (2001); Croushore–Stark (2001); Diebold–Rudebusch (1991).
 
