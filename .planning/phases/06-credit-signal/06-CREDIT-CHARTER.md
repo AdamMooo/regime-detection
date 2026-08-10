@@ -48,6 +48,33 @@ Three things the harvest established, none of them a look:
    absent, not satisfied. **The one-look script must reject or explicitly handle dateless rows in
    every vintage it reads.**
 
+## V2 AGGREGATION CLARIFIED — Adam, 2026-08-09, BEFORE any value was computed
+
+The frozen text gave each bar's threshold but not how to aggregate it across the 19 vintages. Both
+gaps were closed **before the one-look script existed and before any statistic was computed** — the
+same clarification made *after* seeing values would be specification search, so the ordering is the
+whole point and is recorded deliberately.
+
+- **Bar B — gate on the MINIMUM Spearman across vintages.** The bar exists to catch *any* vintage
+  whose ordering broke; a median would let one catastrophic restatement hide behind eighteen good
+  ones. The usual objection to a minimum — most noise-sensitive statistic, one odd vintage fails the
+  whole bar — is already answered by **R2 requiring two of three bars to fail**, so a strict single
+  bar is safe. Report min, median and the full per-vintage table; gate on min.
+- **Bar C — POOLED across all settled (vintage, month) pairs.** The literal reading of "share of
+  settled months". It weights each vintage by how much settled history it carries, so later vintages
+  count for more, which is the right weighting because more months compared is more evidence.
+  **Accepted knowingly: the 2025 vintages will dominate this statistic.**
+
+**Registered expectation about WHERE revisions will fall (a prior, not a bar, recorded pre-look).**
+Since the EBP is an OLS residual, the revision has the closed form
+`r_v(t) = EBP_v(t) − EBP_today(t) = x_t'(β̂_today − β̂_v)` — proportional to the regressor vector at
+`t`. So revisions should concentrate in months with **extreme regressors**, which are the crisis
+months this signal exists to describe. Consequence for interpretation: *"revisions are small on
+average"* and *"revisions are small where it matters"* are **different claims**, and bar A measures
+only the first. If A passes while the largest revisions sit on 2008 and 2020, that is a real finding
+and must be reported, not smoothed. No threshold is attached — this is a lens for reading the
+result, registered in advance so it cannot be invented afterwards.
+
 **Known gap: the 2026-03-23 capture is not harvested** — the Archive began refusing connections
 after ~20 requests, so it is a rate-limit casualty, not an absent capture. Re-run the script to pick
 it up. V2 may run on 19 or 20 vintages; the count actually used must be stated in the results.
