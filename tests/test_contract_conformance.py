@@ -167,6 +167,25 @@ def test_emitted_records_exist():
     assert EMITTED, "no Level-0 records found — run scripts/<signal>_level0.py"
 
 
+@pytest.mark.parametrize(
+    "path",
+    sorted((ROOT / "contracts").rglob("*.json")) + sorted((ROOT / "observations").rglob("*.ndjson")),
+    ids=lambda p: str(p.relative_to(ROOT)).replace("\\", "/"),
+)
+def test_contract_artifacts_have_no_crlf(path):
+    """Consumers vendor these by sha256, so their bytes must not vary by platform.
+
+    `core.autocrlf` rewrites line endings on checkout, which changes the file hash —
+    the same commit would present different sha256s on Windows and Linux, and every
+    consumer's pinned-copy check would report contract drift that did not happen.
+    `.gitattributes` pins `eol=lf` for both trees; this test is what notices if that
+    pin is removed or a new artifact lands outside it.
+    """
+    assert b"\r\n" not in path.read_bytes(), (
+        f"{path.name} contains CRLF — check .gitattributes covers it, then re-checkout"
+    )
+
+
 def test_maturity_is_the_only_behaviour_bearing_field():
     """Documented invariant, asserted so a future edit has to confront it.
 

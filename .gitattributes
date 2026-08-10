@@ -1,0 +1,25 @@
+# The bytes of the cross-repo contract artifacts are load-bearing, so they must not
+# be rewritten on checkout.
+#
+# `core.autocrlf=true` (the default on Windows here) converts LF to CRLF when files
+# land in the working tree. For ordinary source that is harmless. For these two trees
+# it breaks the distribution mechanism itself:
+#
+#   contracts/    consumers vendor a pinned copy of the schema plus a test asserting
+#                 its sha256 matches the claimed version (IMPLEMENTATION-PLAN.md
+#                 §5.1). Line-ending conversion changes the file's hash, so the SAME
+#                 commit would present different sha256s on Windows and Linux and
+#                 every vendored-copy check would fail across platforms — reported as
+#                 contract drift, which is exactly the alarm it is supposed to raise
+#                 only for real drift.
+#
+#   observations/ every line of an observation log hashes to its MANIFEST.csv row,
+#                 and `supersedes` points at one of those hashes. A consumer in
+#                 another language splitting on \n would carry a trailing \r into the
+#                 hash and fail to verify a log that is in fact intact. The whole
+#                 point of a language-neutral contract is that such a consumer works.
+#
+# Scoped to these two trees deliberately: the rest of the repo has no byte-level
+# contract, and normalising it would be churn without a reason.
+contracts/**    text eol=lf
+observations/** text eol=lf
