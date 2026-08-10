@@ -76,7 +76,7 @@ funding stress, crowding, tail. Orthogonality evidence in the `sensor-orthogonal
 **History note:** the equity-ownership / allocation program (constitution, offense/defense studies, factor,
 momentum) was REMOVED from this repo 2026-08-02 — a separate concern; recoverable in git history if needed.
 
-## File Map (scripts/)
+## File Map
 
 **Shared signal infra (built ONCE, D-20 — every signal reuses it):**
 - `causal.py` — causal primitives (`ewma_vol`, `realized_vol`, `expanding_percentile`) + **`assert_causal`**, the
@@ -90,13 +90,34 @@ momentum) was REMOVED from this repo 2026-08-02 — a separate concern; recovera
   (presentation) · `validate_vol.py` (the frozen one-look → `results/vol_validation.txt`) · `vol_level0.py`
   (emits + schema-validates `results/vol_level0.json`).
 
-**Stock-bond correlation signal (Phase 2, charter frozen 2026-08-06, sign-off pending):**
-- `stockbond_corr.py` — `build(panel)` over a region-agnostic `(eq, bond)` schema, on the shared spine.
+**Stock-bond correlation signal (Phase 2, COMPLETE — signed off 2026-08-07, maturity `research`):**
+- `stockbond_corr.py` — `build(panel)` / `build_monthly(panel)` over a region-agnostic `(eq, bond)` schema, on the
+  shared spine · `validate_stockbond.py` (the frozen one-look → `results/stockbond_validation.txt`) ·
+  `stockbond_level0.py` (emits + schema-validates `results/stockbond_level0.json`).
 
 **Data builders:** `build_panel.py` (US market TR + the construction gate) · `build_assets.py` (multi-asset incl.
 bond10/gold) · `build_intl_panel.py` (Japan/Europe equity) · `build_intl_bonds.py` (JGB/Bund monthly) ·
 `build_credit.py` · `build_funding.py` · `build_tail.py` · `build_ohlc_panel.py` (Parkinson inputs) ·
 `build_trend_proxy.py`.
+
+**`contracts/` — the versioned observation schema (what crosses the boundary OUT):**
+- `market-observation-v1.schema.json` + `CHANGELOG.md` + `vectors/{valid,invalid}` (21 conformance vectors, each
+  invalid one naming the rule it breaks). Consumers **vendor** a pinned copy with a sha256 assertion — no Python
+  import, so drift shows up as a red test in the consumer. `tests/test_contract_conformance.py` runs every vector
+  through BOTH the JSON Schema and `signal_output_schema.py` and requires the same verdict.
+- `.gitattributes` pins `contracts/** observations/** text eol=lf` and `data/vintages/** -text`; without it the
+  same commit hashes differently per platform and the vendoring mechanism breaks silently.
+
+**`observations/<signal>/history.ndjson` — append-only point-in-time history (`scripts/observation_history.py`):**
+- One NDJSON log per signal on the **`available_at` vintage grid** (not the `as_of` grid — 22× redundant, and an
+  `<as_of>.json` path cannot hold a correction). Lines are canonical JSON, so `sha256(line)` is the hash
+  `MANIFEST.csv` records and the hash `supersedes` cites. Same key + different content is **refused**.
+- Correction path: `corrections_for()` appends a NEW record with `available_at = now` and `supersedes` = the
+  superseded sha256; **`current_view()` (latest `available_at` per `as_of`) is the consumer's query.** Records
+  append in the order knowledge arrived, so **the newest LINE is not the current belief.**
+- Records are RECONSTRUCTIONS, not contemporaneous prints (`MANIFEST.csv` carries `provenance` per row), and the
+  *specification* is not point-in-time — a 1930 row carries a maturity derived from a 2026 sign-off.
+- Live: volatility 1190 records, stock-bond 756. Valuation deliberately absent while R9 is open.
 
 **ARCHIVED 2026-08-06 — `scripts/` now holds ONLY data builders + the signal spine.** The retired jump-model
 program (`jumpmodel`, `walkforward`, `backtest`, `run_config`, `synthetic_validation`, `validate_sensor`,
@@ -107,8 +128,9 @@ learned and why it is parked — **read those before reviving anything.** Nothin
 `results/regime_card.json` is a deliberate parked blank until Phase 10. Never repopulate it with a single-label
 summary — one word destroys the multi-signal vector.
 
-Tests: `tests/{test_boundary_audit,test_causal,test_reproducibility}.py` — **42 passing** (verified 2026-08-09), run with bare `pytest`
-(`pytest.ini` scopes collection to `tests/`, excluding `archive/`). venv: `.venv`.
+Tests: `tests/{test_boundary_audit,test_causal,test_reproducibility,test_contract_conformance,test_observation_history,
+test_concentration,test_credit_ebp,test_tail_skew,test_valuation}.py` — **147 passing** (verified 2026-08-10), run
+with bare `pytest` (`pytest.ini` scopes collection to `tests/`, excluding `archive/`). venv: `.venv`.
 
 ## Discipline (signal research — non-negotiable)
 
