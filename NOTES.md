@@ -600,8 +600,10 @@ records structural coverage only. There is no way to unspend a look.
   calls `pd.to_datetime` with no `errors=` guard**, so such a row becomes a NaT-indexed all-NaN row *without
   raising*. The live `credit_monthly.csv` is clean (642 rows, zero NaT) — the guard is absent, not satisfied.
 - Schema **is** identical across all 19 (`date, gz_spread, ebp, est_prob`), confirming the charter.
-- **Still missing: the 2026-03-23 capture** — a rate-limit casualty (the Archive began refusing connections after
-  ~20 requests), not an absent capture. Re-run the script to pick it up.
+- ~~**Still missing: the 2026-03-23 capture**~~ — was a rate-limit casualty (the Archive began refusing
+  connections after ~20 requests), not an absent capture. **Re-run 2026-08-10: fetched. 20 vintages on disk,
+  span 2022-08-18..2026-03-23, schema identical across all 20, zero dateless rows in the new capture.**
+  Still no cross-vintage statistic computed — that is V2.
 
 **Methodological point for V2, not yet in the charter:** a capture date bounds publication from **above only** —
 the Fed may have published days before the Archive crawled. So captures can prove the registered end-of-*t*+1 lag
