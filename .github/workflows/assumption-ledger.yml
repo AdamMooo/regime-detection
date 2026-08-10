@@ -1,0 +1,64 @@
+name: Assumption Ledger
+
+on:
+  # SCHEDULE DELIBERATELY DISABLED 2026-08-10 — Phase 10 plan 10-01 ships Level 0 (the
+  # state vector) and Level 1 (the assumption ledger) plus the email path, but:
+  #
+  #   1. no delivery credentials exist in this repo's secrets — LEDGER_EMAIL_ADDRESS and
+  #      LEDGER_EMAIL_APP_PASSWORD are both unset, so a scheduled run would render the
+  #      ledger and then log "skipping send" forever;
+  #   2. Level 2 (joint rarity + historical analogues) is not built, so a recipient would
+  #      be reading a two-signal ledger with no configuration lens beside it;
+  #   3. enabling a recurring email is Adam's call, not the build's. The last time a cron
+  #      kept regenerating something nobody read, it took a cross-repo audit to notice
+  #      (results/regime_card.json, blanked 2026-08-06).
+  #
+  # Uncomment the two lines below once the secrets exist. Nothing else needs to change.
+  #
+  # schedule:
+  #   - cron: '0 12 * * 1'    # Monday 08:00 EDT / 07:00 EST
+  workflow_dispatch:
+    inputs:
+      deliver:
+        description: "Type SEND to attempt delivery. Anything else renders a dry run."
+        required: true
+        default: ""
+        type: string
+
+jobs:
+  ledger:
+    name: Render the assumption ledger
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Dry run is the default path and needs no secrets. `--send` only ever ATTEMPTS
+      # delivery: with the secrets absent, scripts/mailer.py logs and returns False, so
+      # this step cannot fail for want of a credential.
+      - name: Render (and optionally send)
+        env:
+          LEDGER_EMAIL_ADDRESS: ${{ secrets.LEDGER_EMAIL_ADDRESS }}
+          LEDGER_EMAIL_APP_PASSWORD: ${{ secrets.LEDGER_EMAIL_APP_PASSWORD }}
+          # Via env, not interpolated into the script body: a dispatch input expanded
+          # inline is a shell-injection surface.
+          DELIVER: ${{ inputs.deliver }}
+        run: |
+          if [ "$DELIVER" = "SEND" ]; then
+            python scripts/send_ledger.py --send
+          else
+            python scripts/send_ledger.py
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: assumption-ledger
+          path: |
+            results/assumption_ledger.json
+            results/assumption_ledger.html
