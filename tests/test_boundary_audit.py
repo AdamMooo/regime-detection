@@ -312,6 +312,163 @@ def test_ledger_has_no_collapse_shaped_field(ledger):
     )
 
 
+# --- Test G: the informativeness map (Phase 10, plan 10-02) ----------------------
+#
+# Same treatment as the ledger, for the same reason: this is the object a human reads.
+# The key sets are literals here ON PURPOSE -- importing them from the module would let a
+# new field update the guard alongside the artifact.
+
+from informativeness_map import build_map  # noqa: E402
+from informativeness_map import render_html as render_map_html  # noqa: E402
+
+MAP_TOP_LEVEL = {
+    "spec_version",
+    "known_at",
+    "source",
+    "axis_sequence",
+    "informativeness_definition",
+    "reading_notes",
+    "admitted_axes",
+    "candidate_axes",
+    "assumption_ledger",
+    "level2_context",
+}
+
+MAP_AXIS_KEYS = {
+    "axis",
+    "kind",
+    "admission",
+    "assumption",
+    "status",
+    "status_derivation",
+    "as_of",
+    "available_at",
+    "clock",
+    "reading",
+    "rarity",
+    "maturity",
+    "maturity_note",
+    "provenance",
+    "informativeness",
+}
+
+# A candidate carries exactly one field an admitted axis does not: what must be ruled to
+# promote it. Anything else appearing only on a candidate is a divergence to justify.
+MAP_CANDIDATE_EXTRA_KEYS = {"promotion_requires"}
+
+# Standing and novelty are SIBLINGS. If a third key ever appeared here it would be the
+# combined field this object exists to not have.
+MAP_INFORMATIVENESS_KEYS = {"standing", "novelty", "persistence", "history"}
+
+# A forward-looking statistic would arrive under one of these names. The tail charter's
+# registered constraint (09-TAIL-CHARTER-DRAFT.md:36) is carried verbatim in the artifact;
+# this is the executable half of it. KEY names only -- the records' own prose legitimately
+# says things like "does not forecast when the sign will flip", and a prose scan would
+# fail on the disclaimer while missing the field.
+FORWARD_LOOKING_KEY_TOKENS = (
+    "forward", "ahead", "hit_rate", "hitrate", "lead_lag", "leadlag", "future",
+    "subsequent", "next_", "t_plus", "lookahead", "look_ahead", "predict", "forecast",
+    "drawdown", "outcome", "realized_return", "excess_return", "horizon_return",
+)
+
+
+@pytest.fixture(scope="module")
+def imap():
+    return build_map()
+
+
+def test_map_top_level_is_a_closed_set(imap):
+    assert set(imap) == MAP_TOP_LEVEL, (
+        f"informativeness map grew or lost a top-level field: "
+        f"added {sorted(set(imap) - MAP_TOP_LEVEL)}, "
+        f"removed {sorted(MAP_TOP_LEVEL - set(imap))}. A new top-level field is how a "
+        f"composite, a summary, or a cross-axis ranking would arrive -- justify it before "
+        f"widening this set."
+    )
+
+
+def test_map_axis_rows_are_a_closed_set(imap):
+    for axis in imap["admitted_axes"]:
+        assert set(axis) == MAP_AXIS_KEYS, (
+            f"admitted axis {axis['axis']!r} key set drifted: {sorted(axis)}"
+        )
+    for axis in imap["candidate_axes"]:
+        assert set(axis) == MAP_AXIS_KEYS | MAP_CANDIDATE_EXTRA_KEYS, (
+            f"candidate axis {axis['axis']!r} key set drifted: {sorted(axis)}"
+        )
+
+
+def test_map_informativeness_is_two_siblings_plus_context(imap):
+    """No combined field, ever. Standing and novelty are separate keys with separate
+    prose, and `persistence` / `history` are context for both, not a third verdict."""
+    for axis in imap["admitted_axes"] + imap["candidate_axes"]:
+        assert set(axis["informativeness"]) == MAP_INFORMATIVENESS_KEYS, (
+            f"{axis['axis']}: informativeness key set drifted: "
+            f"{sorted(axis['informativeness'])}. A merged standing-plus-novelty field is "
+            f"the single-label failure at the axis level."
+        )
+
+
+def test_map_artifact_has_no_forbidden_field(imap):
+    hits = sorted(k for k in collect_keys(imap) if is_forbidden_key(k))
+    assert not hits, f"informativeness map: forbidden field name(s) {hits}"
+
+
+def test_map_artifact_prose_is_clean(imap):
+    hits = _prose_denylist_hits(json.dumps(imap))
+    assert not hits, f"informativeness map: forbidden vocabulary in values {hits}"
+
+
+def test_map_html_is_clean(imap):
+    html = _STYLE_ATTR_RE.sub(" ", render_map_html(imap))
+    hits = _prose_denylist_hits(html)
+    assert not hits, f"informativeness map HTML: forbidden vocabulary {hits}"
+
+
+def test_map_has_no_collapse_shaped_field(imap):
+    hits = sorted(collect_keys(imap) & COLLAPSE_SHAPED_KEYS)
+    assert not hits, (
+        f"informativeness map carries collapse-shaped field(s) {hits}. Every axis keeps "
+        f"its own two dimensions; nothing is reduced to one number or one word."
+    )
+
+
+@pytest.mark.parametrize("name", ["assumption ledger", "informativeness map"])
+def test_no_forward_looking_key_anywhere(name, ledger, imap):
+    """The measurement system must not grow a prediction system by accretion.
+
+    'no forward-return, drawdown, hit-rate, or lead/lag statistic is computed anywhere in
+    this phase' (09-TAIL-CHARTER-DRAFT.md:36). A field name is where such a statistic
+    would surface, so the guard is on names and it covers BOTH artifacts.
+    """
+    obj = ledger if name == "assumption ledger" else imap
+    hits = sorted(
+        k for k in collect_keys(obj)
+        if any(tok in k.lower() for tok in FORWARD_LOOKING_KEY_TOKENS)
+    )
+    assert not hits, (
+        f"{name}: forward-looking field name(s) {hits}. Computing one is how a "
+        f"measurement system drifts into a prediction system."
+    )
+
+
+def test_forward_looking_scan_actually_catches_things():
+    """Guards the guard: prove the token scan fires on the names it exists to catch."""
+    for bad in ("forward_return_12m", "hit_rate", "lead_lag_months", "max_drawdown",
+                "pctile_1y_ahead", "predicted_state"):
+        assert any(tok in bad for tok in FORWARD_LOOKING_KEY_TOKENS), bad
+    for good in ("level_percentile", "current_spell_length", "as_of", "share_of_history"):
+        assert not any(tok in good for tok in FORWARD_LOOKING_KEY_TOKENS), good
+
+
+def test_map_modules_contain_no_negative_shift():
+    """`.shift(-n)` is how look-ahead actually enters pandas code. Neither presentation
+    module may contain one, and this catches it in review-proof form."""
+    for name in ("assumption_ledger.py", "informativeness_map.py"):
+        src = (ROOT / "scripts" / name).read_text(encoding="utf-8")
+        assert "shift(-" not in src.replace(" ", ""), f"{name} carries a negative shift"
+
+
 def test_regime_card_stays_a_parked_blank():
     """The Phase 10 artifact has its own name and path. `results/regime_card.json` is a
     deliberate parked blank and repopulating it with a summary is the exact prohibited
