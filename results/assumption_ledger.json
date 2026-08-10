@@ -1,0 +1,284 @@
+{
+  "spec_version": "1.0",
+  "known_at": null,
+  "source": "observations/<signal>/history.ndjson via observation_history.current_view",
+  "reading_notes": [
+    "Each row is one monitored market assumption and the sensor evidence behind it. A status is an observation of the market, never an instruction.",
+    "The readings are never combined into one number and never ranked against each other. Disagreement between them is information, not a defect to resolve.",
+    "Maturity is the only behaviour-bearing field in the underlying records. A research reading is not a production-grade one and is labelled as such wherever it appears.",
+    "Values, units and estimators are carried verbatim from the observation record. Nothing is converted or re-derived here."
+  ],
+  "level1_assumption_ledger": [
+    {
+      "assumption": "N/A because volatility is a context axis (the PC1 barometer), not an assumption-monitor. It colors how every other signal should be read; it carries no intact/violated status.",
+      "kind": "context_axis",
+      "status": null,
+      "status_derivation": null,
+      "signals": [
+        "volatility"
+      ],
+      "evidence": [
+        {
+          "signal": "volatility",
+          "as_of": "2026-06-30",
+          "available_at": "2026-07-15T14:00:00Z",
+          "clock": "daily",
+          "reading": {
+            "value": 0.1521,
+            "units": "annualised_volatility",
+            "estimator": "EWMA lambda=0.94 on daily log returns, 252d burn-in",
+            "context_band": "typical",
+            "undefined_reason": null,
+            "secondary_readings": [
+              {
+                "estimator": "ln(0.5)/ln(alpha+beta) from GARCH(1,1)-t on a trailing 1260d window, refit quarterly",
+                "name": "shock_half_life",
+                "undefined_reason": null,
+                "units": "trading_days",
+                "value": 36.8
+              }
+            ]
+          },
+          "rarity": {
+            "level_percentile": 0.6968,
+            "basis": "expanding",
+            "basis_meaning": "ranked only against the signal's own history up to that date (causal)",
+            "window": null,
+            "calibration": "expanding percentile ~uniform (mean 0.48); corr(level, percentile) = 0.735",
+            "secondary_percentiles": [
+              {
+                "basis": "expanding",
+                "level_percentile": 0.4636,
+                "name": "durability",
+                "window": null
+              }
+            ]
+          },
+          "trend": {
+            "direction": "falling",
+            "level_percentile_change": -0.0589,
+            "lookback_observations": 10
+          },
+          "persistence": null,
+          "confidence": {
+            "mechanism_gate": "pass",
+            "measurement_validity": "H",
+            "investment_usefulness": "H",
+            "evidence_maturity": "H"
+          },
+          "maturity": "production",
+          "maturity_note": "production: the full validation chain is complete and dated-signed-off",
+          "cross_signal_relationships": [
+            "Conditions every other signal: the same valuation or concentration reading means something different in a high-volatility environment than a calm one.",
+            "Partially overlaps the stock-bond correlation signal (corr of the 126d state with equity volatility is non-zero) \u2014 mechanistically distinct, kept separate per the mechanism gate.",
+            "Descriptive only: persistence means volatility forecasts volatility, never returns or direction."
+          ]
+        }
+      ]
+    },
+    {
+      "assumption": "bonds hedge equity drawdowns",
+      "kind": "assumption_monitor",
+      "status": "violated",
+      "status_derivation": "DERIVED from the correlation, never standalone: corr < -0.10 intact, |corr| <= 0.10 under_test, corr > +0.10 violated. The +/-0.10 neutral band was pre-committed 2026-08-02 before looking and is not re-tunable.",
+      "signals": [
+        "stock_bond_correlation"
+      ],
+      "evidence": [
+        {
+          "signal": "stock_bond_correlation",
+          "as_of": "2026-06-30",
+          "available_at": "2026-07-15T14:00:00Z",
+          "clock": "monthly",
+          "reading": {
+            "value": 0.136,
+            "units": "pearson_correlation",
+            "estimator": "causal 24-month trailing Pearson correlation of monthly equity and 10y-bond total returns",
+            "context_band": "typical",
+            "undefined_reason": null,
+            "secondary_readings": [
+              {
+                "estimator": "causal expanding-window standardization of the 24m correlation",
+                "name": "level_z",
+                "undefined_reason": null,
+                "units": "standard_deviations",
+                "value": 0.1296
+              }
+            ]
+          },
+          "rarity": {
+            "level_percentile": 0.5206,
+            "basis": "expanding",
+            "basis_meaning": "ranked only against the signal's own history up to that date (causal)",
+            "window": null,
+            "calibration": "expanding percentile mean 0.47 over 1963-2026. Note the status and the rarity disagree by design: the correlation is positive (violated) yet only mid-percentile, because the 1970s-80s were positive too. Violated is not the same as unprecedented.",
+            "secondary_percentiles": []
+          },
+          "trend": {
+            "direction": "falling",
+            "level_percentile_change": -0.3332,
+            "lookback_observations": 12
+          },
+          "persistence": {
+            "current_length": 52,
+            "current_start": "2022-03-31",
+            "length_units": "months",
+            "major_episode_definition": "a contiguous violated run of >= 12 months",
+            "major_episode_median_max": [
+              52,
+              129
+            ]
+          },
+          "confidence": {
+            "mechanism_gate": "pass",
+            "measurement_validity": "H",
+            "investment_usefulness": "H",
+            "evidence_maturity": "M"
+          },
+          "maturity": "research",
+          "maturity_note": "RESEARCH GRADE, NOT PRODUCTION: a registered scope limitation or incomplete evidence base is unresolved; read as provisional",
+          "cross_signal_relationships": [
+            "Partially overlaps the volatility signal statistically; mechanistically distinct (PC2 inflation/real-rate vs PC1 risk-off) and kept separate per the mechanism gate.",
+            "Read alongside volatility: a violated hedge assumption in a calm market and in a stressed one are different environments, and neither reading substitutes for the other.",
+            "Descriptive only: this reports the realized correlation state. It does not forecast when the sign will flip and does not claim the flip is forecastable."
+          ]
+        }
+      ]
+    }
+  ],
+  "level0_state_vector": [
+    {
+      "as_of": "2026-06-30",
+      "assessment": {
+        "evidence_maturity": "M",
+        "investment_usefulness": "H",
+        "measurement_validity": "H",
+        "mechanism": "pass"
+      },
+      "assumption_monitored": "bonds hedge equity drawdowns",
+      "assumption_state": {
+        "derivation": "DERIVED from the correlation, never standalone: corr < -0.10 intact, |corr| <= 0.10 under_test, corr > +0.10 violated. The +/-0.10 neutral band was pre-committed 2026-08-02 before looking and is not re-tunable.",
+        "status": "violated"
+      },
+      "available_at": "2026-07-15T14:00:00Z",
+      "clock": "monthly",
+      "cross_signal_relationships": [
+        "Partially overlaps the volatility signal statistically; mechanistically distinct (PC2 inflation/real-rate vs PC1 risk-off) and kept separate per the mechanism gate.",
+        "Read alongside volatility: a violated hedge assumption in a calm market and in a stressed one are different environments, and neither reading substitutes for the other.",
+        "Descriptive only: this reports the realized correlation state. It does not forecast when the sign will flip and does not claim the flip is forecastable."
+      ],
+      "extreme_conditions": {
+        "episodes": {
+          "current_length": 52,
+          "current_start": "2022-03-31",
+          "length_units": "months",
+          "major_episode_definition": "a contiguous violated run of >= 12 months",
+          "major_episode_median_max": [
+            52,
+            129
+          ]
+        },
+        "most_recent_such_date": "2025-01-31",
+        "observations_at_or_above": 82,
+        "share_of_history": 0.1092,
+        "threshold_percentile": 0.95
+      },
+      "maturity": "research",
+      "rarity": {
+        "basis": "expanding",
+        "calibration": "expanding percentile mean 0.47 over 1963-2026. Note the status and the rarity disagree by design: the correlation is positive (violated) yet only mid-percentile, because the 1970s-80s were positive too. Violated is not the same as unprecedented.",
+        "level_percentile": 0.5206,
+        "window": null
+      },
+      "reading": {
+        "context_band": "typical",
+        "estimator": "causal 24-month trailing Pearson correlation of monthly equity and 10y-bond total returns",
+        "secondary_readings": [
+          {
+            "estimator": "causal expanding-window standardization of the 24m correlation",
+            "name": "level_z",
+            "undefined_reason": null,
+            "units": "standard_deviations",
+            "value": 0.1296
+          }
+        ],
+        "units": "pearson_correlation",
+        "value": 0.136
+      },
+      "signal": "stock_bond_correlation",
+      "spec_version": "1.0",
+      "supersedes": null,
+      "trend": {
+        "direction": "falling",
+        "level_percentile_change": -0.3332,
+        "lookback_observations": 12
+      }
+    },
+    {
+      "as_of": "2026-06-30",
+      "assessment": {
+        "evidence_maturity": "H",
+        "investment_usefulness": "H",
+        "measurement_validity": "H",
+        "mechanism": "pass"
+      },
+      "assumption_monitored": "N/A because volatility is a context axis (the PC1 barometer), not an assumption-monitor. It colors how every other signal should be read; it carries no intact/violated status.",
+      "available_at": "2026-07-15T14:00:00Z",
+      "clock": "daily",
+      "cross_signal_relationships": [
+        "Conditions every other signal: the same valuation or concentration reading means something different in a high-volatility environment than a calm one.",
+        "Partially overlaps the stock-bond correlation signal (corr of the 126d state with equity volatility is non-zero) \u2014 mechanistically distinct, kept separate per the mechanism gate.",
+        "Descriptive only: persistence means volatility forecasts volatility, never returns or direction."
+      ],
+      "extreme_conditions": {
+        "most_recent_such_date": "2025-05-12",
+        "observations_at_or_above": 723,
+        "share_of_history": 0.0279,
+        "threshold_percentile": 0.95,
+        "undefined_eras": "US 1930-1950 (alpha+beta >= 1, non-stationary)"
+      },
+      "maturity": "production",
+      "rarity": {
+        "basis": "expanding",
+        "calibration": "expanding percentile ~uniform (mean 0.48); corr(level, percentile) = 0.735",
+        "level_percentile": 0.6968,
+        "secondary_percentiles": [
+          {
+            "basis": "expanding",
+            "level_percentile": 0.4636,
+            "name": "durability",
+            "window": null
+          }
+        ],
+        "window": null
+      },
+      "reading": {
+        "context_band": "typical",
+        "estimator": "EWMA lambda=0.94 on daily log returns, 252d burn-in",
+        "secondary_readings": [
+          {
+            "estimator": "ln(0.5)/ln(alpha+beta) from GARCH(1,1)-t on a trailing 1260d window, refit quarterly",
+            "name": "shock_half_life",
+            "undefined_reason": null,
+            "units": "trading_days",
+            "value": 36.8
+          }
+        ],
+        "units": "annualised_volatility",
+        "value": 0.1521
+      },
+      "signal": "volatility",
+      "spec_version": "1.0",
+      "supersedes": null,
+      "trend": {
+        "direction": "falling",
+        "level_percentile_change": -0.0589,
+        "lookback_observations": 10
+      }
+    }
+  ],
+  "level2_context": {
+    "built": false,
+    "seam": "Level 2 (regime relevance) is NOT built. It attaches here: joint rarity of the preserved state vector (Mahalanobis / turbulence distance) plus nearest-neighbour historical analogues of the CONFIGURATION, both forecasting-free. The inputs are already present: level0_state_vector is the live vector and observations/<signal>/history.ndjson is its full point-in-time history. A Level-2 lens is computed FROM the vector and sits BESIDE it; it never replaces the per-signal readings and is never a rank of good or bad."
+  }
+}
