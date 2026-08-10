@@ -1,36 +1,55 @@
 {
+  "spec_version": "1.0",
   "signal": "stock_bond_correlation",
+  "as_of": "2026-05-31",
+  "available_at": "2026-06-15T14:00:00Z",
+  "supersedes": null,
   "assumption_monitored": "bonds hedge equity drawdowns",
   "clock": "monthly",
+  "assumption_state": {
+    "status": "violated",
+    "derivation": "DERIVED from the correlation, never standalone: corr < -0.10 intact, |corr| <= 0.10 under_test, corr > +0.10 violated. The +/-0.10 neutral band was pre-committed 2026-08-02 before looking and is not re-tunable."
+  },
   "reading": {
-    "as_of": "2026-05-31",
-    "correlation_24m": 0.1494,
-    "history_band": "typical",
-    "assumption_status": "violated",
-    "status_derivation": "DERIVED from the correlation, never standalone: corr < -0.10 intact, |corr| <= 0.10 under_test, corr > +0.10 violated. The +/-0.10 neutral band was pre-committed 2026-08-02 before looking and is not re-tunable.",
-    "estimator": "causal 24-month trailing Pearson correlation of monthly equity and 10y-bond total returns"
+    "value": 0.1494,
+    "units": "pearson_correlation",
+    "estimator": "causal 24-month trailing Pearson correlation of monthly equity and 10y-bond total returns",
+    "context_band": "typical",
+    "secondary_readings": [
+      {
+        "name": "level_z",
+        "value": 0.1647,
+        "units": "standard_deviations",
+        "estimator": "causal expanding-window standardization of the 24m correlation"
+      }
+    ]
   },
   "rarity": {
     "level_percentile": 0.5267,
-    "level_z": 0.1647,
-    "basis": "causal expanding percentile against the signal's own history to date (no full-sample rank)",
+    "basis": "expanding",
+    "window": null,
     "calibration": "expanding percentile mean 0.47 over 1963-2026. Note the status and the rarity disagree by design: the correlation is positive (violated) yet only mid-percentile, because the 1970s-80s were positive too. Violated is not the same as unprecedented."
   },
   "trend": {
-    "level_percentile_change_12_months": -0.2633,
+    "level_percentile_change": -0.2633,
+    "lookback_observations": 12,
     "direction": "falling"
   },
   "extreme_conditions": {
-    "months_at_or_above_95th_percentile": 82,
+    "threshold_percentile": 0.95,
+    "observations_at_or_above": 82,
     "share_of_history": 0.1093,
-    "most_recent_such_month": "2025-01-31",
-    "current_episode_months": 51,
-    "current_episode_start": "2022-03-31",
-    "major_violated_episode_months_median_max": [
-      51,
-      129
-    ],
-    "major_episode_definition": "a contiguous violated run of >= 12 months"
+    "most_recent_such_date": "2025-01-31",
+    "episodes": {
+      "current_length": 51,
+      "current_start": "2022-03-31",
+      "length_units": "months",
+      "major_episode_definition": "a contiguous violated run of >= 12 months",
+      "major_episode_median_max": [
+        51,
+        129
+      ]
+    }
   },
   "cross_signal_relationships": [
     "Partially overlaps the volatility signal statistically; mechanistically distinct (PC2 inflation/real-rate vs PC1 risk-off) and kept separate per the mechanism gate.",
@@ -43,6 +62,5 @@
     "investment_usefulness": "H",
     "evidence_maturity": "M"
   },
-  "maturity": "research",
-  "spec_version": "1.0"
+  "maturity": "research"
 }

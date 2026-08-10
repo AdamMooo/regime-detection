@@ -1,0 +1,60 @@
+{
+  "spec_version": "1.0",
+  "signal": "volatility",
+  "as_of": "2026-05-29",
+  "available_at": "2026-05-30T09:15:00Z",
+  "clock": "daily",
+  "assumption_monitored": "N/A because volatility is a context axis, not an assumption-monitor: it colours how every other signal reads and carries no intact/violated status.",
+  "reading": {
+    "value": 0.1203,
+    "units": "annualised_volatility",
+    "estimator": "EWMA lambda=0.94 on daily log returns, 252d burn-in",
+    "context_band": "typical",
+    "secondary_readings": [
+      {
+        "name": "shock_half_life",
+        "value": 41.3,
+        "units": "trading_days",
+        "estimator": "ln(0.5)/ln(alpha+beta) from GARCH(1,1)-t on a trailing 1260d window, refit quarterly"
+      }
+    ]
+  },
+  "rarity": {
+    "level_percentile": 0.5187,
+    "basis": "expanding",
+    "window": null,
+    "calibration": "expanding percentile ~uniform (mean 0.48); corr(level, percentile)=0.735",
+    "secondary_percentiles": [
+      {
+        "name": "durability",
+        "level_percentile": 0.71,
+        "basis": "expanding",
+        "window": null
+      }
+    ]
+  },
+  "assessment": {
+    "mechanism": "pass",
+    "measurement_validity": "H",
+    "investment_usefulness": "H",
+    "evidence_maturity": "H"
+  },
+  "maturity": "production",
+  "supersedes": null,
+  "trend": {
+    "level_percentile_change": -0.0812,
+    "lookback_observations": 10,
+    "direction": "falling"
+  },
+  "extreme_conditions": {
+    "threshold_percentile": 0.95,
+    "observations_at_or_above": 1204,
+    "share_of_history": 0.0489,
+    "most_recent_such_date": "2020-04-01",
+    "undefined_eras": "US 1930-1950 (alpha+beta >= 1, non-stationary)"
+  },
+  "cross_signal_relationships": [
+    "Conditions every other signal: the same valuation reading means something different in a high-volatility environment.",
+    "Descriptive only: persistence means volatility forecasts volatility, never returns or direction."
+  ]
+}

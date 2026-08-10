@@ -73,11 +73,25 @@ def test_example_level0_records_conform(path):
 # --- Test C: schema rejects violations, accepts a minimal valid record -------
 
 def _minimal_valid_record():
+    """Minimal record satisfying the v1 observation contract.
+
+    `as_of` / `available_at` and the structured reading/rarity became mandatory with
+    contracts/market-observation-v1.schema.json — a percentile is uninterpretable
+    without the basis that produced it, and a backtest needs to know when the value
+    was knowable, not only what date it describes.
+    """
     return {
+        "spec_version": "1.0",
         "signal": "example_signal",
+        "as_of": "2026-05-29",
+        "available_at": "2026-06-15T14:00:00Z",
         "assumption_monitored": "bonds hedge equity drawdowns",
-        "reading": "corr positive, +0.35",
-        "rarity": "85th pctile, trailing 60y",
+        "reading": {
+            "value": 0.35,
+            "units": "pearson_correlation",
+            "estimator": "24m trailing Pearson correlation of monthly returns",
+        },
+        "rarity": {"level_percentile": 0.85, "basis": "expanding", "window": None},
         "clock": "monthly",
         "assessment": {
             "mechanism": "pass",
@@ -86,7 +100,6 @@ def _minimal_valid_record():
             "evidence_maturity": "M",
         },
         "maturity": "research",
-        "spec_version": "v0.1-draft",
     }
 
 

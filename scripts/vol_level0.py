@@ -19,10 +19,15 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
+from data_vintage import KEN_FRENCH_MONTHLY_FILE, available_at, policy_note
 from signal_output_schema import validate
 
 SRC = ROOT / "results" / "vol_descriptors.csv"
 OUT = ROOT / "results" / "vol_level0.json"
+
+# market_daily.csv is built from Ken French's daily factor file, so a day's return is
+# only visible to this pipeline once the file covering that month is posted.
+SOURCE = KEN_FRENCH_MONTHLY_FILE
 
 
 def _band(p: float) -> str:
@@ -45,38 +50,61 @@ def build_record(df: pd.DataFrame) -> dict:
     have_hl = pd.notna(hl)
 
     return {
+        "spec_version": "1.0",
         "signal": "volatility",
+        "as_of": asof,
+        # Governed by the SOURCE's publication cadence, not by the trading day —
+        # see scripts/data_vintage.py. A backtest filters on this, never on as_of.
+        "available_at": available_at(asof, SOURCE),
+        "supersedes": None,
         "assumption_monitored": (
-            "N/A — volatility is a context axis (the PC1 barometer), not an assumption-monitor. "
+            "N/A because volatility is a context axis (the PC1 barometer), not an assumption-monitor. "
             "It colors how every other signal should be read; it carries no intact/violated status."
         ),
         "clock": "daily",
         "reading": {
-            "as_of": asof,
-            "annualised_volatility": round(float(now["vol_annual"]), 4),
-            "history_band": _band(float(now["vol_pctile"])),
-            "shock_half_life_trading_days": round(float(hl), 1) if have_hl else None,
-            "half_life_note": (
-                None if have_hl else
-                "undefined: GARCH persistence alpha+beta >= 1 (IGARCH guard) or fit failed"
-            ),
-            "estimator": "EWMA lambda=0.94 (level); GARCH(1,1)-t on a trailing 1260d window, refit quarterly (durability)",
+            "value": round(float(now["vol_annual"]), 4),
+            "units": "annualised_volatility",
+            "estimator": "EWMA lambda=0.94 on daily log returns, 252d burn-in",
+            "context_band": _band(float(now["vol_pctile"])),
+            "secondary_readings": [{
+                "name": "shock_half_life",
+                "value": round(float(hl), 1) if have_hl else None,
+                "units": "trading_days",
+                "estimator": (
+                    "ln(0.5)/ln(alpha+beta) from GARCH(1,1)-t on a trailing 1260d window, "
+                    "refit quarterly"
+                ),
+                "undefined_reason": (
+                    None if have_hl else
+                    "GARCH persistence alpha+beta >= 1 (IGARCH guard) or fit failed"
+                ),
+            }],
         },
         "rarity": {
             "level_percentile": round(float(now["vol_pctile"]), 4),
-            "durability_percentile": round(float(hl_p), 4) if pd.notna(hl_p) else None,
-            "basis": "causal expanding percentile against the signal's own history to date (no full-sample rank)",
+            # Expanding, therefore causal: p_t ranks x_t only against {x_s : s <= t}.
+            # A full-sample rank would embed the future distribution in today's reading.
+            "basis": "expanding",
+            "window": None,
             "calibration": "expanding percentile ~uniform (mean 0.48); corr(level, percentile) = 0.735",
+            "secondary_percentiles": [{
+                "name": "durability",
+                "level_percentile": round(float(hl_p), 4) if pd.notna(hl_p) else None,
+                "basis": "expanding",
+                "window": None,
+            }],
         },
         "trend": {
-            "level_percentile_change_10_sessions": round(drift, 4),
+            "level_percentile_change": round(drift, 4),
+            "lookback_observations": 10,
             "direction": "rising" if drift > 0.03 else "falling" if drift < -0.03 else "flat",
         },
         "extreme_conditions": {
-            "days_at_or_above_95th_percentile": int(extreme.sum()),
+            "threshold_percentile": 0.95,
+            "observations_at_or_above": int(extreme.sum()),
             "share_of_history": round(float(extreme.mean()), 4),
-            "most_recent_such_day": last_extreme,
-            "durability_range_p10_p90_trading_days": [9, 276],
+            "most_recent_such_date": last_extreme,
             "undefined_eras": "US 1930-1950 (alpha+beta >= 1, non-stationary)",
         },
         "cross_signal_relationships": [
@@ -93,7 +121,6 @@ def build_record(df: pd.DataFrame) -> dict:
             "evidence_maturity": "H",
         },
         "maturity": "production",
-        "spec_version": "1.0",
     }
 
 

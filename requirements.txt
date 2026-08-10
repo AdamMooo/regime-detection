@@ -5,6 +5,7 @@ requests>=2.31
 yfinance==1.2.0
 pytest==9.0.2
 openpyxl==3.1.5
+jsonschema==4.25.1     # conformance-tests the observation contract in contracts/
 
 # signal estimation / inference
 arch==8.0.0            # GARCH persistence (vol descriptors), stationary bootstrap

@@ -30,7 +30,12 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
+from data_vintage import KEN_FRENCH_MONTHLY_FILE, available_at
 from signal_output_schema import validate
+
+# Built from assets_daily.csv (Ken French equity returns + 10y bond returns). The slower
+# source binds, so availability follows the Ken French file cadence.
+SOURCE = KEN_FRENCH_MONTHLY_FILE
 
 SRC = ROOT / "results" / "stockbond_monthly.csv"
 OUT = ROOT / "results" / "stockbond_level0.json"
@@ -65,25 +70,37 @@ def build_record(df: pd.DataFrame) -> dict:
     major = [n for v, _, _, n in runs if v == "violated" and n >= MAJOR_EPISODE_M]
 
     return {
+        "spec_version": "1.0",
         "signal": "stock_bond_correlation",
+        "as_of": asof,
+        "available_at": available_at(asof, SOURCE),
+        "supersedes": None,
         "assumption_monitored": "bonds hedge equity drawdowns",
         "clock": "monthly",
-        "reading": {
-            "as_of": asof,
-            "correlation_24m": round(float(now["corr"]), 4),
-            "history_band": _band(float(now["level_pctile"])),
-            "assumption_status": str(now["state"]),
-            "status_derivation": (
+        "assumption_state": {
+            "status": str(now["state"]),
+            "derivation": (
                 "DERIVED from the correlation, never standalone: corr < -0.10 intact, "
                 "|corr| <= 0.10 under_test, corr > +0.10 violated. The +/-0.10 neutral band "
                 "was pre-committed 2026-08-02 before looking and is not re-tunable."
             ),
+        },
+        "reading": {
+            "value": round(float(now["corr"]), 4),
+            "units": "pearson_correlation",
             "estimator": "causal 24-month trailing Pearson correlation of monthly equity and 10y-bond total returns",
+            "context_band": _band(float(now["level_pctile"])),
+            "secondary_readings": [{
+                "name": "level_z",
+                "value": round(float(now["level_z"]), 4),
+                "units": "standard_deviations",
+                "estimator": "causal expanding-window standardization of the 24m correlation",
+            }],
         },
         "rarity": {
             "level_percentile": round(float(now["level_pctile"]), 4),
-            "level_z": round(float(now["level_z"]), 4),
-            "basis": "causal expanding percentile against the signal's own history to date (no full-sample rank)",
+            "basis": "expanding",
+            "window": None,
             "calibration": (
                 "expanding percentile mean 0.47 over 1963-2026. Note the status and the rarity "
                 "disagree by design: the correlation is positive (violated) yet only mid-percentile, "
@@ -91,19 +108,24 @@ def build_record(df: pd.DataFrame) -> dict:
             ),
         },
         "trend": {
-            "level_percentile_change_12_months": round(drift, 4),
+            "level_percentile_change": round(drift, 4),
+            "lookback_observations": 12,
             "direction": "rising" if drift > 0.05 else "falling" if drift < -0.05 else "flat",
         },
         "extreme_conditions": {
-            "months_at_or_above_95th_percentile": int(extreme.sum()),
+            "threshold_percentile": 0.95,
+            "observations_at_or_above": int(extreme.sum()),
             "share_of_history": round(float(extreme.mean()), 4),
-            "most_recent_such_month": last_extreme,
-            "current_episode_months": int(cur_len),
-            "current_episode_start": cur_start.date().isoformat(),
-            "major_violated_episode_months_median_max": (
-                [int(np.median(major)), int(max(major))] if major else None
-            ),
-            "major_episode_definition": f"a contiguous violated run of >= {MAJOR_EPISODE_M} months",
+            "most_recent_such_date": last_extreme,
+            "episodes": {
+                "current_length": int(cur_len),
+                "current_start": cur_start.date().isoformat(),
+                "length_units": "months",
+                "major_episode_definition": f"a contiguous violated run of >= {MAJOR_EPISODE_M} months",
+                "major_episode_median_max": (
+                    [int(np.median(major)), int(max(major))] if major else None
+                ),
+            },
         },
         "cross_signal_relationships": [
             "Partially overlaps the volatility signal statistically; mechanistically distinct "
@@ -120,7 +142,6 @@ def build_record(df: pd.DataFrame) -> dict:
             "evidence_maturity": "M",
         },
         "maturity": "research",
-        "spec_version": "1.0",
     }
 
 

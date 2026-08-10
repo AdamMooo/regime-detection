@@ -1,0 +1,25 @@
+{
+  "spec_version": "1.0",
+  "signal": "stock_bond_correlation",
+  "as_of": "2026-05-29",
+  "available_at": "2026-05-30T09:15:00Z",
+  "clock": "monthly",
+  "assumption_monitored": "bonds hedge equity drawdowns",
+  "reading": {
+    "value": -0.31,
+    "units": "pearson_correlation",
+    "estimator": "126d rolling correlation of daily equity and bond total returns"
+  },
+  "rarity": {
+    "level_percentile": 0.22,
+    "basis": "trailing_fixed",
+    "window": 1260
+  },
+  "assessment": {
+    "mechanism": "pass",
+    "measurement_validity": "H",
+    "investment_usefulness": "H",
+    "evidence_maturity": "M"
+  },
+  "maturity": "research"
+}

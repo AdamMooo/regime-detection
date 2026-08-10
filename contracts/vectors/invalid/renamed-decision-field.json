@@ -1,0 +1,29 @@
+{
+  "_violates": "additionalProperties:false rejects alpha_hint as UNKNOWN, not as forbidden - renaming a decision field past the denylist still fails",
+  "record": {
+    "spec_version": "1.0",
+    "signal": "volatility",
+    "as_of": "2026-05-29",
+    "available_at": "2026-05-30T09:15:00Z",
+    "clock": "daily",
+    "assumption_monitored": "N/A because volatility is a context axis, not an assumption-monitor: it colours how every other signal reads and carries no intact/violated status.",
+    "reading": {
+      "value": 0.1203,
+      "units": "annualised_volatility",
+      "estimator": "EWMA lambda=0.94 on daily log returns, 252d burn-in"
+    },
+    "rarity": {
+      "level_percentile": 0.5187,
+      "basis": "expanding",
+      "window": null
+    },
+    "assessment": {
+      "mechanism": "pass",
+      "measurement_validity": "H",
+      "investment_usefulness": "H",
+      "evidence_maturity": "H"
+    },
+    "maturity": "production",
+    "alpha_hint": 0.35
+  }
+}

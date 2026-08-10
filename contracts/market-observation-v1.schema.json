@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AdamMooo/regime-detection/contracts/market-observation-v1.schema.json",
+  "title": "Market Observation Record v1",
+  "description": "A point-in-time market OBSERVATION produced by regime-detection (Market Intelligence). An observation is a measurement plus its historical context, and it STOPS there. It is not a prediction, not a signal, and not an instruction. Consumers may derive behaviour from `maturity` and from nothing else.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "spec_version",
+    "signal",
+    "as_of",
+    "available_at",
+    "clock",
+    "assumption_monitored",
+    "reading",
+    "rarity",
+    "assessment",
+    "maturity"
+  ],
+  "properties": {
+    "spec_version": {
+      "const": "1.0",
+      "description": "Contract version this record claims. A consumer that vendors the schema asserts a sha256 match against the version it pinned."
+    },
+    "signal": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Signal identifier, e.g. volatility, stock_bond_correlation."
+    },
+
+    "as_of": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "The date the reading DESCRIBES."
+    },
+    "available_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The instant the value was computable given data vintage and publication lag. For revised series this is FIRST-PRINT availability, never a revision timestamp. Backtests filter on this field, never on as_of. Not derivable from as_of, which is why both are required."
+    },
+    "supersedes": {
+      "type": ["string", "null"],
+      "description": "If this record corrects an earlier one for the same as_of, the sha256 of the superseded record. History is append-only: a correction is a NEW record with a later available_at, never a rewrite.",
+      "default": null
+    },
+
+    "clock": {
+      "enum": ["daily", "weekly", "monthly", "structural"],
+      "description": "Native observation frequency of the signal."
+    },
+    "assumption_monitored": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The abstract market assumption this signal monitors, e.g. 'bonds hedge equity drawdowns'. If the signal is a context axis rather than an assumption-monitor, this must explicitly say 'N/A because ...' rather than be omitted or left empty."
+    },
+
+    "reading": { "$ref": "#/$defs/reading" },
+
+    "rarity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level_percentile", "basis", "window"],
+      "properties": {
+        "level_percentile": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Rank of the current reading within the reference distribution named by `basis`. Meaningless without it."
+        },
+        "basis": {
+          "enum": ["expanding", "trailing_fixed", "full_sample"],
+          "description": "expanding = rank against the signal's own history to date (causal). trailing_fixed = rank within a fixed trailing window (causal; window is a free parameter). full_sample = rank against the whole sample, INCLUDING THE FUTURE — this leaks and is research-only."
+        },
+        "window": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "Trailing window length in observations. Required for trailing_fixed; must be null otherwise."
+        },
+        "calibration": {
+          "type": ["string", "null"],
+          "description": "Optional note on the empirical calibration of the percentile."
+        },
+        "secondary_percentiles": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/secondary_percentile" }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "basis": { "const": "trailing_fixed" } }, "required": ["basis"] },
+          "then": { "properties": { "window": { "type": "integer", "minimum": 1 } } },
+          "else": { "properties": { "window": { "type": "null" } } }
+        }
+      ]
+    },
+
+    "trend": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "level_percentile_change": {
+          "type": ["number", "null"],
+          "description": "Change in level_percentile over `lookback_observations`."
+        },
+        "lookback_observations": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "Number of observations the change is measured over. Required whenever level_percentile_change is non-null — a delta without its horizon is uninterpretable."
+        },
+        "direction": { "enum": ["rising", "falling", "flat", null] }
+      },
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "properties": { "level_percentile_change": { "type": "number" } },
+            "required": ["level_percentile_change"]
+          },
+          "then": { "required": ["lookback_observations"], "properties": { "lookback_observations": { "type": "integer" } } }
+        }
+      ]
+    },
+
+    "assumption_state": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["status", "derivation"],
+      "description": "For assumption-monitor signals only. DESCRIPTIVE, not behaviour-bearing: `derivation` is mandatory so the discretization is always reproducible from reading.value, which means this field adds no information beyond the continuous reading. Consumers may not branch on `status` — the continuous reading and `maturity` remain the only inputs. A context-axis signal omits this or sets it null.",
+      "properties": {
+        "status": {
+          "enum": ["intact", "under_test", "violated"],
+          "description": "Nested deliberately: only top-level `maturity` is behaviour-bearing."
+        },
+        "derivation": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The pre-committed rule mapping reading.value to status, including when it was committed. A threshold invented after looking at the data is not a derivation."
+        }
+      }
+    },
+
+    "extreme_conditions": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "threshold_percentile": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "observations_at_or_above": { "type": ["integer", "null"], "minimum": 0 },
+        "share_of_history": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "most_recent_such_date": { "type": ["string", "null"], "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "undefined_eras": { "type": ["string", "null"] },
+        "episodes": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "description": "Persistence of the current condition. Descriptive: how long this environment has lasted, and how long comparable ones lasted. Never a forecast of when it ends.",
+          "properties": {
+            "current_length": { "type": ["integer", "null"], "minimum": 0 },
+            "current_start": { "type": ["string", "null"], "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+            "length_units": { "type": ["string", "null"], "minLength": 1 },
+            "major_episode_definition": { "type": ["string", "null"] },
+            "major_episode_median_max": {
+              "type": ["array", "null"],
+              "items": { "type": "integer", "minimum": 0 },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        }
+      }
+    },
+
+    "cross_signal_relationships": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Prose statements of overlap or conditioning with other signals. Prose deliberately: a numeric 'combined score' is exactly the collapse this architecture forbids."
+    },
+
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mechanism", "measurement_validity", "investment_usefulness", "evidence_maturity"],
+      "properties": {
+        "mechanism": { "enum": ["pass", "rejected"] },
+        "measurement_validity": { "enum": ["H", "M", "L"] },
+        "investment_usefulness": { "enum": ["H", "M", "L"] },
+        "evidence_maturity": { "enum": ["H", "M", "L"] }
+      }
+    },
+
+    "maturity": {
+      "enum": ["production", "research", "rejected"],
+      "description": "THE ONLY BEHAVIOUR-BEARING FIELD. Consumers may not derive behaviour from any other field's name or value. Algo may consume research and production; anything that changes portfolio behaviour requires production."
+    }
+  },
+
+  "allOf": [
+    {
+      "$comment": "A leaking rarity basis cannot be production. This is the structural enforcement of the causality rule — not a convention a producer is trusted to honour.",
+      "if": {
+        "type": "object",
+        "properties": { "rarity": { "type": "object", "properties": { "basis": { "const": "full_sample" } }, "required": ["basis"] } },
+        "required": ["rarity"]
+      },
+      "then": { "properties": { "maturity": { "enum": ["research", "rejected"] } } }
+    },
+    {
+      "$comment": "A rejected mechanism cannot be production either — mechanism is the first gate.",
+      "if": {
+        "type": "object",
+        "properties": { "assessment": { "type": "object", "properties": { "mechanism": { "const": "rejected" } }, "required": ["mechanism"] } },
+        "required": ["assessment"]
+      },
+      "then": { "properties": { "maturity": { "enum": ["research", "rejected"] } } }
+    }
+  ],
+
+  "$defs": {
+    "reading": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "units", "estimator"],
+      "properties": {
+        "value": {
+          "type": ["number", "null"],
+          "description": "The primary measurement. null only when the estimator is legitimately undefined for this as_of, in which case undefined_reason must say why."
+        },
+        "units": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Units of `value`. Mandatory on every numeric leaf: it removes the natural shape a smuggled allocation would take, since a weight has no honest unit."
+        },
+        "estimator": {
+          "type": "string",
+          "minLength": 1,
+          "description": "How the value was computed, precisely enough to reproduce it."
+        },
+        "undefined_reason": {
+          "type": ["string", "null"],
+          "description": "Required when value is null."
+        },
+        "context_band": {
+          "type": ["string", "null"],
+          "description": "Optional verbal band for presentation only. The continuous number is the reading; a band is never the reading."
+        },
+        "secondary_readings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/secondary_reading" },
+          "description": "Additional descriptors of the same signal, each carrying its own units. Preserves multi-descriptor signals without free-form keys."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "type": "object", "properties": { "value": { "type": "null" } }, "required": ["value"] },
+          "then": { "required": ["undefined_reason"], "properties": { "undefined_reason": { "type": "string", "minLength": 1 } } }
+        }
+      ]
+    },
+    "secondary_reading": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "value", "units", "estimator"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "value": { "type": ["number", "null"] },
+        "units": { "type": "string", "minLength": 1 },
+        "estimator": { "type": "string", "minLength": 1 },
+        "undefined_reason": { "type": ["string", "null"] }
+      }
+    },
+    "secondary_percentile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "level_percentile", "basis", "window"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "level_percentile": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "basis": { "enum": ["expanding", "trailing_fixed", "full_sample"] },
+        "window": { "type": ["integer", "null"], "minimum": 1 }
+      }
+    }
+  }
+}

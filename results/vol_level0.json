@@ -1,33 +1,50 @@
 {
+  "spec_version": "1.0",
   "signal": "volatility",
-  "assumption_monitored": "N/A \u2014 volatility is a context axis (the PC1 barometer), not an assumption-monitor. It colors how every other signal should be read; it carries no intact/violated status.",
+  "as_of": "2026-05-29",
+  "available_at": "2026-06-15T14:00:00Z",
+  "supersedes": null,
+  "assumption_monitored": "N/A because volatility is a context axis (the PC1 barometer), not an assumption-monitor. It colors how every other signal should be read; it carries no intact/violated status.",
   "clock": "daily",
   "reading": {
-    "as_of": "2026-05-29",
-    "annualised_volatility": 0.1203,
-    "history_band": "typical",
-    "shock_half_life_trading_days": 34.8,
-    "half_life_note": null,
-    "estimator": "EWMA lambda=0.94 (level); GARCH(1,1)-t on a trailing 1260d window, refit quarterly (durability)"
+    "value": 0.1203,
+    "units": "annualised_volatility",
+    "estimator": "EWMA lambda=0.94 on daily log returns, 252d burn-in",
+    "context_band": "typical",
+    "secondary_readings": [
+      {
+        "name": "shock_half_life",
+        "value": 34.8,
+        "units": "trading_days",
+        "estimator": "ln(0.5)/ln(alpha+beta) from GARCH(1,1)-t on a trailing 1260d window, refit quarterly",
+        "undefined_reason": null
+      }
+    ]
   },
   "rarity": {
     "level_percentile": 0.5187,
-    "durability_percentile": 0.4466,
-    "basis": "causal expanding percentile against the signal's own history to date (no full-sample rank)",
-    "calibration": "expanding percentile ~uniform (mean 0.48); corr(level, percentile) = 0.735"
+    "basis": "expanding",
+    "window": null,
+    "calibration": "expanding percentile ~uniform (mean 0.48); corr(level, percentile) = 0.735",
+    "secondary_percentiles": [
+      {
+        "name": "durability",
+        "level_percentile": 0.4466,
+        "basis": "expanding",
+        "window": null
+      }
+    ]
   },
   "trend": {
-    "level_percentile_change_10_sessions": -0.0812,
+    "level_percentile_change": -0.0812,
+    "lookback_observations": 10,
     "direction": "falling"
   },
   "extreme_conditions": {
-    "days_at_or_above_95th_percentile": 723,
+    "threshold_percentile": 0.95,
+    "observations_at_or_above": 723,
     "share_of_history": 0.0279,
-    "most_recent_such_day": "2025-05-12",
-    "durability_range_p10_p90_trading_days": [
-      9,
-      276
-    ],
+    "most_recent_such_date": "2025-05-12",
     "undefined_eras": "US 1930-1950 (alpha+beta >= 1, non-stationary)"
   },
   "cross_signal_relationships": [
@@ -41,6 +58,5 @@
     "investment_usefulness": "H",
     "evidence_maturity": "H"
   },
-  "maturity": "production",
-  "spec_version": "1.0"
+  "maturity": "production"
 }
