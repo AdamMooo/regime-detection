@@ -45,21 +45,21 @@ rewrites anyway).
 
 ---
 
-## 2. Clone (bootstrap order matters)
+## 2. Clone
+
+**Put them wherever you want.** The three repos are the only real units. Nothing depends on a
+parent folder, its name, or the three being siblings — no repo imports another, and every
+cross-repo document reference is an absolute GitHub URL, not a relative path. On the old machine
+they happened to sit under a folder called `systematic-investing-research`; that name carries no
+meaning and does not need to be recreated.
 
 Clone **regime-detection first** — it carries this file and the rest of the governance docs.
 
 ```powershell
-New-Item -ItemType Directory -Force C:\dev\systematic-investing-research
-cd C:\dev\systematic-investing-research
 git clone https://github.com/AdamMooo/regime-detection.git
 git clone https://github.com/AdamMooo/algo-trading-bot.git      # 336 MB of history — slowest
 git clone https://github.com/AdamMooo/portfolio-manager.git
 ```
-
-The three must be **siblings under a common parent**. Several docs cross-reference
-`../regime-detection/governance/IMPLEMENTATION-PLAN.md`; the layout is load-bearing for
-documentation, though not for code (no repo imports another).
 
 ---
 
@@ -228,24 +228,23 @@ machine reproduces these three numbers:
 | `portfolio-manager` | `pytest tests/` | **103 passed** |
 
 ```powershell
-# run all three at once
+# run all three at once — $parent is wherever YOU put the clones; no layout is assumed
+$parent = 'C:\code'      # <- set this to your own location
 foreach ($r in @('regime-detection','algo-trading-bot','portfolio-manager')) {
-  Push-Location "C:\dev\systematic-investing-research\$r"
+  Push-Location (Join-Path $parent $r)
   $env:PYTHONPATH = '.'
   & ".\.venv\Scripts\python.exe" -m pytest -q --no-header 2>&1 | Select-Object -Last 1
   Pop-Location
 }
 ```
 
-Then two smoke checks that exercise the copied data and secrets:
+Then two smoke checks that exercise the copied data and secrets — run each from its own repo root:
 
 ```powershell
 # algo: must exit without trading (the strategy slot is deliberately empty — D-1)
-cd C:\dev\systematic-investing-research\algo-trading-bot
 $env:PYTHONPATH='.'; python main.py --dry-run
 
 # portfolio-manager: exercises .env.local, FRED and Questrade
-cd C:\dev\systematic-investing-research\portfolio-manager
 python scripts\daily_report.py --dry-run     # confirm the flag name against the script first
 ```
 

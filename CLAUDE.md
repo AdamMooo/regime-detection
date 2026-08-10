@@ -2,6 +2,43 @@
 
 **Read NOTES.md first** — current state and next action.
 
+## System context — one of three independent repositories
+
+**This repo stands alone.** It clones, installs and tests by itself. There is no shared parent
+directory, no relative path out of this repo, and no code dependency on the other two in either
+direction. Clone the three wherever you like, in any layout.
+
+| Repo | Role | Its question |
+|---|---|---|
+| **regime-detection** ← you are here | MARKET INTELLIGENCE · UNDERSTANDING | *What is happening in the market, how unusual is it, how has this environment behaved?* |
+| [algo-trading-bot](https://github.com/AdamMooo/algo-trading-bot) | MONETIZATION | *Can that understanding be turned into returns after costs and out-of-sample?* |
+| [portfolio-manager](https://github.com/AdamMooo/portfolio-manager) | GOVERNANCE | *Given my policy and constraints, what portfolio behavior is permitted?* |
+
+Shared governance documents live in **this repo**, under `governance/` — the
+[charter](governance/SYSTEM%20ARCHITECTURE%20%2B%20RESEARCH%20CHARTER.md),
+[implementation plan](governance/IMPLEMENTATION-PLAN.md),
+[research ledger](governance/RESEARCH-LEDGER.md) and
+[migration runbook](governance/MIGRATION.md). They are stored here because this is the repo
+guaranteed to be present — **storage, not ownership.** This repo does not own the ledger's
+`ALGO-*` or `PM-*` rows, and **no code here reads the ledger.**
+
+### What crosses this repo's boundary
+
+**Out (this repo produces):** versioned, point-in-time observation records — `contracts/` holds
+the schema, `observations/<signal>/<as_of>.json` the history. Both `as_of` and `available_at` are
+mandatory; consumers filter on `available_at`. `maturity` is the only behavior-bearing field.
+
+**In: nothing.** This repo consumes no output from the other two. The only path from their
+evidence back to here is **a human opening a new research charter** under this repo's own
+process — never an automated read. Automating it would create the circular validation the
+charter's §5 forbids.
+
+**Never:** an allocation, exposure, position, order, trade, tilt or recommendation — enforced
+executably by `scripts/signal_output_schema.py` and `tests/test_boundary_audit.py`. Code arriving
+from another repo without a mechanism gate, preregistration, causal guard and out-of-sample
+confirmation does not become Market Intelligence by being moved. **A question can be re-homed
+here; unfinished code cannot.**
+
 ## HARD BOUNDARY — a market-UNDERSTANDING layer only (Adam, non-negotiable, corrected repeatedly)
 
 This repo **finds, validates, and presents independent market signals + their historical context**, and STOPS:
