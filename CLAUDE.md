@@ -83,6 +83,8 @@ momentum) was REMOVED from this repo 2026-08-02 — a separate concern; recovera
 - `causal.py` — causal primitives (`ewma_vol`, `realized_vol`, `expanding_percentile`) + **`assert_causal`**, the
   perturb-the-future look-ahead guard every signal's `build()` must pass before its one-look.
 - `run_oos.py` — generic Japan/Europe out-of-hypothesis-sample harness over any `build_region(returns)`.
+  `load_region` (daily) · `load_region_monthly` (month-end, compounded) — pass the latter as `loader=` for a
+  signal on the monthly clock.
 - `signal_output_schema.py` — executable HARD BOUNDARY (closed Level-0 allowlist + denylist + `validate()`).
 - `data_manifest.py` → `data/processed/MANIFEST.csv` — sha256/shape/date-span provenance for every panel.
 
@@ -130,7 +132,7 @@ learned and why it is parked — **read those before reviving anything.** Nothin
 summary — one word destroys the multi-signal vector.
 
 Tests: `tests/{test_boundary_audit,test_causal,test_reproducibility,test_contract_conformance,test_observation_history,
-test_concentration,test_credit_ebp,test_tail_skew,test_valuation}.py` — **147 passing** (verified 2026-08-10), run
+test_concentration,test_credit_ebp,test_tail_skew,test_valuation,test_run_oos}.py` — **151 passing** (2026-08-10), run
 with bare `pytest` (`pytest.ini` scopes collection to `tests/`, excluding `archive/`). venv: `.venv`.
 
 ## Discipline (signal research — non-negotiable)

@@ -39,12 +39,27 @@ def load_region(region: str) -> pd.Series:
     return df["mkt_ret"].astype(float).rename(f"mkt_ret_{region}")
 
 
+def load_region_monthly(region: str) -> pd.Series:
+    """Month-end returns for a region, compounded from its daily panel.
+
+    For signals whose registered native clock is monthly (concentration's V5,
+    stock-bond). Causal: each month uses only its own days, and the compounding
+    convention matches `stockbond_corr._to_monthly` so a monthly reading means
+    the same thing wherever it is built.
+    """
+    daily = load_region(region)
+    monthly = (1.0 + daily).resample("ME").prod() - 1.0
+    return monthly.rename(f"{daily.name}_monthly")
+
+
 def run_oos(
     build_region: Callable[[pd.Series], pd.DataFrame],
     regions: tuple[str, ...] = ("us", "japan", "europe"),
+    loader: Callable[[str], pd.Series] = load_region,
 ) -> dict[str, pd.DataFrame]:
     """Run `build_region` on each region's returns. Returns {region: frame}.
 
     `build_region` is any signal's causal construction that takes a returns
-    series and returns a descriptor frame (e.g. `vol_descriptors.build`)."""
-    return {region: build_region(load_region(region)) for region in regions}
+    series and returns a descriptor frame (e.g. `vol_descriptors.build`). Pass
+    `loader=load_region_monthly` for a signal on the monthly clock."""
+    return {region: build_region(loader(region)) for region in regions}
