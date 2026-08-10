@@ -70,7 +70,7 @@ learned and why it is parked — **read those before reviving anything.** Nothin
 `results/regime_card.json` is a deliberate parked blank until Phase 10. Never repopulate it with a single-label
 summary — one word destroys the multi-signal vector.
 
-Tests: `tests/{test_boundary_audit,test_causal,test_reproducibility}.py` — **26 passing**, run with bare `pytest`
+Tests: `tests/{test_boundary_audit,test_causal,test_reproducibility}.py` — **42 passing** (verified 2026-08-09), run with bare `pytest`
 (`pytest.ini` scopes collection to `tests/`, excluding `archive/`). venv: `.venv`.
 
 ## Discipline (signal research — non-negotiable)
