@@ -70,8 +70,9 @@ Governing design: **`.planning/REGIME-SENSOR-ARCHITECTURE.md`** (signal set, per
 standards, maturity model, the assumption-ledger output — organized so the human connects the dots).
 
 **The signal set** (each monitors one abstract market assumption): volatility/risk-off (shipped), stock-bond
-correlation (built), valuation, concentration, diversification/correlation (absorption ratio), credit (EBP),
-funding stress, crowding, tail. Orthogonality evidence in the `sensor-orthogonality-evidence` memory.
+correlation (shipped), valuation, concentration, credit (EBP), tail. **Absorption · funding · crowding were
+DROPPED at the charter stage** (`.planning/archive/dropped-signals/`) — the gate working, not attrition.
+Orthogonality evidence in the `sensor-orthogonality-evidence` memory.
 
 **History note:** the equity-ownership / allocation program (constitution, offense/defense studies, factor,
 momentum) was REMOVED from this repo 2026-08-02 — a separate concern; recoverable in git history if needed.
@@ -97,7 +98,7 @@ momentum) was REMOVED from this repo 2026-08-02 — a separate concern; recovera
 
 **Data builders:** `build_panel.py` (US market TR + the construction gate) · `build_assets.py` (multi-asset incl.
 bond10/gold) · `build_intl_panel.py` (Japan/Europe equity) · `build_intl_bonds.py` (JGB/Bund monthly) ·
-`build_credit.py` · `build_funding.py` · `build_tail.py` · `build_ohlc_panel.py` (Parkinson inputs) ·
+`build_credit.py` · `build_tail.py` · `build_ohlc_panel.py` (Parkinson inputs) ·
 `build_trend_proxy.py`.
 
 **`contracts/` — the versioned observation schema (what crosses the boundary OUT):**

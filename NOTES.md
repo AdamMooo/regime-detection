@@ -194,9 +194,10 @@ scope) under `.planning/phases/`, and its data pulled to `data/processed/`:
   LEAD is the whole justification — kill if it fails to generalize (dispersion-lead bar). No new fetch.
 - **06 Credit/EBP** (FULL, residual only): `scripts/build_credit.py` → `credit_monthly.csv` (Fed EBP 1973+,
   restated monthly = PIT caveat) + `credit_daily.csv` (OAS proxies 1986+).
-- **07 Funding** (NARROW binary flag, fold-into-Tail candidate): `scripts/build_funding.py` →
-  `funding_weekly.csv` (STLFSI4/NFCI) + `funding_daily.csv` (CP−bill, SOFR−EFFR). LIBOR→SOFR splice hazard;
-  OFR FSI funding sub-index = preferred PIT source, wire later.
+- **07 Funding** (NARROW binary flag, fold-into-Tail candidate): `build_funding.py` → `funding_weekly.csv`
+  (STLFSI4/NFCI) + `funding_daily.csv` (CP−bill, SOFR−EFFR). LIBOR→SOFR splice hazard; OFR FSI funding
+  sub-index = preferred PIT source, wire later. **DROPPED 2026-08-06; script + both panels DELETED 2026-08-10**
+  (recoverable in git history; the reasoning is in `.planning/archive/dropped-signals/07-FUNDING-DROPPED.md`).
 - **09 Tail** (FULL, options-implied): `scripts/build_tail.py` → `tail_daily.csv` (CBOE SKEW 1990+ + VIX term
   slope). NO LONGER data-gated (realized-jump/bipower is the gated part, excluded). SKEW methodology-rebasing caveat.
 
@@ -404,10 +405,12 @@ phase to cut if capacity is tight."
 signal whose look is already spent. Both readings are written into the charter; do **NOT** rerun the bootstrap with
 another seed or block length.
 
-**Dropped-signal dead weight still in the tree** (Adam said drop them, not yet done): `scripts/build_funding.py` +
-`data/processed/funding_{daily,weekly}.csv` (nothing imports them — only a comment in `test_causal.py:57` mentions
-funding), and `.planning/ROADMAP.md` still lists Phase 7 and Phase 8 as open unchecked phases with Phase 9
-declaring "Depends on: Phase 8". ROADMAP is GSD-managed, not hand-edited.
+**Dropped-signal dead weight — funding CLEARED 2026-08-10.** `scripts/build_funding.py` +
+`data/processed/funding_{daily,weekly}.csv` deleted after a whole-tree grep confirmed no code imported or read
+them (only prose: the dropped-signal record, a docstring in `test_causal.py:57`, and two `MANIFEST.csv` rows —
+the manifest is frozen evidence and was deliberately NOT regenerated, so it still lists two files that no longer
+exist on disk). **Still outstanding:** `.planning/ROADMAP.md` lists Phase 7 and Phase 8 as open unchecked phases
+with Phase 9 declaring "Depends on: Phase 8". ROADMAP is GSD-managed, not hand-edited.
 
 ## NEXT ACTION (superseded — kept for the sequencing rationale)
 

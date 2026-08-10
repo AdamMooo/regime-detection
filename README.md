@@ -50,7 +50,7 @@ infeasible solo, and it risks re-reading the volatility axis). Status as of **20
 | 4 | **Concentration** | "the index is not dependent on a few names" | Warm start only: kickoff brief + data (French VW−EW leadership spread from `assets_daily.csv`; true cap-HHI needs paywalled constituents). |
 | 5 | **Diversification / absorption** | "diversification is intact" | Warm start only: absorption ratio via PCA of the `assets_daily.csv` panel. Scoped narrow — the lead is the whole justification. |
 | 6 | **Credit (EBP)** | "credit conditions are benign" | Warm start only: `scripts/build_credit.py` → `credit_monthly.csv` (Fed EBP 1973+, restated monthly = PIT caveat), `credit_daily.csv` (OAS proxies 1986+). |
-| 7 | **Funding stress** | "funding markets function" | Warm start only, narrow binary flag: `scripts/build_funding.py` → `funding_weekly.csv` (STLFSI4/NFCI), `funding_daily.csv` (CP−bill, SOFR−EFFR). LIBOR→SOFR splice hazard noted. |
+| 7 | ~~Funding stress~~ | — | **DROPPED at the charter stage** (`.planning/archive/dropped-signals/07-FUNDING-DROPPED.md`). The only PIT-clean, credit-free, unspliced series starts 2018, and `cp3m`'s missingness is **endogenous** — the Fed publishes only when trade data suffice, so it goes dark exactly when funding seizes. `build_funding.py` + its two panels deleted 2026-08-10. |
 | 8 | ~~Crowding~~ | — | **DROPPED 2026-08-05.** (`.planning/ROADMAP.md` still lists it; not yet reconciled.) |
 | 9 | **Tail** | "the distribution is its normal shape" | Warm start only: `scripts/build_tail.py` → `tail_daily.csv` (CBOE SKEW 1990+ and VIX term slope). SKEW methodology-rebasing caveat. |
 | 10 | Presentation / assumption ledger | — | Not started. Organizes validated signals into lenses; no score, no summary, no decision. |
@@ -131,7 +131,7 @@ All code is flat in `scripts/` (there is no `src/` package).
 
 **Data builders** — `build_panel.py` (Ken French daily US market TR 1926+, SPY cross-check) · `build_assets.py`
 (multi-asset incl. 10y bond and gold) · `build_intl_panel.py` (Japan/Europe equity panels) ·
-`build_intl_bonds.py` (JGB / Bund monthly 10y TR) · `build_credit.py` · `build_funding.py` · `build_tail.py` ·
+`build_intl_bonds.py` (JGB / Bund monthly 10y TR) · `build_credit.py` · `build_tail.py` ·
 `build_ohlc_panel.py` (range-based estimator inputs) · `build_trend_proxy.py`.
 
 **Archived, not in the signal path** (2026-08-06) — `scripts/` now contains only data builders and the signal
@@ -175,7 +175,7 @@ python scripts/data_manifest.py   # refresh the processed-data provenance manife
 ```
 
 Rebuilding data from source needs network but **no credentials**. `build_panel.py` uses the public Dartmouth
-French files + yfinance; `build_assets.py`, `build_credit.py` and `build_funding.py` use FRED's key-free
+French files + yfinance; `build_assets.py` and `build_credit.py` use FRED's key-free
 `fredgraph.csv` endpoint; `build_tail.py` pulls CBOE index history directly. `build_intl_bonds.py` is the only
 script that will *use* a `FRED_API_KEY` if one is present in `.env`, and it falls back to the key-free endpoint
 when it is not.
