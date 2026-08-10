@@ -98,6 +98,23 @@ momentum) was REMOVED from this repo 2026-08-02 — a separate concern; recovera
   shared spine · `validate_stockbond.py` (the frozen one-look → `results/stockbond_validation.txt`) ·
   `stockbond_level0.py` (emits + schema-validates `results/stockbond_level0.json`).
 
+**Presentation layer (Phase 10, plan 10-01 — Level 0 + Level 1 only):**
+- `assumption_ledger.py` — reads the **current view** of each admitted signal's
+  `observations/<signal>/history.ndjson` (never the `results/*.csv` spines, never a recomputation) and
+  renders Level 0 (the state vector) + Level 1 (the ledger) to `results/assumption_ledger.{json,html}`.
+  Assumption text, status and its `derivation` are carried **verbatim** from the record: this module owns
+  **no thresholds**, and a monitor signal with no declared `{intact|under_test|violated}` mapping RAISES
+  rather than getting one invented for it. A signal whose `assumption_monitored` opens `N/A because ...`
+  (the contract's own discriminator) is carried as a **reading with no status** — volatility, by charter.
+  Artifacts carry no wall-clock stamp, so a test can assert they still equal a fresh build.
+- **Level 2 is NOT built.** The seam is `assumption_ledger.level2_context()` — joint rarity + analogues
+  attach there and nowhere else. No distance is computed anywhere in this repo.
+- `mailer.py` (stdlib `smtplib`/`email`; **reimplemented**, not imported from another repo) + `send_ledger.py`
+  (**`--dry-run` is the default and works offline with no credentials**; `--send` logs and skips when
+  `LEDGER_EMAIL_ADDRESS` / `LEDGER_EMAIL_APP_PASSWORD` are absent, so a missing secret never fails a run).
+- `.github/workflows/assumption-ledger.yml` — `schedule:` **commented out with a dated reason**,
+  `workflow_dispatch` retained. Adam enables the schedule.
+
 **Data builders:** `build_panel.py` (US market TR + the construction gate) · `build_assets.py` (multi-asset incl.
 bond10/gold) · `build_intl_panel.py` (Japan/Europe equity) · `build_intl_bonds.py` (JGB/Bund monthly) ·
 `build_credit.py` · `build_tail.py` · `build_ohlc_panel.py` (Parkinson inputs) ·
@@ -128,12 +145,17 @@ program (`jumpmodel`, `walkforward`, `backtest`, `run_config`, `synthetic_valida
 (`internals_*`, `run_internals_prereg`) to **`archive/internals-gauge/`**. Each has a README recording what was
 learned and why it is parked — **read those before reviving anything.** Nothing in `scripts/` imports them.
 `live_label.py` / `regime_signal.py` were DELETED (not archived — nothing consumed them);
-`results/regime_card.json` is a deliberate parked blank until Phase 10. Never repopulate it with a single-label
-summary — one word destroys the multi-signal vector.
+`results/regime_card.json` **stays a deliberate parked blank.** Phase 10 did NOT repopulate it: the assumption
+ledger has its own name and path (`results/assumption_ledger.{json,html}`), and
+`tests/test_boundary_audit.py::test_regime_card_stays_a_parked_blank` now fails if the card grows a reading.
+Never repopulate it with a single-label summary — one word destroys the multi-signal vector.
 
 Tests: `tests/{test_boundary_audit,test_causal,test_reproducibility,test_contract_conformance,test_observation_history,
-test_concentration,test_credit_ebp,test_tail_skew,test_valuation,test_run_oos}.py` — **151 passing** (2026-08-10), run
-with bare `pytest` (`pytest.ini` scopes collection to `tests/`, excluding `archive/`). venv: `.venv`.
+test_assumption_ledger,test_concentration,test_credit_ebp,test_tail_skew,test_valuation,test_run_oos}.py` —
+**179 passing** (2026-08-10), run with bare `pytest` (`pytest.ini` scopes collection to `tests/`, excluding
+`archive/`). venv: `.venv`. The boundary audit now scans the ledger's **prose and its HTML**, not only field
+names, with the vendor-identifier exception stripped first (`_VENDOR_IDENTIFIER_RE`) so an honest Ken French
+citation cannot fail the audit.
 
 ## Discipline (signal research — non-negotiable)
 

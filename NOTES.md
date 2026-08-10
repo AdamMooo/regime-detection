@@ -3,7 +3,7 @@
 ## Status
 A **market-signal research system** (see CLAUDE.md HARD BOUNDARY — market data → independent signals →
 historical context → regime relevance → STOP; never allocation/decisions). The equity-ownership / allocation
-program was removed from this repo 2026-08-02 (recoverable in git history). Branch: main | Last updated: 2026-08-09
+program was removed from this repo 2026-08-02 (recoverable in git history). Branch: main | Last updated: 2026-08-10
 
 ## Current direction — independent market-signal modules (find → validate → present → STOP)
 
@@ -691,6 +691,76 @@ and nothing on the roadmap resolves it) · bring the ledger current (**MI-003 st
 Japan/Europe OOS "owed" — it ran, Phase 2 closed 2026-08-07 at `research`; **valuation and credit have no rows**)
 · this file's own CLAUDE.md claims "42 passing" and "sign-off pending" for stock-bond, and never mentions
 `contracts/` or `observations/`.
+
+## PHASE 10 — PLAN 10-01 SHIPPED (2026-08-10): the assumption ledger, Level 0 + Level 1. **179 tests.**
+
+`scripts/assumption_ledger.py` → `results/assumption_ledger.{json,html}`, plus `scripts/mailer.py` +
+`scripts/send_ledger.py` and `.github/workflows/assumption-ledger.yml`. **ROADMAP success criteria 1 and 4 only**
+— criteria 2 (joint rarity) and 3 (historical analogues) are Level 2 and deliberately NOT built.
+
+**The source is the observation log, not the spines.** The ledger reads
+`observations/<signal>/history.ndjson` through `current_view()` (latest `available_at` per `as_of`) and never
+touches `results/*.csv`. Enforced structurally: `test_ledger_source_is_the_observation_history` AST-scans the
+module and fails if it imports `vol_descriptors` / `stockbond_corr` / pandas or carries a `.csv` literal. A
+presentation layer that recomputes can print a number that disagrees with the published record — the whole point
+of the contract is that it cannot.
+
+**THE STATUS MAPPING IS NEVER THIS LAYER'S.** Two admitted signals, two different declared answers:
+- **`stock_bond_correlation`** — mapping declared at `scripts/stockbond_corr.py:31,126-129` (`NEUTRAL_BAND = 0.10`
+  + `sign_state`), pre-registered in `02-STOCKBOND-CHARTER.md:63-67`, and carried into the record as
+  `assumption_state.derivation` (`stockbond_level0.py:85-92`). The ledger quotes that string verbatim.
+- **`volatility` declares N/A, deliberately** — charter §Header and §2: *"There is deliberately no
+  {intact | under-test | violated} status field — introducing one would re-import the CALM/STRESSED state the
+  reframe exists to remove. The ledger carries volatility as a reading."* So the ledger has **two row kinds**:
+  `assumption_monitor` (status + derivation) and `context_axis` (reading, no status). This is a declared design,
+  not a gap. A monitor signal arriving with no declared mapping **RAISES**; a context axis arriving *with* a
+  status also raises. `status_of()` owns no thresholds and no numbers.
+
+**Rarity always travels with its `basis`.** `expanding` / `trailing_fixed` / `full_sample` are not
+interchangeable, so `BASIS_MEANING` renders the definition inline next to every percentile. A percentile without
+its reference distribution is not a number.
+
+**The two axes disagree, and the rendering keeps them disagreeing** (as_of 2026-06-30, knowable 2026-07-15):
+volatility 0.1521 annualised at the **69.7th percentile**, half-life 36.8d, falling; stock-bond +0.136 at the
+**52.1st percentile**, status **`violated`**, **52 months in** against a median major episode of 52 (max 129).
+Nothing combines them. There is no score, no band-of-bands, no one-word read — that is the deliverable, not a
+missing feature.
+
+**Delivery is offline-first.** `--dry-run` is the default and needs no credentials; `--send` logs and skips when
+`LEDGER_EMAIL_ADDRESS` / `LEDGER_EMAIL_APP_PASSWORD` are absent, so a missing secret can never fail a run.
+`mailer.py` is a **reimplementation** of the pattern in `portfolio-manager/src/mailer.py`, not an import — there
+is no cross-repo code dependency in either direction. The workflow's `schedule:` block is **commented out with a
+dated reason**, `workflow_dispatch` retained; **no schedule was enabled and no email was sent.**
+
+**Boundary audit extended (criterion 4).** The audit now scans the ledger's **values and its rendered HTML**, not
+only field names: singular-stemmed denylist tokens plus the allocation-system tokens, with `<style>` attributes
+stripped (CSS property names are language identifiers) and the **one documented vendor-identifier exception**
+stripped first, so a Ken French citation cannot fail the audit. Three closed key sets (top level, ledger entry,
+collapse-shaped names) are **literals in the test**, not imports — importing them would let a new field update the
+guard alongside the artifact. `test_prose_denylist_actually_catches_things` proves the scan fires, and
+`test_regime_card_stays_a_parked_blank` fails if `results/regime_card.json` ever grows a reading. It was **not
+touched**.
+
+**Artifacts are deterministic** (no wall-clock stamp) so `test_committed_artifacts_are_not_stale` can assert the
+committed JSON and HTML still equal a fresh build — the `results/vol_descriptors.csv` failure of 2026-08-06,
+pre-empted. Regenerate with `python scripts/assumption_ledger.py` and commit both whenever the observation logs
+move.
+
+**What the two admitted signals cannot support yet:** (1) with one monitor and one context axis, the "ledger" is a
+single monitored assumption — the architecture's six-row table needs concentration/credit/tail to become a ledger
+in more than shape; (2) Level 2's covariance is **degenerate at n=2 correlated signals**, so joint rarity is not
+just unbuilt, it is under-determined until a third orthogonal signal is admitted; (3) both signals share one
+`available_at` cadence (the Ken French monthly file), so the multi-clock case the contract supports is untested in
+the rendering.
+
+**LEVEL 2 SEAM: `assumption_ledger.level2_context(state_vector)`**, currently returning
+`{"built": false, "seam": ...}` and rendered as an explicit not-built block. It is the ONLY attachment point;
+nothing else in the repo computes a distance. To implement, return
+`{"joint_rarity": {...}, "analogues": [...]}` — inputs are `ledger["level0_state_vector"]` (the live vector) and
+the full `observations/<signal>/history.ndjson` logs (the point-in-time history to build the reference
+distribution from). The choices left open on purpose: covariance window (expanding vs trailing, and the
+regime-mixing hazard), shrinkage against the degenerate n=2 case, causality of the reference distribution, the
+analogue distance metric, and whether analogues are matched on levels or on percentiles.
 
 ## Signal-research discipline (full text in CLAUDE.md)
 
