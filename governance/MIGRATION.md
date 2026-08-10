@@ -294,8 +294,15 @@ This is the single highest-value thing to fix before the machine change. It is n
 blocker — nothing breaks — but it is the file every future session reads first, and after the move
 it will confidently describe machinery that isn't there. `IMPLEMENTATION-PLAN.md` §10 already
 carries the row ("rewrite the framing section around the six monetization questions"); it was not
-completed in Step 0b. Same applies to `outputs/models/FROZEN.md`, which still references an
-`outputs/models/` directory that no longer exists (recoverable at `b1f3fa3e`).
+completed in Step 0b.
+
+`algo-trading-bot/README.md` is the same problem in the public-facing doc, and arguably worse: its
+directory tree and command list still document `regime_detector.py`, `regime_replay.py`,
+`daily_regime_report.py`, `rank_model_candidates.py` and `outputs/models/` — every one deleted.
+
+(An earlier revision of this section claimed `outputs/models/FROZEN.md` still carried a stale
+reference. It does not exist at all — the whole directory was deleted in the strip-down and is
+recoverable at `b1f3fa3e`. The hub file `algo-trading-bot.md:27` still cites it.)
 
 ---
 
