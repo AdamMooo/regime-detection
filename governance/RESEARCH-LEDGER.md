@@ -33,12 +33,63 @@ row is transcribed from evidence already recorded in the repos.
 |---|---|---|---|---|---|---|
 | MI-001 | A K=2 jump-model state label reads volatility better than a plain causal threshold | Exposure-matched head-to-head at both bear datings (`results/detector_benchmark.csv`) | Threshold + hysteresis matched or beat it on precision, recall and BAC, with shorter detection lag | **REJECTED** | Thresholding destroys the graded information in σ. `results/regime_card.json` parked as a consequence | 2026-08-04 |
 | MI-002 | Volatility descriptors (level · rarity · drift · GARCH half-life) are a usable production signal | Frozen one-look, `scripts/validate_vol.py` → `results/vol_validation.txt` | Signed off; maturity `production` | **VALIDATED** | Mechanism pass; measurement validity / investment usefulness / evidence maturity all H | 2026-08-06 |
-| MI-003 | Stock-bond correlation state describes whether bonds hedge equity drawdowns | Hedge-behavior-by-state, US 1962–2026 | Monotone through states: bonds cushioned 32% of equity-down days in the negative-corr regime vs fell-too 57% in the positive-corr regime | **VALIDATING** | Japan/Europe out-of-hypothesis-sample confirmation owed before SUPPORT. Note: average-return-by-state was **confounded by the rate cycle** — hedge behavior is the honest metric | 2026-08-06 |
-| MI-004 | The jump-model regime is a priced cross-sectional factor | REG on FF 25 size/BE-ME, spanning-regressed on FF3 and FF3+BAB, Newey-West(6); two FMP constructions | Constructions **disagree**: beta-sort α t=−1.30, mimicking-portfolio α t=−2.09 | **TESTING** (ambiguous) | Escalated to a Step-4 preregistered confirmatory test. An earlier "spanned, closed cheaply" verdict was **retracted** as an over-claim (wrong significance bar, misread negative α, uninterpretable ΔSh², under-controlled axis) | 2026-07-30 |
+| MI-003 | Stock-bond correlation state describes whether bonds hedge equity drawdowns | Frozen one-look, `scripts/validate_stockbond.py` → `results/stockbond_validation.txt`: hedge-behaviour-by-state on the registered monthly clock, US **and** the Japan/Europe out-of-hypothesis sample | **The OOS run was made.** V4 power pre-check cleared all three regions (≥24 months in every state). Fraction of equity-down months on which bonds ALSO fell, intact→under_test→violated: **US 28→44→56% · Japan 25→29→51% · Europe 27→32→48% — monotone in all three.** R1–R5 none tripped | **VALIDATED** | Phase 2 closed; results signed off 2026-08-07 at maturity **`research`**, not `production`: evidence maturity is `M` because both international panels start 1990-07, so the OOS sample contains **no 1970s–80s inflation regime** and the sign-flip cycle itself is untested abroad. Two honest caveats recorded: in Japan/Europe nearly all discrimination sits at `violated` rather than grading a smooth ladder, and V5 window-robustness is stable at 24m+ but noisy at 12m. Average-return-by-state was **confounded by the rate cycle** — hedge behaviour is the honest metric | 2026-08-07 |
+| MI-004 | The jump-model regime is a priced cross-sectional factor | REG on FF 25 size/BE-ME, spanning-regressed on FF3 and FF3+BAB, Newey-West(6); two factor-mimicking constructions | Constructions **disagree**: beta-sort α t=−1.30 (not significant), mimicking-portfolio α t=−2.09 (significant at \|t\|>2), **both with the negative/hedge sign** | **TESTING** (ambiguous — see Open questions below) | The one live question here with real upside. Escalated to a Step-4 preregistered confirmatory test **that has never been run, and nothing on the roadmap runs it.** An earlier "spanned, closed cheaply" verdict was **retracted** as an over-claim. Full record: `RESEARCH-RECORD.md` §2026-07-30 | 2026-07-30 |
 | MI-005 | State-conditional covariance adds allocation value | Fee-equivalent comparison vs a reactive EWMA covariance | fee_A +2.8 inside all bands; reactive EWMA beats it outright (fee_B −29.1) | **REJECTED** | The risk-stabilization mechanism exists (F2 clear), but reactive estimation harvests it better | 2026-07-23 |
 | MI-006 | Cross-asset defensive rotation timing adds value beyond exposure | Matched vol-target comparison | Null — timing adds no return or Sharpe beyond exposure; a matched vol-target matches or beats its drawdown protection | **REJECTED** | Exposure artifact. Chapter 1 reconfirmed for the third time | 2026-07-26 |
-| MI-007 | The absorption ratio is an admissible diversification signal | Signal declaration + validation | Dropped | **REJECTED** | `archive/dropped-signals/05-ABSORPTION-DROPPED.md` | — |
-| MI-008 | Funding stress is an admissible signal | Signal declaration + validation | Dropped | **REJECTED** | `archive/dropped-signals/07-FUNDING-DROPPED.md` | — |
+| MI-007 | The absorption ratio is an admissible diversification signal | Signal declaration + data-feasibility scout; no look spent | Dropped at the charter stage | **REJECTED** | `.planning/archive/dropped-signals/05-ABSORPTION-DROPPED.md` | 2026-08-09 |
+| MI-008 | Funding stress is an admissible signal | Signal declaration + data-feasibility scout; no look spent | Dropped at the charter stage | **REJECTED** | `.planning/archive/dropped-signals/07-FUNDING-DROPPED.md`. `scripts/build_funding.py` and both funding panels **deleted 2026-08-10** (recoverable in git history) | 2026-08-09 |
+| MI-009 | Valuation carries information about future long-horizon EXCESS equity returns, consistent with the Campbell–Shiller discount-rate mechanism | Frozen one-look, `scripts/validate_valuation.py` → `results/valuation_validation.txt` (V1–V6, charter v1.1 signed 2026-08-07). Bars registered before the look; **the look IS spent** | **Five of six bars clear; V6, the statistical bar, does NOT.** Shape and sign hold (log-CAPE slope −0.0033 at 1m → −0.610 at 10y, R² 0.001 → 0.257, silent sub-1yr), survive on *excess* returns, are **stronger pre-1982** than in 1982–2021, and reproduce on P/D and cap/GDP (which uses no earnings, so R6/Siegel does not trip). But the block bootstrap under the no-predictability null gives **p = 0.07–0.26 at every horizon, both return objects**; ρ = 0.9965 and corr(return innovation, regressor innovation) = **+0.96**; Stambaugh removes 64–72% of the raw one-month slope | **VALIDATING** | **R9 is live and the disposition is Adam's, not yet made** — the decision needs zero further build work. With ~13 effective independent 10-year observations in 145 years the data cannot separate the mechanism from a persistent-regressor artifact. Two defensible readings are written into the charter (demote to a pure measurement with no forward-return claim, vs weak-but-consistent across 20+ specifications that share one price series). **Do NOT rerun the bootstrap with another seed or block length.** R5 (payout confound) is a registered **UNTESTABLE** reject condition — no free net-buyback history. No `observations/valuation/` log exists while R9 is open, deliberately | 2026-08-07 |
+| MI-010 | The Gilchrist–Zakrajšek excess bond premium is an admissible credit signal — and its history is stable enough across vintages to support a rarity reading | **Not run.** Charter v1.0 FROZEN and SIGNED 2026-08-09 (`.planning/phases/06-credit-signal/06-CREDIT-CHARTER.md`, commit `29e7c3d`); build authorised; `scripts/validate_credit.py` scaffolded (self-tests pass, refuses to run without `--i-am-spending-the-one-look`); V2's evidence base harvested — **19 distinct vintages 2022-08-18..2025-12-03** in `data/vintages/ebp/`. **The one look is UNSPENT: no cross-vintage statistic has been computed** | **No result exists** | **IDEA** (charter signed, look unspent) | Registered pre-look, and **not reopenable**: maturity capped at **`research`** · **R2 firing ⇒ DROP, not demotion** (A: RMS revision ÷ σ ≤ 0.25 · B: Spearman ≥ 0.95 · **C: settled-month decile agreement ≥ 0.90, decisive**; two of three failing kills the signal). The EBP is a **regression residual refit monthly on the full sample**, so today's March-2008 value embeds coefficients fitted through 2026, and there are no ALFRED vintages — which is why V2 is the decisive bar. **G4 (uniqueness) is UNOPPOSED, not confirmed**: the registered leave-one-out was against MI-008, which was dropped, so that adjudication can never run; and the EBP regresses out a Merton distance-to-default that is itself a function of equity vol, so part of any measured orthogonality against MI-002 is **manufactured by construction** | 2026-08-09 |
+
+### Open questions
+
+Three `MI-*` rows are not finished. Two are waiting on a decision; one is waiting on a test nobody
+has scheduled.
+
+**MI-004 — is the regime innovation a priced hedge? The only open row with genuine upside, and it is
+invisible on every plan.** Read as a table row it looks stalled; read on the evidence it is a live
+result that was never confirmed or killed.
+
+- **What was actually found.** Two factor-mimicking constructions of the regime innovation Δs, both
+  with strictly-prior (causal) betas, spanning-regressed on FF3 and FF3+BAB with Newey–West(6):
+  beta-sort α t = **−1.30**, Lamont/BGL mimicking-portfolio α t = **−2.09**. Under the correct
+  \|t\|>2 spanning bar the mimicking construction **clears**, and both premia carry the
+  **negative** sign — the Ang–Hodrick–Xing–Zhang FVIX signature of a priced hedge you overpay for,
+  which is what a downside-vol regime factor structurally is. A marginally significant *negative* α
+  on a hedge candidate is arguably supporting evidence, not a kill.
+- **Why it is ambiguous rather than positive.** The two constructions disagree, and a candidate
+  resting on one of two is a reason for caution on its own. The earlier "SPANNED by FF3+BAB, closed
+  cheaply" verdict was **retracted the same day** as an over-claim built on four errors: Harvey–Liu–Zhu
+  t>3 applied to a *spanning* alpha (a \|t\|>2 question), "zero α" conflated with "negative α", ΔSh²
+  eyeballed with no BKRS standard error, and BAB treated as the controlling axis when a downside-vol
+  factor sits nearer the volatility/IVOL axis. The build was sound; the verdict was not.
+- **What would settle it, and why it has not run.** A preregistered confirmatory test was specified:
+  fixed control set FF3+BAB+IVOL/BAC, fixed \|t\|>2 bar, BKRS/GRS inference, a **required** negative
+  sign, international confirmation → overnight cooling-off → dated sign-off → **one look**. **No look
+  has been spent.** Adding the IVOL control and re-reading the α without that preregistration is
+  spec-searching on the answer sheet, which is why it cannot be done casually — and it is the reason
+  the row has sat untouched since 2026-07-30.
+- **Nothing on the roadmap resolves this.** Every open phase is a *market-understanding signal*
+  (concentration, credit, tail, then the Phase-10 presentation layer). MI-004 is a **cross-sectional
+  asset-pricing** question about whether a state innovation is priced — a different object, with no
+  phase, no charter and no owner. It will stay open until someone opens one.
+- **Do not close it by pointing at a neighbouring row.** MI-001 retired the K=2 label as a *reading of
+  volatility*; it says nothing about whether the label's innovation is priced in the cross-section.
+  The standing lesson that a regime fitted on an asset's own returns rediscovers volatility
+  (ALGO-003) is a real prior against MI-004 — but a prior is not the test.
+- **Where the evidence lives.** `RESEARCH-RECORD.md` §2026-07-30 (numbers, the correction block, and
+  the Step-4 specification). The machinery — `build_regime_factor_inputs.py`, `build_bab.py`,
+  `regime_factor.py`, `explore_regime_spanning.py` and `results/regime_spanning.csv` — was deleted
+  from the working tree by `3d51161` (2026-08-02, the allocation-program removal) and is recoverable
+  at `3d51161~1`. As with the `ALGO-*` rows, the finding is the durable artifact, not the code.
+
+**MI-009 — valuation's R9 disposition.** The look is spent and the result is on file; what is missing
+is Adam's dated ruling between the two readings written into the charter. **Zero build work.** Do not
+rerun the bootstrap.
+
+**MI-010 — credit's one look.** Charter signed, build authorised, evidence base harvested, scaffolding
+in place; the four statistics in `scripts/validate_credit.py` are unwritten and the look is unspent.
 
 ---
 
