@@ -604,6 +604,36 @@ records structural coverage only. There is no way to unspend a look.
 the Fed may have published days before the Archive crawled. So captures can prove the registered end-of-*t*+1 lag
 is *conservative* (it is, in all 19) but cannot prove it is tight.
 
+## PHASE 6 (CREDIT) — CHARTER FROZEN v1.0, SIGNED 2026-08-09 (`29e7c3d`). Build authorised.
+
+Renamed off `-DRAFT` to match the signed-charter convention. All four open items ruled:
+**PROCEED at a `research` ceiling** (registered pre-look, explicitly **not** reopenable on a strong V2 — the
+"revisit the ceiling later" option was offered and rejected) · **R2 ⇒ DROP, not demotion**
+(A ≤ 0.25 · B ≥ 0.95 · **C ≥ 0.90 decisive**; settled = months ≥ 12m before a vintage's last obs;
+demote-to-live-reading-only rejected because it emits a level with no rarity, the first D-02b exception) ·
+**numerics as drafted** (lag end-of-*t*+1 · bands 0.80/0.95 on the **percentile**, not the raw level · R4
+\|Spearman\| ≥ 0.90 · 120m burn-in + trailing-60m second lens) · **vintage archive YES, done**.
+
+**Three amendments recorded pre-signature, all no-look:**
+- **G4 is UNOPPOSED, not confirmed.** The charter registered a leave-one-out against Phase 7 with neither
+  pre-designated the survivor; **Phase 7 was dropped 2026-08-06**, so that adjudication can never run, and its
+  absence is not evidence of distinctness. With the standing V4 caveat (the EBP regresses out a Merton DD, itself
+  a function of equity vol, so part of any measured orthogonality is **manufactured by construction**), this
+  signal's uniqueness is **untested**, not established. Do not read a favourable V4 as proof.
+- **V2 wording corrected:** publication timing is **bounded from above** by captures, not "verified from" them.
+  A capture date is when the Archive *crawled*. All 19 show data arriving earlier than end-of-*t*+1 allows, so
+  the lag is demonstrably conservative but cannot be shown tight. **V2 must not treat capture dates as
+  publication dates.**
+- **The one-look script MUST handle dateless rows** — `build_credit.py:41` calls `pd.to_datetime` with no
+  `errors=` guard, and one vintage ships a trailing bare `,,,` line, so it becomes a NaT-indexed all-NaN row
+  without raising. The live panel is clean; the guard is absent, not satisfied.
+
+**▶ NEXT: `scripts/validate_credit.py`, the single frozen one-look (V1–V6 → `results/credit_validation.txt`).**
+Then overnight cooling-off, then a **separate dated results sign-off**. Two specification gaps must be closed
+BEFORE it runs (legitimate as clarifications now, specification search if resolved after seeing values):
+1. **Bar B aggregation across the 19 vintages is unspecified** — min (strictest), median, or pooled?
+2. **Bar C is "share of settled months"** — pooled across all vintages, or per-vintage then aggregated?
+
 ## Signal-research discipline (full text in CLAUDE.md)
 
 Causal-only; mechanism-first (orthogonality is a diagnostic, not the gate); confound-check every context stat;
