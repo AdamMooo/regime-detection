@@ -1,0 +1,914 @@
+{
+  "spec_version": "1.0",
+  "known_at": null,
+  "source": "admitted axes: observations/<signal>/history.ndjson via observation_history.current_view. candidate axes: recomputed from the committed monthly panel, no observation log exists.",
+  "axis_sequence": "alphabetical by axis name - deterministic and deliberately not a precedence. Axes are never sequenced, grouped or styled by standing or by novelty; the only structural split is admitted versus candidate, which is about evidence, not about either dimension.",
+  "informativeness_definition": {
+    "question_each_axis_answers": "When has this axis carried information, and what is it saying now?",
+    "informative_means": "This reading distinguishes now from this axis's own past, or the axis's own pre-registered status says something is not holding. It NEVER means the axis predicted anything, and no reading here is compared with what happened afterwards.",
+    "two_dimensions_never_merged": "Standing and novelty are independent and are reported side by side with equal prominence. 'This axis is not moving' and 'this axis is not important' are different claims and no single field carries both. An axis where nothing has changed AND the situation remains extreme is the most consequential thing this page can say, not a quiet row - so there is no combined field, no one-word axis summary, and no sorting, grouping or styling by either dimension.",
+    "standing": "What is this axis saying about the world right now, independent of whether it has just changed? Read from the axis's own declared status, where it declares one, and from how far into its own causal history the current reading sits: the tail mass beyond it, min(p, 1-p), against the tail the axis itself declares.",
+    "novelty": "Has this reading changed, and how recently did it arrive where it is? Read from the trend descriptor the axis's own signed charter registered, from how long its declared status has held unchanged, and from how long ago it was last inside its own tail. Novelty carries no threshold at all - only counts and the axis's own declared direction.",
+    "persistence_is_context_for_both": "A duration such as '52 months in, against a historical median of 52 and a longest of 129' informs novelty (an ordinary duration so far, so today's print is not news) and standing (it is still not holding, and half of comparable episodes ran longer). It is reported as a fact and never compressed into a rank.",
+    "owns_no_threshold": "The tail is read from each axis's own declared extreme_conditions.threshold_percentile and travels beside every figure that uses it, the same discipline as rarity.basis. This module invents no cut-off, exactly as assumption_ledger.status_of invents no status.",
+    "needs_no_preregistration": "There is no hypothesis, no estimated parameter and no outcome variable: every figure is a min, a mean, a run-length count, or a comparison against a number the axis published itself. A preregistration exists to prevent a specification search over outcomes; there is no outcome here to search over, and no look is spent.",
+    "caveat": "An expanding percentile is mechanically extreme during its own burn-in - with n observations the largest is always the 100th percentile - so every share and spell count below is inflated by the early history, and the earliest spells are one observation long for that reason. The same inflation is already present in the records' own extreme_conditions.share_of_history. Disclosed rather than tuned away with a burn-in cut, which would be a new knob.",
+    "registered_constraint": "no forward-return, drawdown, hit-rate, or lead/lag statistic is computed anywhere in this phase - not as a headline, not as a robustness check, not in a scratch script. The signal makes no forward claim, so there is nothing for such a statistic to validate, and computing one is how a measurement system drifts into a prediction system. [09-TAIL-CHARTER-DRAFT.md:36, carried verbatim]"
+  },
+  "reading_notes": [
+    "Every axis is a row here whether or not it carries a status. Only a quantity with a mechanical boundary can carry one honestly, and exactly one in this repo has one: the sign of the stock-bond correlation.",
+    "Standing and novelty are read together and neither is subordinate. Low novelty with high standing means nothing has changed AND the situation remains extreme - which is a finding, not a quiet row.",
+    "The readings are never combined into one number, never reduced to one word, and never ranked against each other. Axes appear in alphabetical sequence, which is deterministic and deliberately not a precedence.",
+    "Candidate axes are rendered in their own section. A candidate has no signed charter and no validation bar has run on it; its reading is a recomputation, not a point-in-time record. It is not evidence of anything yet.",
+    "Values, units, estimators and every status are carried verbatim from the source record. Nothing is converted or re-derived here."
+  ],
+  "admitted_axes": [
+    {
+      "axis": "stock_bond_correlation",
+      "kind": "assumption_monitor",
+      "admission": "admitted",
+      "assumption": "bonds hedge equity drawdowns",
+      "status": "violated",
+      "status_derivation": "DERIVED from the correlation, never standalone: corr < -0.10 intact, |corr| <= 0.10 under_test, corr > +0.10 violated. The +/-0.10 neutral band was pre-committed 2026-08-02 before looking and is not re-tunable.",
+      "as_of": "2026-06-30",
+      "available_at": "2026-07-15T14:00:00Z",
+      "clock": "monthly",
+      "reading": {
+        "value": 0.136,
+        "units": "pearson_correlation",
+        "estimator": "causal 24-month trailing Pearson correlation of monthly equity and 10y-bond total returns",
+        "context_band": "typical",
+        "undefined_reason": null,
+        "secondary_readings": [
+          {
+            "estimator": "causal expanding-window standardization of the 24m correlation",
+            "name": "level_z",
+            "undefined_reason": null,
+            "units": "standard_deviations",
+            "value": 0.1296
+          }
+        ]
+      },
+      "rarity": {
+        "level_percentile": 0.5206,
+        "basis": "expanding",
+        "basis_meaning": "ranked only against the signal's own history up to that date (causal)",
+        "window": null,
+        "calibration": "expanding percentile mean 0.47 over 1963-2026. Note the status and the rarity disagree by design: the correlation is positive (violated) yet only mid-percentile, because the 1970s-80s were positive too. Violated is not the same as unprecedented."
+      },
+      "maturity": "research",
+      "maturity_note": "RESEARCH GRADE, NOT PRODUCTION: a registered scope limitation or incomplete evidence base is unresolved; read as provisional",
+      "provenance": {
+        "admission": "admitted",
+        "reading_source": "observations/<signal>/history.ndjson via observation_history.current_view - the published point-in-time record, never a recomputation",
+        "point_in_time": "included in --known-at replay; filtered on available_at"
+      },
+      "informativeness": {
+        "standing": {
+          "question": "What is this axis saying about the world right now, independent of whether it has just changed?",
+          "declared_status": "violated",
+          "current_percentile": 0.5206,
+          "basis": "expanding",
+          "basis_meaning": "ranked only against the signal's own history up to that date (causal)",
+          "tail_mass_beyond_reading": 0.4794,
+          "threshold_percentile": 0.95,
+          "threshold_source": "the axis's own record: extreme_conditions.threshold_percentile",
+          "tail_definition": "inside the tail means the causal expanding percentile is >= 0.95 or <= 0.05, two-sided: an unusually low reading distinguishes now from history exactly as much as an unusually high one",
+          "inside_the_tail_now": false,
+          "reads": "the declared status reads violated, and has since 2022-03-31 (52 months); comparable episodes ran 52 at the median and 129 at the longest, so this one is at or past the median - it is still not holding, and half of comparable episodes ran longer; the reading sits at the 52.1st percentile of its own causal history, with 47.9% of that history further out, outside the tail this axis declares distinguishing."
+        },
+        "novelty": {
+          "question": "Has this reading changed, and how recently did it arrive where it is?",
+          "trend": {
+            "direction": "falling",
+            "level_percentile_change": -0.3332,
+            "lookback_observations": 12
+          },
+          "observations_since_the_declared_status_changed": 52,
+          "observations_since_inside_the_tail": 17,
+          "current_spell_length_inside_the_tail": 0,
+          "carries_no_threshold": "Novelty bands nothing. It reports counts and the direction the axis's own signed charter registered, so a low novelty reading can never be mistaken for a judgement that the axis does not matter.",
+          "reads": "the declared status has not changed for 52 months (since 2022-03-31), so today's print is not news; its level percentile moved -0.3332 over the last 12 observations (falling); it last sat inside that tail at 2025-01-31, 17 observations ago."
+        },
+        "persistence": {
+          "of_what": "the axis's own declared assumption status",
+          "current_value": "violated",
+          "current_length": 52,
+          "current_start": "2022-03-31",
+          "length_units": "months",
+          "comparable_definition": "a contiguous violated run of >= 12 months",
+          "comparable_median_length": 52,
+          "comparable_longest_length": 129,
+          "at_or_beyond_the_comparable_median": true,
+          "informs": "novelty AND standing, differently: an unchanged duration makes today's print unsurprising, and says nothing at all about whether the situation is serious. It is a fact here, never a rank."
+        },
+        "history": {
+          "grid": "available_at vintage grid - one observation per publication instant, which is what a consumer standing at that instant could have read",
+          "observations": 751,
+          "first_as_of": "1963-12-31",
+          "last_as_of": "2026-06-30",
+          "share_inside_the_tail": 0.2157,
+          "spell_count": 31,
+          "spell_median_length": 2,
+          "spell_max_length": 29,
+          "current_spell_length": 0,
+          "observations_since_inside_the_tail": 17,
+          "last_as_of_inside_the_tail": "2025-01-31",
+          "spells": [
+            {
+              "from": "1963-12-31",
+              "to": "1963-12-31",
+              "length": 1
+            },
+            {
+              "from": "1964-03-31",
+              "to": "1964-04-30",
+              "length": 2
+            },
+            {
+              "from": "1965-08-31",
+              "to": "1965-09-30",
+              "length": 2
+            },
+            {
+              "from": "1968-05-31",
+              "to": "1968-05-31",
+              "length": 1
+            },
+            {
+              "from": "1969-11-30",
+              "to": "1969-12-31",
+              "length": 2
+            },
+            {
+              "from": "1970-02-28",
+              "to": "1971-03-31",
+              "length": 14
+            },
+            {
+              "from": "1971-05-31",
+              "to": "1971-05-31",
+              "length": 1
+            },
+            {
+              "from": "1971-07-31",
+              "to": "1971-09-30",
+              "length": 3
+            },
+            {
+              "from": "1978-01-31",
+              "to": "1978-02-28",
+              "length": 2
+            },
+            {
+              "from": "1978-10-31",
+              "to": "1979-04-30",
+              "length": 7
+            },
+            {
+              "from": "1979-10-31",
+              "to": "1979-12-31",
+              "length": 3
+            },
+            {
+              "from": "1982-11-30",
+              "to": "1982-12-31",
+              "length": 2
+            },
+            {
+              "from": "1983-02-28",
+              "to": "1983-02-28",
+              "length": 1
+            },
+            {
+              "from": "1984-05-31",
+              "to": "1984-05-31",
+              "length": 1
+            },
+            {
+              "from": "1990-05-31",
+              "to": "1990-05-31",
+              "length": 1
+            },
+            {
+              "from": "1990-08-31",
+              "to": "1990-08-31",
+              "length": 1
+            },
+            {
+              "from": "1990-12-31",
+              "to": "1991-01-31",
+              "length": 2
+            },
+            {
+              "from": "1991-08-31",
+              "to": "1991-08-31",
+              "length": 1
+            },
+            {
+              "from": "1991-10-31",
+              "to": "1992-04-30",
+              "length": 7
+            },
+            {
+              "from": "1995-02-28",
+              "to": "1995-12-31",
+              "length": 11
+            },
+            {
+              "from": "1999-08-31",
+              "to": "2000-02-29",
+              "length": 7
+            },
+            {
+              "from": "2001-05-31",
+              "to": "2001-05-31",
+              "length": 1
+            },
+            {
+              "from": "2001-07-31",
+              "to": "2001-08-31",
+              "length": 2
+            },
+            {
+              "from": "2001-11-30",
+              "to": "2001-11-30",
+              "length": 1
+            },
+            {
+              "from": "2002-01-31",
+              "to": "2004-05-31",
+              "length": 29
+            },
+            {
+              "from": "2007-11-30",
+              "to": "2008-08-31",
+              "length": 10
+            },
+            {
+              "from": "2011-02-28",
+              "to": "2011-05-31",
+              "length": 4
+            },
+            {
+              "from": "2011-07-31",
+              "to": "2013-06-30",
+              "length": 24
+            },
+            {
+              "from": "2023-02-28",
+              "to": "2023-05-31",
+              "length": 4
+            },
+            {
+              "from": "2023-10-31",
+              "to": "2024-08-31",
+              "length": 11
+            },
+            {
+              "from": "2024-10-31",
+              "to": "2025-01-31",
+              "length": 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      "axis": "volatility",
+      "kind": "context_axis",
+      "admission": "admitted",
+      "assumption": "N/A because volatility is a context axis (the PC1 barometer), not an assumption-monitor. It colors how every other signal should be read; it carries no intact/violated status.",
+      "status": null,
+      "status_derivation": null,
+      "as_of": "2026-06-30",
+      "available_at": "2026-07-15T14:00:00Z",
+      "clock": "daily",
+      "reading": {
+        "value": 0.1521,
+        "units": "annualised_volatility",
+        "estimator": "EWMA lambda=0.94 on daily log returns, 252d burn-in",
+        "context_band": "typical",
+        "undefined_reason": null,
+        "secondary_readings": [
+          {
+            "estimator": "ln(0.5)/ln(alpha+beta) from GARCH(1,1)-t on a trailing 1260d window, refit quarterly",
+            "name": "shock_half_life",
+            "undefined_reason": null,
+            "units": "trading_days",
+            "value": 36.8
+          }
+        ]
+      },
+      "rarity": {
+        "level_percentile": 0.6968,
+        "basis": "expanding",
+        "basis_meaning": "ranked only against the signal's own history up to that date (causal)",
+        "window": null,
+        "calibration": "expanding percentile ~uniform (mean 0.48); corr(level, percentile) = 0.735"
+      },
+      "maturity": "production",
+      "maturity_note": "production: the full validation chain is complete and dated-signed-off",
+      "provenance": {
+        "admission": "admitted",
+        "reading_source": "observations/<signal>/history.ndjson via observation_history.current_view - the published point-in-time record, never a recomputation",
+        "point_in_time": "included in --known-at replay; filtered on available_at"
+      },
+      "informativeness": {
+        "standing": {
+          "question": "What is this axis saying about the world right now, independent of whether it has just changed?",
+          "declared_status": null,
+          "current_percentile": 0.6968,
+          "basis": "expanding",
+          "basis_meaning": "ranked only against the signal's own history up to that date (causal)",
+          "tail_mass_beyond_reading": 0.3032,
+          "threshold_percentile": 0.95,
+          "threshold_source": "the axis's own record: extreme_conditions.threshold_percentile",
+          "tail_definition": "inside the tail means the causal expanding percentile is >= 0.95 or <= 0.05, two-sided: an unusually low reading distinguishes now from history exactly as much as an unusually high one",
+          "inside_the_tail_now": false,
+          "reads": "this axis declares no status by design, so its standing is the reading itself; the reading sits at the 69.7th percentile of its own causal history, with 30.3% of that history further out, outside the tail this axis declares distinguishing."
+        },
+        "novelty": {
+          "question": "Has this reading changed, and how recently did it arrive where it is?",
+          "trend": {
+            "direction": "falling",
+            "level_percentile_change": -0.0589,
+            "lookback_observations": 10
+          },
+          "observations_since_the_declared_status_changed": null,
+          "observations_since_inside_the_tail": 14,
+          "current_spell_length_inside_the_tail": 0,
+          "carries_no_threshold": "Novelty bands nothing. It reports counts and the direction the axis's own signed charter registered, so a low novelty reading can never be mistaken for a judgement that the axis does not matter.",
+          "reads": "its level percentile moved -0.0589 over the last 10 observations (falling); it last sat inside that tail at 2025-04-30, 14 observations ago."
+        },
+        "persistence": null,
+        "history": {
+          "grid": "available_at vintage grid - one observation per publication instant, which is what a consumer standing at that instant could have read",
+          "observations": 1188,
+          "first_as_of": "1927-07-30",
+          "last_as_of": "2026-06-30",
+          "share_inside_the_tail": 0.0833,
+          "spell_count": 46,
+          "spell_median_length": 1,
+          "spell_max_length": 12,
+          "current_spell_length": 0,
+          "observations_since_inside_the_tail": 14,
+          "last_as_of_inside_the_tail": "2025-04-30",
+          "spells": [
+            {
+              "from": "1927-10-31",
+              "to": "1927-10-31",
+              "length": 1
+            },
+            {
+              "from": "1928-05-31",
+              "to": "1928-05-31",
+              "length": 1
+            },
+            {
+              "from": "1929-03-28",
+              "to": "1929-03-28",
+              "length": 1
+            },
+            {
+              "from": "1929-10-31",
+              "to": "1929-11-27",
+              "length": 2
+            },
+            {
+              "from": "1931-09-30",
+              "to": "1931-10-31",
+              "length": 2
+            },
+            {
+              "from": "1932-09-30",
+              "to": "1932-09-30",
+              "length": 1
+            },
+            {
+              "from": "1933-07-31",
+              "to": "1933-07-31",
+              "length": 1
+            },
+            {
+              "from": "1940-01-31",
+              "to": "1940-04-30",
+              "length": 4
+            },
+            {
+              "from": "1941-07-31",
+              "to": "1941-08-30",
+              "length": 2
+            },
+            {
+              "from": "1942-08-31",
+              "to": "1942-09-30",
+              "length": 2
+            },
+            {
+              "from": "1943-09-30",
+              "to": "1943-10-30",
+              "length": 2
+            },
+            {
+              "from": "1944-01-31",
+              "to": "1944-03-31",
+              "length": 3
+            },
+            {
+              "from": "1944-05-31",
+              "to": "1944-06-30",
+              "length": 2
+            },
+            {
+              "from": "1944-08-31",
+              "to": "1944-08-31",
+              "length": 1
+            },
+            {
+              "from": "1944-10-31",
+              "to": "1944-11-30",
+              "length": 2
+            },
+            {
+              "from": "1949-12-31",
+              "to": "1949-12-31",
+              "length": 1
+            },
+            {
+              "from": "1950-02-28",
+              "to": "1950-02-28",
+              "length": 1
+            },
+            {
+              "from": "1950-05-31",
+              "to": "1950-05-31",
+              "length": 1
+            },
+            {
+              "from": "1951-09-28",
+              "to": "1951-09-28",
+              "length": 1
+            },
+            {
+              "from": "1951-12-31",
+              "to": "1952-01-31",
+              "length": 2
+            },
+            {
+              "from": "1952-03-31",
+              "to": "1952-03-31",
+              "length": 1
+            },
+            {
+              "from": "1952-05-29",
+              "to": "1952-09-30",
+              "length": 5
+            },
+            {
+              "from": "1952-12-31",
+              "to": "1953-02-27",
+              "length": 3
+            },
+            {
+              "from": "1954-05-28",
+              "to": "1954-05-28",
+              "length": 1
+            },
+            {
+              "from": "1957-04-30",
+              "to": "1957-04-30",
+              "length": 1
+            },
+            {
+              "from": "1961-10-31",
+              "to": "1961-12-29",
+              "length": 3
+            },
+            {
+              "from": "1962-02-28",
+              "to": "1962-03-30",
+              "length": 2
+            },
+            {
+              "from": "1963-03-29",
+              "to": "1963-06-28",
+              "length": 4
+            },
+            {
+              "from": "1963-08-30",
+              "to": "1963-08-30",
+              "length": 1
+            },
+            {
+              "from": "1964-02-28",
+              "to": "1965-01-29",
+              "length": 12
+            },
+            {
+              "from": "1965-03-31",
+              "to": "1965-04-30",
+              "length": 2
+            },
+            {
+              "from": "1965-08-31",
+              "to": "1966-02-28",
+              "length": 7
+            },
+            {
+              "from": "1987-10-30",
+              "to": "1987-11-30",
+              "length": 2
+            },
+            {
+              "from": "1993-08-31",
+              "to": "1993-08-31",
+              "length": 1
+            },
+            {
+              "from": "1993-10-29",
+              "to": "1993-10-29",
+              "length": 1
+            },
+            {
+              "from": "1993-12-31",
+              "to": "1993-12-31",
+              "length": 1
+            },
+            {
+              "from": "1995-04-28",
+              "to": "1995-04-28",
+              "length": 1
+            },
+            {
+              "from": "1998-08-31",
+              "to": "1998-08-31",
+              "length": 1
+            },
+            {
+              "from": "2000-04-28",
+              "to": "2000-04-28",
+              "length": 1
+            },
+            {
+              "from": "2002-07-31",
+              "to": "2002-07-31",
+              "length": 1
+            },
+            {
+              "from": "2008-09-30",
+              "to": "2009-04-30",
+              "length": 8
+            },
+            {
+              "from": "2011-08-31",
+              "to": "2011-08-31",
+              "length": 1
+            },
+            {
+              "from": "2017-07-31",
+              "to": "2017-07-31",
+              "length": 1
+            },
+            {
+              "from": "2017-10-31",
+              "to": "2017-10-31",
+              "length": 1
+            },
+            {
+              "from": "2020-03-31",
+              "to": "2020-05-29",
+              "length": 3
+            },
+            {
+              "from": "2025-04-30",
+              "to": "2025-04-30",
+              "length": 1
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "candidate_axes": [
+    {
+      "axis": "concentration",
+      "kind": "context_axis",
+      "admission": "candidate",
+      "assumption": "N/A because concentration has no mechanical boundary. Its charter (unsigned) recommends no ledger status: 'eff_n has no mechanical boundary (unlike sign zero in stock-bond correlation); banding it re-introduces the knob the volatility reframe removed.' It is a structural context axis: how much of the index's capital sits in its largest buckets, how unusual that is, and nothing further.",
+      "status": null,
+      "status_derivation": null,
+      "as_of": "2026-06-30",
+      "available_at": null,
+      "clock": "monthly",
+      "reading": {
+        "value": 2.5372,
+        "units": "effective_buckets",
+        "estimator": "eff_n = 1 / sum_i s_i^2 over the 25 Ken French ME x BE/ME buckets (reciprocal Herfindahl), from the monthly firm-count and average-market-cap blocks; s_i = n_i * c_i / sum_j n_j * c_j",
+        "context_band": null,
+        "undefined_reason": null,
+        "secondary_readings": [
+          {
+            "name": "top_share",
+            "value": 0.61,
+            "units": "share_of_index_capital",
+            "estimator": "the largest of the 25 buckets' share of total bucket capital"
+          },
+          {
+            "name": "eff_n_z",
+            "value": -1.6318,
+            "units": "standard_deviations",
+            "estimator": "causal expanding-window standardization of eff_n, minimum 120 months",
+            "undefined_reason": null
+          }
+        ]
+      },
+      "rarity": {
+        "level_percentile": 0.0183,
+        "basis": "expanding",
+        "basis_meaning": "ranked only against the signal's own history up to that date (causal)",
+        "window": null,
+        "calibration": "causal expanding percentile of eff_n over 1926-07..2026-06. A LOW percentile means FEW effective buckets, i.e. capital unusually concentrated - the reading is not signed so that high reads bad."
+      },
+      "maturity": null,
+      "maturity_note": "NO MATURITY: not admitted. The charter is unsigned and no validation bar has run, so no maturity has been derived and none may be inferred from this row. The registered ceiling, if it is ever admitted, is `research`.",
+      "provenance": {
+        "admission": "candidate",
+        "charter": ".planning/phases/04-concentration-signal/04-CONCENTRATION-CHARTER-DRAFT.md",
+        "charter_state": "DRAFT - NOT FROZEN, NOT SIGNED (v0.2, 2026-08-06)",
+        "validation_bars_run": "NONE. V1-V6 are registered in the draft and not one has been run; no look has been spent; there is no results sign-off and no derived maturity.",
+        "what_has_been_run": "Construction only: results/concentration_gate.csv C1-C5 all pass (1200 months 1926-07..2026-06, 25/25 blocks agree, eff_n in [2.064, 10.627], shares sum to 1 within 4.4e-16, zero gaps), the panel is in data/processed/MANIFEST.csv, and tests/test_concentration.py holds concentration.build under assert_causal.",
+        "reading_source": "RECOMPUTED by concentration.build() from data/processed/concentration_monthly.csv. There is no observations/concentration/ log, so unlike an admitted axis this reading is not a published point-in-time record and carries no available_at. Acceptable for a candidate, whose purpose is to be visible while undecided; NOT acceptable for an admitted axis, where the published record is the source of truth and a recomputation could silently disagree with it.",
+        "point_in_time": "Excluded from --known-at replay: with no vintage log there is no honest answer to 'what would this axis have read as of instant T'.",
+        "no_trend_descriptor": "No trend reading is emitted. The admitted emitters band a percentile change into rising/falling/flat with a threshold declared in their signed charters; concentration's charter is unsigned, and this layer owns no thresholds.",
+        "maturity_ceiling_registered": "research, per the draft charter's header (resolution, coverage, restatement) - a ceiling registered before any look, not an earned tag."
+      },
+      "promotion_requires": [
+        "Open item 1 - PROCEED on the respecified level measure, or DROP? The draft recommends PROCEED with the level primary; spread-only is already ruled DROP.",
+        "Open item 2 - drop the rate descriptor (recommended DROP: it duplicates smb and reads only as a risk premium), or retain it behind the |corr(smb)| >= 0.90 bar?",
+        "Open item 3 - authorise the fetch (recommended YES; already fetched and gated).",
+        "Open item 4 - confirm V3 reported first, ledger status NONE, and the numeric bars as drafted (every number in the draft is marked [recommended - Adam to confirm/override]).",
+        "Open item 5 - if R3 fires, close NOT MEASURABLE and record paid constituent data as a costed item rather than a phase?",
+        "V3 (resolution) is the decisive one and its own charter expects it to fire: 'R3 => close NOT MEASURABLE - expected: the Mag-7 question is seven names inside one bucket.' Under this reframe V3 is arguably the right question rather than a gate - the axis can be informative about bucket-level capital concentration while being blind to concentration inside the top bucket - but that is a ruling for the owner, not a reading this module may make.",
+        "Then the standard chain: dated charter sign-off, one frozen validation script, one look, overnight cooling-off, separate dated results sign-off. Only then a derived maturity, an observations/concentration/ log, and a row in observation_history.EMITTERS."
+      ],
+      "informativeness": {
+        "standing": {
+          "question": "What is this axis saying about the world right now, independent of whether it has just changed?",
+          "declared_status": null,
+          "current_percentile": 0.0183,
+          "basis": "expanding",
+          "basis_meaning": "ranked only against the signal's own history up to that date (causal)",
+          "tail_mass_beyond_reading": 0.0183,
+          "threshold_percentile": 0.95,
+          "threshold_source": "declared here for the candidate at the same value the two admitted records declare (0.95), because no signed charter declares one for this axis. Disclosed as a presentation convention, not a registered bar.",
+          "tail_definition": "inside the tail means the causal expanding percentile is >= 0.95 or <= 0.05, two-sided: an unusually low reading distinguishes now from history exactly as much as an unusually high one",
+          "inside_the_tail_now": true,
+          "reads": "this axis declares no status by design, so its standing is the reading itself; the reading sits at the 1.8th percentile of its own causal history, with 1.8% of that history further out, INSIDE the tail this axis declares distinguishing; it has been inside that tail for 14 consecutive observations, against a median spell of 6."
+        },
+        "novelty": {
+          "question": "Has this reading changed, and how recently did it arrive where it is?",
+          "trend": null,
+          "observations_since_the_declared_status_changed": null,
+          "observations_since_inside_the_tail": 0,
+          "current_spell_length_inside_the_tail": 14,
+          "carries_no_threshold": "Novelty bands nothing. It reports counts and the direction the axis's own signed charter registered, so a low novelty reading can never be mistaken for a judgement that the axis does not matter.",
+          "reads": "no trend descriptor is declared for this axis; it has been inside its own tail for 14 consecutive observations, so the extremity itself is not new either."
+        },
+        "persistence": null,
+        "history": {
+          "grid": "the monthly panel's own grid - a recomputation, NOT a point-in-time vintage log; no observations/concentration/ history exists",
+          "observations": 1200,
+          "first_as_of": "1926-07-31",
+          "last_as_of": "2026-06-30",
+          "share_inside_the_tail": 0.1992,
+          "spell_count": 15,
+          "spell_median_length": 6,
+          "spell_max_length": 95,
+          "current_spell_length": 14,
+          "observations_since_inside_the_tail": 0,
+          "last_as_of_inside_the_tail": "2026-06-30",
+          "spells": [
+            {
+              "from": "1926-07-31",
+              "to": "1926-07-31",
+              "length": 1
+            },
+            {
+              "from": "1927-02-28",
+              "to": "1927-03-31",
+              "length": 2
+            },
+            {
+              "from": "1928-07-31",
+              "to": "1928-09-30",
+              "length": 3
+            },
+            {
+              "from": "1929-05-31",
+              "to": "1929-06-30",
+              "length": 2
+            },
+            {
+              "from": "1930-07-31",
+              "to": "1930-10-31",
+              "length": 4
+            },
+            {
+              "from": "1930-12-31",
+              "to": "1932-06-30",
+              "length": 19
+            },
+            {
+              "from": "1945-07-31",
+              "to": "1947-06-30",
+              "length": 24
+            },
+            {
+              "from": "1968-07-31",
+              "to": "1970-06-30",
+              "length": 24
+            },
+            {
+              "from": "1978-07-31",
+              "to": "1986-05-31",
+              "length": 95
+            },
+            {
+              "from": "1998-12-31",
+              "to": "1999-05-31",
+              "length": 6
+            },
+            {
+              "from": "1999-07-31",
+              "to": "2002-03-31",
+              "length": 33
+            },
+            {
+              "from": "2023-11-30",
+              "to": "2023-12-31",
+              "length": 2
+            },
+            {
+              "from": "2024-03-31",
+              "to": "2024-03-31",
+              "length": 1
+            },
+            {
+              "from": "2024-07-31",
+              "to": "2025-03-31",
+              "length": 9
+            },
+            {
+              "from": "2025-05-31",
+              "to": "2026-06-30",
+              "length": 14
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "assumption_ledger": [
+    {
+      "assumption": "N/A because volatility is a context axis (the PC1 barometer), not an assumption-monitor. It colors how every other signal should be read; it carries no intact/violated status.",
+      "kind": "context_axis",
+      "status": null,
+      "status_derivation": null,
+      "signals": [
+        "volatility"
+      ],
+      "evidence": [
+        {
+          "signal": "volatility",
+          "as_of": "2026-06-30",
+          "available_at": "2026-07-15T14:00:00Z",
+          "clock": "daily",
+          "reading": {
+            "value": 0.1521,
+            "units": "annualised_volatility",
+            "estimator": "EWMA lambda=0.94 on daily log returns, 252d burn-in",
+            "context_band": "typical",
+            "undefined_reason": null,
+            "secondary_readings": [
+              {
+                "estimator": "ln(0.5)/ln(alpha+beta) from GARCH(1,1)-t on a trailing 1260d window, refit quarterly",
+                "name": "shock_half_life",
+                "undefined_reason": null,
+                "units": "trading_days",
+                "value": 36.8
+              }
+            ]
+          },
+          "rarity": {
+            "level_percentile": 0.6968,
+            "basis": "expanding",
+            "basis_meaning": "ranked only against the signal's own history up to that date (causal)",
+            "window": null,
+            "calibration": "expanding percentile ~uniform (mean 0.48); corr(level, percentile) = 0.735",
+            "secondary_percentiles": [
+              {
+                "basis": "expanding",
+                "level_percentile": 0.4636,
+                "name": "durability",
+                "window": null
+              }
+            ]
+          },
+          "trend": {
+            "direction": "falling",
+            "level_percentile_change": -0.0589,
+            "lookback_observations": 10
+          },
+          "persistence": null,
+          "confidence": {
+            "mechanism_gate": "pass",
+            "measurement_validity": "H",
+            "investment_usefulness": "H",
+            "evidence_maturity": "H"
+          },
+          "maturity": "production",
+          "maturity_note": "production: the full validation chain is complete and dated-signed-off",
+          "cross_signal_relationships": [
+            "Conditions every other signal: the same valuation or concentration reading means something different in a high-volatility environment than a calm one.",
+            "Partially overlaps the stock-bond correlation signal (corr of the 126d state with equity volatility is non-zero) \u2014 mechanistically distinct, kept separate per the mechanism gate.",
+            "Descriptive only: persistence means volatility forecasts volatility, never returns or direction."
+          ]
+        }
+      ]
+    },
+    {
+      "assumption": "bonds hedge equity drawdowns",
+      "kind": "assumption_monitor",
+      "status": "violated",
+      "status_derivation": "DERIVED from the correlation, never standalone: corr < -0.10 intact, |corr| <= 0.10 under_test, corr > +0.10 violated. The +/-0.10 neutral band was pre-committed 2026-08-02 before looking and is not re-tunable.",
+      "signals": [
+        "stock_bond_correlation"
+      ],
+      "evidence": [
+        {
+          "signal": "stock_bond_correlation",
+          "as_of": "2026-06-30",
+          "available_at": "2026-07-15T14:00:00Z",
+          "clock": "monthly",
+          "reading": {
+            "value": 0.136,
+            "units": "pearson_correlation",
+            "estimator": "causal 24-month trailing Pearson correlation of monthly equity and 10y-bond total returns",
+            "context_band": "typical",
+            "undefined_reason": null,
+            "secondary_readings": [
+              {
+                "estimator": "causal expanding-window standardization of the 24m correlation",
+                "name": "level_z",
+                "undefined_reason": null,
+                "units": "standard_deviations",
+                "value": 0.1296
+              }
+            ]
+          },
+          "rarity": {
+            "level_percentile": 0.5206,
+            "basis": "expanding",
+            "basis_meaning": "ranked only against the signal's own history up to that date (causal)",
+            "window": null,
+            "calibration": "expanding percentile mean 0.47 over 1963-2026. Note the status and the rarity disagree by design: the correlation is positive (violated) yet only mid-percentile, because the 1970s-80s were positive too. Violated is not the same as unprecedented.",
+            "secondary_percentiles": []
+          },
+          "trend": {
+            "direction": "falling",
+            "level_percentile_change": -0.3332,
+            "lookback_observations": 12
+          },
+          "persistence": {
+            "current_length": 52,
+            "current_start": "2022-03-31",
+            "length_units": "months",
+            "major_episode_definition": "a contiguous violated run of >= 12 months",
+            "major_episode_median_max": [
+              52,
+              129
+            ]
+          },
+          "confidence": {
+            "mechanism_gate": "pass",
+            "measurement_validity": "H",
+            "investment_usefulness": "H",
+            "evidence_maturity": "M"
+          },
+          "maturity": "research",
+          "maturity_note": "RESEARCH GRADE, NOT PRODUCTION: a registered scope limitation or incomplete evidence base is unresolved; read as provisional",
+          "cross_signal_relationships": [
+            "Partially overlaps the volatility signal statistically; mechanistically distinct (PC2 inflation/real-rate vs PC1 risk-off) and kept separate per the mechanism gate.",
+            "Read alongside volatility: a violated hedge assumption in a calm market and in a stressed one are different environments, and neither reading substitutes for the other.",
+            "Descriptive only: this reports the realized correlation state. It does not forecast when the sign will flip and does not claim the flip is forecastable."
+          ]
+        }
+      ]
+    }
+  ],
+  "level2_context": {
+    "built": false,
+    "seam": "Level 2 (regime relevance) is NOT built. It attaches here: joint rarity of the preserved state vector (Mahalanobis / turbulence distance) plus nearest-neighbour historical analogues of the CONFIGURATION, both forecasting-free. The inputs are already present: level0_state_vector is the live vector and observations/<signal>/history.ndjson is its full point-in-time history. A Level-2 lens is computed FROM the vector and sits BESIDE it; it never replaces the per-signal readings and is never a rank of good or bad."
+  }
+}
