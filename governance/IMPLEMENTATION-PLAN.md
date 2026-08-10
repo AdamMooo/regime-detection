@@ -2,11 +2,16 @@
 
 Date: 2026-08-09 | Baseline: `CROSS-REPO-AUDIT-2026-08-09.md` (accepted)
 Revision: Algo reframed as the **monetization layer** (2026-08-09)
-Status: **IN EXECUTION.** ~~PLAN ONLY. No repository has been modified. Nothing below has been executed.~~
-Steps **0a · 0b · 1 · 9 · 3** are DONE; Step 4 is in progress as of 2026-08-10. **The execution log
-below is the authority on what is true of the tree — the section bodies describe what was
-planned, and where execution diverged the divergence is annotated in place.** Amendments recorded
-2026-08-10: the §3.3 preamble (every `ARCHIVE` became `DELETE`), D-2, and two §12 lines.
+Status: **SUBSTANTIALLY EXECUTED as of 2026-08-10.** ~~PLAN ONLY. No repository has been modified.
+Nothing below has been executed.~~ Steps **0a · 0b · 1 · 9 · 3 · 4 · 5 · 2** are DONE. Step 6 is
+complete except one row that the charter reserves for a human; Step 7 is de facto satisfied by the
+first real evidence record. **Every step of the original plan has now been executed or is blocked
+only on a human decision.**
+
+**The execution log below is the authority on what is true of the tree — the section bodies describe
+what was *planned*, and where execution diverged the divergence is annotated in place.** Amendments
+recorded 2026-08-10: the §3.3 preamble (every `ARCHIVE` became `DELETE`), D-2, two §12 lines, and
+five divergences in §6 — one of which (the buying-power gate) is a **design error, not a deviation**.
 
 **Decisions D-1, D-2, D-3 are RESOLVED and locked (2026-08-09) — see §11.**
 Live trading is to be **suspended**; the gauge is archived and **not replaced by an
@@ -25,11 +30,11 @@ Review this document before any code change. §12 lists what will not be touched
 | **1** | Algo strip-down (§3.3) | ✅ **DONE** 2026-08-09 | `9f6e4a28` — 102 files, **−15,382 lines**. **DELETED not archived** (Adam: "we want gone not fixed"); recoverable at `b1f3fa3e`. Tests 204 → **52 passing**. Bot dry-run verified: exits without trading. Ledger written first, so the findings outlived the code. **Scope of the override, verified against the tree 2026-08-10 — see the §3.3 preamble:** no `archive/` directory was ever created; `outputs/models/` is gone entirely (8 frozen `.joblib` artifacts **and** `FROZEN.md`), as are `scripts/daily_regime_report.py` and its cron. This overrides **D-2** and the `outputs/models/*.joblib` line in **§12**, both of which still read as written. |
 | **9** | Research ledger (§9) | ✅ **DONE** 2026-08-09 | `RESEARCH-LEDGER.md` — **pulled forward from Step 6**: deleting the code made it the only thing preserving ALGO-001…009. 16 seeded findings, 9 of them nulls |
 | **3** | MI history + contract v1 (§5) | ▶ **NEXT** | **reordered 2026-08-09 (Adam): regime-detection is the first stop after the strip-down.** The bot now has nothing to consume; MI producing point-in-time records is what makes validated inputs possible |
-| 4 | Algo reconciliation (§6) | after 1 | precondition for the bot ever trading again |
-| 5 | Consumer vendoring + checksum tests | after 3 | |
-| 2 | PM disposition (§4) | after 3 | **demoted** — PM works today and only carries dead code; lower urgency than MI |
-| 6 | Research ledger seeding (§9) | after 1, 2 | |
-| 7 | Evidence record schema (§8) | after 3, 5, 6 | |
+| **4** | Algo reconciliation (§6) | ✅ **DONE** 2026-08-10 | `b83e0a6e` `0e35e037` `aad8bac5` `42ba1df4` + 3 doc/label commits. Tests 67 → **135**, all offline. Both §6.1 defects fixed: `last_rebalance` advances only on `CLEAN`, and `rebalancing_in_progress` is gone — a ledger with submissions but no reconciliation now resolves to `HALT`, one with no submissions to `CARRY_FORWARD`, which is exactly the distinction the single boolean could not express. **Five spec divergences amended in §6.** Precondition for the bot trading again is satisfied; the remaining blockers are the strategy call contract and the admission gate |
+| **5** | Consumer vendoring + checksum tests | ✅ **DONE** 2026-08-10 | Both consumers pinned. algo `d84b9960`, PM `c30e1f2`; all three repos hash to `49257038…b219bcf`. **`core.autocrlf=true` is set in Git-for-Windows' *system* config, so it is invisible to `--global` and will very likely be true on the new machine too** — a CRLF rewrite on checkout would present the same commit as contract drift. Each repo carries a `.gitattributes` pinning `eol=lf`; verified by simulating a fresh `autocrlf=true` clone of all three (pins hold, 0 CR bytes) |
+| **2** | PM disposition (§4) | ✅ **DONE** 2026-08-10 | `d8acd0d` `fec34a0` `b22f5ab` `c30e1f2` `d52d9ac` + `e1086e9`. −381 lines of market-state machinery from `market_sentiment.py` (all five confirmed zero call sites) and −365 from its tests; `src/regime.py` deleted; **8** false `regime_card.json` claims corrected (§10 listed five; three more were found while verifying); `portfolio-sprint/` relocated to `C:\dev\portfolio-sprint\`. Tests 151 → **131**, net −20 by design. The daily brief keeps sending. **`REGIME_REPO_PAT` is now read by no code and can be revoked** |
+| 6 | Research ledger seeding (§9) | ◐ **MOSTLY DONE** 2026-08-10 | Seeded at Step 9; brought current today (`272acda` `ee7c581`): MI-003 → `VALIDATED` with its OOS numbers, **MI-009** valuation and **MI-010** credit added, MI-004 expanded plus a new `### Open questions` section. **Blocked on a human, by charter design:** the `ALGO-008` row still reads `IDEA` and its draft cites `owner_verdict`, which §8 of the prereg reserves for Adam |
+| 7 | Evidence record schema (§8) | ◐ **DE FACTO DONE** | `evidence/ALGO-008-2026-08-10.json` was emitted 2026-08-10 carrying `hypothesis_id`, `n_variants: 3`, fold dates, result and decision — ahead of this step's place in the order. What remains is formalising the shape as a schema rather than a convention |
 
 **Revised order:** `0a ✅ → 0b ✅ → 1 → 3 → 4 → 5 → 2 → 6 → 7`
 
@@ -432,7 +437,41 @@ timestamp fields.
 
 ## 6. Reconciliation design
 
-**Design only. Not implemented.**
+~~**Design only. Not implemented.**~~ **IMPLEMENTED 2026-08-10** — `execution/reconciliation.py`
+(broker-agnostic: imports neither `alpaca-py` nor `config`), `alpaca_executor.py` gained the three
+lookup methods, `main.py` sequences phases and holds no reconciliation logic. Tests 67 → **135**,
+verified offline by monkeypatching `socket.socket` to raise. Both §6.1 defects fixed. The bot still
+cannot trade: `ACTIVE_STRATEGY = None` (asserted by a test) and `trading.yml` is byte-identical.
+
+> **AMENDED 2026-08-10 — five places this design did not survive contact with the code.**
+>
+> 1. **The buying-power gate in §6.5 is provably non-binding, and this is a real error in the design
+>    above.** The bot sizes targets off `min(sleeve, buying_power)`, so `sum(buys) ≤ effective_bp` —
+>    the very figure the gate compares against. It can never fire. It is retained as a documented
+>    tripwire, **not as a protection**; do not later "simplify" it away *or* start trusting it. The
+>    condition that actually binds, and that the old code did protect, is now explicit: a failed sell
+>    blocks the buys it was funding, with a recorded reason instead of the previous silent skip.
+>    Making the gate meaningful requires changing the sizing base, which changes trading behavior —
+>    deliberately out of scope.
+> 2. **That gate also had to move phases.** §6.5 lists buying-power under RISK CHECK, but it is only
+>    evaluable *after* sells are submitted. It lives in `submit_cycle` and still writes into
+>    `risk_checks`, so the ledger shape is unchanged.
+> 3. **§6.4's `cause` enum is short two values.** §6.5's prose requires `EXPLAINED` to cover "blocked
+>    check, or open order"; the enum has neither. Added `open_order`, and non-BP blocks now carry the
+>    gate's own name (`stale_quote`, `max_order_frac`, …). `insufficient_bp` stays reserved for the
+>    gate in (1).
+> 4. **`done_for_day` is absent from §6.4's `broker_status` set.** Mapped to `open` / `terminal: false`
+>    rather than inventing a label or implying finality — consistent with "absence of fill information
+>    is not evidence of a fill."
+> 5. **`CARRY_FORWARD`'s "force a rebalance regardless of cadence" has no cadence left to override.**
+>    Regime-conditional cadence was deleted with the gauge on 2026-08-09 (D-1), so `last_rebalance` is
+>    the only cadence state. `CARRY_FORWARD` sets a `force_rebalance` flag and withholds the
+>    `last_rebalance` advance; **any future cadence rule must consult that flag** or it will silently
+>    re-introduce the §6.1 defect.
+>
+> One behavior chosen, not derived: `MAX_ORDER_NOTIONAL_FRAC = 0.35` can deadlock the liquidation of an
+> inherited position larger than 35% of the portfolio — blocked every cycle, `EXPLAINED`, carried
+> forward until a human acts. Fail-closed on purpose, recorded as a Known Issue.
 
 ### 6.1 The gap, precisely
 
