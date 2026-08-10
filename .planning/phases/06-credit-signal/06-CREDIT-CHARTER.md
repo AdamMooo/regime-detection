@@ -1,8 +1,56 @@
 # Research Charter — Credit / Excess Bond Premium (Phase 6)
 
-# DRAFT — NOT FROZEN, NOT SIGNED
+# v1.0 — FROZEN. CHARTER SIGNED OFF BY ADAM 2026-08-09.
 
-Nothing here is pre-registered. **No look spent:** framework reading, data-coverage inspection and vintage research only — no value computed, no hypothesis tested, no statistic below. Template v1.1, held to `validation-standards.md` v1.1; becomes v1.0 on Adam's dated signature. (Long-form rationale for every line: git history of this file.)
+**The pre-registration below is now BINDING.** Every V bar, R condition, threshold and construction
+choice is frozen as written and is not re-tunable after a value has been seen. **No look spent as of
+this signature:** framework reading, data-coverage inspection and vintage research only — no value
+computed, no hypothesis tested, no statistic anywhere below. Signing freezes the pre-registration
+only; it is **not** a positive claim, so no cooling-off applies to *this* signature. The one-look and
+its **separate dated RESULTS sign-off** come after, and that one does require cooling-off. Template
+v1.1, held to `validation-standards.md` v1.1. (Long-form rationale and the v0.1/v0.2 drafts: git
+history of this file.)
+
+## CHARTER SIGN-OFF — Adam, dated 2026-08-09
+
+All four open items ruled. Dispositions, in the charter's own numbering:
+
+| # | Item | Ruling |
+|---|---|---|
+| 1 | PROCEED or drop | **PROCEED, maturity capped at `research`.** The cap is registered *before* the look and is not reopenable on a strong V2 — the option to "revisit the ceiling if V2 comes back strong" was offered and **rejected**, because a strong V2 is precisely when dropping the cap becomes tempting. |
+| 2 | R2 consequence | **DROP, not demotion.** Two of V2's three bars failing kills the signal. Thresholds frozen: **A** RMS revision ÷ full-sample σ ≤ 0.25 · **B** Spearman(vintage, today) ≥ 0.95 · **C** settled months agreeing within ±1 decile ≥ 0.90, **C decisive**. Settled portion = months ≥ 12m before a vintage's last observation. Rationale accepted as drafted: untrustworthy history kills both "how unusual" and "what did comparable environments look like", which is two thirds of the product and fails G4. *Demote-to-live-reading-only was rejected* — it would emit a level with no rarity, the first exception to D-02b in the repo. |
+| 3 | Numeric defaults | **All accepted as drafted.** Publication lag = **end of *t*+1** (`PUBLICATION_LAG_MONTHS = 2` on a month-start index) · ledger bands **0.80 / 0.95 on the causal expanding percentile**, never the raw level, because the EBP is a residual whose units are not independently interpretable · **R4** diagnostic threshold \|Spearman\| ≥ 0.90 vs the monthly volatility reading · **120-month burn-in** (NaN before) with a **trailing-60m** fraction-higher second lens. |
+| 4 | Vintage archive | **YES to both, and the harvest is DONE** — see the harvest record below. The home-made "PIT EBP" **stays rejected**. |
+
+**Build is authorised.** Next step is the single frozen one-look script (V1–V6 → `results/credit_validation.txt`), then overnight cooling-off, then a separate dated results sign-off.
+
+## Harvest record (2026-08-09, no look spent)
+
+`scripts/harvest_ebp_vintages.py` → **19 distinct vintages, 2022-08-18 .. 2025-12-03**, in
+`data/vintages/ebp/` with a checksum manifest regenerated from disk each run. **No cross-vintage
+statistic was computed** — revision magnitude, rank correlation and decile agreement *are* V2 bars
+A/B/C, and there is no way to unspend a look.
+
+Three things the harvest established, none of them a look:
+
+1. **Schema is identical across all 19** (`date, gz_spread, ebp, est_prob`), confirming this charter's
+   claim.
+2. **Correction to this charter's V2 wording.** The Data-limits section said publication timing was
+   "verified from captures". It is **bounded from above** by captures, not verified: a capture date
+   is when the Archive *crawled*, and the Fed may have published days earlier. Across all 19 the data
+   arrived **earlier** than the end-of-*t*+1 rule allows, so the registered lag is demonstrably
+   **conservative** — but the captures cannot show it is tight, and V2 must not treat capture dates
+   as publication dates.
+3. **One vintage carries a vendor defect** (2025-06-12: a trailing bare `,,,` row, recorded as
+   `dateless_rows=1`). It matters for the one-look because **`build_credit.py:41` calls
+   `pd.to_datetime` with no `errors=` guard**, so such a row becomes a NaT-indexed all-NaN row
+   *without raising*. The live `credit_monthly.csv` is clean (642 rows, zero NaT) — the guard is
+   absent, not satisfied. **The one-look script must reject or explicitly handle dateless rows in
+   every vintage it reads.**
+
+**Known gap: the 2026-03-23 capture is not harvested** — the Archive began refusing connections
+after ~20 requests, so it is a rate-limit casualty, not an absent capture. Re-run the script to pick
+it up. V2 may run on 19 or 20 vintages; the count actually used must be stated in the results.
 
 ## Header + Stage-0 gate (PASS, on the EBP residual — NOT on raw spreads)
 
@@ -13,6 +61,7 @@ Nothing here is pre-registered. **No look spent:** framework reading, data-cover
 - **G1/G2** — the price of bearing US corporate credit risk above expected default is the cleanest public read on the risk-bearing capacity of the intermediary sector, the marginal supplier of capital to risky claims; not observable from equity-return dynamics.
 - **G3** — raw spreads share the large majority of their variation with the equity-volatility axis (`sensor-orthogonality-evidence`) and are REJECTED as the reading; only the residual is admitted, raw spreads surviving as a data-integrity companion (V5).
 - **G4** — nothing else in the set reads credit-risk pricing. Registered caveat: the margin against **Phase 7 (funding stress)** is genuinely uncertain — both rest on intermediary balance sheets. Claimed distinction: short-dated money-market frictions (daily) vs the price of long-dated credit risk (monthly). Re-run leave-one-out across the pair once both exist; neither is pre-designated the survivor.
+  - **AMENDED 2026-08-09 (pre-signature, no look).** **Phase 7 was DROPPED 2026-08-06**, so the leave-one-out adjudication registered above **can never run**. Consequence, stated plainly rather than allowed to lapse into a pass: **G4 is now UNOPPOSED, not confirmed.** The one candidate that might have shown this signal to be redundant no longer exists, and its absence is not evidence of distinctness. Anyone later reading a favourable V4 as proof of orthogonality must read this line first — combined with the V4 caveat below (the EBP regresses out a Merton distance-to-default, itself a function of equity volatility, so part of any measured orthogonality is manufactured by construction), the honest position is that this signal's uniqueness is **untested**, not established.
 - **G5** — strong prior: Gilchrist–Zakrajšek (2012 *AER*); Favara–Gilchrist–Lewis–Zakrajšek (FEDS Notes 2016); He–Krishnamurthy (2013); Adrian–Etula–Muir (2014); He–Kelly–Manela (2017). Published monthly by the Board.
 
 ## Mechanism — why it survives being known
@@ -54,9 +103,9 @@ The first admitted signal with a vintage surface at all (the others are built fr
 
 - **`credit_monthly.csv` is clean:** 642 rows, 1973-01-01→2026-06-01 month-start, cols `date, gz_spread, ebp, est_prob`, **zero** missing, no gaps, sample start stable across every archived vintage checked. `est_prob` is **excluded entirely** — an explicit recession forecast has no place in this repo.
 - **`credit_daily.csv`: the kickoff's "OAS proxies 1986+" is WRONG for two of three columns.** Per-column spans (MANIFEST): `baa_10y` 1986-01-02+ (10,147 obs), `ig_oas`/`hy_oas` **2023-08-07+ only** — FRED serves a rolling ~3-year window of ICE BofA data under licence. So V5's long-history unrevised companion is `baa_10y` plus Moody's monthly `BAA`/`AAA` (1919+); the OAS columns are a 3-year contemporary cross-check, never history.
-- Vintage archive: ~24 usable captures 2022-08-18→2026-03-23, schema-identical, irregular cadence, not yet harvested into the repo.
+- Vintage archive: **HARVESTED 2026-08-09 — 19 distinct vintages, 2022-08-18 .. 2025-12-03**, schema-identical (verified, all 19), irregular cadence, committed to `data/vintages/ebp/` with per-file sha256. The pre-look estimate of "~24 usable captures" resolved to 22 successful captures carrying 20 distinct contents, of which 19 are on disk. See the Harvest record at the top of this charter, including the correction that capture dates bound publication **from above only**.
 
-## Construction spec (frozen on sign-off) + open items — `[recommended — Adam to confirm/override]`
+## Construction spec (FROZEN 2026-08-09) + open items — ALL FOUR RESOLVED, see the sign-off table above
 
 `scripts/credit_ebp.py::build(panel)` on the shared causal spine; input `credit_monthly.csv` col `ebp`; publication lag enforced in code; rarity = `causal.expanding_percentile`, 120-month burn-in (NaN before) with a trailing-60m fraction-higher second lens; `causal.expanding_z` companion; **vintage stamped in code** (sha256 of source + build date → `results/credit_vintage.json`) so any later result ties to the vintage it used; one look = V1–V6 in a single frozen script → `results/credit_validation.txt`; Level-0 output schema-validated, `clock = monthly`.
 
