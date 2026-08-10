@@ -3,7 +3,7 @@
 ## Status
 A **market-signal research system** (see CLAUDE.md HARD BOUNDARY — market data → independent signals →
 historical context → regime relevance → STOP; never allocation/decisions). The equity-ownership / allocation
-program was removed from this repo 2026-08-02 (recoverable in git history). Branch: main | Last updated: 2026-08-03
+program was removed from this repo 2026-08-02 (recoverable in git history). Branch: main | Last updated: 2026-08-09
 
 ## Current direction — independent market-signal modules (find → validate → present → STOP)
 
@@ -368,7 +368,48 @@ conditional on Adam accepting the price-of-protection reframe; absorption, fundi
 (3) Phase 7 drop vs standalone-limited · (4) Phase 9 reframe-and-proceed vs drop · (5) each charter's dated
 sign-off before its build. Nine `[recommended]` items are marked inside the Phase 9 draft alone.
 
-## NEXT ACTION
+## NEXT ACTION (rewritten 2026-08-09)
+
+**Adam's ruling 2026-08-09: keep the three dropped signals dropped (absorption · funding · crowding); take the
+three half-built ones — concentration (4) · credit (6) · tail (9) — through to looks.** Each is further along than
+"halfway": a complete draft charter *and* a committed working construction. What is missing is identical in all
+three — **Adam's rulings on the `[recommended]` lines → dated charter sign-off → one frozen validation script →
+one-look → cooling-off → dated results sign-off.**
+
+**Read this before spending effort: two of the three pre-registered their own likely failure.**
+- **Phase 4 V3 (resolution), decisive** — charter says R3 firing is *expected*: "the Mag-7 question is seven names
+  *inside* one bucket." The 25 ME×BE/ME buckets may be blind to the very phenomenon that motivates the signal.
+- **Phase 9 V4 (redundancy with vol), decisive** — "Registered prior: given Kozhan et al., R4 firing is likely,
+  not a surprise." Skew and VIX are two nonlinear functions of one state vector.
+- **Phase 6 V2 (vintage instability), decisive** — the only one whose odds are not pre-called against it.
+
+So honest expected yield is **1–2 signals, not 3**; final observatory is realistically **3–4**, not the 5–6 in the
+hub. Each failure would be a registered NULL, which is a legitimate output — but it is not more signals.
+
+**Recommended order: credit → concentration → tail.** Credit has the best odds and its evidence base is already
+harvested; concentration is cheapest (needs a monthly loader for `run_oos`, V5); tail's own charter names it "first
+phase to cut if capacity is tight."
+
+**Three consequences of the drops that were nowhere recorded until now:**
+1. **Concentration was unblocked for free.** Its charter set a *binding precondition* — "a written de-confliction
+   before Phase 5's charter opens, or one of the two drops." Absorption dropped ⇒ satisfied, no work.
+2. **Credit's G4 is now unopposed, not confirmed.** It registered "the margin against Phase 7 is genuinely
+   uncertain… re-run leave-one-out across the pair once both exist; neither is pre-designated the survivor."
+   Funding dropped ⇒ that adjudication never happens, so the uniqueness claim is **untested**.
+3. **Tail lost a confound test.** It registered absorption as "a real confound… registered for V7" (index skew
+   embeds implied correlation, BKM 2003). Phase 5 dropped ⇒ that confound can only be *disclosed*, never tested.
+   A cost of the drop, not a benefit.
+
+**Still open and unrelated to the above: valuation's R9 disposition** — a decision with zero build work, blocking a
+signal whose look is already spent. Both readings are written into the charter; do **NOT** rerun the bootstrap with
+another seed or block length.
+
+**Dropped-signal dead weight still in the tree** (Adam said drop them, not yet done): `scripts/build_funding.py` +
+`data/processed/funding_{daily,weekly}.csv` (nothing imports them — only a comment in `test_causal.py:57` mentions
+funding), and `.planning/ROADMAP.md` still lists Phase 7 and Phase 8 as open unchecked phases with Phase 9
+declaring "Depends on: Phase 8". ROADMAP is GSD-managed, not hand-edited.
+
+## NEXT ACTION (superseded — kept for the sequencing rationale)
 
 **▶ After vol's dated sign-off:** pick the next signal to take from kickoff → full charter → build. All are warm:
 - **Phase 2 (stock-bond intl OOS)** — un-gated (correction 2026-08-05): `scripts/build_intl_bonds.py` →
@@ -490,6 +531,78 @@ real sources, not assumed):
 section** — (1) R9 trips, demote to a pure measurement with no forward-return claim (the shape volatility took), or
 (2) weak-but-consistent across 20+ specifications, with the honest counter that those specifications share one
 price series. **Do NOT rerun the bootstrap with another seed or block length to see if p crosses 0.05.**
+
+## STEP 3 DONE (2026-08-09) — the observation contract + point-in-time history
+
+Plan §5 shipped in four commits (`9f1153a`, `b745e25`, `0ccc951`, `e70b399`). **143 tests pass** (was 42).
+
+- **`contracts/market-observation-v1.schema.json`** + `CHANGELOG.md` + 18 vectors (6 valid / 12 invalid, each
+  invalid one naming the rule it breaks). Consumers **vendor** a pinned copy with a sha256 assertion — no Python
+  import, so drift is a red test in the consumer. `tests/test_contract_conformance.py` runs every vector through
+  BOTH the JSON Schema and `signal_output_schema.py` and requires the same verdict: two implementations of one
+  rule set is only safe if something proves they agree.
+- **`scripts/data_vintage.py`** — per-source `available_at` policy with a stated CONSERVATISM RULE (over-state the
+  lag; getting it wrong optimistically is a look-ahead bug that shows up as better performance, never as an error).
+- **`rarity.basis`** is now a required enum (`expanding` / `trailing_fixed` / `full_sample`), which resolves the
+  cross-repo audit's **D2** at the interface. `full_sample` can never be `production`, enforced in both validators.
+- **`observations/<signal>/history.ndjson`** — volatility **1187 records 1927-07-30..2026-05-29**, stock-bond
+  **750 records 1963-12-31..2026-05-31**. Valuation deliberately absent while R9 is open.
+
+**DEVIATION from plan §5.4, disclosed in `contracts/CHANGELOG.md` (2 reasons, both found while implementing it):**
+(1) `<as_of>.json` **cannot express its own correction model** — §5.4 says a correction is "a new record with a
+later `available_at`", but a path keyed on `as_of` holds exactly one record, so the first correction either
+overwrites (killing the append-only guarantee stated in the same paragraph) or has nowhere to go. (2) Daily
+granularity is **22× redundant**: 25,938 `as_of` dates resolve to **1,187 distinct `available_at` vintages**
+because French publishes monthly, and vintage-mates are indistinguishable under the only legitimate filter.
+So: one NDJSON log per signal on the **vintage grid**, lines in canonical JSON so `sha256(line)` equals both the
+`MANIFEST.csv` hash and the hash `supersedes` cites. Same key + different content is **refused** — that refusal is
+the guarantee the log exists for.
+
+**These records are RECONSTRUCTIONS, not contemporaneous prints** (`provenance` column, `reconstructed`|`live`).
+Data-derived numbers are causal — one code path, `build_record(df.loc[:as_of])`, and a test asserts reading +
+rarity equal the committed descriptor at **every** `as_of`, which carries `assert_causal`'s guarantee through the
+slice. The **specification is not** point-in-time: a 1930 record carries a maturity derived from a 2026-08-06
+sign-off. Unavoidable, but it must be stated or a consumer reads `maturity: production` on a 1930 row and believes
+it was earned then.
+
+**Three live defects the work exposed** (none were hypothetical):
+- `trend.level_percentile_change` was **NaN during burn-in** → serialized as bare `NaN`, invalid strict JSON no
+  non-Python consumer can parse, while `direction` said `"flat"`, asserting flatness the data does not support.
+  Both now `null`; `canonical_bytes` uses `allow_nan=False` so it fails loudly.
+- `stockbond_level0` dropped on `corr` alone, so a record could be emitted mid-rarity-burn-in with
+  `level_pctile` NaN — where every comparison in `_band()` is False and it **silently returned "very high"**.
+- **`core.autocrlf` broke byte integrity.** No `.gitattributes` existed, so the SAME commit presented different
+  sha256s on Windows vs Linux — which silently breaks the **vendoring mechanism plan §5.1 rests on**: every
+  consumer would report contract drift that never happened. Now `contracts/** observations/** text eol=lf`.
+
+## PHASE 6 (CREDIT) — V2's EVIDENCE BASE HARVESTED 2026-08-09 (no look spent)
+
+`scripts/harvest_ebp_vintages.py` → **19 distinct EBP vintages, 2022-08-18..2025-12-03**, in
+`data/vintages/ebp/` + a manifest regenerated from disk each run. V2 is the phase's decisive bar and had **no
+evidence base in the repo**; the EBP is a residual refit monthly on the full sample (the Board: "the entire
+history of the EBP may revise each month"), there are **no ALFRED vintages**, and Archive coverage is not
+guaranteed to persist — so this was the one item with an irreversible cost to waiting.
+
+**NO cross-vintage comparison was computed, deliberately** — revision magnitude, rank correlation and decile
+agreement ARE V2 bars A/B/C, and V2 runs once, after sign-off, from a frozen script. The script fetches bytes and
+records structural coverage only. There is no way to unspend a look.
+
+**Findings from coverage inspection:**
+- **git had already corrupted one piece of evidence.** The Fed served the 2025-06-12 capture with CRLF, and
+  `autocrlf` normalized it into the blob: disk 39,244 bytes / 631 CRLF vs blob 38,613 / 0. Its sha256 attested to
+  **git's edit, not the Fed's bytes**. Fixed with `data/vintages/** -text` — deliberately stronger than `eol=lf`,
+  because these are a third party's originals and *any* normalization is a rewrite. **Never reformat evidence.**
+  Caught only because the manifest records checksums and something compared them.
+- Same capture ships a trailing bare `,,,` row (recorded as `dateless_rows=1`). It matters: **`build_credit.py:41`
+  calls `pd.to_datetime` with no `errors=` guard**, so such a row becomes a NaT-indexed all-NaN row *without
+  raising*. The live `credit_monthly.csv` is clean (642 rows, zero NaT) — the guard is absent, not satisfied.
+- Schema **is** identical across all 19 (`date, gz_spread, ebp, est_prob`), confirming the charter.
+- **Still missing: the 2026-03-23 capture** — a rate-limit casualty (the Archive began refusing connections after
+  ~20 requests), not an absent capture. Re-run the script to pick it up.
+
+**Methodological point for V2, not yet in the charter:** a capture date bounds publication from **above only** —
+the Fed may have published days before the Archive crawled. So captures can prove the registered end-of-*t*+1 lag
+is *conservative* (it is, in all 19) but cannot prove it is tight.
 
 ## Signal-research discipline (full text in CLAUDE.md)
 
