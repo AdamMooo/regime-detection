@@ -16,7 +16,53 @@ after the Stage-0 gate amendment — the spec every signal declares against).
 
 ## Status
 
-**2026-08-10 — the boundary this repo exports is now a real contract, the read is current, and credit's charter is
+**2026-08-10 (session 2) — the presentation layer shipped, and then the product was reframed because the schema,
+not signal scarcity, was capping the ledger at one row.** 215 tests (147 at midday, 42 on 2026-08-09).
+
+**The assumption ledger had ONE monitored assumption, and the cause was the vocabulary.**
+`{intact | under test | violated}` is only honest for a quantity with a **natural mechanical boundary** — and
+exactly one in this repo has one: correlation sign. Three charters independently refused to emit a status for the
+same stated reason (banding a boundaryless quantity *"re-introduces the knob the volatility reframe removed"* —
+volatility, concentration `04-…-DRAFT.md:16-17`, tail `09-…-DRAFT.md:7`). **That is a schema being rejected three
+times by this repo's own discipline, not eight signals failing.** So the output object changed: a **time-varying
+informativeness map** (`scripts/informativeness_map.py` → `results/informativeness_map.{json,html}`), with the
+assumption ledger kept as a section inside it and every axis a first-class row whether or not it carries a status.
+Honest row count goes **1 → 5-6 with no dataset purchased.** `scripts/assumption_ledger.py` is untouched and its
+artifacts still ship.
+
+**Each axis carries two independent dimensions, never merged.** `standing` (what the axis says about the world,
+independent of change) and `novelty` (has it moved, how unusual is its current position) — as a **closed key set**,
+so collapsing them into one field fails the boundary audit rather than depending on care. This came from a
+correction: *"this axis is not moving"* and *"this axis is not important"* are different claims, and a 52-month
+structural break is **maximally important and minimally novel**. A test asserts a high-standing / zero-novelty axis
+is never de-emphasised or sorted last.
+
+**The most informative thing the map says: the bond hedge is broken, and broken is not historically unusual.**
+`violated` since 2022-03-31, but only the **52.1st percentile** — *outside* its own declared distinguishing tail,
+because the 1970s-80s were positive too. The honest read is *"a normal state we are unaccustomed to,"* not a
+crisis. **Concentration is the one genuine extreme: 1.8th percentile of a century, 14 consecutive months in-tail
+against a median spell of 6** — rendered as a **candidate, not admitted** (charter unsigned, no validation bar run,
+`maturity: null`, sourced by recomputation, excluded from `--known-at` replay). Spell statistics characterise the
+three as genuinely different instruments: volatility 8.3% of history in-tail across 46 spells (median length 1),
+stock-bond 21.6% / 31 / 2, concentration 19.9% / 15 / **6** — fast, medium, slow.
+
+**The product must now prove it deserves to exist.** `ALGO-010` is pre-registered in algo-trading-bot
+(`1e94a94a`, **unsigned**): does the joint state contain information beyond the marginals and a reactive baseline?
+Registered consequence of failure is **delete the product, keep the infrastructure.** That test is forbidden here
+by the HARD BOUNDARY and belongs downstream — the first real cross-repo test the architecture was built for.
+Drafting it surfaced three things: the three-way conjunctive cell is **not estimable** (in-tail shares
+0.0833 × 0.2157 × 0.1992 over a 751-month intersection), **`maturity: null` is not in the contract's enum** so a
+candidate axis cannot cross the boundary at all, and the contract **forbids consumers branching on `status`** —
+which rescues stock-bond as a state variable, since the status is constant for 52 months but the percentile-tail
+variable is not. Independent priors: **under one in five.** The most plausible partial pass **saves the axes and
+deletes the tail discretization.**
+
+**Ledger bookkeeping closed:** MI-011 concentration, MI-012 tail, MI-013 crowding added — three signals, two live
+and one dropped, had been invisible in the file whose stated purpose is preventing rediscovery.
+
+---
+
+**2026-08-10 (session 1) — the boundary this repo exports is now a real contract, the read is current, and credit's charter is
 signed with its look staged.** 147 tests (was 42 on 2026-08-09).
 
 **The observation contract shipped (plan §5).** `contracts/market-observation-v1.schema.json` + 18 conformance
