@@ -1,18 +1,54 @@
 # MIGRATION — moving the systematic-investing stack to a personal machine
 
 Hard stop on the current machine: **2026-08-25**. Written 2026-08-09, baseline verified same day.
-Scope: the three internal repos + these governance docs. **Not** in scope: the `C:\dev` Obsidian
-vault, `.config-vault` symlinks, `~/.claude/hooks`, or the GSD install — those are a separate
-migration.
+Scope: the three internal repos + these governance docs.
+
+## The vault does NOT move — a decision, not a deferral (recorded 2026-08-09)
+
+The `C:\dev` Obsidian vault is **excluded on purpose, and it must stay excluded.** Earlier wording
+called it "a separate migration," which reads as work still to be done — so a later session would
+helpfully finish the job. Do not. There are two independent reasons, and either alone is
+sufficient:
+
+1. **It is majority company work product, and it is not Adam's to move.** The vault interleaves
+   employer and client projects with the personal ones. Measured 2026-08-09: of 101 `_daily/`
+   notes, **66 contain company content and 32 of those mix company and personal work in the same
+   file**, so it cannot be filtered by file. `_audits/` is worse — **16 of 17**. All three vault
+   root files (`INDEX.md`, `CLAUDE.md`, `VAULT GUIDE.md`) reference both. Copying the vault to a
+   personal machine would carry work belonging to others. **This is the binding reason.**
+2. **It is redundant for these three repos.** Each is self-documenting and self-bootstrapping —
+   `CLAUDE.md`, `NOTES.md`, a hub file, `README.md`, `requirements.txt`, `.env.example`, its own
+   `tests/`, and (regime-detection) `RESEARCH-RECORD.md` plus these `governance/` docs. Roughly
+   300 KB of in-repo documentation, all git-versioned. The one layer you would expect only the
+   vault to hold — the cross-repo charter, plan, ledger and audit — was moved **into
+   `regime-detection/governance/`** on 2026-08-09 for exactly this reason. Nothing load-bearing
+   for the personal work lives outside the three repos.
+
+Corollary: the personal machine starts a **fresh** vault — new `_daily/`, a new `INDEX.md` naming
+only these three repos, a new `CLAUDE.md`. The historical vault stays on the company machine,
+where it belongs. If a specific personal-only note is ever wanted, it is hand-reviewed and
+copied one file at a time — never bulk-copied.
+
+Also out of scope, and merely deferred rather than forbidden: `.config-vault` symlinks,
+`~/.claude/hooks`, the GSD install.
+
+**Out of scope entirely: `vol-diagnostics`.** It is an outward-facing project with no code
+dependency on this stack in either direction, and its move is already **done** (2026-08-09). It is
+not one of the three repos and no step in this runbook refers to it.
 
 ---
 
 ## 0. The short version
 
 Git already carries almost everything. Verified 2026-08-09: all three repos have a **clean
-working tree**, **zero unpushed commits**, **zero stashes**, and **no hardcoded absolute paths**
-anywhere in `.py/.yml/.json/.ps1`. GitHub Actions secrets live in GitHub and travel by
-themselves.
+working tree**, **zero stashes**, and **no hardcoded absolute paths** anywhere in
+`.py/.yml/.json/.ps1`. GitHub Actions secrets live in GitHub and travel by themselves.
+
+⚠️ **Unpushed work as of 2026-08-09 (late): regime-detection 7 commits, algo-trading-bot 1,
+portfolio-manager 0.** The baseline above recorded zero, and that is no longer true — a clone on
+the new machine gets only what was pushed. `git push` all three **before** starting the move. The
+19 archived EBP vintages in `regime-detection/data/vintages/ebp/` are the one artifact here that
+cannot be regenerated if the Internet Archive stops serving them.
 
 So the move is: three clones, three venvs, **four secret values**, and **one 9.3 MB data folder**.
 Everything else is either in git or regenerable.
