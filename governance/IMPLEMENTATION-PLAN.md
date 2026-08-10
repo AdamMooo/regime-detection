@@ -2,7 +2,11 @@
 
 Date: 2026-08-09 | Baseline: `CROSS-REPO-AUDIT-2026-08-09.md` (accepted)
 Revision: Algo reframed as the **monetization layer** (2026-08-09)
-Status: **PLAN ONLY. No repository has been modified. Nothing below has been executed.**
+Status: **IN EXECUTION.** ~~PLAN ONLY. No repository has been modified. Nothing below has been executed.~~
+Steps **0a · 0b · 1 · 9 · 3** are DONE; Step 4 is in progress as of 2026-08-10. **The execution log
+below is the authority on what is true of the tree — the section bodies describe what was
+planned, and where execution diverged the divergence is annotated in place.** Amendments recorded
+2026-08-10: the §3.3 preamble (every `ARCHIVE` became `DELETE`), D-2, and two §12 lines.
 
 **Decisions D-1, D-2, D-3 are RESOLVED and locked (2026-08-09) — see §11.**
 Live trading is to be **suspended**; the gauge is archived and **not replaced by an
@@ -16,9 +20,9 @@ Review this document before any code change. §12 lists what will not be touched
 
 | Step | Action | Status | Detail |
 |---|---|---|---|
-| **0a** | Pause scheduled trading | ✅ **DONE** 2026-08-09 | `algo-trading-bot` `4810fb7f`, pushed to `origin/main`. All three crons commented; `workflow_dispatch` and both jobs unchanged. **The bot no longer trades on a schedule.** Resume = uncomment three lines. |
+| **0a** | Pause scheduled trading | ✅ **DONE** 2026-08-09 | `algo-trading-bot` `4810fb7f`, pushed to `origin/main`. All three crons commented; `workflow_dispatch` and both jobs unchanged. **The bot no longer trades on a schedule.** ~~Resume = uncomment three lines.~~ **Amended 2026-08-10:** Step 1 then deleted the morning-report cron along with its script, so `trading.yml` now carries **two** commented crons (14:00 and 19:30 UTC). Resume = uncomment two lines. |
 | **0b** | Documentation corrections (§10) | ✅ **DONE** 2026-08-09 | algo `b1f3fa3e` (4 files) · PM `db5cdf7` (5 files) · vault `C:\dev\CLAUDE.md` (paths + stack diagram). Docs-only; no code touched. **Surfaced a new finding — see `ALGO-009` below.** |
-| **1** | Algo strip-down (§3.3) | ✅ **DONE** 2026-08-09 | `9f6e4a28` — 102 files, **−15,382 lines**. **DELETED not archived** (Adam: "we want gone not fixed"); recoverable at `b1f3fa3e`. Tests 204 → **52 passing**. Bot dry-run verified: exits without trading. Ledger written first, so the findings outlived the code |
+| **1** | Algo strip-down (§3.3) | ✅ **DONE** 2026-08-09 | `9f6e4a28` — 102 files, **−15,382 lines**. **DELETED not archived** (Adam: "we want gone not fixed"); recoverable at `b1f3fa3e`. Tests 204 → **52 passing**. Bot dry-run verified: exits without trading. Ledger written first, so the findings outlived the code. **Scope of the override, verified against the tree 2026-08-10 — see the §3.3 preamble:** no `archive/` directory was ever created; `outputs/models/` is gone entirely (8 frozen `.joblib` artifacts **and** `FROZEN.md`), as are `scripts/daily_regime_report.py` and its cron. This overrides **D-2** and the `outputs/models/*.joblib` line in **§12**, both of which still read as written. |
 | **9** | Research ledger (§9) | ✅ **DONE** 2026-08-09 | `RESEARCH-LEDGER.md` — **pulled forward from Step 6**: deleting the code made it the only thing preserving ALGO-001…009. 16 seeded findings, 9 of them nulls |
 | **3** | MI history + contract v1 (§5) | ▶ **NEXT** | **reordered 2026-08-09 (Adam): regime-detection is the first stop after the strip-down.** The bot now has nothing to consume; MI producing point-in-time records is what makes validated inputs possible |
 | 4 | Algo reconciliation (§6) | after 1 | precondition for the bot ever trading again |
@@ -198,6 +202,19 @@ Dispositions: **KEEP** (core monetization engine) · **SIMPLIFY** (core, but car
 coupling to sever) · **ARCHIVE** (research history, inert, with a written post-mortem) ·
 **DELETE** (dead or belongs to another system) · **RE-HOME AS QUESTION** (the code is archived;
 the open question moves upstream as a new charter, not as a transfer).
+
+> **AMENDED 2026-08-10 — read this before the table.** The `ARCHIVE` column below records what was
+> *planned*. Step 1 executed **every `ARCHIVE` row as `DELETE`** on Adam's instruction ("we want gone
+> not fixed"). Verified against the tree 2026-08-10: **no `archive/` directory exists** in
+> `algo-trading-bot`, and neither do `archive/regime-gauge-v7/`, `archive/directional-hmm-v9/`,
+> `outputs/models/` (its 8 `.joblib` artifacts and `FROZEN.md`), or `scripts/daily_regime_report.py`.
+> Everything is recoverable from git at `b1f3fa3e`. **Nothing was lost — but no archive destination
+> named in this table exists on disk, so do not send anyone looking for one.** The table is kept
+> unedited because it is the record of the decision; this note is the record of the override. One
+> consequence worth naming: the gauge's **do-not-retrain rule died with `FROZEN.md`** and now survives
+> only in `.planning/phases/**` and `docs/ARCHITECTURE-AUDIT.md`. The artifacts are gone too, so
+> nothing can be retrained by accident — but if they are ever restored from `b1f3fa3e`, the rule must
+> be restored with them.
 
 | Component | Question it answers | Serves monetization? | Evidence on record | Disposition | Destination |
 |---|---|---|---|---|---|
@@ -729,6 +746,10 @@ Step 7  Evidence record schema + first emission (§8)
   its cron is disabled in Step 0, but `scripts/daily_regime_report.py` moves to
   `archive/regime-gauge-v7/` intact and is recoverable if MI's presentation layer takes longer
   than expected.
+  **⚠ OVERRIDDEN IN EXECUTION, 2026-08-09 (recorded 2026-08-10).** Step 1 deleted the script and its
+  cron rather than archiving them, under the blanket "gone not fixed" instruction. D-2's *intent* —
+  that the capability be recoverable, not destroyed — still holds and is still satisfied, but by **git
+  (`b1f3fa3e`) instead of by an on-disk archive**. Restoring it is a `git show` away, not a file move.
 - **D-3 — Sequencing risk on the live bot. → PAUSE `trading.yml` now.** All three crons
   (morning report + two trade windows) are disabled **in Step 0**, before any code changes. This
   is now the first action in the plan.
@@ -781,9 +802,15 @@ deletion — the file and its schedule lines are retained, commented, with a dat
 
 ### algo-trading-bot
 
-- `.holdout-quarantine/**` — `HOLDOUT.lock` stays sealed.
-- `outputs/models/*.joblib` — the 8 frozen artifacts, archived with their code, never
-  retrained.
+- `.holdout-quarantine/**` — ~~`HOLDOUT.lock` stays sealed.~~ **Corrected 2026-08-10: the lock has
+  read `status: UNSEALED, touched: true` since 2026-06-18 (`3b4fdca1`) over `2020-01-01 → present`.**
+  It was already unsealed when this plan was written; the plan was wrong, not the lock. The rule that
+  actually applies: **leave it exactly as it reads and never re-seal it to tidy the record.** The
+  operative consequence is that no historical window is clean, so the only virgin data is prospective.
+- ~~`outputs/models/*.joblib` — the 8 frozen artifacts, archived with their code, never
+  retrained.~~ **Moot 2026-08-10: `outputs/models/` no longer exists** — the artifacts and `FROZEN.md`
+  were deleted in Step 1 under the "gone not fixed" override, recoverable at `b1f3fa3e`. See the §3.3
+  preamble. Nothing here to protect, and nothing that can be retrained by accident.
 - `logs/**` and `outputs/bot_state.json` — live operational state.
 - `docs/ARCHITECTURE-AUDIT.md`, `docs/PRE-REGISTRATION.md`, `docs/AUDIT-2026-07-05.md` — the
   written record of why the rotation strategy failed honest testing.
