@@ -20,7 +20,8 @@
         "name": "level_z",
         "value": 0.1647,
         "units": "standard_deviations",
-        "estimator": "causal expanding-window standardization of the 24m correlation"
+        "estimator": "causal expanding-window standardization of the 24m correlation",
+        "undefined_reason": null
       }
     ]
   },

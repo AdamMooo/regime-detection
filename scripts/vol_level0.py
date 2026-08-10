@@ -42,7 +42,7 @@ def build_record(df: pd.DataFrame) -> dict:
     now, asof = d.iloc[-1], d.index[-1].date().isoformat()
 
     pct = d["vol_pctile"]
-    drift = float(pct.iloc[-1] - pct.iloc[-11]) if len(pct) >= 11 else float("nan")
+    drift = float(pct.iloc[-1] - pct.iloc[-11]) if len(pct) >= 11 else None
     extreme = pct >= 0.95
     last_extreme = extreme[extreme].index[-1].date().isoformat() if extreme.any() else None
 
@@ -96,9 +96,14 @@ def build_record(df: pd.DataFrame) -> dict:
             }],
         },
         "trend": {
-            "level_percentile_change": round(drift, 4),
+            # null, never "flat": with fewer than 11 observations the drift is unknown,
+            # and "flat" would assert something the data does not say. NaN would also
+            # serialize as invalid strict JSON, which the history writer refuses.
+            "level_percentile_change": None if drift is None else round(drift, 4),
             "lookback_observations": 10,
-            "direction": "rising" if drift > 0.03 else "falling" if drift < -0.03 else "flat",
+            "direction": None if drift is None else (
+                "rising" if drift > 0.03 else "falling" if drift < -0.03 else "flat"
+            ),
         },
         "extreme_conditions": {
             "threshold_percentile": 0.95,
@@ -124,8 +129,18 @@ def build_record(df: pd.DataFrame) -> dict:
     }
 
 
+def load_history() -> pd.DataFrame:
+    """Full descriptor history, date-indexed ascending.
+
+    `build_record(load_history().loc[:as_of])` is the only supported way to obtain a
+    past reading — same code path as the live one, with nothing after `as_of` in
+    scope. `observation_history.py` relies on this signature.
+    """
+    return pd.read_csv(SRC, parse_dates=["date"]).set_index("date").sort_index()
+
+
 def main() -> int:
-    df = pd.read_csv(SRC, parse_dates=["date"]).set_index("date")
+    df = load_history()
     record = build_record(df)
     validate(record)
     OUT.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")

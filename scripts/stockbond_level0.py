@@ -57,11 +57,16 @@ def _runs(state: pd.Series):
 
 
 def build_record(df: pd.DataFrame) -> dict:
-    d = df.dropna(subset=["corr"])
+    # level_pctile is in the dropna because of D-02b: the status is never emitted
+    # without the number AND its rarity, so a record is not emitable during the
+    # rarity burn-in. Dropping on `corr` alone also let _band() see a NaN, where
+    # every comparison is False and it silently returned "very high".
+    d = df.dropna(subset=["corr", "level_pctile"])
     now, asof = d.iloc[-1], d.index[-1].date().isoformat()
 
     pct = d["level_pctile"]
-    drift = float(pct.iloc[-1] - pct.iloc[-13]) if len(pct) >= 13 else float("nan")
+    drift = float(pct.iloc[-1] - pct.iloc[-13]) if len(pct) >= 13 else None
+    z = now["level_z"]
     extreme = pct >= 0.95
     last_extreme = extreme[extreme].index[-1].date().isoformat() if extreme.any() else None
 
@@ -92,9 +97,16 @@ def build_record(df: pd.DataFrame) -> dict:
             "context_band": _band(float(now["level_pctile"])),
             "secondary_readings": [{
                 "name": "level_z",
-                "value": round(float(now["level_z"]), 4),
+                "value": round(float(z), 4) if pd.notna(z) else None,
                 "units": "standard_deviations",
                 "estimator": "causal expanding-window standardization of the 24m correlation",
+                # No number quoted here on purpose: the burn-in belongs to the
+                # producer (stockbond_corr.build_monthly), and restating it would
+                # be a second copy free to drift from the one that governs.
+                "undefined_reason": (
+                    None if pd.notna(z) else
+                    "inside the expanding-z burn-in; too few observations to standardize"
+                ),
             }],
         },
         "rarity": {
@@ -108,9 +120,12 @@ def build_record(df: pd.DataFrame) -> dict:
             ),
         },
         "trend": {
-            "level_percentile_change": round(drift, 4),
+            # null, never "flat" — see the same guard in vol_level0.py.
+            "level_percentile_change": None if drift is None else round(drift, 4),
             "lookback_observations": 12,
-            "direction": "rising" if drift > 0.05 else "falling" if drift < -0.05 else "flat",
+            "direction": None if drift is None else (
+                "rising" if drift > 0.05 else "falling" if drift < -0.05 else "flat"
+            ),
         },
         "extreme_conditions": {
             "threshold_percentile": 0.95,
@@ -145,8 +160,14 @@ def build_record(df: pd.DataFrame) -> dict:
     }
 
 
+def load_history() -> pd.DataFrame:
+    """Full monthly descriptor history, date-indexed ascending. Same contract as
+    `vol_level0.load_history` — `observation_history.py` drives both through it."""
+    return pd.read_csv(SRC, index_col=0, parse_dates=True).sort_index()
+
+
 def main() -> int:
-    df = pd.read_csv(SRC, index_col=0, parse_dates=True)
+    df = load_history()
     record = build_record(df)
     validate(record)
     OUT.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
