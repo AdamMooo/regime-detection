@@ -1,8 +1,8 @@
 {
   "spec_version": "1.0",
   "signal": "stock_bond_correlation",
-  "as_of": "2026-05-31",
-  "available_at": "2026-06-15T14:00:00Z",
+  "as_of": "2026-06-30",
+  "available_at": "2026-07-15T14:00:00Z",
   "supersedes": null,
   "assumption_monitored": "bonds hedge equity drawdowns",
   "clock": "monthly",
@@ -11,14 +11,14 @@
     "derivation": "DERIVED from the correlation, never standalone: corr < -0.10 intact, |corr| <= 0.10 under_test, corr > +0.10 violated. The +/-0.10 neutral band was pre-committed 2026-08-02 before looking and is not re-tunable."
   },
   "reading": {
-    "value": 0.1494,
+    "value": 0.136,
     "units": "pearson_correlation",
     "estimator": "causal 24-month trailing Pearson correlation of monthly equity and 10y-bond total returns",
     "context_band": "typical",
     "secondary_readings": [
       {
         "name": "level_z",
-        "value": 0.1647,
+        "value": 0.1296,
         "units": "standard_deviations",
         "estimator": "causal expanding-window standardization of the 24m correlation",
         "undefined_reason": null
@@ -26,28 +26,28 @@
     ]
   },
   "rarity": {
-    "level_percentile": 0.5267,
+    "level_percentile": 0.5206,
     "basis": "expanding",
     "window": null,
     "calibration": "expanding percentile mean 0.47 over 1963-2026. Note the status and the rarity disagree by design: the correlation is positive (violated) yet only mid-percentile, because the 1970s-80s were positive too. Violated is not the same as unprecedented."
   },
   "trend": {
-    "level_percentile_change": -0.2633,
+    "level_percentile_change": -0.3332,
     "lookback_observations": 12,
     "direction": "falling"
   },
   "extreme_conditions": {
     "threshold_percentile": 0.95,
     "observations_at_or_above": 82,
-    "share_of_history": 0.1093,
+    "share_of_history": 0.1092,
     "most_recent_such_date": "2025-01-31",
     "episodes": {
-      "current_length": 51,
+      "current_length": 52,
       "current_start": "2022-03-31",
       "length_units": "months",
       "major_episode_definition": "a contiguous violated run of >= 12 months",
       "major_episode_median_max": [
-        51,
+        52,
         129
       ]
     }

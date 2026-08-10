@@ -59,6 +59,7 @@ import argparse
 import hashlib
 import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -216,8 +217,12 @@ def append(path: Path, candidates: list[dict], provenance: str) -> list[dict]:
         )
 
     path.parent.mkdir(parents=True, exist_ok=True)
+    # Append in `available_at` order so the log always reads in the order knowledge
+    # arrived. A correction discovered today therefore lands after a routine record for
+    # a later as_of that was publishable weeks ago — which is correct, and is why
+    # "newest line" is not the same question as "current belief" (see `current_view`).
     with path.open("a", encoding="utf-8", newline="\n") as fh:
-        for record in to_add:
+        for record in sorted(to_add, key=lambda r: (r["available_at"], r["as_of"])):
             fh.write(canonical_bytes(record).decode("utf-8") + "\n")
 
     _write_manifest(path.parent / "MANIFEST.csv", path, {key_of(r) for r in to_add}, provenance)
@@ -253,6 +258,61 @@ def _write_manifest(manifest: Path, log: Path, new_keys: set, provenance: str) -
 
 def log_path(signal: str) -> Path:
     return OBS / signal / "history.ndjson"
+
+
+def current_view(records: list[dict]) -> list[dict]:
+    """What we believe NOW: the latest `available_at` per `as_of`, ascending by `as_of`.
+
+    This is the query a consumer actually wants, and the reason the log keeps superseded
+    records instead of editing them — "what did we believe on date X, as of time T?" needs
+    both the original and the correction to still be there. Filter to
+    `available_at <= T` first to ask it as of a past instant.
+    """
+    latest: dict[str, dict] = {}
+    for record in records:
+        prior = latest.get(record["as_of"])
+        if prior is None or record["available_at"] >= prior["available_at"]:
+            latest[record["as_of"]] = record
+    return [latest[k] for k in sorted(latest)]
+
+
+def corrections_for(signal: str, now_iso: str) -> list[dict]:
+    """Records whose content changed for an `(as_of, available_at)` already logged.
+
+    A restatement is not an error and not something to overwrite. The source moved — the
+    vendor revised, or a downstream input was back-adjusted — so the honest record is a
+    NEW row carrying the new value, stamped with when we could first have known it, and
+    pointing at the hash of what it replaces.
+
+    `available_at` is the moment of REDISCOVERY (now), not the original publication
+    instant: nobody could have held the corrected value before we recomputed it. Using
+    the original `available_at` would both collide with the logged row and backdate
+    knowledge, which is the look-ahead this whole contract exists to prevent.
+
+    Compared against the CURRENT VIEW, not against the original row. Comparing against
+    the original would re-emit the same correction on every run forever: the original
+    keeps its old content by design, so it never stops differing. The question is
+    "does what we believe now already match the data?", and only `current_view` answers
+    it. Comparison ignores `available_at` and `supersedes`, since a correction differs in
+    exactly those two fields and nothing else.
+    """
+    log = read_log(log_path(signal))
+    current = {r["as_of"]: r for r in current_view(log)}
+    out = []
+    for record in build_records(signal):
+        prior = current.get(record["as_of"])
+        if prior is None or _payload_sha256(prior) == _payload_sha256(record):
+            continue
+        out.append(dict(record, available_at=now_iso, supersedes=record_sha256(prior)))
+    return out
+
+
+def _payload_sha256(record: dict) -> str:
+    """Hash of a record's SUBSTANCE — everything except when we learned it."""
+    return hashlib.sha256(
+        canonical_bytes({k: v for k, v in record.items()
+                         if k not in ("available_at", "supersedes")})
+    ).hexdigest()
 
 
 def check(signal: str) -> list[str]:
@@ -305,6 +365,11 @@ def main() -> int:
         "--provenance", choices=[RECONSTRUCTED, LIVE], default=RECONSTRUCTED,
         help="how newly-appended rows were obtained; backfill is 'reconstructed'",
     )
+    ap.add_argument(
+        "--emit-corrections", action="store_true",
+        help="after a data refresh restates history: append corrections (new records with "
+             "available_at=now and `supersedes` set) instead of refusing. Never rewrites.",
+    )
     args = ap.parse_args()
 
     signals = sorted(EMITTERS) if args.signal == "all" else [args.signal]
@@ -316,12 +381,27 @@ def main() -> int:
         print("clean" if not problems else f"{len(problems)} problem(s)")
         return 1 if problems else 0
 
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
     for signal in signals:
         path = log_path(signal)
-        added = append(path, build_records(signal), args.provenance)
+        candidates = build_records(signal)
+        fixes = []
+        if args.emit_corrections:
+            fixes = corrections_for(signal, now_iso)
+            # Drop candidates for as_ofs already in the log. An identical one is a no-op
+            # anyway; a CHANGED one must enter as its correction, not as itself — leaving
+            # it in would re-trigger the same-key conflict the corrections exist to
+            # resolve, which is exactly what happened the first time this ran.
+            logged_keys = {key_of(r) for r in read_log(path)}
+            candidates = [r for r in candidates if key_of(r) not in logged_keys]
+        added = append(path, candidates + fixes, args.provenance)
+        n_fix = sum(1 for r in added if r.get("supersedes"))
         total = len(read_log(path))
-        span = f"{total} records" if total else "empty"
-        print(f"{signal:24s} +{len(added):5d} appended  ({span})  {path.relative_to(ROOT)}")
+        print(
+            f"{signal:24s} +{len(added) - n_fix:4d} new  +{n_fix:3d} corrections  "
+            f"({total} records)  {path.relative_to(ROOT)}"
+        )
     return 0
 
 

@@ -92,7 +92,12 @@ def test_latest_record_matches_the_published_snapshot(signal):
     claiming to produce it. Tie them together instead of trusting them to agree.
     """
     published = json.loads(oh.EMITTERS[signal].OUT.read_text(encoding="utf-8"))
-    assert oh.record_sha256(_log(signal)[-1]) == oh.record_sha256(published)
+    # Compared against `current_view`, not the last LINE. Once a correction exists, the
+    # newest line is a restated OLD as_of (corrections carry available_at = now), so
+    # "newest line" and "current belief" are different questions. Getting this wrong once
+    # is how a log grows a false invariant.
+    current = oh.current_view(_log(signal))[-1]
+    assert oh.record_sha256(current) == oh.record_sha256(published)
 
 
 @pytest.mark.parametrize("signal", SIGNALS)
@@ -105,10 +110,14 @@ def test_reading_and_rarity_match_the_committed_descriptor(signal):
     `stockbond_corr.build` — and this test is what carries that guarantee through the
     slice: if slicing changed a value, the expanding statistics were not causal after
     all and every historical record would be quietly wrong.
+
+    Superseded rows are excluded: they hold what we believed BEFORE a source
+    restatement, so today's descriptor cannot reproduce them — which is precisely why
+    they are kept rather than overwritten.
     """
     module = oh.EMITTERS[signal]
     df = module.load_history()
-    for record in _log(signal):
+    for record in oh.current_view(_log(signal)):
         row = df.loc[pd.Timestamp(record["as_of"])]
         assert record["reading"]["value"] == pytest.approx(
             round(float(row[COLUMNS[signal][0]]), 4)
@@ -138,15 +147,54 @@ def test_historical_context_is_as_of_date_not_full_sample(signal):
 
 
 @pytest.mark.parametrize("signal", SIGNALS)
-def test_rebuilding_reproduces_the_log_exactly(signal):
-    """The log is reproducible from the committed descriptor, hash for hash.
+def test_rebuilding_reproduces_the_current_view(signal):
+    """Every non-superseded record is reproducible from the committed descriptor.
 
-    Also proves the writer is idempotent: a second run appends nothing, which is what
-    makes "append-only" safe to run on a schedule.
+    Superseded rows are excluded on purpose: they record what we believed BEFORE a
+    source restatement, so by construction today's descriptor can no longer reproduce
+    them — that is the whole reason they are kept rather than overwritten. Also proves
+    the writer is idempotent, which is what makes it safe to run on a schedule.
     """
     rebuilt = {oh.key_of(r): oh.record_sha256(r) for r in oh.build_records(signal)}
-    logged = {oh.key_of(r): oh.record_sha256(r) for r in _log(signal)}
-    assert rebuilt == logged
+    superseded = {r["supersedes"] for r in _log(signal) if r.get("supersedes")}
+    live = {
+        oh.key_of(r): oh.record_sha256(r)
+        for r in _log(signal)
+        if oh.record_sha256(r) not in superseded
+    }
+    # A correction shares its as_of with the row it replaces but carries a later
+    # available_at, so it is keyed differently and cannot be rebuilt from the vintage
+    # policy. Compare only the keys the builder can produce.
+    comparable = {k: v for k, v in live.items() if k in rebuilt}
+    assert comparable == {k: rebuilt[k] for k in comparable}
+
+
+@pytest.mark.parametrize("signal", SIGNALS)
+def test_current_view_has_one_record_per_as_of(signal):
+    """`current_view` must collapse corrections, not double-count them."""
+    view = oh.current_view(_log(signal))
+    as_ofs = [r["as_of"] for r in view]
+    assert len(as_ofs) == len(set(as_ofs))
+
+
+@pytest.mark.parametrize("signal", SIGNALS)
+def test_every_supersedes_points_at_a_real_earlier_record(signal):
+    """A dangling `supersedes` would make the correction chain unverifiable.
+
+    The hash must resolve to a record actually present in this log, and that record must
+    carry the same `as_of` and an EARLIER `available_at` — a correction that moved the
+    observation date, or backdated knowledge, is not a correction.
+    """
+    log = _log(signal)
+    by_hash = {oh.record_sha256(r): r for r in log}
+    for record in log:
+        prior_hash = record.get("supersedes")
+        if not prior_hash:
+            continue
+        assert prior_hash in by_hash, f"{signal}: supersedes {prior_hash[:12]} not in log"
+        prior = by_hash[prior_hash]
+        assert prior["as_of"] == record["as_of"]
+        assert prior["available_at"] < record["available_at"]
 
 
 def test_append_refuses_to_rewrite_an_existing_observation(tmp_path):
