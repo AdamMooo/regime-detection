@@ -369,7 +369,50 @@ conditional on Adam accepting the price-of-protection reframe; absorption, fundi
 (3) Phase 7 drop vs standalone-limited · (4) Phase 9 reframe-and-proceed vs drop · (5) each charter's dated
 sign-off before its build. Nine `[recommended]` items are marked inside the Phase 9 draft alone.
 
-## NEXT ACTION (rewritten 2026-08-09)
+## NEXT ACTION (rewritten 2026-08-11) — Phase 11 PARKED; the next move is in another repo
+
+**Session 2026-08-11. Zero looks spent. Nothing committed.** Full record in `_daily/2026-08-11.md`.
+
+**Phase 11 (cross-section structure) opened and PARKED the same day, pre-look**, on algebra and prior
+art — see the OUTCOME block at the top of
+`.planning/phases/11-cross-section-structure/11-STAGE0-GATE.md`. `Ψ² = s²/(s²+ρ̄²)` is a monotone
+transform of the coefficient of variation of the off-diagonal correlations, therefore
+**permutation-invariant** — it discards *which* pairs deviate, which was the entire point. Its numerator
+is exactly **Ledoit & Wolf's γ̂** (2004); `c_t` is **Herskovic et al., *JPE* 128(11) (2020) Table 5.**
+Ledger row **`MI-014`** (REJECTED) plus a new cross-cutting standing-lesson section above both tables.
+
+**The finding that reframes the programme: measurement and monetization need DIFFERENT UNIVERSES.**
+Market-mode variance share is 70–90% on industry panels vs 5–15% at stock level — aggregation averages
+away exactly the idiosyncratic variance a cross-sectional strategy trades. **This repo's free aggregated
+data is right for understanding and cannot reach monetization.** That is why every path dead-ended.
+
+**So the next action is NOT in this repo.** It is the single-name pilot (`ALGO-011`) in
+`algo-trading-bot` — see `_daily/2026-08-11.md` §Tomorrow for the full design, kill thresholds and the
+two items awaiting Adam.
+
+**New here, unsigned:** `.planning/framework/conditional-admission-amendment.md`, proposed **v2.0
+(breaking)** — the admission gate is univariate and the conditional-structure hypothesis is not.
+Marginal redundancy does not imply conditional redundancy. Two v1.0 rules would be removed: rejection on
+marginal redundancy alone, and the non-compensatory rule. **`signal-output-spec.md` v1.1 governs until
+Adam signs.**
+
+**Three literature reviews** now in `.planning/literature/` (risk decomposition & factors · dependency &
+networks · economic relevance). All three returned the same verdict: **the measurement is not new; the
+discipline is the contribution.** The one gap that survived scrutiny twice — Forbes–Rigobón (2002) /
+Boyer–Gibson–Loretan (1999) conditioning bias has never been carried to network estimators — is recorded
+as **UNOPPOSED, not confirmed.**
+
+**Blocked, needing Adam:** valuation R9 was ruled (Reading 1 — demote to pure measurement) but **cannot
+be recorded**, because the ledger's status vocabulary is verbatim the ALGO *monetization* ladder and has
+no status meaning "measurement admitted, predictive claim rejected." Schema redesign was paused.
+
+**Untracked in this repo:** `scripts/cross_section.py`, `tests/test_cross_section.py` (254 tests pass,
+**never run against repo data**), the Phase 11 gate, three literature files, the framework amendment.
+
+**Two data items to verify before planning on them:** DSPX history length, and a reported century-low
+10-industry trailing ρ̄ at the end of the panel — likely a tail-of-file defect, not a market fact.
+
+## NEXT ACTION (rewritten 2026-08-09 — superseded by the block above)
 
 **Adam's ruling 2026-08-09: keep the three dropped signals dropped (absorption · funding · crowding); take the
 three half-built ones — concentration (4) · credit (6) · tail (9) — through to looks.** Each is further along than
