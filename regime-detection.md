@@ -10,7 +10,7 @@ the current reading is against its own long history, and naming the abstract mar
 stopping. No forecast, no score, no decision (see [[regime-detection/CLAUDE|CLAUDE.md]] HARD BOUNDARY). The
 intelligence is the quality of each individual signal, never a combination of them.
 
-Governing docs: [[_planning/regime-detection/REGIME-SENSOR-ARCHITECTURE|REGIME-SENSOR-ARCHITECTURE.md]] (system
+Governing docs: [[GSD Projects/regime-detection/REGIME-SENSOR-ARCHITECTURE|REGIME-SENSOR-ARCHITECTURE.md]] (system
 design, incl. the 2026-08-06 objective restatement) and `.planning/framework/` (frozen v1.0 2026-08-03, now v1.1
 after the Stage-0 gate amendment — the spec every signal declares against).
 
